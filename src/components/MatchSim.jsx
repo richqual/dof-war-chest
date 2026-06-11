@@ -276,7 +276,8 @@ const MGR_MOTM_LINES = {
 // legContext = { homeAgg, awayAgg } when this is leg 2 of an aggregate tie.
 // ET/pens trigger on aggregate level rather than match level.
 // isLeg1 = true suppresses ET entirely (leg 1 of a 2-legged tie is always 90 min).
-export function generateEvents(homeSquad, awaySquad, homeName, awayName, legContext = null, homeFootballMgr = null, awayFootballMgr = null, isLeg1 = false) {
+// homeTactics / awayTactics: "defensive" | "balanced" | "attacking"
+export function generateEvents(homeSquad, awaySquad, homeName, awayName, legContext = null, homeFootballMgr = null, awayFootballMgr = null, isLeg1 = false, homeTactics = "balanced", awayTactics = "balanced") {
   // Resolve wildcard: pick a random style for the match
   function resolveStyle(fm) {
     if (!fm) return null;
@@ -310,9 +311,12 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     return 0;
   }
 
+  const TACTICS_MOD = { attacking: 0.05, balanced: 0, defensive: -0.04 };
+  const tacticsDelta = (TACTICS_MOD[homeTactics] ?? 0) - (TACTICS_MOD[awayTactics] ?? 0);
+
   const hEffStr = hStr + styleStrengthBonus(hStyle, true) + hTierMod * 50;
   const aEffStr = aStr + styleStrengthBonus(aStyle, true) + aTierMod * 50;
-  const ratio = hEffStr / (hEffStr + aEffStr);
+  const ratio = Math.min(0.82, Math.max(0.18, hEffStr / (hEffStr + aEffStr) + tacticsDelta));
 
   // Shuffle neutral lines once per match so no line repeats within a game.
   // With ~10 neutral events and 36 lines, repetition is extremely unlikely.
@@ -710,6 +714,8 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
       homeManager.footballManager ?? null,
       awayManager.footballManager ?? null,
       seriesContext?.isLeg1 ?? false,
+      homeManager.tactics ?? "balanced",
+      awayManager.tactics ?? "balanced",
     );
     eventsRef.current = r.events;
     nextIdxRef.current = 0;

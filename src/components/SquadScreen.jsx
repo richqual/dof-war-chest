@@ -13,9 +13,9 @@ const FORMATIONS = {
     { pos: "DM",  x: 50, y: 52 },
     { pos: "MF",  x: 28, y: 48 },
     { pos: "MF",  x: 72, y: 48 },
-    { pos: "RW",  x: 80, y: 28 },
-    { pos: "LW",  x: 20, y: 28 },
-    { pos: "ST",  x: 50, y: 14 },
+    { pos: "RW",  x: 80, y: 26 },
+    { pos: "LW",  x: 20, y: 26 },
+    { pos: "ST",  x: 50, y: 12 },
   ],
   "4-4-2": [
     { pos: "GK",  x: 50, y: 88 },
@@ -23,12 +23,12 @@ const FORMATIONS = {
     { pos: "LB",  x: 18, y: 70 },
     { pos: "CB",  x: 63, y: 70 },
     { pos: "CB",  x: 37, y: 70 },
-    { pos: "DM",  x: 75, y: 50 },
-    { pos: "MF",  x: 55, y: 50 },
-    { pos: "MF",  x: 35, y: 50 },
-    { pos: "RW",  x: 17, y: 50 },
-    { pos: "LW",  x: 35, y: 22 },
-    { pos: "ST",  x: 65, y: 22 },
+    { pos: "DM",  x: 78, y: 50 },
+    { pos: "MF",  x: 56, y: 50 },
+    { pos: "MF",  x: 34, y: 50 },
+    { pos: "RW",  x: 12, y: 50 },
+    { pos: "LW",  x: 34, y: 20 },
+    { pos: "ST",  x: 66, y: 20 },
   ],
   "4-5-1": [
     { pos: "GK",  x: 50, y: 88 },
@@ -39,11 +39,65 @@ const FORMATIONS = {
     { pos: "DM",  x: 50, y: 52 },
     { pos: "MF",  x: 28, y: 46 },
     { pos: "MF",  x: 72, y: 46 },
-    { pos: "RW",  x: 82, y: 30 },
-    { pos: "LW",  x: 18, y: 30 },
+    { pos: "RW",  x: 82, y: 28 },
+    { pos: "LW",  x: 18, y: 28 },
+    { pos: "ST",  x: 50, y: 12 },
+  ],
+  "3-5-2": [
+    { pos: "GK",  x: 50, y: 88 },
+    { pos: "RB",  x: 86, y: 54 },
+    { pos: "LB",  x: 14, y: 54 },
+    { pos: "CB",  x: 67, y: 74 },
+    { pos: "CB",  x: 33, y: 74 },
+    { pos: "DM",  x: 50, y: 74 },
+    { pos: "MF",  x: 28, y: 44 },
+    { pos: "MF",  x: 50, y: 42 },
+    { pos: "RW",  x: 72, y: 44 },
+    { pos: "LW",  x: 33, y: 20 },
+    { pos: "ST",  x: 67, y: 20 },
+  ],
+  "3-4-3": [
+    { pos: "GK",  x: 50, y: 88 },
+    { pos: "RB",  x: 86, y: 56 },
+    { pos: "LB",  x: 14, y: 56 },
+    { pos: "CB",  x: 65, y: 74 },
+    { pos: "CB",  x: 35, y: 74 },
+    { pos: "DM",  x: 50, y: 74 },
+    { pos: "MF",  x: 34, y: 48 },
+    { pos: "MF",  x: 66, y: 48 },
+    { pos: "RW",  x: 78, y: 20 },
+    { pos: "LW",  x: 22, y: 20 },
+    { pos: "ST",  x: 50, y: 12 },
+  ],
+  "5-3-2": [
+    { pos: "GK",  x: 50, y: 88 },
+    { pos: "RB",  x: 88, y: 64 },
+    { pos: "LB",  x: 12, y: 64 },
+    { pos: "CB",  x: 70, y: 76 },
+    { pos: "CB",  x: 30, y: 76 },
+    { pos: "DM",  x: 50, y: 74 },
+    { pos: "MF",  x: 25, y: 48 },
+    { pos: "MF",  x: 50, y: 46 },
+    { pos: "RW",  x: 75, y: 48 },
+    { pos: "LW",  x: 33, y: 20 },
+    { pos: "ST",  x: 67, y: 20 },
+  ],
+  "5-4-1": [
+    { pos: "GK",  x: 50, y: 88 },
+    { pos: "RB",  x: 88, y: 64 },
+    { pos: "LB",  x: 12, y: 64 },
+    { pos: "CB",  x: 70, y: 76 },
+    { pos: "CB",  x: 30, y: 76 },
+    { pos: "DM",  x: 50, y: 74 },
+    { pos: "MF",  x: 18, y: 48 },
+    { pos: "MF",  x: 40, y: 48 },
+    { pos: "RW",  x: 60, y: 48 },
+    { pos: "LW",  x: 82, y: 48 },
     { pos: "ST",  x: 50, y: 14 },
   ],
 };
+
+const TACTICS = ["defensive", "balanced", "attacking"];
 
 function squadRating(squad) {
   const starters = squad.slice(0, 11).filter(Boolean);
@@ -97,7 +151,7 @@ function FormationDiagram({ squad, formation, swapSlot, onSlotClick }) {
   );
 }
 
-function SquadDetail({ manager, managerIdx, setTeamName, swapSquadPlayers, onBack, onSimulate, allManagers, managers }) {
+function SquadDetail({ manager, managerIdx, setTeamName, swapSquadPlayers, setTactics, onBack, onSimulate, allManagers, managers }) {
   const [formation, setFormation] = useState("4-3-3");
   const [swapSlot, setSwapSlot] = useState(null);
   const [editingName, setEditingName] = useState(false);
@@ -211,73 +265,102 @@ function SquadDetail({ manager, managerIdx, setTeamName, swapSquadPlayers, onBac
         </div>
       </div>
 
-      <div className="formation-bar">
-        {Object.keys(FORMATIONS).map(f => (
-          <button
-            key={f}
-            className={`formation-btn ${formation === f ? "active" : ""}`}
-            onClick={() => setFormation(f)}
-          >
-            {f}
-          </button>
-        ))}
-        {swapSlot !== null && (
-          <span className="swap-hint">Click another slot to swap · <button className="cancel-swap" onClick={() => setSwapSlot(null)}>Cancel</button></span>
-        )}
-      </div>
+      <div className="squad-layout">
+        {/* Left column: formation selector + pitch */}
+        <div className="squad-left">
+          <div className="formation-bar">
+            {Object.keys(FORMATIONS).map(f => (
+              <button
+                key={f}
+                className={`formation-btn ${formation === f ? "active" : ""}`}
+                onClick={() => setFormation(f)}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
 
-      <FormationDiagram
-        squad={starters}
-        formation={formation}
-        swapSlot={swapSlot}
-        onSlotClick={handleSlotClick}
-      />
-
-      <div className="starting-xi-section">
-        <div className="section-title">STARTING XI</div>
-        <div className="starting-xi-list">
-          {starters.map((p, i) => p ? (
-            <div key={i} className="xi-row">
-              <span className="xi-pos">{POSITIONS[i].key === "SUB" ? "SUB" : POSITIONS[i].key}</span>
-              <span className="xi-nation">{p.nation}</span>
-              <span className="xi-name">{p.name}</span>
-              <span className="xi-club">{p.club}</span>
-              <span className="xi-rating" style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}>{p.rating}</span>
-            </div>
-          ) : null)}
+          <FormationDiagram
+            squad={starters}
+            formation={formation}
+            swapSlot={swapSlot}
+            onSlotClick={handleSlotClick}
+          />
         </div>
-      </div>
 
-      <div className="bench-section">
-        <div className="section-title">BENCH</div>
-        <div className="bench-list">
-          {bench.map((p, i) => (
-            <div
-              key={i}
-              className={`bench-item ${swapSlot === i + 11 ? "swapping" : ""} ${!p ? "empty" : ""}`}
-              onClick={() => handleBenchClick(i)}
-            >
-              {p ? (
-                <>
-                  <span className="bench-pos">SUB</span>
-                  <span className="bench-nation">{p.nation}</span>
-                  <span className="bench-name">{p.name}</span>
-                  <span className="bench-club">{p.club}</span>
-                  <span className="bench-rating" style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}>{p.rating}</span>
-                  <span className="bench-value">{formatValue(p.value)}</span>
-                </>
-              ) : (
-                <span className="bench-empty">Sub {i + 1} — empty</span>
-              )}
+        {/* Right column: tactics + XI list + bench */}
+        <div className="squad-right">
+          <div className="tactics-bar">
+            <span className="tactics-label">TACTICS</span>
+            {TACTICS.map(t => (
+              <button
+                key={t}
+                data-t={t}
+                className={`tactics-btn ${(manager.tactics || "balanced") === t ? "active" : ""}`}
+                onClick={() => setTactics && setTactics(managerIdx, t)}
+              >
+                {t.toUpperCase()}
+              </button>
+            ))}
+          </div>
+
+          {swapSlot !== null && (
+            <div className="swap-hint-bar">
+              Select a player to swap with · <button className="cancel-swap" onClick={() => setSwapSlot(null)}>Cancel</button>
             </div>
-          ))}
+          )}
+
+          <div className="starting-xi-section">
+            <div className="section-title">STARTING XI</div>
+            <div className="starting-xi-list">
+              {starters.map((p, i) => p ? (
+                <div
+                  key={i}
+                  className={`xi-row ${swapSlot === i ? "swapping" : ""}`}
+                  onClick={() => handleSlotClick(i)}
+                >
+                  <span className="xi-pos">{POSITIONS[i].key}</span>
+                  <span className="xi-nation">{p.nation}</span>
+                  <span className="xi-name">{p.name}</span>
+                  <span className="xi-club">{p.club}</span>
+                  <span className="xi-rating" style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}>{p.rating}</span>
+                </div>
+              ) : null)}
+            </div>
+          </div>
+
+          <div className="bench-section">
+            <div className="section-title">BENCH</div>
+            <div className="bench-list">
+              {bench.map((p, i) => (
+                <div
+                  key={i}
+                  className={`bench-item ${swapSlot === i + 11 ? "swapping" : ""} ${!p ? "empty" : ""}`}
+                  onClick={() => handleBenchClick(i)}
+                >
+                  {p ? (
+                    <>
+                      <span className="bench-pos">SUB</span>
+                      <span className="bench-nation">{p.nation}</span>
+                      <span className="bench-name">{p.name}</span>
+                      <span className="bench-club">{p.club}</span>
+                      <span className="bench-rating" style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}>{p.rating}</span>
+                      <span className="bench-value">{formatValue(p.value)}</span>
+                    </>
+                  ) : (
+                    <span className="bench-empty">Sub {i + 1} — empty</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, restartGame, setScreen, onBackToSeries }) {
+export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setTactics, restartGame, setScreen, onBackToSeries }) {
   const [viewIdx, setViewIdx] = useState(null);
   const { managers } = draft;
   const inSeries = !!draft.series;
@@ -289,6 +372,7 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, rest
         managerIdx={viewIdx}
         setTeamName={setTeamName}
         swapSquadPlayers={swapSquadPlayers}
+        setTactics={setTactics}
         onBack={() => setViewIdx(null)}
         onSimulate={inSeries ? null : (hi, ai) => { setScreen("match", { homeIdx: hi, awayIdx: ai }); }}
         allManagers={managers}

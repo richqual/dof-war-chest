@@ -988,7 +988,14 @@ input, select { font-family: var(--font); }
   font-family: var(--font-head);
 }
 .formation-btn.active { background: var(--amber); color: #111; border-color: var(--amber); font-weight: bold; }
-.swap-hint { font-size: 11px; color: var(--amber); letter-spacing: 0.5px; }
+.swap-hint-bar {
+  font-size: 11px;
+  color: var(--amber);
+  letter-spacing: 0.5px;
+  padding: 6px 12px;
+  background: rgba(255,196,0,0.08);
+  border-bottom: 1px solid var(--border2);
+}
 .cancel-swap {
   background: none;
   border: none;
@@ -998,6 +1005,59 @@ input, select { font-family: var(--font); }
   font-family: var(--font);
   text-decoration: underline;
 }
+
+/* Two-column squad layout */
+.squad-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+.squad-left {
+  flex: 0 0 auto;
+  width: 280px;
+  border-right: 1px solid var(--border2);
+}
+.squad-right {
+  flex: 1;
+  min-width: 0;
+}
+@media (max-width: 720px) {
+  .squad-layout { flex-direction: column; }
+  .squad-left { width: 100%; border-right: none; border-bottom: 1px solid var(--border2); }
+}
+
+/* Tactics bar */
+.tactics-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid var(--border2);
+}
+.tactics-label {
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  font-family: var(--font-head);
+  margin-right: 4px;
+}
+.tactics-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 3px 10px;
+  font-size: 10px;
+  cursor: pointer;
+  border-radius: 2px;
+  letter-spacing: 1px;
+  font-family: var(--font-head);
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.tactics-btn:hover { border-color: var(--text2); }
+.tactics-btn.active[data-t="defensive"] { background: #1e40af; color: #93c5fd; border-color: #3b82f6; }
+.tactics-btn.active[data-t="balanced"]  { background: #166534; color: #86efac; border-color: #22c55e; }
+.tactics-btn.active[data-t="attacking"] { background: #7f1d1d; color: #fca5a5; border-color: #ef4444; }
 
 .formation-pitch {
   position: relative;
@@ -1030,12 +1090,13 @@ input, select { font-family: var(--font); }
 .pitch-dot.swapping .dot-rating { border-color: var(--amber) !important; }
 .pitch-dot:hover .dot-rating { border-color: rgba(255,255,255,0.5); }
 .dot-name {
-  font-size: 9px;
+  font-size: 11px;
+  font-weight: 600;
   color: #fff;
-  text-shadow: 0 1px 3px #000;
-  letter-spacing: 0.5px;
+  text-shadow: 0 1px 4px #000, 0 0 8px #000;
+  letter-spacing: 0.3px;
   white-space: nowrap;
-  max-width: 60px;
+  max-width: 68px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1065,7 +1126,11 @@ input, select { font-family: var(--font); }
   border: 1px solid var(--border2);
   border-radius: 2px;
   font-size: 13px;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
 }
+.xi-row:hover { background: var(--bg3); border-color: var(--border); }
+.xi-row.swapping { border-color: var(--amber); background: rgba(255,196,0,0.1); }
 .xi-pos { font-size: 9px; color: var(--text3); min-width: 26px; letter-spacing: 0.5px; font-family: var(--font-head); }
 .xi-nation { font-size: 14px; }
 .xi-name { flex: 1; font-weight: 600; color: var(--text); }

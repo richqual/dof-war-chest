@@ -105,6 +105,7 @@ function buildInitialDraft(clubs, options = {}) {
       isComputer: !!c.isComputer,
       squad: Array(16).fill(null),
       carryover: 0,
+      tactics: "balanced",
     })),
     positionIndex: 0,
     turnIndex: 0,
@@ -350,6 +351,13 @@ export function useDraftState() {
     }));
   }
 
+  function setTactics(managerIdx, tactics) {
+    setDraft(prev => ({
+      ...prev,
+      managers: prev.managers.map((m, i) => i === managerIdx ? { ...m, tactics } : m),
+    }));
+  }
+
   function swapSquadPlayers(managerIdx, slotA, slotB) {
     setDraft(prev => ({
       ...prev,
@@ -376,7 +384,7 @@ export function useDraftState() {
     screen, setScreen,
     draft, activeManager, activeManagerIdx, currentPos,
     startGame, confirmBudget, pickPlayer, setTeamName,
-    swapSquadPlayers, restartGame, getAvailablePlayers, getTakenPlayers,
+    swapSquadPlayers, setTactics, restartGame, getAvailablePlayers, getTakenPlayers,
     skipTurn, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers,
   };

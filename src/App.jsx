@@ -105,7 +105,7 @@ function AppInner() {
     screen, setScreen,
     draft, activeManager, activeManagerIdx, currentPos,
     startGame, confirmBudget, pickPlayer, setTeamName,
-    swapSquadPlayers, restartGame, getAvailablePlayers, getTakenPlayers,
+    swapSquadPlayers, setTactics, restartGame, getAvailablePlayers, getTakenPlayers,
     skipTurn, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers,
   } = useDraftState();
@@ -190,6 +190,7 @@ function AppInner() {
           draft={draft}
           setTeamName={setTeamName}
           swapSquadPlayers={swapSquadPlayers}
+          setTactics={setTactics}
           restartGame={restartGame}
           setScreen={handleSetScreen}
           onBackToSeries={draft.series ? () => setScreen("series") : undefined}
@@ -220,7 +221,7 @@ function AppInner() {
     const homeIdx = matchConfig.homeIdx ?? 0;
     const awayIdx = matchConfig.awayIdx ?? 1;
     if (!draft.managers[homeIdx] || !draft.managers[awayIdx]) {
-      return <>{globalMenu}<SquadScreen draft={draft} setTeamName={setTeamName} swapSquadPlayers={swapSquadPlayers} restartGame={restartGame} setScreen={handleSetScreen} onBackToSeries={draft.series ? () => setScreen("series") : undefined} /></>;
+      return <>{globalMenu}<SquadScreen draft={draft} setTeamName={setTeamName} swapSquadPlayers={swapSquadPlayers} setTactics={setTactics} restartGame={restartGame} setScreen={handleSetScreen} onBackToSeries={draft.series ? () => setScreen("series") : undefined} /></>;
     }
     const inSeries = !!draft.series;
     const seriesCtx = inSeries ? getSeriesContext(draft.series, draft.managers) : null;
