@@ -223,7 +223,9 @@ function buildSummary({ homeName, awayName, score, penWinner, allEvents }) {
   return sentences.join(" ");
 }
 
-export function generateEvents(homeSquad, awaySquad, homeName, awayName) {
+// legContext = { homeAgg, awayAgg } when this is leg 2 of an aggregate tie.
+// ET/pens trigger on aggregate level rather than match level.
+export function generateEvents(homeSquad, awaySquad, homeName, awayName, legContext = null) {
   const hStr = teamStrength(homeSquad);
   const aStr = teamStrength(awaySquad);
   const ratio = hStr / (hStr + aStr);
@@ -295,8 +297,16 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName) {
   let penWinner = null;
   let finalHome = hGoals, finalAway = aGoals;
 
-  if (hGoals === aGoals) {
-    etEvents.push({ min: 90, type: "commentary", text: `FULL TIME — ${hGoals}–${aGoals}. Extra time!` });
+  // In aggregate mode ET triggers when the overall tie is level, not just this match.
+  const aggHome = () => finalHome + (legContext?.homeAgg ?? 0);
+  const aggAway = () => finalAway + (legContext?.awayAgg ?? 0);
+  const needsET = legContext ? aggHome() === aggAway() : hGoals === aGoals;
+
+  if (needsET) {
+    const ftNote = legContext
+      ? `FULL TIME — ${hGoals}–${aGoals} on the night. ${aggHome()}–${aggAway()} on aggregate. EXTRA TIME!`
+      : `FULL TIME — ${hGoals}–${aGoals}. Extra time!`;
+    etEvents.push({ min: 90, type: "commentary", text: ftNote });
     const etMinutes = [rand(92, 98), rand(99, 105), rand(106, 112), rand(113, 120)];
     for (const min of etMinutes) {
       if (Math.random() < 0.2) {
@@ -318,7 +328,8 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName) {
       }
     }
 
-    if (finalHome === finalAway) {
+    const stillLevel = legContext ? aggHome() === aggAway() : finalHome === finalAway;
+    if (stillLevel) {
       etEvents.push({ min: 120, type: "commentary", text: `FULL TIME EXTRA TIME — ${finalHome}–${finalAway}. PENALTY SHOOTOUT!` });
       let hPens = 0, aPens = 0;
       for (let i = 0; i < 5; i++) {
@@ -339,8 +350,11 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName) {
   const aPoss = 100 - hPoss;
 
   const score = { home: finalHome, away: finalAway };
-  const winnerSide = penWinner || (finalHome > finalAway ? "home" : finalAway > finalHome ? "away" : null);
-  const drew = finalHome === finalAway;
+  // In aggregate mode winner is decided by overall goals, not just this match.
+  const totalHome = finalHome + (legContext?.homeAgg ?? 0);
+  const totalAway = finalAway + (legContext?.awayAgg ?? 0);
+  const winnerSide = penWinner || (totalHome > totalAway ? "home" : totalAway > totalHome ? "away" : null);
+  const drew = !penWinner && totalHome === totalAway;
   const homeRatings = buildRatings(homeSquad, "home", allEvents, finalAway, winnerSide === "home", drew);
   const awayRatings = buildRatings(awaySquad, "away", allEvents, finalHome, winnerSide === "away", drew);
 
@@ -497,7 +511,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
   }
 
   function startSim() {
-    const r = generateEvents(homeManager.squad, awayManager.squad, homeName, awayName);
+    const r = generateEvents(homeManager.squad, awayManager.squad, homeName, awayName, seriesContext?.legContext ?? null);
     eventsRef.current = r.events;
     nextIdxRef.current = 0;
     setResult(r);
@@ -719,7 +733,15 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
                 <button className="sim-btn secondary" onClick={startSim}>REPLAY</button>
                 {onMatchResult && (
                   <button className="sim-btn" onClick={() => {
-                    const side = result.penWinner || (result.score.home > result.score.away ? "home" : "away");
+                    const legCtx = seriesContext?.legContext;
+                    let side;
+                    if (result.penWinner) {
+                      side = result.penWinner;
+                    } else if (legCtx) {
+                      side = (result.score.home + legCtx.homeAgg) > (result.score.away + legCtx.awayAgg) ? "home" : "away";
+                    } else {
+                      side = result.score.home > result.score.away ? "home" : "away";
+                    }
                     onMatchResult(side === "home" ? homeIdx : awayIdx, result.score);
                   }}>
                     CONTINUE SERIES →

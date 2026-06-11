@@ -44,19 +44,18 @@ function getNextMatchup(series) {
     };
   }
 
-  // Tournament semis (aggregate 2-leg format)
+  // Tournament semis (aggregate 2-leg format — ET/pens in leg 2 if level)
   if (series.stage === "semis" && series.semis) {
     for (let si = 0; si < series.semis.length; si++) {
       const sm = series.semis[si];
       if (sm.winner !== null) continue;
       const played = sm.legsPlayed;
-      const isReplay = played >= 2;
-      const legLabel = isReplay ? "REPLAY" : `LEG ${played + 1}`;
       return {
         homeIdx: played % 2 === 0 ? sm.p[0] : sm.p[1],
         awayIdx: played % 2 === 0 ? sm.p[1] : sm.p[0],
         matchNum: played + 1,
-        label: `SEMI ${si + 1} · ${legLabel}`,
+        label: `SEMI ${si + 1} · LEG ${played + 1}`,
+        semiIdx: si,
       };
     }
   }
@@ -95,10 +94,7 @@ export function getSeriesContext(series, managers) {
     else standing = `${awayName} lead ${aWins}–${hWins}`;
   } else {
     // Show aggregate standing for semi-final legs
-    const sm = (series.semis || []).find(sm =>
-      sm.winner === null &&
-      (sm.p.includes(next.homeIdx) && sm.p.includes(next.awayIdx))
-    );
+    const sm = next.semiIdx != null ? series.semis[next.semiIdx] : null;
     if (sm && sm.legsPlayed > 0) {
       const m0 = managers[sm.p[0]], m1 = managers[sm.p[1]];
       const n0 = m0.teamName || m0.name, n1 = m1.teamName || m1.name;
@@ -113,7 +109,17 @@ export function getSeriesContext(series, managers) {
     }
   }
 
-  return { label: `MATCH ${next.matchNum} · ${next.label}`, standing, homeIdx: next.homeIdx, awayIdx: next.awayIdx };
+  // For leg 2, pass the leg 1 aggregate so generateEvents can trigger ET on agg level.
+  // homeIdx for leg 2 = sm.p[1], so homeAgg = sm.goals[1], awayAgg = sm.goals[0].
+  let legContext = null;
+  if (next.semiIdx != null && series.semis) {
+    const sm = series.semis[next.semiIdx];
+    if (sm && sm.legsPlayed === 1) {
+      legContext = { homeAgg: sm.goals[1], awayAgg: sm.goals[0] };
+    }
+  }
+
+  return { label: `MATCH ${next.matchNum} · ${next.label}`, standing, homeIdx: next.homeIdx, awayIdx: next.awayIdx, legContext };
 }
 
 // Two-player series standings panel
@@ -150,11 +156,14 @@ function TournamentBracket({ series, managers }) {
               <span style={{ color: accent1 }}>{m1.teamName || m1.clubName || m1.name}</span>
               <span className="bracket-wins">{sm.goals?.[1] ?? 0}</span>
             </div>
-            {sm.legsPlayed > 0 && sm.winner === null && (
-              <div className="bracket-adv">Agg: {sm.goals[0]}–{sm.goals[1]} · {sm.legsPlayed >= 2 ? "Replay needed" : `Leg ${sm.legsPlayed + 1} to come`}</div>
+            {sm.legsPlayed === 1 && sm.winner === null && (
+              <div className="bracket-adv">Agg: {sm.goals[0]}–{sm.goals[1]} · Leg 2 to come</div>
             )}
             {sm.winner !== null && (
-              <div className="bracket-adv">→ {(managers[sm.winner].teamName || managers[sm.winner].name)} advance</div>
+              <div className="bracket-adv">
+                → {managers[sm.winner].teamName || managers[sm.winner].name} advance
+                {sm.wonOnPens ? " (pens)" : ""}
+              </div>
             )}
           </div>
         );

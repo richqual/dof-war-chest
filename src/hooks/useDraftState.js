@@ -180,31 +180,26 @@ export function useDraftState() {
       );
       if (semiIdx >= 0) {
         const semi = s.semis[semiIdx];
-        const isReplay = semi.legsPlayed >= 2;
-        let newGoals, newLegsPlayed, semiWinner;
+        const isP0Home = semi.p[0] === homeIdx;
+        const p0Goals = isP0Home ? (score?.home ?? 0) : (score?.away ?? 0);
+        const p1Goals = isP0Home ? (score?.away ?? 0) : (score?.home ?? 0);
+        const newGoals = [semi.goals[0] + p0Goals, semi.goals[1] + p1Goals];
+        const newLegsPlayed = semi.legsPlayed + 1;
 
-        if (isReplay) {
-          // Replay after aggregate level — winner is the match winner (ET/pens included)
-          newGoals = semi.goals;
-          newLegsPlayed = semi.legsPlayed + 1;
-          semiWinner = winnerIdx;
-        } else {
-          // Regular leg — add this match's goals to the aggregate
-          const isP0Home = semi.p[0] === homeIdx;
-          const p0Goals = isP0Home ? (score?.home ?? 0) : (score?.away ?? 0);
-          const p1Goals = isP0Home ? (score?.away ?? 0) : (score?.home ?? 0);
-          newGoals = [semi.goals[0] + p0Goals, semi.goals[1] + p1Goals];
-          newLegsPlayed = semi.legsPlayed + 1;
-
-          if (newLegsPlayed >= 2) {
-            if (newGoals[0] > newGoals[1]) semiWinner = semi.p[0];
-            else if (newGoals[1] > newGoals[0]) semiWinner = semi.p[1];
-            // else null → level on aggregate, replay needed
+        let semiWinner = null;
+        let wonOnPens = false;
+        if (newLegsPlayed >= 2) {
+          if (newGoals[0] > newGoals[1]) semiWinner = semi.p[0];
+          else if (newGoals[1] > newGoals[0]) semiWinner = semi.p[1];
+          else {
+            // Level on aggregate — ET/pens in leg 2 already decided it
+            semiWinner = winnerIdx;
+            wonOnPens = true;
           }
         }
 
         const newSemis = s.semis.map((sm, i) =>
-          i === semiIdx ? { ...sm, goals: newGoals, legsPlayed: newLegsPlayed, winner: semiWinner } : sm
+          i === semiIdx ? { ...sm, goals: newGoals, legsPlayed: newLegsPlayed, winner: semiWinner, wonOnPens } : sm
         );
         const bothDone = newSemis.every(sm => sm.winner !== null);
         const newFinal = bothDone && !s.final
