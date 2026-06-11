@@ -18,7 +18,6 @@ export default function DraftScreen({
   const [sortBy, setSortBy] = useState("rating");
   const [transition, setTransition] = useState(null);
   const [showMySquad, setShowMySquad] = useState(false);
-  const [showMenu, setShowMenu] = useState(false);
   const [pendingPlayer, setPendingPlayer] = useState(null);
 
   const { currentBudget, currentOrder, turnIndex, positionIndex, managers, hideRatings } = draft;
@@ -131,19 +130,6 @@ export default function DraftScreen({
         <MySquadPanel manager={activeManager} onClose={() => setShowMySquad(false)} />
       )}
 
-      {showMenu && (
-        <div className="menu-overlay" onClick={() => setShowMenu(false)}>
-          <div className="menu-box" onClick={e => e.stopPropagation()}>
-            <div className="menu-title">DRAFT OPTIONS</div>
-            <button className="menu-item" onClick={() => setShowMenu(false)}>▶ CONTINUE DRAFT</button>
-            <button className="menu-item" onClick={() => { setShowMenu(false); autoCompleteDraft(); }}>
-              ⏩ AUTO-PICK REST &amp; SKIP TO END-GAME
-            </button>
-            <p className="menu-warn">CPU picks every remaining player instantly and jumps to the squads screen.</p>
-          </div>
-        </div>
-      )}
-
       {/* Header */}
       <div className="draft-header">
         <span className="game-title">DoF: War Chest</span>
@@ -164,7 +150,6 @@ export default function DraftScreen({
         </div>
         <div className="draft-header-actions">
           <button className="my-squad-btn" onClick={() => setShowMySquad(s => !s)}>MY SQUAD</button>
-          <button className="menu-btn" onClick={() => setShowMenu(true)}>☰</button>
         </div>
       </div>
 

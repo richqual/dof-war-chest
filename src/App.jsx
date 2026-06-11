@@ -37,7 +37,7 @@ class ErrorBoundary extends Component {
   }
 }
 
-function GlobalMenu({ light, onToggle, hasGame, onAbandon, screen }) {
+function GlobalMenu({ light, onToggle, hasGame, onAbandon, extraOptions }) {
   const [open, setOpen] = useState(false);
 
   function abandon() {
@@ -63,6 +63,20 @@ function GlobalMenu({ light, onToggle, hasGame, onAbandon, screen }) {
             <button className="global-menu-item" onClick={() => setOpen(false)}>
               ▶ CONTINUE
             </button>
+
+            {extraOptions && (
+              <>
+                <div className="global-menu-divider" />
+                {extraOptions.map((opt, i) => (
+                  <div key={i}>
+                    <button className="global-menu-item" onClick={() => { setOpen(false); opt.action(); }}>
+                      {opt.label}
+                    </button>
+                    {opt.warn && <p className="global-menu-warn">{opt.warn}</p>}
+                  </div>
+                ))}
+              </>
+            )}
 
             <div className="global-menu-divider" />
 
@@ -130,9 +144,18 @@ function AppInner() {
   }
 
   if (screen === "draft" && draft && currentPos) {
+    const draftMenuOptions = [
+      { label: "⏩ AUTO-PICK REST & SKIP TO END-GAME", action: autoCompleteDraft, warn: "CPU picks every remaining player instantly and jumps to the squads screen." },
+    ];
     return (
       <>
-        {globalMenu}
+        <GlobalMenu
+          light={lightMode}
+          onToggle={() => setLightMode(l => !l)}
+          hasGame={true}
+          onAbandon={restartGame}
+          extraOptions={draftMenuOptions}
+        />
         <DraftScreen
           draft={draft}
           activeManager={activeManager}
