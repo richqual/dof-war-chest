@@ -1,12 +1,14 @@
 import { useState, useEffect, Component } from "react";
 import { useDraftState } from "./hooks/useDraftState";
 import SetupScreen from "./components/SetupScreen";
+import OrderDrawScreen from "./components/OrderDrawScreen";
 import DraftScreen from "./components/DraftScreen";
 import SquadScreen from "./components/SquadScreen";
 import MatchSim from "./components/MatchSim";
 import DrawScreen from "./components/DrawScreen";
 import SeriesScreen from "./components/SeriesScreen";
 import { getSeriesContext } from "./components/SeriesScreen";
+import ManagerDraftScreen from "./components/ManagerDraftScreen";
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -59,7 +61,7 @@ function AppInner() {
     startGame, confirmBudget, pickPlayer, setTeamName,
     swapSquadPlayers, restartGame, getAvailablePlayers, getTakenPlayers,
     skipTurn, autoCompleteDraft, skipCpuTurns,
-    completeDraw, recordMatchResult,
+    completeDraw, recordMatchResult, assignManagers,
   } = useDraftState();
 
   const [matchConfig, setMatchConfig] = useState({ homeIdx: 0, awayIdx: 1 });
@@ -82,6 +84,10 @@ function AppInner() {
     return <>{toggle}<SetupScreen onStart={startGame} /></>;
   }
 
+  if (screen === "order-draw" && draft) {
+    return <>{toggle}<OrderDrawScreen draft={draft} onStart={() => setScreen("draft")} /></>;
+  }
+
   if (screen === "draft" && draft && currentPos) {
     return (
       <>
@@ -100,6 +106,15 @@ function AppInner() {
           autoCompleteDraft={autoCompleteDraft}
           skipCpuTurns={skipCpuTurns}
         />
+      </>
+    );
+  }
+
+  if (screen === "manager-draft" && draft) {
+    return (
+      <>
+        {toggle}
+        <ManagerDraftScreen draft={draft} onAssignManager={assignManagers} />
       </>
     );
   }

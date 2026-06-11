@@ -80,8 +80,18 @@ function buildSeries(n, format) {
   return null;
 }
 
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 function buildInitialDraft(clubs, options = {}) {
   const n = clubs.length;
+  const initialOrder = shuffle(Array.from({ length: n }, (_, i) => i));
   return {
     managers: clubs.map((c, i) => ({
       id: i,
@@ -100,7 +110,7 @@ function buildInitialDraft(clubs, options = {}) {
     turnIndex: 0,
     round: 0,
     currentBudget: null,
-    currentOrder: Array.from({ length: n }, (_, i) => i),
+    currentOrder: initialOrder,
     takenIds: [],
     phase: "draft",
     hideRatings: options.hideRatings || false,
@@ -137,7 +147,7 @@ export function useDraftState() {
   function startGame(clubs, options) {
     const d = buildInitialDraft(clubs, options);
     setDraft(d);
-    setScreen("draft");
+    setScreen("order-draw");
   }
 
   // Called by DrawScreen once the animated draw is complete.
@@ -262,7 +272,18 @@ export function useDraftState() {
     if (draft.currentBudget === null || player.value > draft.currentBudget) return;
     const next = applyPick(draft, player);
     setDraft(next);
-    if (next.phase === "complete") setScreen(next.series?.stage === "draw" ? "draw" : next.series ? "series" : "squads");
+    if (next.phase === "complete") setScreen("manager-draft");
+  }
+
+  function assignManagers(assignments) {
+    // assignments: { managerIdx: managerObject }
+    setDraft(prev => ({
+      ...prev,
+      managers: prev.managers.map((m, i) =>
+        assignments[i] ? { ...m, footballManager: assignments[i] } : m
+      ),
+    }));
+    setScreen(draft.series?.stage === "draw" ? "draw" : draft.series ? "series" : "squads");
   }
 
   // Active manager banks the whole budget as carryover and the turn moves on —
@@ -271,7 +292,7 @@ export function useDraftState() {
     if (!draft || draft.currentBudget === null) return;
     const next = applyPick(draft, null);
     setDraft(next);
-    if (next.phase === "complete") setScreen(next.series?.stage === "draw" ? "draw" : next.series ? "series" : "squads");
+    if (next.phase === "complete") setScreen("manager-draft");
   }
 
   // Plays out every remaining turn instantly with CPU picks (spinning budgets
@@ -295,7 +316,7 @@ export function useDraftState() {
       d = applyPick(d, pick);
     }
     setDraft(d);
-    setScreen(d.series?.stage === "draw" ? "draw" : d.series ? "series" : "squads");
+    setScreen("manager-draft");
   }
 
   // Runs CPU turns until the next human player's turn, then stops.
@@ -319,7 +340,7 @@ export function useDraftState() {
       d = applyPick(d, pick ?? null);
     }
     setDraft(d);
-    if (d.phase === "complete") setScreen(d.series?.stage === "draw" ? "draw" : d.series ? "series" : "squads");
+    if (d.phase === "complete") setScreen("manager-draft");
   }
 
   function setTeamName(managerIdx, name) {
@@ -357,6 +378,6 @@ export function useDraftState() {
     startGame, confirmBudget, pickPlayer, setTeamName,
     swapSquadPlayers, restartGame, getAvailablePlayers, getTakenPlayers,
     skipTurn, autoCompleteDraft, skipCpuTurns,
-    completeDraw, recordMatchResult,
+    completeDraw, recordMatchResult, assignManagers,
   };
 }

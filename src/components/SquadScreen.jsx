@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { POSITIONS, getRatingBg, getRatingColor, formatValue } from "../data/players";
+import { POSITIONS, getRatingBg, getRatingColor, formatValue, ERA_LABELS, ERA_COLORS, ERA_BG } from "../data/players";
+import { TIER_LABELS, TIER_COLORS, TIER_BG } from "../data/managers";
 import KitSwatch, { kitAccent } from "./KitSwatch";
 
 const FORMATIONS = {
@@ -142,8 +143,43 @@ function SquadDetail({ manager, managerIdx, setTeamName, swapSquadPlayers, onBac
     navigator.clipboard.writeText(lines.join("\n")).then(() => alert("Copied to clipboard!")).catch(() => alert(lines.join("\n")));
   }
 
+  const fm = manager.footballManager;
+  const STYLE_TACTICAL_LINE = {
+    pressing:   "plays in a relentless high-press style — they win it back fast and hit hard.",
+    counter:    "sit deep and hit on the counter — disciplined, dangerous, and hard to break down.",
+    attacking:  "go for the jugular — high-tempo, attack-minded, and fearless.",
+    possession: "control the game through the ball — patient, precise, and suffocating.",
+    direct:     "play direct and physical — aerial threat, set pieces, and raw intensity.",
+    wildcard:   "are impossible to predict — anything could happen, and usually does.",
+  };
+
   return (
     <div className="squad-detail">
+      {fm && (
+        <div className="mgr-squad-banner">
+          <div className="mgr-squad-badges">
+            <span
+              className="era-badge"
+              style={{ background: ERA_BG[fm.era], color: ERA_COLORS[fm.era], border: `1px solid ${ERA_COLORS[fm.era]}55` }}
+            >
+              {ERA_LABELS[fm.era]}
+            </span>
+            <span
+              className="mgr-tier-badge"
+              style={{ background: TIER_BG[fm.tier], color: TIER_COLORS[fm.tier], border: `1px solid ${TIER_COLORS[fm.tier]}88` }}
+            >
+              {TIER_LABELS[fm.tier]}
+            </span>
+          </div>
+          <div className="mgr-squad-name">{fm.name}</div>
+          <div className="mgr-squad-club">{fm.club} · {fm.years}</div>
+          <div className="mgr-squad-style">{fm.styleLabel}</div>
+          <div className="mgr-squad-tactical">
+            Your team {STYLE_TACTICAL_LINE[fm.style] || fm.flavourText}
+          </div>
+          <div className="mgr-squad-flavour">"{fm.flavourText}"</div>
+        </div>
+      )}
       <div className="squad-detail-header">
         <button className="back-btn" onClick={onBack}>← BACK</button>
         <div className="squad-title-area">
@@ -289,6 +325,9 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, rest
               </div>
               <div className="squad-ovr" style={{ color: accent }}>{ovr}</div>
               <div className="squad-ovr-label">OVERALL</div>
+              {m.footballManager && (
+                <div className="squad-card-mgr">⚙ {m.footballManager.name}</div>
+              )}
               {best && <div className="squad-best">Best: {best.name} ({best.rating})</div>}
               <div className="squad-link">VIEW SQUAD →</div>
             </div>
@@ -322,7 +361,9 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, rest
         {onBackToSeries && (
           <button className="sim-btn secondary" onClick={onBackToSeries}>← BACK TO TOURNAMENT</button>
         )}
-        <button className="restart-btn" onClick={restartGame}>NEW GAME</button>
+        {!onBackToSeries && (
+          <button className="restart-btn" onClick={restartGame}>NEW GAME</button>
+        )}
       </div>
     </div>
   );

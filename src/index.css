@@ -669,7 +669,7 @@ input, select { font-family: var(--font); }
   height: 100vh;
   background: var(--bg2);
   border-left: 2px solid var(--amber);
-  z-index: 150;
+  z-index: 10001;
   display: flex;
   flex-direction: column;
   animation: slide-in-right 0.2s ease;
@@ -1971,3 +1971,413 @@ input, select { font-family: var(--font); }
   text-align: center;
   flex-shrink: 0;
 }
+
+/* ── Order Draw Screen ───────────────────────────────────── */
+.order-draw-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg1);
+}
+.order-draw-box {
+  background: var(--bg2);
+  border: 2px solid var(--amber);
+  padding: 2.5rem 3rem;
+  min-width: 320px;
+  max-width: 480px;
+  width: 90vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+.order-draw-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--amber);
+}
+.order-draw-subtitle {
+  font-size: 0.75rem;
+  color: var(--text2);
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+}
+.order-draw-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.order-draw-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.75rem;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  transition: opacity 0.3s, transform 0.3s;
+}
+.order-draw-row.hidden {
+  opacity: 0;
+  transform: translateX(-16px);
+}
+.order-draw-row.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+.order-draw-num {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--amber);
+  letter-spacing: 0.06em;
+  width: 28px;
+  flex-shrink: 0;
+}
+.order-draw-club {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text1);
+  flex: 1;
+}
+.order-draw-go {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+/* ── MANAGER DRAFT SCREEN ─────────────────────────────────────────────── */
+.mgr-draft-screen {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 1rem 2rem;
+  gap: 1rem;
+  background: var(--bg);
+}
+
+.mgr-draft-header {
+  text-align: center;
+  padding-top: 2rem;
+}
+
+.mgr-draft-title {
+  font-family: var(--font-head);
+  font-size: clamp(12px, 3vw, 20px);
+  color: var(--amber);
+  letter-spacing: 2px;
+  text-shadow: var(--pixel-shadow);
+}
+
+.mgr-draft-sub {
+  font-family: var(--font-sub);
+  font-size: 18px;
+  color: var(--text2);
+  margin-top: 4px;
+}
+
+.mgr-turn-banner {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 0.75rem 1.25rem;
+  width: 100%;
+  max-width: 860px;
+  text-align: center;
+}
+
+.mgr-turn-label {
+  font-family: var(--font-head);
+  font-size: clamp(8px, 2vw, 11px);
+  color: var(--amber);
+  letter-spacing: 1px;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.mgr-turn-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mgr-turn-dot {
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--border);
+  background: transparent;
+  display: inline-block;
+}
+.mgr-turn-dot.active {
+  background: var(--amber);
+  border-color: var(--amber);
+  box-shadow: 0 0 6px var(--amber);
+}
+.mgr-turn-dot.done {
+  background: var(--text3);
+  border-color: var(--text3);
+}
+
+/* Merry-go-round carousel */
+.mgr-carousel-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mgr-carousel-canvas {
+  image-rendering: pixelated;
+  display: block;
+}
+
+.mgr-carousel-label {
+  font-family: var(--font-head);
+  font-size: clamp(7px, 2vw, 10px);
+  color: var(--green);
+  letter-spacing: 2px;
+  min-height: 1.5em;
+  animation: mgr-spin-pulse 0.8s infinite;
+}
+
+@keyframes mgr-spin-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.mgr-instruction {
+  font-family: var(--font-sub);
+  font-size: 16px;
+  color: var(--text2);
+  text-align: center;
+  max-width: 600px;
+}
+
+/* Manager cards */
+.mgr-cards-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.mgr-card {
+  background: var(--bg2);
+  border: 2px solid var(--border);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1 1 240px;
+  max-width: 300px;
+  min-width: 200px;
+  box-shadow: var(--pixel-shadow);
+  animation: mgr-card-in 0.35s ease both;
+}
+
+@keyframes mgr-card-in {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.mgr-card-head {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.mgr-tier-badge {
+  font-size: 7px;
+  padding: 2px 6px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  font-family: var(--font-head);
+  border: 1px solid;
+}
+
+.mgr-name {
+  font-family: var(--font-head);
+  font-size: clamp(8px, 2vw, 11px);
+  color: var(--text);
+  letter-spacing: 0.5px;
+  line-height: 1.4;
+}
+
+.mgr-club {
+  font-family: var(--font-sub);
+  font-size: 16px;
+  color: var(--amber);
+}
+
+.mgr-years {
+  font-family: var(--font-sub);
+  font-size: 14px;
+  color: var(--text3);
+}
+
+.mgr-style-label {
+  font-family: var(--font-sub);
+  font-size: 15px;
+  color: var(--green);
+  border-top: 1px solid var(--border2);
+  padding-top: 0.4rem;
+  margin-top: 0.2rem;
+}
+
+.mgr-flavour {
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text2);
+  font-style: italic;
+  line-height: 1.5;
+  flex: 1;
+}
+
+.pick-mgr-btn {
+  background: var(--amber);
+  color: #000;
+  font-family: var(--font-head);
+  font-size: 7px;
+  letter-spacing: 1px;
+  padding: 8px 12px;
+  cursor: pointer;
+  border: 2px solid #a08000;
+  box-shadow: var(--pixel-shadow-sm);
+  transition: transform 0.08s, box-shadow 0.08s;
+  margin-top: auto;
+}
+.pick-mgr-btn:hover:not(:disabled) {
+  background: var(--amber-d);
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 0 #000;
+}
+.pick-mgr-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── SQUAD SCREEN MANAGER BANNER ─────────────────────────────────────── */
+.mgr-squad-banner {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-bottom: 3px solid var(--amber);
+  padding: 1rem 1.25rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mgr-squad-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.mgr-squad-name {
+  font-family: var(--font-head);
+  font-size: clamp(9px, 2vw, 13px);
+  color: var(--amber);
+  letter-spacing: 1px;
+}
+
+.mgr-squad-club {
+  font-family: var(--font-sub);
+  font-size: 16px;
+  color: var(--text2);
+}
+
+.mgr-squad-style {
+  font-family: var(--font-sub);
+  font-size: 15px;
+  color: var(--green);
+}
+
+.mgr-squad-tactical {
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text);
+  border-top: 1px solid var(--border2);
+  padding-top: 4px;
+  margin-top: 2px;
+}
+
+.mgr-squad-flavour {
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--text3);
+  font-style: italic;
+}
+
+/* ── MATCH SIM: PRE/POST MANAGER LINES ──────────────────────────────── */
+.pre-mgr-quotes {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.pre-mgr-quote {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-left: 3px solid currentColor;
+  padding: 0.5rem 0.75rem;
+  flex: 1 1 200px;
+  max-width: 280px;
+}
+
+.pre-mgr-name {
+  font-family: var(--font-head);
+  font-size: 8px;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.pre-mgr-style {
+  font-family: var(--font-sub);
+  font-size: 14px;
+  color: var(--text2);
+}
+
+.post-mgr-reactions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.post-mgr-quote {
+  border-left: 3px solid;
+  padding: 0.4rem 0.75rem;
+  background: var(--bg2);
+}
+
+.post-mgr-team {
+  font-family: var(--font-head);
+  font-size: 7px;
+  display: block;
+  margin-bottom: 2px;
+  letter-spacing: 0.5px;
+}
+
+.post-mgr-text {
+  font-family: var(--font);
+  font-size: 13px;
+  color: var(--text2);
+  font-style: italic;
+}
+
+/* Squad summary card manager name */
+.squad-card-mgr {
+  font-family: var(--font-sub);
+  font-size: 12px;
+  color: var(--text3);
+  padding: 0 0.5rem 0.25rem;
+}
+

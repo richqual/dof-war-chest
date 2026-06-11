@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import KitSwatch, { readableTextOn, teamAccent } from "./KitSwatch";
+import { TIER_SIM_MODIFIER } from "../data/managers";
 
 function teamStrength(squad) {
   const starters = squad.slice(0, 11).filter(Boolean);
@@ -223,12 +224,94 @@ function buildSummary({ homeName, awayName, score, penWinner, allEvents }) {
   return sentences.join(" ");
 }
 
+// Manager-style commentary inserts, keyed by style
+const MGR_STYLE_COMMENTARY = {
+  pressing: [
+    (mgr, team) => `${team} hunting in packs — ${mgr}'s trademark press forcing a mistake.`,
+    (mgr, team) => `Relentless from ${team}. ${mgr} would love that pressing trigger.`,
+    (mgr, team) => `${team} win it high up the pitch. Classic ${mgr} — suffocating the opposition.`,
+    (mgr, team) => `The intensity is incredible. This is exactly the heavy-metal football ${mgr} demands.`,
+  ],
+  counter: [
+    (mgr, team) => `${team} absorbing pressure and waiting for their moment — the ${mgr} way.`,
+    (mgr, team) => `Compact and disciplined. ${mgr}'s defensive masterclass is in full effect.`,
+    (mgr, team) => `${team} spring the counter with real pace. ${mgr} drilled them well.`,
+    (mgr, team) => `Just what ${mgr} would have wanted — shape, discipline, and the threat on the break.`,
+  ],
+  attacking: [
+    (mgr, team) => `${team} pouring forward again — ${mgr} wants goals, not caution.`,
+    (mgr, team) => `No fear from ${team}. ${mgr} has given them licence to attack.`,
+    (mgr, team) => `End to end stuff and ${team} are loving it. This is ${mgr}'s kind of game.`,
+    (mgr, team) => `${mgr} animated on the touchline — he wants MORE from ${team}.`,
+  ],
+  possession: [
+    (mgr, team) => `${team} pinging it around beautifully. ${mgr} in his element.`,
+    (mgr, team) => `The opposition can't get near the ball. ${mgr}'s possession game strangling them.`,
+    (mgr, team) => `Thirty passes and counting. ${mgr} wants to suffocate them into submission.`,
+    (mgr, team) => `${team} content to wait for the right moment — ${mgr}'s patient philosophy on display.`,
+  ],
+  direct: [
+    (mgr, team) => `Long ball over the top — ${mgr} keeping it simple and effective.`,
+    (mgr, team) => `${team} winning the second balls. ${mgr} set them up to fight for everything.`,
+    (mgr, team) => `Aerial duel won by ${team}. ${mgr} has identified their weakness in the air.`,
+    (mgr, team) => `Dead ball situation for ${team}. Set pieces are ${mgr}'s bread and butter.`,
+  ],
+  wildcard: [
+    (mgr, team) => `Completely unpredictable from ${team}. Nobody knows what ${mgr} is going to do next — including ${mgr}.`,
+    (mgr, team) => `${team} switching shape mid-move. The chaos is the plan under ${mgr}.`,
+    (mgr, team) => `What is ${mgr} doing with that formation?! Somehow it's working.`,
+    (mgr, team) => `${team} just threw the tactical manual out the window. ${mgr} strikes again.`,
+  ],
+};
+
+const MGR_MOTM_LINES = {
+  pressing:   (mgr, team) => `A typical ${mgr} performance — relentless pressing and clinical execution.`,
+  counter:    (mgr, team) => `A classic ${mgr} clean sheet — the defensive masterclass continues.`,
+  attacking:  (mgr, team) => `Pure ${mgr} — attacking from the first whistle to the last.`,
+  possession: (mgr, team) => `Just what ${mgr} wants — total control through possession.`,
+  direct:     (mgr, team) => `Exactly the ${mgr} blueprint — physical, direct, and brutally effective.`,
+  wildcard:   (mgr, team) => `Only ${mgr} could have planned that. Or perhaps didn't.`,
+};
+
 // legContext = { homeAgg, awayAgg } when this is leg 2 of an aggregate tie.
 // ET/pens trigger on aggregate level rather than match level.
-export function generateEvents(homeSquad, awaySquad, homeName, awayName, legContext = null) {
+export function generateEvents(homeSquad, awaySquad, homeName, awayName, legContext = null, homeFootballMgr = null, awayFootballMgr = null) {
+  // Resolve wildcard: pick a random style for the match
+  function resolveStyle(fm) {
+    if (!fm) return null;
+    if (fm.style === "wildcard") {
+      const styles = ["pressing", "counter", "attacking", "possession", "direct"];
+      return styles[Math.floor(Math.random() * styles.length)];
+    }
+    return fm.style;
+  }
+  const hStyle = resolveStyle(homeFootballMgr);
+  const aStyle = resolveStyle(awayFootballMgr);
+
+  // Tier modifiers
+  const hTierMod = homeFootballMgr ? (TIER_SIM_MODIFIER[homeFootballMgr.tier] ?? 0) : 0;
+  const aTierMod = awayFootballMgr ? (TIER_SIM_MODIFIER[awayFootballMgr.tier] ?? 0) : 0;
+
   const hStr = teamStrength(homeSquad);
   const aStr = teamStrength(awaySquad);
-  const ratio = hStr / (hStr + aStr);
+
+  // Style modifiers on effective team strength
+  function styleStrengthBonus(style, isHome) {
+    if (!style) return 0;
+    // possession reduces opponent shot volume (simulated by buffing own "strength")
+    // pressing boosts midfield effectiveness slightly
+    // attacking boosts scoring tendency
+    // counter shifts baseline rather than raw str
+    // direct is neutral on raw str
+    if (style === "possession") return isHome ? 1.5 : 0;
+    if (style === "pressing")   return isHome ? 1.0 : 0;
+    if (style === "attacking")  return isHome ? 0.5 : 0;
+    return 0;
+  }
+
+  const hEffStr = hStr + styleStrengthBonus(hStyle, true) + hTierMod * 50;
+  const aEffStr = aStr + styleStrengthBonus(aStyle, true) + aTierMod * 50;
+  const ratio = hEffStr / (hEffStr + aEffStr);
 
   // Shuffle neutral lines once per match so no line repeats within a game.
   // With ~10 neutral events and 36 lines, repetition is extremely unlikely.
@@ -250,6 +333,39 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
 
   const minutes = [...new Set(Array.from({ length: rand(18, 28) }, () => rand(1, 90)))].sort((a, b) => a - b);
 
+  // Style-influenced goal frequency modifiers
+  function goalChanceBonus(isHome) {
+    const style = isHome ? hStyle : aStyle;
+    if (style === "attacking") return 0.05;
+    if (style === "pressing")  return 0.02;
+    if (style === "counter")   return 0.01;
+    return 0;
+  }
+  function shotFrequencyBonus(isHome) {
+    const style = isHome ? hStyle : aStyle;
+    if (style === "attacking") return 0.04;  // more chances created
+    if (style === "pressing")  return 0.02;
+    return 0;
+  }
+  // Possession style reduces opponent's shot count (fewer events for opponent)
+  function opponentShotPenalty(isHome) {
+    const oppStyle = isHome ? aStyle : hStyle; // opponent's style
+    if (oppStyle === "possession") return 0.04;
+    return 0;
+  }
+
+  // Add manager-style commentary events at natural points
+  function maybeStyleComment(isHome, min) {
+    const fm = isHome ? homeFootballMgr : awayFootballMgr;
+    const style = isHome ? hStyle : aStyle;
+    if (!fm || !style || Math.random() > 0.28) return null;
+    const pool = MGR_STYLE_COMMENTARY[style];
+    if (!pool) return null;
+    const mgrName = fm.name.split(" ").pop(); // last name
+    const teamName = isHome ? homeName : awayName;
+    return { min, type: "commentary", text: pick(pool)(mgrName, teamName) };
+  }
+
   for (const min of minutes) {
     const r = Math.random();
 
@@ -263,7 +379,8 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
 
       // Being a man (or more) down makes scoring harder
       const menDown = (isHome ? hSentOff.size : aSentOff.size) - (isHome ? aSentOff.size : hSentOff.size);
-      const goalChance = 0.38 + (isHome ? hStr - aStr : aStr - hStr) * 0.004 - menDown * 0.08;
+      const goalChance = 0.38 + (isHome ? hStr - aStr : aStr - hStr) * 0.004 - menDown * 0.08
+        + goalChanceBonus(isHome) - opponentShotPenalty(isHome) + (isHome ? hTierMod : aTierMod);
       if (Math.random() < goalChance) {
         const ctx = isHome ? goalContext(hGoals, aGoals) : goalContext(aGoals, hGoals);
         isHome ? hGoals++ : aGoals++;
@@ -289,7 +406,8 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
         }
       }
     } else {
-      events.push({ min, type: "commentary", text: pickNeutral(homeName, awayName) });
+      const styleEv = maybeStyleComment(Math.random() < 0.5, min);
+      events.push(styleEv || { min, type: "commentary", text: pickNeutral(homeName, awayName) });
     }
   }
 
@@ -368,6 +486,74 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       .find(r => r.name === motmEntry.name).motm = true;
   }
 
+  // MOTM manager style flavour
+  let motmLine = motmEntry ? motmEntry.name : "N/A";
+  const motmSide = motmEntry?.side;
+  const motmFm = motmSide === "home" ? homeFootballMgr : awayFootballMgr;
+  const motmTeam = motmSide === "home" ? homeName : awayName;
+  const motmStyle = motmSide === "home" ? hStyle : aStyle;
+  if (motmFm && motmStyle && MGR_MOTM_LINES[motmStyle]) {
+    const mgrLastName = motmFm.name.split(" ").pop();
+    motmLine = `${motmEntry.name} — ${MGR_MOTM_LINES[motmStyle](mgrLastName, motmTeam)}`;
+  }
+
+  // Post-match manager reaction lines (totalHome/totalAway already declared above)
+  const winner = winnerSide;
+  function managerReaction(fm, isWin, isDraw) {
+    if (!fm) return null;
+    const n = fm.name.split(" ").pop();
+    if (isWin) {
+      const WINS = {
+        pressing: `${n}: "We pressed them off the park. That's what we do."`,
+        counter:  `${n}: "Clean sheet, three points. The system worked to perfection."`,
+        attacking:`${n}: "I told them to go for it. They delivered."`,
+        possession:`${n}: "We controlled the game completely. A deserved victory."`,
+        direct:   `${n}: "Hard work and desire — that's this group in a nutshell."`,
+        wildcard: `${n}: "I can't explain it. I won't even try."`,
+      };
+      return WINS[fm.style] || null;
+    }
+    if (isDraw) {
+      const DRAWS = {
+        pressing: `${n}: "We pressed and pressed but couldn't find the killer pass. Frustrating."`,
+        counter:  `${n}: "We were hard to beat. A point away from home is never the worst."`,
+        attacking:`${n}: "Not quite enough going forward. We'll fix that."`,
+        possession:`${n}: "We had the ball but not the result. Tough to take."`,
+        direct:   `${n}: "We fought hard. Not the result we wanted but the spirit was right."`,
+        wildcard: `${n}: "A draw. We can work with that. Or maybe not."`,
+      };
+      return DRAWS[fm.style] || null;
+    }
+    const LOSSES = {
+      pressing: `${n}: "We didn't press with enough intensity. That won't happen again."`,
+      counter:  `${n}: "We gave them too much space on the break. Not good enough."`,
+      attacking:`${n}: "We attacked, we just didn't score. The process was right."`,
+      possession:`${n}: "We had the ball but gave away sloppy transitions. Unacceptable."`,
+      direct:   `${n}: "We didn't compete in the air. Simple as that."`,
+      wildcard: `${n}: "I have no idea what happened out there. I genuinely don't."`,
+    };
+    return LOSSES[fm.style] || null;
+  }
+
+  const hWon = winner === "home", aWon = winner === "away";
+  const homeReaction = managerReaction(homeFootballMgr, hWon, drew); // `drew` declared at line 475
+  const awayReaction = managerReaction(awayFootballMgr, aWon, drew);
+
+  // Pre-match flavour
+  function preFlavour(fm, teamName) {
+    if (!fm) return null;
+    const n = fm.name.split(" ").pop();
+    const lines = {
+      pressing:   `${n}: "Press them from the first whistle. No mercy."`,
+      counter:    `${n}: "Stay compact. Be patient. Then hurt them."`,
+      attacking:  `${n}: "Attack, attack, attack. I want goals from the first minute."`,
+      possession: `${n}: "Keep the ball. Make them chase shadows."`,
+      direct:     `${n}: "Win your headers. Win your tackles. Make it physical."`,
+      wildcard:   `${n}: "...I've got a feeling about today."`,
+    };
+    return lines[fm.style] || null;
+  }
+
   return {
     events: allEvents,
     score,
@@ -379,9 +565,14 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       hReds: hSentOff.size, aReds: aSentOff.size,
     },
     ratings: { home: homeRatings, away: awayRatings },
-    motm: motmEntry ? motmEntry.name : "N/A",
+    motm: motmLine,
+    motmName: motmEntry ? motmEntry.name : "N/A",
     summary: buildSummary({ homeName, awayName, score, penWinner, allEvents }),
     penWinner,
+    homeReaction,
+    awayReaction,
+    homePreFlavour: preFlavour(homeFootballMgr, homeName),
+    awayPreFlavour: preFlavour(awayFootballMgr, awayName),
   };
 }
 
@@ -511,7 +702,12 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
   }
 
   function startSim() {
-    const r = generateEvents(homeManager.squad, awayManager.squad, homeName, awayName, seriesContext?.legContext ?? null);
+    const r = generateEvents(
+      homeManager.squad, awayManager.squad, homeName, awayName,
+      seriesContext?.legContext ?? null,
+      homeManager.footballManager ?? null,
+      awayManager.footballManager ?? null,
+    );
     eventsRef.current = r.events;
     nextIdxRef.current = 0;
     setResult(r);
@@ -649,6 +845,23 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
 
       {!simulating && !done && (
         <div className="sim-start-area">
+          {/* Manager pre-match flavour */}
+          {(homeManager.footballManager || awayManager.footballManager) && (
+            <div className="pre-mgr-quotes">
+              {homeManager.footballManager && (
+                <div className="pre-mgr-quote home" style={{ color: homeAccent }}>
+                  <div className="pre-mgr-name">{homeManager.footballManager.name}</div>
+                  <div className="pre-mgr-style">{homeManager.footballManager.styleLabel}</div>
+                </div>
+              )}
+              {awayManager.footballManager && (
+                <div className="pre-mgr-quote away" style={{ color: awayAccent }}>
+                  <div className="pre-mgr-name">{awayManager.footballManager.name}</div>
+                  <div className="pre-mgr-style">{awayManager.footballManager.styleLabel}</div>
+                </div>
+              )}
+            </div>
+          )}
           <div className="pre-match-stats">
             <div className="pre-stat">
               <div className="pre-stat-val">{Math.round(teamStrength(homeManager.squad))}</div>
@@ -698,6 +911,23 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
               </div>
 
               <p className="match-report">{result.summary}</p>
+
+              {(result.homeReaction || result.awayReaction) && (
+                <div className="post-mgr-reactions">
+                  {result.homeReaction && (
+                    <div className="post-mgr-quote" style={{ borderColor: homeAccent }}>
+                      <span className="post-mgr-team" style={{ color: homeAccent }}>{homeName}</span>
+                      <span className="post-mgr-text">{result.homeReaction}</span>
+                    </div>
+                  )}
+                  {result.awayReaction && (
+                    <div className="post-mgr-quote" style={{ borderColor: awayAccent }}>
+                      <span className="post-mgr-team" style={{ color: awayAccent }}>{awayName}</span>
+                      <span className="post-mgr-text">{result.awayReaction}</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="motm-row">
                 <span className="motm-label">MAN OF THE MATCH</span>
