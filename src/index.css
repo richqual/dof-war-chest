@@ -2494,3 +2494,81 @@ input, select { font-family: var(--font); }
   padding: 0 0.5rem 0.25rem;
 }
 
+
+/* ── Global Persistent Menu ──────────────────────────────── */
+.global-menu-btn {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  z-index: 10002;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 16px;
+  padding: 5px 10px;
+  cursor: pointer;
+  line-height: 1;
+  font-family: inherit;
+  letter-spacing: 0.05em;
+  transition: border-color 0.15s, color 0.15s;
+}
+.global-menu-btn:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.global-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 10003;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding-top: 44px;
+  padding-right: 8px;
+}
+.global-menu-box {
+  background: var(--bg2);
+  border: 2px solid var(--amber);
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.global-menu-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--amber);
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.global-menu-item {
+  background: none;
+  border: none;
+  color: var(--text1);
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  padding: 0.7rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+  width: 100%;
+}
+.global-menu-item:hover { background: var(--bg3); color: var(--amber); }
+.global-menu-item.danger { color: #f87171; }
+.global-menu-item.danger:hover { background: rgba(248,113,113,0.1); color: #f87171; }
+.global-menu-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 0;
+}
+.global-menu-warn {
+  font-size: 0.7rem;
+  color: var(--text2);
+  padding: 0 1rem 0.6rem;
+  margin: 0;
+  line-height: 1.4;
+}

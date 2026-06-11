@@ -37,20 +37,52 @@ class ErrorBoundary extends Component {
   }
 }
 
-function ThemeToggle({ light, onToggle }) {
+function GlobalMenu({ light, onToggle, hasGame, onAbandon, screen }) {
+  const [open, setOpen] = useState(false);
+
+  function abandon() {
+    setOpen(false);
+    onAbandon();
+  }
+
   return (
-    <button
-      onClick={onToggle}
-      title={light ? "Switch to dark mode" : "Switch to light mode"}
-      style={{
-        position: "fixed", top: "8px", right: "8px", zIndex: 10000,
-        background: "var(--bg2)", border: "1px solid var(--border)",
-        color: "var(--text2)", fontSize: "16px", padding: "4px 8px",
-        cursor: "pointer", lineHeight: 1,
-      }}
-    >
-      {light ? "🌙" : "☀️"}
-    </button>
+    <>
+      <button
+        className="global-menu-btn"
+        onClick={() => setOpen(o => !o)}
+        title="Menu"
+      >
+        ☰
+      </button>
+
+      {open && (
+        <div className="global-menu-overlay" onClick={() => setOpen(false)}>
+          <div className="global-menu-box" onClick={e => e.stopPropagation()}>
+            <div className="global-menu-title">DoF: WAR CHEST</div>
+
+            <button className="global-menu-item" onClick={() => setOpen(false)}>
+              ▶ CONTINUE
+            </button>
+
+            <div className="global-menu-divider" />
+
+            <button className="global-menu-item" onClick={() => { setOpen(false); onToggle(); }}>
+              {light ? "🌙 DARK MODE" : "☀️ LIGHT MODE"}
+            </button>
+
+            {hasGame && (
+              <>
+                <div className="global-menu-divider" />
+                <button className="global-menu-item danger" onClick={abandon}>
+                  ✕ QUIT &amp; RETURN TO HOME
+                </button>
+                <p className="global-menu-warn">Abandons the current game and returns to the setup screen.</p>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -78,20 +110,29 @@ function AppInner() {
     setScreen(s);
   }
 
-  const toggle = <ThemeToggle light={lightMode} onToggle={() => setLightMode(l => !l)} />;
+  const hasGame = !!draft;
+  const globalMenu = (
+    <GlobalMenu
+      light={lightMode}
+      onToggle={() => setLightMode(l => !l)}
+      hasGame={hasGame}
+      onAbandon={restartGame}
+      screen={screen}
+    />
+  );
 
   if (screen === "setup" || !draft) {
-    return <>{toggle}<SetupScreen onStart={startGame} /></>;
+    return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
   }
 
   if (screen === "order-draw" && draft) {
-    return <>{toggle}<OrderDrawScreen draft={draft} onStart={() => setScreen("draft")} /></>;
+    return <>{globalMenu}<OrderDrawScreen draft={draft} onStart={() => setScreen("draft")} /></>;
   }
 
   if (screen === "draft" && draft && currentPos) {
     return (
       <>
-        {toggle}
+        {globalMenu}
         <DraftScreen
           draft={draft}
           activeManager={activeManager}
@@ -101,7 +142,6 @@ function AppInner() {
           pickPlayer={pickPlayer}
           getAvailablePlayers={getAvailablePlayers}
           getTakenPlayers={getTakenPlayers}
-          restartGame={restartGame}
           skipTurn={skipTurn}
           autoCompleteDraft={autoCompleteDraft}
           skipCpuTurns={skipCpuTurns}
@@ -113,7 +153,7 @@ function AppInner() {
   if (screen === "manager-draft" && draft) {
     return (
       <>
-        {toggle}
+        {globalMenu}
         <ManagerDraftScreen draft={draft} onAssignManager={assignManagers} />
       </>
     );
@@ -122,7 +162,7 @@ function AppInner() {
   if (screen === "squads" && draft) {
     return (
       <>
-        {toggle}
+        {globalMenu}
         <SquadScreen
           draft={draft}
           setTeamName={setTeamName}
@@ -136,13 +176,13 @@ function AppInner() {
   }
 
   if (screen === "draw" && draft?.series?.stage === "draw") {
-    return <>{toggle}<DrawScreen draft={draft} onComplete={completeDraw} /></>;
+    return <>{globalMenu}<DrawScreen draft={draft} onComplete={completeDraw} /></>;
   }
 
   if (screen === "series" && draft?.series) {
     return (
       <>
-        {toggle}
+        {globalMenu}
         <SeriesScreen
           draft={draft}
           setScreen={handleSetScreen}
@@ -157,13 +197,13 @@ function AppInner() {
     const homeIdx = matchConfig.homeIdx ?? 0;
     const awayIdx = matchConfig.awayIdx ?? 1;
     if (!draft.managers[homeIdx] || !draft.managers[awayIdx]) {
-      return <>{toggle}<SquadScreen draft={draft} setTeamName={setTeamName} swapSquadPlayers={swapSquadPlayers} restartGame={restartGame} setScreen={handleSetScreen} onBackToSeries={draft.series ? () => setScreen("series") : undefined} /></>;
+      return <>{globalMenu}<SquadScreen draft={draft} setTeamName={setTeamName} swapSquadPlayers={swapSquadPlayers} restartGame={restartGame} setScreen={handleSetScreen} onBackToSeries={draft.series ? () => setScreen("series") : undefined} /></>;
     }
     const inSeries = !!draft.series;
     const seriesCtx = inSeries ? getSeriesContext(draft.series, draft.managers) : null;
     return (
       <>
-        {toggle}
+        {globalMenu}
         <MatchSim
           draft={draft}
           homeIdx={homeIdx}
@@ -176,7 +216,7 @@ function AppInner() {
     );
   }
 
-  return <>{toggle}<SetupScreen onStart={startGame} /></>;
+  return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
 }
 
 export default function App() {

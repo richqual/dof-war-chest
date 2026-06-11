@@ -11,7 +11,7 @@ const CPU_PICK_DELAY = 1300;
 
 export default function DraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
-  confirmBudget, pickPlayer, getAvailablePlayers, getTakenPlayers, restartGame,
+  confirmBudget, pickPlayer, getAvailablePlayers, getTakenPlayers,
   skipTurn, autoCompleteDraft, skipCpuTurns,
 }) {
   const [filterEra, setFilterEra] = useState("all");
@@ -134,17 +134,12 @@ export default function DraftScreen({
       {showMenu && (
         <div className="menu-overlay" onClick={() => setShowMenu(false)}>
           <div className="menu-box" onClick={e => e.stopPropagation()}>
-            <div className="menu-title">MENU</div>
+            <div className="menu-title">DRAFT OPTIONS</div>
             <button className="menu-item" onClick={() => setShowMenu(false)}>▶ CONTINUE DRAFT</button>
             <button className="menu-item" onClick={() => { setShowMenu(false); autoCompleteDraft(); }}>
               ⏩ AUTO-PICK REST &amp; SKIP TO END-GAME
             </button>
             <p className="menu-warn">CPU picks every remaining player instantly and jumps to the squads screen.</p>
-            <div className="menu-divider" />
-            <button className="menu-item danger" onClick={() => { setShowMenu(false); restartGame(); }}>
-              ✕ ABANDON DRAFT &amp; RESTART
-            </button>
-            <p className="menu-warn">This will clear all progress and return to setup.</p>
           </div>
         </div>
       )}
