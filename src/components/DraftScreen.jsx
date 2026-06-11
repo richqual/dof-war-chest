@@ -90,6 +90,7 @@ export default function DraftScreen({
         nextManager={transition.nextManager}
         posLabel={transition.nextPosLabel}
         nextKit={transition.nextKit}
+        prevKit={transition.prevKit}
         onContinue={() => setTransition(null)}
       />
     );
@@ -135,15 +136,19 @@ export default function DraftScreen({
           <div className="menu-box" onClick={e => e.stopPropagation()}>
             <div className="menu-title">MENU</div>
             <button className="menu-item" onClick={() => setShowMenu(false)}>▶ CONTINUE DRAFT</button>
-            <button className="menu-item" onClick={() => { setShowMenu(false); autoCompleteDraft(); }}>
-              ⏩ AUTO-PICK REST &amp; SKIP TO END-GAME
-            </button>
-            <p className="menu-warn">CPU picks every remaining player instantly and jumps to the squads screen.</p>
-            <div className="menu-divider" />
-            <button className="menu-item danger" onClick={() => { setShowMenu(false); restartGame(); }}>
-              ✕ ABANDON DRAFT &amp; RESTART
-            </button>
-            <p className="menu-warn">This will clear all progress and return to setup.</p>
+            {!draft.series && (
+              <>
+                <button className="menu-item" onClick={() => { setShowMenu(false); autoCompleteDraft(); }}>
+                  ⏩ AUTO-PICK REST &amp; SKIP TO END-GAME
+                </button>
+                <p className="menu-warn">CPU picks every remaining player instantly and jumps to the squads screen.</p>
+                <div className="menu-divider" />
+                <button className="menu-item danger" onClick={() => { setShowMenu(false); restartGame(); }}>
+                  ✕ ABANDON DRAFT &amp; RESTART
+                </button>
+                <p className="menu-warn">This will clear all progress and return to setup.</p>
+              </>
+            )}
           </div>
         </div>
       )}

@@ -352,9 +352,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
             </div>
           )}
 
-          <div className="series-footer">
-            <button className="restart-btn" onClick={restartGame}>NEW GAME</button>
-          </div>
+          <div className="series-footer" />
         </>
       )}
     </div>
