@@ -218,9 +218,9 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
       setOffered(three);
       setSpinning(false);
       // Reveal cards one by one with suspenseful pauses
-      setTimeout(() => setRevealed(1), 0);
-      setTimeout(() => setRevealed(2), 1800);
-      setTimeout(() => setRevealed(3), 3600);
+      setTimeout(() => setRevealed(1), 2000);
+      setTimeout(() => setRevealed(2), 5000);
+      setTimeout(() => setRevealed(3), 8000);
     }, 1200);
   }
 
@@ -237,7 +237,7 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
       const order = { elite: 0, established: 1, journeyman: 2 };
       return order[a.tier] - order[b.tier];
     });
-    const t = setTimeout(() => setCpuPick(sorted[0]), 4400); // 3600ms reveal + 800ms pause
+    const t = setTimeout(() => setCpuPick(sorted[0]), 9500); // 8000ms reveal + 1.5s pause
     return () => clearTimeout(t);
   }, [offered, currentManagerIdx]);
 
