@@ -200,7 +200,7 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
   const [pool, setPool] = useState(() => shuffle([...MANAGERS]));
   const [turnIdx, setTurnIdx] = useState(0);
   const [offered, setOffered] = useState(null);
-  const [cpuPick, setCpuPick] = useState(null); // which card CPU has chosen (pre-confirm)
+  const [cpuPick, setCpuPick] = useState(null); // card CPU has chosen, waiting for human to confirm
   const [spinning, setSpinning] = useState(false);
   const [assignments, setAssignments] = useState({});
 
@@ -210,6 +210,7 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
 
   function spinAndReveal() {
     setSpinning(true);
+    setCpuPick(null);
     setTimeout(() => {
       const three = pool.slice(0, 3);
       setOffered(three);
@@ -222,6 +223,17 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
       spinAndReveal();
     }
   }, [turnIdx]);
+
+  // CPU highlights its pick after 1.5s — but never auto-advances. Human clicks NEXT.
+  useEffect(() => {
+    if (!offered || currentManager.isComputer === false) return;
+    const sorted = [...offered].sort((a, b) => {
+      const order = { elite: 0, established: 1, journeyman: 2 };
+      return order[a.tier] - order[b.tier];
+    });
+    const t = setTimeout(() => setCpuPick(sorted[0]), 1500);
+    return () => clearTimeout(t);
+  }, [offered, currentManagerIdx]);
 
   function handlePick(manager) {
     const newPool = pool.filter(m => m.id !== manager.id);
@@ -240,22 +252,15 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
     }
   }
 
-  function skipCpu() {
-    if (offered && cpuPick) handlePick(cpuPick);
-    else if (offered) {
-      // pick the best available immediately
-      const sorted = [...offered].sort((a, b) => {
-        const order = { elite: 0, established: 1, journeyman: 2 };
-        return order[a.tier] - order[b.tier];
-      });
-      handlePick(sorted[0]);
-    }
+  function confirmCpuPick() {
+    if (cpuPick) handlePick(cpuPick);
   }
 
   if (allDone) return null;
 
   const isHuman = !currentManager.isComputer;
   const playerName = currentManager.dofName || currentManager.name;
+  const cpuReady = !isHuman && !!cpuPick;
 
   return (
     <div className="mgr-draft-screen">
@@ -266,7 +271,11 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
 
       <div className="mgr-turn-banner">
         <span className="mgr-turn-label">
-          {isHuman ? `${playerName}, choose your manager` : `${playerName} is picking...`}
+          {isHuman
+            ? `${playerName}, choose your manager`
+            : cpuReady
+              ? `${playerName} has chosen — confirm to continue`
+              : `${playerName} is deliberating...`}
         </span>
         <div className="mgr-turn-dots">
           {pickOrder.map((idx, i) => (
@@ -290,7 +299,9 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
               <div className="mgr-instruction">
                 {isHuman
                   ? "Three managers have been offered. Pick one — the others return to the pool."
-                  : "Deliberating..."}
+                  : cpuReady
+                    ? `${playerName} picks ${cpuPick.name}.`
+                    : "Deliberating..."}
               </div>
               <div className="mgr-cards-row">
                 {offered.map(mgr => (
@@ -304,12 +315,13 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
                 ))}
               </div>
               {!isHuman && (
-                <>
-                  <CpuPick offered={offered} onPick={handlePick} onHighlight={setCpuPick} />
-                  <button className="mgr-skip-btn" onClick={skipCpu}>
-                    ⏩ SKIP CPU PICK
-                  </button>
-                </>
+                <button
+                  className={`mgr-next-btn ${cpuReady ? "ready" : "waiting"}`}
+                  onClick={confirmCpuPick}
+                  disabled={!cpuReady}
+                >
+                  {cpuReady ? "CONFIRM & NEXT →" : "DELIBERATING..."}
+                </button>
               )}
             </>
           )}
@@ -319,21 +331,4 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
       </div>
     </div>
   );
-}
-
-// Highlights the CPU's choice after 1.5s, then confirms it after 3s total.
-// Calls onHighlight so the card glows before the pick lands.
-function CpuPick({ offered, onPick, onHighlight }) {
-  useEffect(() => {
-    const sorted = [...offered].sort((a, b) => {
-      const order = { elite: 0, established: 1, journeyman: 2 };
-      return order[a.tier] - order[b.tier];
-    });
-    const chosen = sorted[0];
-
-    const highlightTimer = setTimeout(() => onHighlight(chosen), 1500);
-    const pickTimer = setTimeout(() => onPick(chosen), 3000);
-    return () => { clearTimeout(highlightTimer); clearTimeout(pickTimer); };
-  }, [offered]);
-  return null;
 }

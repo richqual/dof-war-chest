@@ -2216,21 +2216,34 @@ input, select { font-family: var(--font); }
   min-width: 0;
 }
 
-/* Skip CPU button */
-.mgr-skip-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text2);
+/* CPU confirm/next button */
+.mgr-next-btn {
   font-family: var(--font-head);
-  font-size: 7px;
+  font-size: 8px;
   letter-spacing: 1px;
-  padding: 6px 14px;
+  padding: 10px 24px;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
+  border: 2px solid;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.08s, box-shadow 0.08s;
+  box-shadow: var(--pixel-shadow-sm);
+  margin-top: 0.25rem;
 }
-.mgr-skip-btn:hover {
-  border-color: var(--amber);
-  color: var(--amber);
+.mgr-next-btn.ready {
+  background: var(--amber);
+  color: #000;
+  border-color: #a08000;
+}
+.mgr-next-btn.ready:hover {
+  background: var(--amber-d);
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0 0 #000;
+}
+.mgr-next-btn.waiting {
+  background: transparent;
+  color: var(--text3);
+  border-color: var(--border);
+  cursor: not-allowed;
+  animation: mgr-spin-pulse 1s infinite;
 }
 
 /* CPU-chosen card highlight */
