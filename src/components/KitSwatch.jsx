@@ -23,6 +23,27 @@ export function kitAccent(primary, secondary) {
   return "#ffd700";
 }
 
+function lighten(hex, amt) {
+  let h = (hex || "").replace("#", "");
+  if (h.length === 3) h = h.split("").map(c => c + c).join("");
+  if (h.length !== 6) return hex;
+  const mix = c => Math.round(c + (255 - c) * amt);
+  return "#" + [0, 2, 4]
+    .map(i => mix(parseInt(h.slice(i, i + 2), 16)).toString(16).padStart(2, "0"))
+    .join("");
+}
+
+// The club's identity colour (primary), brightened until it reads on the
+// dark background. Unlike kitAccent, two clubs with white trim still get
+// distinct colours — used where team attribution matters (match commentary).
+export function teamAccent(primary, secondary) {
+  for (let amt = 0; amt <= 0.7; amt += 0.1) {
+    const c = lighten(primary, amt);
+    if (luminance(c) >= 0.35) return c;
+  }
+  return kitAccent(primary, secondary);
+}
+
 export default function KitSwatch({ primary, secondary, pattern = "plain", uid = "0", size = 36 }) {
   const patId = `stripe-${uid}`;
   return (
