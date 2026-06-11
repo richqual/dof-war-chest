@@ -1074,18 +1074,21 @@ input, select { font-family: var(--font); }
 .pitch-dot { position: absolute; transform: translate(-50%, -50%); cursor: pointer; z-index: 2; }
 .pitch-dot-inner { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .dot-rating {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 9px;
   font-weight: bold;
-  border: 2px solid transparent;
+  border: 2.5px solid rgba(255,255,255,0.5);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
   transition: border-color 0.15s;
   font-family: var(--font-head);
   letter-spacing: 0.2px;
+  flex-shrink: 0;
 }
 .pitch-dot.swapping .dot-rating { border-color: var(--amber) !important; }
 .pitch-dot:hover .dot-rating { border-color: rgba(255,255,255,0.5); }
@@ -1101,11 +1104,12 @@ input, select { font-family: var(--font); }
   text-overflow: ellipsis;
 }
 .dot-empty {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
+  overflow: hidden;
   background: rgba(255,255,255,0.05);
-  border: 1px dashed rgba(255,255,255,0.2);
+  border: 1.5px dashed rgba(255,255,255,0.25);
   display: flex;
   align-items: center;
   justify-content: center;
