@@ -199,8 +199,9 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
   const [pickOrder] = useState(() => shuffle(draft.managers.map((_, i) => i)));
   const [pool, setPool] = useState(() => shuffle([...MANAGERS]));
   const [turnIdx, setTurnIdx] = useState(0);
-  const [offered, setOffered] = useState(null);
-  const [cpuPick, setCpuPick] = useState(null); // card CPU has chosen, waiting for human to confirm
+  const [offered, setOffered] = useState(null);       // all 3 selected managers
+  const [revealed, setRevealed] = useState(0);        // how many cards are visible (0→3)
+  const [cpuPick, setCpuPick] = useState(null);
   const [spinning, setSpinning] = useState(false);
   const [assignments, setAssignments] = useState({});
 
@@ -211,10 +212,15 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
   function spinAndReveal() {
     setSpinning(true);
     setCpuPick(null);
+    setRevealed(0);
     setTimeout(() => {
       const three = pool.slice(0, 3);
       setOffered(three);
       setSpinning(false);
+      // Reveal cards one by one: 1st immediately, 2nd +600ms, 3rd +1200ms
+      setTimeout(() => setRevealed(1), 0);
+      setTimeout(() => setRevealed(2), 600);
+      setTimeout(() => setRevealed(3), 1200);
     }, 1200);
   }
 
@@ -224,14 +230,14 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
     }
   }, [turnIdx]);
 
-  // CPU highlights its pick after 1.5s — but never auto-advances. Human clicks NEXT.
+  // CPU highlights its pick 600ms after all cards are revealed — never auto-advances.
   useEffect(() => {
     if (!offered || currentManager.isComputer === false) return;
     const sorted = [...offered].sort((a, b) => {
       const order = { elite: 0, established: 1, journeyman: 2 };
       return order[a.tier] - order[b.tier];
     });
-    const t = setTimeout(() => setCpuPick(sorted[0]), 1500);
+    const t = setTimeout(() => setCpuPick(sorted[0]), 1800); // 1200ms reveal + 600ms pause
     return () => clearTimeout(t);
   }, [offered, currentManagerIdx]);
 
@@ -239,6 +245,7 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
     const newPool = pool.filter(m => m.id !== manager.id);
     setPool(shuffle(newPool));
     setCpuPick(null);
+    setRevealed(0);
 
     const newAssignments = { ...assignments, [currentManagerIdx]: manager };
     setAssignments(newAssignments);
@@ -260,7 +267,7 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
 
   const isHuman = !currentManager.isComputer;
   const playerName = currentManager.dofName || currentManager.name;
-  const cpuReady = !isHuman && !!cpuPick;
+  const cpuReady = !isHuman && !!cpuPick && revealed >= 3;
 
   return (
     <div className="mgr-draft-screen">
@@ -304,12 +311,12 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
                     : "Deliberating..."}
               </div>
               <div className="mgr-cards-row">
-                {offered.map(mgr => (
+                {offered.slice(0, revealed).map(mgr => (
                   <ManagerCard
                     key={mgr.id}
                     manager={mgr}
                     onPick={isHuman ? handlePick : () => {}}
-                    disabled={!isHuman}
+                    disabled={!isHuman || revealed < 3}
                     highlighted={cpuPick?.id === mgr.id}
                   />
                 ))}
