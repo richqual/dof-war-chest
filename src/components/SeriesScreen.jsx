@@ -1,4 +1,6 @@
 import KitSwatch, { kitAccent } from "./KitSwatch";
+import { POSITIONS, getRatingBg, getRatingColor, formatValue } from "../data/players";
+import { squadRating } from "./SquadScreen";
 
 function WinDots({ wins, target, accent }) {
   return (
@@ -157,6 +159,77 @@ function TournamentBracket({ series, managers }) {
   );
 }
 
+function ChampionSquad({ manager }) {
+  const starters = manager.squad.slice(0, 11);
+  const bench = manager.squad.slice(11, 16);
+
+  function exportSquad() {
+    const ovr = squadRating(manager.squad);
+    const lines = [
+      `=== ${manager.teamName || manager.clubName} — CHAMPIONS ===`,
+      `Director of Football: ${manager.dofName || manager.name}`,
+      `Overall: ${ovr}`,
+      "",
+      "STARTING XI:",
+      ...starters.map((p, i) =>
+        p ? `  ${POSITIONS[i].key.padEnd(3)} ${p.name} (${p.rating}) — ${formatValue(p.value)}`
+          : `  ${POSITIONS[i].key.padEnd(3)} [empty]`
+      ),
+      "",
+      "BENCH:",
+      ...bench.map(p =>
+        p ? `  SUB ${p.name} (${p.rating}) — ${formatValue(p.value)}`
+          : `  SUB [empty]`
+      ),
+    ];
+    navigator.clipboard
+      .writeText(lines.join("\n"))
+      .then(() => alert("Copied to clipboard!"))
+      .catch(() => alert(lines.join("\n")));
+  }
+
+  const ovr = squadRating(manager.squad);
+
+  return (
+    <div className="champ-squad">
+      <div className="champ-squad-header">
+        <span className="champ-squad-ovr">OVR {ovr}</span>
+        <button className="action-btn" onClick={exportSquad}>EXPORT SQUAD</button>
+      </div>
+
+      <div className="champ-squad-section-label">STARTING XI</div>
+      <div className="champ-squad-list">
+        {starters.map((p, i) => p ? (
+          <div key={i} className="champ-squad-row">
+            <span className="champ-squad-pos">{POSITIONS[i].key}</span>
+            <span className="champ-squad-name">{p.name}</span>
+            <span className="champ-squad-club">{p.club}</span>
+            <span
+              className="champ-squad-rating"
+              style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}
+            >{p.rating}</span>
+          </div>
+        ) : null)}
+      </div>
+
+      <div className="champ-squad-section-label">BENCH</div>
+      <div className="champ-squad-list">
+        {bench.map((p, i) => p ? (
+          <div key={i} className="champ-squad-row">
+            <span className="champ-squad-pos">SUB</span>
+            <span className="champ-squad-name">{p.name}</span>
+            <span className="champ-squad-club">{p.club}</span>
+            <span
+              className="champ-squad-rating"
+              style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}
+            >{p.rating}</span>
+          </div>
+        ) : null)}
+      </div>
+    </div>
+  );
+}
+
 export default function SeriesScreen({ draft, setScreen, recordMatchResult, restartGame }) {
   const { managers, series } = draft;
   if (!series) return null;
@@ -178,28 +251,51 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
   return (
     <div className="series-screen">
       {isChampion && champion ? (
-        // Champion fanfare
         <div className="champion-screen" style={{ "--champ-a": champion.primaryColor, "--champ-b": champion.secondaryColor }}>
           <div className="champion-flash-bg" />
           <div className="champion-content">
+
+            {/* Fanfare header */}
             <div className="champion-trophy">🏆</div>
             <div className="champion-title">CHAMPION!</div>
             <div className="champion-name" style={{ color: championAccent }}>
               {champion.teamName || champion.clubName || champion.name}
             </div>
+            <div className="champion-dof">
+              Director of Football: {champion.dofName || champion.name}
+            </div>
             <div className="champion-sub">
               {series.format === "tournament"
-                ? `Wins the tournament!`
+                ? "Wins the tournament!"
                 : (() => {
                     const [p0, p1] = series.participants;
                     const [w0, w1] = series.wins;
                     const ci = series.champion === p0 ? 0 : 1;
-                    const oi = 1 - ci;
-                    return `Wins the series ${[w0,w1][ci]}–${[w0,w1][oi]}`;
+                    return `Wins the series ${[w0, w1][ci]}–${[w0, w1][1 - ci]}`;
                   })()
               }
             </div>
-            <button className="sim-btn" style={{ marginTop: "2rem" }} onClick={restartGame}>NEW GAME</button>
+
+            {/* Kit strip */}
+            <div className="champion-kit">
+              <KitSwatch
+                primary={champion.primaryColor}
+                secondary={champion.secondaryColor}
+                pattern={champion.pattern}
+                uid="champ"
+                size={56}
+              />
+            </div>
+
+            {/* Full squad */}
+            <ChampionSquad manager={champion} />
+
+            {/* Actions */}
+            <div className="champion-actions">
+              <button className="sim-btn secondary" onClick={() => setScreen("squads")}>VIEW ALL SQUADS</button>
+              <button className="sim-btn secondary" onClick={restartGame}>NEW GAME</button>
+            </div>
+
           </div>
         </div>
       ) : (

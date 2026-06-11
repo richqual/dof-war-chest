@@ -1828,10 +1828,10 @@ input, select { font-family: var(--font); }
 .champion-screen {
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   min-height: 100vh;
-  overflow: hidden;
+  overflow-y: auto;
   background: var(--bg);
 }
 .champion-flash-bg {
@@ -1864,4 +1864,61 @@ input, select { font-family: var(--font); }
   text-shadow: 0 0 30px rgba(255,200,50,0.6);
 }
 .champion-name { font-family: var(--font-sub); font-size: 28px; font-weight: bold; }
+.champion-dof { font-family: var(--font-head); font-size: 12px; color: var(--text2); letter-spacing: 1px; margin-top: -6px; }
 .champion-sub { font-family: var(--font-head); font-size: 14px; color: var(--text2); letter-spacing: 2px; }
+.champion-kit { margin: 4px 0; }
+.champion-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+.champion-actions .sim-btn { margin-top: 0; }
+
+/* Champion squad list */
+.champ-squad {
+  width: 100%;
+  max-width: 480px;
+  background: rgba(0,0,0,0.45);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 12px 14px;
+  margin-top: 16px;
+  text-align: left;
+}
+.champ-squad-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.champ-squad-ovr {
+  font-family: var(--font-head);
+  font-size: 13px;
+  color: var(--amber);
+  letter-spacing: 1px;
+}
+.champ-squad-section-label {
+  font-family: var(--font-head);
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 2px;
+  margin: 8px 0 4px;
+}
+.champ-squad-list { display: flex; flex-direction: column; gap: 2px; }
+.champ-squad-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sub);
+  font-size: 13px;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.champ-squad-pos { font-family: var(--font-head); font-size: 10px; color: var(--text3); min-width: 30px; letter-spacing: 1px; }
+.champ-squad-name { flex: 1; color: var(--text); }
+.champ-squad-club { font-size: 11px; color: var(--text3); flex: 1; text-align: right; padding-right: 8px; }
+.champ-squad-rating {
+  font-family: var(--font-head);
+  font-size: 11px;
+  padding: 2px 5px;
+  border-radius: 2px;
+  min-width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
