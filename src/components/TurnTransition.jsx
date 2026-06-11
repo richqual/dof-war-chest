@@ -1,4 +1,6 @@
-export default function TurnTransition({ prevManager, player, nextManager, posLabel, onContinue }) {
+import KitSwatch, { readableTextOn } from "./KitSwatch";
+
+export default function TurnTransition({ prevManager, player, nextManager, posLabel, nextKit, onContinue }) {
   return (
     <div className="turn-transition-overlay">
       <div className="turn-transition-box">
@@ -11,8 +13,24 @@ export default function TurnTransition({ prevManager, player, nextManager, posLa
         <div className="tt-detail">
           {player.nation} · {player.pos} · {player.club} · {player.years}
         </div>
-        <div className="tt-next-up">
-          NEXT UP: <strong>{nextManager}</strong>
+        <div
+          className="tt-next-up"
+          style={nextKit ? {
+            background: nextKit.primaryColor,
+            color: readableTextOn(nextKit.primaryColor),
+            borderColor: nextKit.secondaryColor,
+          } : undefined}
+        >
+          {nextKit && (
+            <KitSwatch
+              primary={nextKit.primaryColor}
+              secondary={nextKit.secondaryColor}
+              pattern={nextKit.pattern || "plain"}
+              uid="tt-next"
+              size={22}
+            />
+          )}
+          NEXT UP: <strong style={nextKit ? { color: "inherit" } : undefined}>{nextManager}</strong>
         </div>
         <div className="tt-next-pos">signing: {posLabel}</div>
         <button className="tt-continue-btn" onClick={onContinue}>

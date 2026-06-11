@@ -62,6 +62,7 @@ function buildInitialDraft(clubs, options = {}) {
       teamName: c.clubName,
       primaryColor: c.primaryColor || "#1a3a6b",
       secondaryColor: c.secondaryColor || "#ffffff",
+      pattern: c.pattern || "plain",
       isComputer: !!c.isComputer,
       squad: Array(16).fill(null),
       carryover: 0,

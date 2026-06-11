@@ -4,6 +4,7 @@ import PlayerCard from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
 import TurnTransition from "./TurnTransition";
 import MySquadPanel from "./MySquadPanel";
+import KitSwatch, { readableTextOn, kitAccent } from "./KitSwatch";
 
 const CPU_SPIN_DELAY = 900;
 const CPU_PICK_DELAY = 1300;
@@ -51,7 +52,7 @@ export default function DraftScreen({
       }
       const nextManager = managers[nextManagerIdx];
       const nextName = nextManager.dofName || nextManager.name;
-      setTransition({ prevManager: prevManagerName, player, nextManager: nextName, nextPosLabel });
+      setTransition({ prevManager: prevManagerName, player, nextManager: nextName, nextPosLabel, nextKit: nextManager });
     }
 
     pickPlayer(player);
@@ -82,13 +83,24 @@ export default function DraftScreen({
         player={transition.player}
         nextManager={transition.nextManager}
         posLabel={transition.nextPosLabel}
+        nextKit={transition.nextKit}
         onContinue={() => setTransition(null)}
       />
     );
   }
 
+  // CM00/01-style theming: the chrome takes on the active club's kit colours
+  const kitPrimary = activeManager?.primaryColor || "#1a3a6b";
+  const kitSecondary = activeManager?.secondaryColor || "#ffffff";
+  const kitTheme = {
+    "--kit-primary": kitPrimary,
+    "--kit-secondary": kitSecondary,
+    "--kit-text": readableTextOn(kitPrimary),
+    "--kit-accent": kitAccent(kitPrimary, kitSecondary),
+  };
+
   return (
-    <div className="draft-screen">
+    <div className="draft-screen" style={kitTheme}>
       {showMySquad && (
         <MySquadPanel manager={activeManager} onClose={() => setShowMySquad(false)} />
       )}
@@ -116,7 +128,14 @@ export default function DraftScreen({
         <span className="game-title">DoF: War Chest</span>
         <div className="manager-tabs">
           {managers.map((m, i) => (
-            <span key={i} className={`manager-tab ${i === activeManagerIdx ? "active" : ""}`}>
+            <span
+              key={i}
+              className={`manager-tab ${i === activeManagerIdx ? "active" : ""}`}
+              style={i === activeManagerIdx
+                ? { background: m.primaryColor, color: readableTextOn(m.primaryColor), borderColor: m.secondaryColor }
+                : undefined}
+            >
+              <span className="tab-kit-dot" style={{ background: m.primaryColor, boxShadow: `inset 0 0 0 1px ${m.secondaryColor}` }} />
               {m.clubName || m.name}
               {m.isComputer && <span className="cpu-tag">CPU</span>}
             </span>
@@ -131,6 +150,13 @@ export default function DraftScreen({
       {/* Turn banner */}
       <div className="turn-banner">
         <div className="turn-left">
+          <KitSwatch
+            primary={kitPrimary}
+            secondary={kitSecondary}
+            pattern={activeManager?.pattern || "plain"}
+            uid="banner"
+            size={28}
+          />
           <span className="turn-name">{activeManager?.dofName || activeManager?.name}</span>
           <span className="turn-club">({activeManager?.clubName})</span>
           <span className="turn-pos">signing: <strong>{currentPos.label}</strong></span>

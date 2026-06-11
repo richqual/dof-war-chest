@@ -53,6 +53,12 @@ const COMMENTARY_CARD = [
   (p) => `${p} lunges in late — yellow card.`,
 ];
 
+const COMMENTARY_RED = [
+  (p, team, men) => `${p} is shown a SECOND YELLOW — RED CARD! ${team} are down to ${men} men!`,
+  (p, team, men) => `That's his second booking! ${p} is off! ${team} reduced to ${men}!`,
+  (p, team, men) => `${p} can have no complaints — two yellows and he's sent off. ${team} play on with ${men} men.`,
+];
+
 const COMMENTARY_NEUTRAL = [
   (a, b) => `${a} pressing hard but ${b}'s defence is holding firm.`,
   (a, b) => `${b} counter-attack — good defending to clear the danger.`,
@@ -70,6 +76,10 @@ function generateEvents(homeSquad, awaySquad, homeName, awayName) {
   const events = [];
   let hGoals = 0, aGoals = 0;
   const hCards = [], aCards = [];
+  const hBooked = new Set(), aBooked = new Set();
+  const hSentOff = new Set(), aSentOff = new Set();
+
+  const onPitch = (squad, sentOff) => squad.slice(0, 11).filter(p => p && !sentOff.has(p.name));
 
   const minutes = [...new Set(Array.from({ length: rand(18, 28) }, () => rand(1, 90)))].sort((a, b) => a - b);
 
@@ -80,10 +90,12 @@ function generateEvents(homeSquad, awaySquad, homeName, awayName) {
       const isHome = Math.random() < ratio;
       const team = isHome ? homeSquad : awaySquad;
       const teamName = isHome ? homeName : awayName;
-      const attacker = bestPlayer(team.slice(0, 11), weighted([{ v: "ST", w: 3 }, { v: "RW", w: 1.5 }, { v: "LW", w: 1.5 }, { v: "MF", w: 1 }]));
+      const attacker = bestPlayer(onPitch(team, isHome ? hSentOff : aSentOff), weighted([{ v: "ST", w: 3 }, { v: "RW", w: 1.5 }, { v: "LW", w: 1.5 }, { v: "MF", w: 1 }]));
       const name = attacker ? attacker.name : "The striker";
 
-      const goalChance = 0.38 + (isHome ? hStr - aStr : aStr - hStr) * 0.004;
+      // Being a man (or more) down makes scoring harder
+      const menDown = (isHome ? hSentOff.size : aSentOff.size) - (isHome ? aSentOff.size : hSentOff.size);
+      const goalChance = 0.38 + (isHome ? hStr - aStr : aStr - hStr) * 0.004 - menDown * 0.08;
       if (Math.random() < goalChance) {
         isHome ? hGoals++ : aGoals++;
         const fn = COMMENTARY_GOAL[rand(0, COMMENTARY_GOAL.length - 1)];
@@ -95,12 +107,21 @@ function generateEvents(homeSquad, awaySquad, homeName, awayName) {
     } else if (r < 0.45) {
       const isHome = Math.random() < 0.5;
       const team = isHome ? homeSquad : awaySquad;
-      const pl = team.slice(0, 11).filter(Boolean);
+      const booked = isHome ? hBooked : aBooked;
+      const sentOff = isHome ? hSentOff : aSentOff;
+      const pl = onPitch(team, sentOff);
       const target = pl[rand(0, pl.length - 1)];
       if (target) {
-        const fn = COMMENTARY_CARD[rand(0, COMMENTARY_CARD.length - 1)];
-        events.push({ min, type: "yellow", team: isHome ? "home" : "away", player: target.name, text: fn(target.name) });
-        if (isHome) hCards.push(target.name); else aCards.push(target.name);
+        if (booked.has(target.name)) {
+          sentOff.add(target.name);
+          const fn = COMMENTARY_RED[rand(0, COMMENTARY_RED.length - 1)];
+          events.push({ min, type: "red", team: isHome ? "home" : "away", player: target.name, text: fn(target.name, isHome ? homeName : awayName, 11 - sentOff.size) });
+        } else {
+          booked.add(target.name);
+          const fn = COMMENTARY_CARD[rand(0, COMMENTARY_CARD.length - 1)];
+          events.push({ min, type: "yellow", team: isHome ? "home" : "away", player: target.name, text: fn(target.name) });
+          if (isHome) hCards.push(target.name); else aCards.push(target.name);
+        }
       }
     } else {
       const fn = COMMENTARY_NEUTRAL[rand(0, COMMENTARY_NEUTRAL.length - 1)];
@@ -121,7 +142,7 @@ function generateEvents(homeSquad, awaySquad, homeName, awayName) {
         const isHome = Math.random() < ratio;
         const team = isHome ? homeSquad : awaySquad;
         const teamName = isHome ? homeName : awayName;
-        const attacker = bestPlayer(team.slice(0, 11), null);
+        const attacker = bestPlayer(onPitch(team, isHome ? hSentOff : aSentOff), null);
         const name = attacker ? attacker.name : "The striker";
         if (Math.random() < 0.45) {
           isHome ? finalHome++ : finalAway++;
@@ -183,6 +204,7 @@ function generateEvents(homeSquad, awaySquad, homeName, awayName) {
       aShots: Math.max(finalAway, rand(2, 7)),
       hPoss, aPoss,
       hCards: hCards.length, aCards: aCards.length,
+      hReds: hSentOff.size, aReds: aSentOff.size,
     },
     motm,
     penWinner,
@@ -210,37 +232,44 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack }) {
   const [speedIdx, setSpeedIdx] = useState(2); // default NORMAL
   const feedRef = useRef(null);
   const intervalRef = useRef(null);
-  const speedRef = useRef(SPEEDS[1].ms);
+  const speedRef = useRef(SPEEDS[2].ms);
+  const eventsRef = useRef([]);
+  const nextIdxRef = useRef(0);
 
-  function startSim() {
+  function runFeed(ms) {
     clearInterval(intervalRef.current);
-    const r = generateEvents(homeManager.squad, awayManager.squad, homeName, awayName);
-    setResult(r);
-    setVisibleEvents([]);
-    setSimulating(true);
-    setDone(false);
-
-    const ms = speedRef.current;
 
     if (ms === 0) {
       // Instant — show all at once
-      setVisibleEvents(r.events);
+      nextIdxRef.current = eventsRef.current.length;
+      setVisibleEvents(eventsRef.current);
       setSimulating(false);
       setDone(true);
       return;
     }
 
-    let i = 0;
     intervalRef.current = setInterval(() => {
-      if (i >= r.events.length) {
+      if (nextIdxRef.current >= eventsRef.current.length) {
         clearInterval(intervalRef.current);
         setSimulating(false);
         setDone(true);
         return;
       }
-      setVisibleEvents(prev => [...prev, r.events[i]]);
-      i++;
+      const ev = eventsRef.current[nextIdxRef.current];
+      nextIdxRef.current++;
+      setVisibleEvents(prev => [...prev, ev]);
     }, ms);
+  }
+
+  function startSim() {
+    const r = generateEvents(homeManager.squad, awayManager.squad, homeName, awayName);
+    eventsRef.current = r.events;
+    nextIdxRef.current = 0;
+    setResult(r);
+    setVisibleEvents([]);
+    setSimulating(true);
+    setDone(false);
+    runFeed(speedRef.current);
   }
 
   function changeSpeed(idx) {
@@ -248,25 +277,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack }) {
     speedRef.current = SPEEDS[idx].ms;
     // If currently simulating, restart the interval at new speed
     if (simulating && result) {
-      clearInterval(intervalRef.current);
-      const current = visibleEvents.length;
-      if (SPEEDS[idx].ms === 0) {
-        setVisibleEvents(result.events);
-        setSimulating(false);
-        setDone(true);
-        return;
-      }
-      let i = current;
-      intervalRef.current = setInterval(() => {
-        if (i >= result.events.length) {
-          clearInterval(intervalRef.current);
-          setSimulating(false);
-          setDone(true);
-          return;
-        }
-        setVisibleEvents(prev => [...prev, result.events[i]]);
-        i++;
-      }, SPEEDS[idx].ms);
+      runFeed(SPEEDS[idx].ms);
     }
   }
 
@@ -288,6 +299,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack }) {
   function eventIcon(e) {
     if (e.type === "goal") return "⚽";
     if (e.type === "yellow") return "🟨";
+    if (e.type === "red") return "🟥";
     if (e.type === "miss") return "↗";
     if (e.type === "pens") return "🎯";
     return "▸";
@@ -296,6 +308,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack }) {
   function eventClass(e) {
     if (e.type === "goal") return "event-goal";
     if (e.type === "yellow") return "event-yellow";
+    if (e.type === "red") return "event-red";
     if (e.type === "miss") return "event-miss";
     if (e.type === "pens") return "event-pens";
     return "event-commentary";
@@ -394,6 +407,13 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack }) {
               <span className="stat-label">YELLOW CARDS</span>
               <span className="stat-away">{result.stats.aCards}</span>
             </div>
+            {(result.stats.hReds > 0 || result.stats.aReds > 0) && (
+              <div className="stat-row">
+                <span className="stat-home">{result.stats.hReds}</span>
+                <span className="stat-label">RED CARDS</span>
+                <span className="stat-away">{result.stats.aReds}</span>
+              </div>
+            )}
           </div>
 
           <button className="sim-btn secondary" onClick={startSim}>REPLAY</button>

@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { RANDOM_CLUB_NAMES, RANDOM_MANAGER_NAMES } from "../data/players";
+import KitSwatch from "./KitSwatch";
 
 const DEFAULT_COLORS = [
   { primary: "#c8102e", secondary: "#ffffff" }, // Red/White
@@ -27,26 +28,6 @@ function randomClubName() {
 
 function randomManagerName() {
   return RANDOM_MANAGER_NAMES[Math.floor(Math.random() * RANDOM_MANAGER_NAMES.length)];
-}
-
-function KitSwatch({ primary, secondary, pattern = "plain", uid = "0" }) {
-  const patId = `stripe-${uid}`;
-  return (
-    <svg width="36" height="36" viewBox="0 0 28 28" style={{ flexShrink: 0 }}>
-      {pattern === "stripes" && (
-        <defs>
-          <pattern id={patId} x="0" y="0" width="4" height="28" patternUnits="userSpaceOnUse">
-            <rect width="2" height="28" fill={primary} />
-            <rect x="2" width="2" height="28" fill={secondary} />
-          </pattern>
-        </defs>
-      )}
-      <path d="M10 2 L4 7 L7 9 L7 24 L21 24 L21 9 L24 7 L18 2 L15 5 L13 5 Z"
-        fill={pattern === "stripes" ? `url(#${patId})` : primary}
-        stroke={secondary} strokeWidth="1.5" />
-      <path d="M10 2 L13 5 L15 5 L18 2 L15 7 L13 7 Z" fill={secondary} />
-    </svg>
-  );
 }
 
 function ClubSetup({ index, club, onChange, onRemove, canRemove }) {

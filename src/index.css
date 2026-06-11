@@ -223,8 +223,9 @@ input, select { font-family: var(--font); }
 }
 
 .draft-header {
-  background: #000;
-  border-bottom: 3px solid var(--amber);
+  /* CM00/01-style: the menu bar wears the active club's kit colours */
+  background: var(--kit-primary, #000);
+  border-bottom: 3px solid var(--kit-secondary, var(--amber));
   padding: 10px 16px;
   display: flex;
   align-items: center;
@@ -234,15 +235,17 @@ input, select { font-family: var(--font); }
   z-index: 100;
   flex-shrink: 0;
   gap: 8px;
+  transition: background-color 0.4s ease, border-color 0.4s ease;
 }
 
 .game-title {
   font-size: 8px;
   letter-spacing: 1px;
-  color: var(--amber);
+  color: var(--kit-text, var(--amber));
   font-family: var(--font-head);
   white-space: nowrap;
-  text-shadow: 2px 2px 0 #000, 0 0 12px rgba(255,215,0,0.4);
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+  transition: color 0.4s ease;
 }
 
 .manager-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
@@ -251,15 +254,27 @@ input, select { font-family: var(--font); }
   font-size: 7px;
   padding: 5px 10px;
   border: 2px solid var(--border);
+  background: rgba(0,0,0,0.45);
   color: var(--text2);
   letter-spacing: 1px;
   font-family: var(--font-head);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 .manager-tab.active {
+  /* kit colours applied inline per club; this is the fallback */
   background: var(--amber);
   color: #000;
   border-color: #a08000;
   box-shadow: var(--pixel-shadow-sm);
+}
+.manager-tab.active .tab-kit-dot { display: none; }
+.tab-kit-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
 }
 
 .my-squad-btn {
@@ -279,15 +294,18 @@ input, select { font-family: var(--font); }
 
 .turn-banner {
   background: rgba(20,8,0,0.85);
+  background: color-mix(in srgb, var(--kit-primary, #140800) 26%, rgba(8,5,2,0.92));
   border-bottom: 1px solid #2a1800;
+  border-bottom-color: color-mix(in srgb, var(--kit-primary, #2a1800) 50%, #000);
   padding: 10px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+  transition: background-color 0.4s ease, border-color 0.4s ease;
 }
-.turn-left { display: flex; align-items: baseline; gap: 10px; }
-.turn-name { font-size: 16px; font-weight: 700; color: var(--amber); letter-spacing: 1px; font-family: var(--font-head); }
+.turn-left { display: flex; align-items: center; gap: 10px; }
+.turn-name { font-size: 16px; font-weight: 700; color: var(--kit-accent, var(--amber)); letter-spacing: 1px; font-family: var(--font-head); }
 .turn-pos { font-size: 13px; color: var(--text2); }
 .turn-pos strong { color: var(--text); }
 .turn-right { display: flex; gap: 8px; align-items: center; }
@@ -340,7 +358,7 @@ input, select { font-family: var(--font); }
 }
 .order-label { color: var(--text3); font-size: 9px; letter-spacing: 1px; margin-right: 4px; font-family: var(--font-head); }
 .order-chip { padding: 2px 8px; border: 1px solid var(--border2); color: var(--text2); font-size: 11px; }
-.order-chip.now { background: var(--bg); border-color: var(--amber); color: var(--amber); font-weight: bold; }
+.order-chip.now { background: var(--bg); border-color: var(--kit-accent, var(--amber)); color: var(--kit-accent, var(--amber)); font-weight: bold; }
 .order-chip.done { color: var(--text3); text-decoration: line-through; }
 
 .draft-main { flex: 1; overflow-y: auto; padding: 16px; }
@@ -579,6 +597,13 @@ input, select { font-family: var(--font); }
   letter-spacing: 2px;
   margin-bottom: 4px;
   font-family: var(--font-head);
+  /* themed inline with the next club's kit colours */
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid transparent;
+  border-radius: 2px;
 }
 .tt-next-up strong { color: var(--amber); }
 .tt-next-pos {
@@ -1120,6 +1145,8 @@ input, select { font-family: var(--font); }
 .event-goal { background: rgba(34,197,94,0.07); border-left-color: var(--green-l); }
 .event-goal .event-text { color: var(--text); }
 .event-yellow { background: rgba(200,168,0,0.07); border-left-color: #c8a800; }
+.event-red { background: rgba(220,38,38,0.1); border-left-color: #dc2626; }
+.event-red .event-text { color: var(--text); }
 .event-miss, .event-commentary { background: transparent; }
 .event-pens { background: rgba(138,43,226,0.07); border-left-color: #8a2be2; }
 .event-pens .event-text { color: var(--text); }
@@ -1451,13 +1478,13 @@ input, select { font-family: var(--font); }
 .cpu-turn-name {
   font-family: var(--font-head);
   font-size: 20px;
-  color: var(--amber);
+  color: var(--kit-accent, var(--amber));
   letter-spacing: 1px;
 }
 
 .cpu-turn-status { font-size: 13px; color: var(--text2); }
 
-.cpu-turn-dots { display: flex; gap: 6px; color: var(--amber); font-size: 10px; }
+.cpu-turn-dots { display: flex; gap: 6px; color: var(--kit-accent, var(--amber)); font-size: 10px; }
 .cpu-turn-dots span { animation: cpu-dot-pulse 1.2s infinite; }
 .cpu-turn-dots span:nth-child(2) { animation-delay: 0.2s; }
 .cpu-turn-dots span:nth-child(3) { animation-delay: 0.4s; }
