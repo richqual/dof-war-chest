@@ -2145,6 +2145,106 @@ input, select { font-family: var(--font); }
   50%       { opacity: 0.4; }
 }
 
+.mgr-main-area {
+  display: flex;
+  gap: 1.5rem;
+  align-items: flex-start;
+  justify-content: center;
+  width: 100%;
+  max-width: 1100px;
+  flex-wrap: wrap;
+}
+
+.mgr-left-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1 1 600px;
+  min-width: 0;
+}
+
+/* Picks log sidebar */
+.mgr-picks-log {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  min-width: 180px;
+  max-width: 240px;
+  flex-shrink: 0;
+  align-self: flex-start;
+}
+
+.mgr-picks-log-title {
+  font-family: var(--font-head);
+  font-size: 7px;
+  color: var(--amber);
+  letter-spacing: 1px;
+  margin-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border2);
+  padding-bottom: 0.4rem;
+}
+
+.mgr-picks-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border2);
+  animation: mgr-card-in 0.3s ease both;
+}
+.mgr-picks-row:last-child { border-bottom: none; }
+
+.mgr-picks-club {
+  font-family: var(--font-head);
+  font-size: 7px;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.mgr-picks-arrow {
+  color: var(--text3);
+  font-size: 11px;
+}
+
+.mgr-picks-name {
+  font-family: var(--font-sub);
+  font-size: 14px;
+  color: var(--green);
+  flex: 1;
+  min-width: 0;
+}
+
+/* Skip CPU button */
+.mgr-skip-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-family: var(--font-head);
+  font-size: 7px;
+  letter-spacing: 1px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.mgr-skip-btn:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+
+/* CPU-chosen card highlight */
+.mgr-card-highlighted {
+  border-color: var(--amber) !important;
+  box-shadow: 0 0 0 2px var(--amber), var(--pixel-shadow);
+  animation: mgr-card-in 0.35s ease both, mgr-highlight-pulse 0.7s ease infinite alternate;
+}
+
+@keyframes mgr-highlight-pulse {
+  from { box-shadow: 0 0 0 2px var(--amber), var(--pixel-shadow); }
+  to   { box-shadow: 0 0 8px 3px var(--amber), var(--pixel-shadow); }
+}
+
 .mgr-instruction {
   font-family: var(--font-sub);
   font-size: 16px;

@@ -125,14 +125,14 @@ function shuffle(arr) {
   return a;
 }
 
-function ManagerCard({ manager, onPick, disabled }) {
+function ManagerCard({ manager, onPick, disabled, highlighted }) {
   const tierColor = TIER_COLORS[manager.tier];
   const tierBg = TIER_BG[manager.tier];
   const eraColor = ERA_COLORS[manager.era];
   const eraBg = ERA_BG[manager.era];
 
   return (
-    <div className="mgr-card">
+    <div className={`mgr-card ${highlighted ? "mgr-card-highlighted" : ""}`}>
       <div className="mgr-card-head">
         <span
           className="era-badge"
@@ -166,12 +166,41 @@ function ManagerCard({ manager, onPick, disabled }) {
   );
 }
 
+// The running log of picks made so far
+function PicksLog({ assignments, draft }) {
+  const entries = Object.entries(assignments);
+  if (!entries.length) return null;
+  return (
+    <div className="mgr-picks-log">
+      <div className="mgr-picks-log-title">PICKS SO FAR</div>
+      {entries.map(([idx, mgr]) => {
+        const club = draft.managers[idx];
+        const tierColor = TIER_COLORS[mgr.tier];
+        const tierBg = TIER_BG[mgr.tier];
+        return (
+          <div key={idx} className="mgr-picks-row">
+            <span className="mgr-picks-club">{club.dofName || club.name}</span>
+            <span className="mgr-picks-arrow">→</span>
+            <span className="mgr-picks-name">{mgr.name}</span>
+            <span
+              className="mgr-tier-badge"
+              style={{ background: tierBg, color: tierColor, border: `1px solid ${tierColor}88`, fontSize: "6px", padding: "1px 5px" }}
+            >
+              {TIER_LABELS[mgr.tier]}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function ManagerDraftScreen({ draft, onAssignManager }) {
-  // Build pick order (random) and remaining pool on mount
   const [pickOrder] = useState(() => shuffle(draft.managers.map((_, i) => i)));
   const [pool, setPool] = useState(() => shuffle([...MANAGERS]));
   const [turnIdx, setTurnIdx] = useState(0);
   const [offered, setOffered] = useState(null);
+  const [cpuPick, setCpuPick] = useState(null); // which card CPU has chosen (pre-confirm)
   const [spinning, setSpinning] = useState(false);
   const [assignments, setAssignments] = useState({});
 
@@ -195,20 +224,31 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
   }, [turnIdx]);
 
   function handlePick(manager) {
-    // Remove only the picked manager from the pool; return the other two
     const newPool = pool.filter(m => m.id !== manager.id);
     setPool(shuffle(newPool));
+    setCpuPick(null);
 
     const newAssignments = { ...assignments, [currentManagerIdx]: manager };
     setAssignments(newAssignments);
 
     const nextTurn = turnIdx + 1;
     if (nextTurn >= pickOrder.length) {
-      // All done — commit
       onAssignManager(newAssignments);
     } else {
       setTurnIdx(nextTurn);
       setOffered(null);
+    }
+  }
+
+  function skipCpu() {
+    if (offered && cpuPick) handlePick(cpuPick);
+    else if (offered) {
+      // pick the best available immediately
+      const sorted = [...offered].sort((a, b) => {
+        const order = { elite: 0, established: 1, journeyman: 2 };
+        return order[a.tier] - order[b.tier];
+      });
+      handlePick(sorted[0]);
     }
   }
 
@@ -239,48 +279,61 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
         </div>
       </div>
 
-      {(spinning || offered) && (
-        <MerryGoRound pool={pool} spinning={spinning} />
-      )}
-
-      {!spinning && offered && (
-        <>
-          <div className="mgr-instruction">
-            {isHuman
-              ? "Three managers have been offered. Pick one — the others return to the pool."
-              : "Selecting automatically..."}
-          </div>
-          <div className="mgr-cards-row">
-            {offered.map(mgr => (
-              <ManagerCard
-                key={mgr.id}
-                manager={mgr}
-                onPick={isHuman ? handlePick : () => {}}
-                disabled={!isHuman}
-              />
-            ))}
-          </div>
-          {!isHuman && (
-            <CpuPick offered={offered} onPick={handlePick} />
+      <div className="mgr-main-area">
+        <div className="mgr-left-col">
+          {(spinning || offered) && (
+            <MerryGoRound pool={pool} spinning={spinning} />
           )}
-        </>
-      )}
+
+          {!spinning && offered && (
+            <>
+              <div className="mgr-instruction">
+                {isHuman
+                  ? "Three managers have been offered. Pick one — the others return to the pool."
+                  : "Deliberating..."}
+              </div>
+              <div className="mgr-cards-row">
+                {offered.map(mgr => (
+                  <ManagerCard
+                    key={mgr.id}
+                    manager={mgr}
+                    onPick={isHuman ? handlePick : () => {}}
+                    disabled={!isHuman}
+                    highlighted={cpuPick?.id === mgr.id}
+                  />
+                ))}
+              </div>
+              {!isHuman && (
+                <>
+                  <CpuPick offered={offered} onPick={handlePick} onHighlight={setCpuPick} />
+                  <button className="mgr-skip-btn" onClick={skipCpu}>
+                    ⏩ SKIP CPU PICK
+                  </button>
+                </>
+              )}
+            </>
+          )}
+        </div>
+
+        <PicksLog assignments={assignments} draft={draft} />
+      </div>
     </div>
   );
 }
 
-// Auto-picks after a short delay for CPU players
-function CpuPick({ offered, onPick }) {
+// Highlights the CPU's choice after 1.5s, then confirms it after 3s total.
+// Calls onHighlight so the card glows before the pick lands.
+function CpuPick({ offered, onPick, onHighlight }) {
   useEffect(() => {
-    const t = setTimeout(() => {
-      // CPU prefers elite > established > journeyman
-      const sorted = [...offered].sort((a, b) => {
-        const order = { elite: 0, established: 1, journeyman: 2 };
-        return order[a.tier] - order[b.tier];
-      });
-      onPick(sorted[0]);
-    }, 1000);
-    return () => clearTimeout(t);
+    const sorted = [...offered].sort((a, b) => {
+      const order = { elite: 0, established: 1, journeyman: 2 };
+      return order[a.tier] - order[b.tier];
+    });
+    const chosen = sorted[0];
+
+    const highlightTimer = setTimeout(() => onHighlight(chosen), 1500);
+    const pickTimer = setTimeout(() => onPick(chosen), 3000);
+    return () => { clearTimeout(highlightTimer); clearTimeout(pickTimer); };
   }, [offered]);
   return null;
 }
