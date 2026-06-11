@@ -104,23 +104,26 @@ export function getSeriesContext(series, managers) {
         standing = `${n1} lead ${sm.goals[1]}–${sm.goals[0]} on agg`;
       else
         standing = `Level ${sm.goals[0]}–${sm.goals[1]} on aggregate`;
-    } else {
-      standing = next.label;
     }
+    // Leg 1: no standing to show yet — leave it empty
   }
 
-  // For leg 2, pass the leg 1 aggregate so generateEvents can trigger ET on agg level.
+  // For leg 2 only, pass the leg 1 aggregate so generateEvents can trigger ET on agg level.
   // homeIdx for leg 2 = sm.p[1], so homeAgg = sm.goals[1], awayAgg = sm.goals[0].
+  // For leg 1: legContext stays null AND we pass isLeg1=true so ET is never triggered.
   let legContext = null;
+  let isLeg1 = false;
   if (next.semiIdx != null && series.semis) {
     const sm = series.semis[next.semiIdx];
     if (sm && sm.legsPlayed === 1) {
       legContext = { homeAgg: sm.goals[1], awayAgg: sm.goals[0] };
+    } else if (sm && sm.legsPlayed === 0) {
+      isLeg1 = true;
     }
   }
 
   const isGrandFinal = next.label === "GRAND FINAL";
-  return { label: `MATCH ${next.matchNum} · ${next.label}`, standing, homeIdx: next.homeIdx, awayIdx: next.awayIdx, legContext, isGrandFinal };
+  return { label: `MATCH ${next.matchNum} · ${next.label}`, standing, homeIdx: next.homeIdx, awayIdx: next.awayIdx, legContext, isLeg1, isGrandFinal };
 }
 
 // Two-player series standings panel

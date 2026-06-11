@@ -275,7 +275,8 @@ const MGR_MOTM_LINES = {
 
 // legContext = { homeAgg, awayAgg } when this is leg 2 of an aggregate tie.
 // ET/pens trigger on aggregate level rather than match level.
-export function generateEvents(homeSquad, awaySquad, homeName, awayName, legContext = null, homeFootballMgr = null, awayFootballMgr = null) {
+// isLeg1 = true suppresses ET entirely (leg 1 of a 2-legged tie is always 90 min).
+export function generateEvents(homeSquad, awaySquad, homeName, awayName, legContext = null, homeFootballMgr = null, awayFootballMgr = null, isLeg1 = false) {
   // Resolve wildcard: pick a random style for the match
   function resolveStyle(fm) {
     if (!fm) return null;
@@ -416,9 +417,10 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   let finalHome = hGoals, finalAway = aGoals;
 
   // In aggregate mode ET triggers when the overall tie is level, not just this match.
+  // Leg 1 never has ET — it's always a straight 90-minute result.
   const aggHome = () => finalHome + (legContext?.homeAgg ?? 0);
   const aggAway = () => finalAway + (legContext?.awayAgg ?? 0);
-  const needsET = legContext ? aggHome() === aggAway() : hGoals === aGoals;
+  const needsET = !isLeg1 && (legContext ? aggHome() === aggAway() : hGoals === aGoals);
 
   if (needsET) {
     const ftNote = legContext
@@ -707,6 +709,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
       seriesContext?.legContext ?? null,
       homeManager.footballManager ?? null,
       awayManager.footballManager ?? null,
+      seriesContext?.isLeg1 ?? false,
     );
     eventsRef.current = r.events;
     nextIdxRef.current = 0;
@@ -823,7 +826,9 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
         {seriesContext && (
           <div className="series-banner">
             <span className="series-banner-label">{seriesContext.label}</span>
-            <span className="series-banner-standing">{seriesContext.standing}</span>
+            {seriesContext.standing && (
+              <span className="series-banner-standing">{seriesContext.standing}</span>
+            )}
           </div>
         )}
         <div className="sb-team home">
