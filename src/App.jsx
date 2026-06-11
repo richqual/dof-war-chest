@@ -4,6 +4,9 @@ import SetupScreen from "./components/SetupScreen";
 import DraftScreen from "./components/DraftScreen";
 import SquadScreen from "./components/SquadScreen";
 import MatchSim from "./components/MatchSim";
+import DrawScreen from "./components/DrawScreen";
+import SeriesScreen from "./components/SeriesScreen";
+import { getSeriesContext } from "./components/SeriesScreen";
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -39,6 +42,7 @@ function AppInner() {
     startGame, confirmBudget, pickPlayer, setTeamName,
     swapSquadPlayers, restartGame, getAvailablePlayers, getTakenPlayers,
     skipTurn, autoCompleteDraft,
+    completeDraw, recordMatchResult,
   } = useDraftState();
 
   const [matchConfig, setMatchConfig] = useState({ homeIdx: 0, awayIdx: 1 });
@@ -83,18 +87,38 @@ function AppInner() {
     );
   }
 
+  if (screen === "draw" && draft?.series?.stage === "draw") {
+    return <DrawScreen draft={draft} onComplete={completeDraw} />;
+  }
+
+  if (screen === "series" && draft?.series) {
+    return (
+      <SeriesScreen
+        draft={draft}
+        setScreen={handleSetScreen}
+        recordMatchResult={recordMatchResult}
+        restartGame={restartGame}
+      />
+    );
+  }
+
   if (screen === "match" && draft) {
     const homeIdx = matchConfig.homeIdx ?? 0;
     const awayIdx = matchConfig.awayIdx ?? 1;
     if (!draft.managers[homeIdx] || !draft.managers[awayIdx]) {
+      const fallback = draft.series ? "series" : "squads";
       return <SquadScreen draft={draft} setTeamName={setTeamName} swapSquadPlayers={swapSquadPlayers} restartGame={restartGame} setScreen={handleSetScreen} />;
     }
+    const inSeries = !!draft.series;
+    const seriesCtx = inSeries ? getSeriesContext(draft.series, draft.managers) : null;
     return (
       <MatchSim
         draft={draft}
         homeIdx={homeIdx}
         awayIdx={awayIdx}
-        onBack={() => setScreen("squads")}
+        onBack={() => setScreen(inSeries ? "series" : "squads")}
+        onMatchResult={inSeries ? (winnerIdx) => recordMatchResult(homeIdx, awayIdx, winnerIdx) : undefined}
+        seriesContext={seriesCtx}
       />
     );
   }

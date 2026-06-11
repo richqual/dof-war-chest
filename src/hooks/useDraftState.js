@@ -51,6 +51,32 @@ function applyPick(d, player) {
   return { ...d, managers, takenIds, turnIndex: newTurnIndex, currentBudget: null };
 }
 
+const FORMAT_TARGETS = { bo3: 2, bo5: 3, bo7: 4, single: 1 };
+
+function buildSeries(n, format) {
+  if (!format || format === "single") return null;
+  if (n === 2) {
+    return {
+      format,
+      participants: [0, 1],
+      wins: [0, 0],
+      target: FORMAT_TARGETS[format] || 4,
+      stage: "playing",
+      champion: null,
+    };
+  }
+  if (n === 4 && format === "tournament") {
+    return {
+      format: "tournament",
+      stage: "draw",   // DrawScreen will advance this to "semis"
+      semis: null,     // set after draw
+      final: null,
+      champion: null,
+    };
+  }
+  return null;
+}
+
 function buildInitialDraft(clubs, options = {}) {
   const n = clubs.length;
   return {
@@ -76,6 +102,7 @@ function buildInitialDraft(clubs, options = {}) {
     phase: "draft",
     hideRatings: options.hideRatings || false,
     difficulty: options.difficulty || "normal",
+    series: buildSeries(n, options.format),
   };
 }
 
@@ -108,6 +135,71 @@ export function useDraftState() {
     const d = buildInitialDraft(clubs, options);
     setDraft(d);
     setScreen("draft");
+  }
+
+  // Called by DrawScreen once the animated draw is complete.
+  function completeDraw(drawOrder) {
+    setDraft(prev => ({
+      ...prev,
+      series: {
+        ...prev.series,
+        stage: "semis",
+        semis: [
+          { p: [drawOrder[0], drawOrder[1]], wins: [0, 0], target: 2, winner: null },
+          { p: [drawOrder[2], drawOrder[3]], wins: [0, 0], target: 2, winner: null },
+        ],
+      },
+    }));
+    setScreen("series");
+  }
+
+  // Called by MatchSim after a match ends. winnerIdx is a draft.managers index.
+  function recordMatchResult(homeIdx, awayIdx, winnerIdx) {
+    setDraft(prev => {
+      const s = prev.series;
+      if (!s) return prev;
+
+      if (s.format !== "tournament") {
+        const pos = s.participants.indexOf(winnerIdx);
+        if (pos < 0) return prev;
+        const wins = s.wins.map((w, i) => i === pos ? w + 1 : w);
+        const champion = wins.some(w => w >= s.target)
+          ? s.participants[wins.findIndex(w => w >= s.target)]
+          : null;
+        return { ...prev, series: { ...s, wins, champion, stage: champion !== null ? "champion" : "playing" } };
+      }
+
+      // Tournament — find which matchup this result belongs to
+      const semiIdx = (s.semis || []).findIndex(sm =>
+        (sm.p[0] === homeIdx && sm.p[1] === awayIdx) ||
+        (sm.p[1] === homeIdx && sm.p[0] === awayIdx)
+      );
+      if (semiIdx >= 0) {
+        const semi = s.semis[semiIdx];
+        const pos = semi.p.indexOf(winnerIdx);
+        const wins = semi.wins.map((w, i) => i === pos ? w + 1 : w);
+        const semiWinner = wins.some(w => w >= semi.target) ? winnerIdx : null;
+        const newSemis = s.semis.map((sm, i) => i === semiIdx ? { ...sm, wins, winner: semiWinner } : sm);
+        const bothDone = newSemis.every(sm => sm.winner !== null);
+        const newFinal = bothDone && !s.final
+          ? { p: newSemis.map(sm => sm.winner), wins: [0, 0], target: 3, winner: null }
+          : s.final;
+        return { ...prev, series: { ...s, semis: newSemis, final: newFinal, stage: bothDone ? "final" : "semis" } };
+      }
+
+      // Final
+      if (s.final) {
+        const f = s.final;
+        const pos = f.p.indexOf(winnerIdx);
+        if (pos < 0) return prev;
+        const wins = f.wins.map((w, i) => i === pos ? w + 1 : w);
+        const champion = wins.some(w => w >= f.target) ? winnerIdx : null;
+        return { ...prev, series: { ...s, final: { ...f, wins, winner: champion }, champion, stage: champion !== null ? "champion" : "final" } };
+      }
+
+      return prev;
+    });
+    setScreen("series");
   }
 
   // Called when spin wheel locks in a value — adds carryover and resets it
@@ -149,7 +241,7 @@ export function useDraftState() {
     if (draft.currentBudget === null || player.value > draft.currentBudget) return;
     const next = applyPick(draft, player);
     setDraft(next);
-    if (next.phase === "complete") setScreen("squads");
+    if (next.phase === "complete") setScreen(next.series?.stage === "draw" ? "draw" : next.series ? "series" : "squads");
   }
 
   // Active manager banks the whole budget as carryover and the turn moves on —
@@ -158,7 +250,7 @@ export function useDraftState() {
     if (!draft || draft.currentBudget === null) return;
     const next = applyPick(draft, null);
     setDraft(next);
-    if (next.phase === "complete") setScreen("squads");
+    if (next.phase === "complete") setScreen(next.series?.stage === "draw" ? "draw" : next.series ? "series" : "squads");
   }
 
   // Plays out every remaining turn instantly with CPU picks (spinning budgets
@@ -182,7 +274,7 @@ export function useDraftState() {
       d = applyPick(d, pick);
     }
     setDraft(d);
-    setScreen("squads");
+    setScreen(d.series?.stage === "draw" ? "draw" : d.series ? "series" : "squads");
   }
 
   function setTeamName(managerIdx, name) {
@@ -220,5 +312,6 @@ export function useDraftState() {
     startGame, confirmBudget, pickPlayer, setTeamName,
     swapSquadPlayers, restartGame, getAvailablePlayers, getTakenPlayers,
     skipTurn, autoCompleteDraft,
+    completeDraw, recordMatchResult,
   };
 }

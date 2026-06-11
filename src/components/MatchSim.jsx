@@ -137,6 +137,23 @@ const COMMENTARY_NEUTRAL = [
   (a, b) => `Both sets of fans making themselves heard. Lively atmosphere here.`,
   (a, b) => `${a} looking to exploit the channels. Classic modern football analysis there.`,
   (a, b) => `He's gone down! The referee waves play on — twelve people disagree loudly.`,
+  (a, b) => `${b}'s centre-back marshalling the defence admirably. A rock. An absolute rock. A slightly nervous rock.`,
+  (a, b) => `Tactical change brewing on the ${a} bench. The manager has stood up. He's sat back down again.`,
+  (a, b) => `${b} looking to win the second ball. They haven't had much luck with the first one either, if we're honest.`,
+  (a, b) => `The linesman raises his flag! Or was he just stretching? He was just stretching.`,
+  (a, b) => `${b}'s striker appeals for a penalty! The referee is unmoved. The striker remains extremely moved.`,
+  (a, b) => `${a} keeping their shape brilliantly. A lovely 4-3-3. Or a 4-5-1. Modern football — who can say.`,
+  (a, b) => `Tremendous character from ${b} here. Some might call it stubbornness. Let's call it character.`,
+  (a, b) => `${a}'s physio has been called on. We're told it's nothing serious. We're always told it's nothing serious.`,
+  (a, b) => `${b} recycling possession patiently. Their manager would call it game management. Others might not.`,
+  (a, b) => `${a} working the ball through the thirds. Or possibly the second third. Geography is hard.`,
+  (a, b) => `There's a coming-together! Both players spring to their feet to demonstrate they are completely fine.`,
+  (a, b) => `${a} free kick. Three players standing over the ball. A brief conference. They decide on the option that doesn't work.`,
+  (a, b) => `The ball has trickled out for a goal kick. We pause here, briefly, in quiet reflection.`,
+  (a, b) => `${b}'s goalkeeper has just kicked the ball very firmly to nobody in particular.`,
+  (a, b) => `${a}'s winger cuts inside! He passes it square instead. A decision has been made.`,
+  (a, b) => `${b} with a long ball over the top — the centre-forward had it all on but... no, he's miles offside.`,
+  (a, b) => `${a}'s substitutes are warming up along the touchline. Whether anyone wants them on is another matter.`,
 ];
 
 function goalContext(forGoals, againstGoals) {
@@ -211,6 +228,16 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName) {
   const aStr = teamStrength(awaySquad);
   const ratio = hStr / (hStr + aStr);
 
+  // Shuffle neutral lines once per match so no line repeats within a game.
+  // With ~10 neutral events and 36 lines, repetition is extremely unlikely.
+  const neutralPool = [...COMMENTARY_NEUTRAL].sort(() => Math.random() - 0.5);
+  let neutralCursor = 0;
+  function pickNeutral(a, b) {
+    const fn = neutralPool[neutralCursor % neutralPool.length];
+    neutralCursor++;
+    return fn(a, b);
+  }
+
   const events = [];
   let hGoals = 0, aGoals = 0;
   const hCards = [], aCards = [];
@@ -261,7 +288,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName) {
       }
     } else {
       const isHome = Math.random() < 0.5;
-      events.push({ min, type: "commentary", team: isHome ? "home" : "away", text: pick(COMMENTARY_NEUTRAL)(isHome ? homeName : awayName, isHome ? awayName : homeName) });
+      events.push({ min, type: "commentary", team: isHome ? "home" : "away", text: pickNeutral(isHome ? homeName : awayName, isHome ? awayName : homeName) });
     }
   }
 
@@ -417,7 +444,7 @@ function LineupPanel({ homeManager, awayManager, homeName, awayName, onClose }) 
   );
 }
 
-export default function MatchSim({ draft, homeIdx, awayIdx, onBack }) {
+export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResult, seriesContext }) {
   const homeManager = draft.managers[homeIdx];
   const awayManager = draft.managers[awayIdx];
   const homeName = homeManager.teamName || homeManager.name;
@@ -584,6 +611,12 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack }) {
       </div>
 
       <div className="scoreboard">
+        {seriesContext && (
+          <div className="series-banner">
+            <span className="series-banner-label">{seriesContext.label}</span>
+            <span className="series-banner-standing">{seriesContext.standing}</span>
+          </div>
+        )}
         <div className="sb-team home">
           <KitSwatch primary={homeManager.primaryColor} secondary={homeManager.secondaryColor} pattern={homeManager.pattern} uid="mh" size={32} />
           <div className="sb-name" style={{ color: homeAccent }}>{homeName}</div>
@@ -683,7 +716,17 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack }) {
                 )}
               </div>
 
-              <button className="sim-btn secondary" onClick={startSim}>REPLAY</button>
+              <div className="post-match-btns">
+                <button className="sim-btn secondary" onClick={startSim}>REPLAY</button>
+                {onMatchResult && (
+                  <button className="sim-btn" onClick={() => {
+                    const side = result.penWinner || (result.score.home > result.score.away ? "home" : "away");
+                    onMatchResult(side === "home" ? homeIdx : awayIdx);
+                  }}>
+                    CONTINUE SERIES →
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="summary-ratings">

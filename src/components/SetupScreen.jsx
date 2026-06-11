@@ -162,10 +162,27 @@ const DIFFICULTY_INFO = [
   { key: "hard",   label: "HARD",   hint: "Shoestring — bargain bins and free transfers" },
 ];
 
+const FORMAT_OPTIONS_2 = [
+  { key: "single", label: "SINGLE MATCH",  hint: "One match decides it all" },
+  { key: "bo3",    label: "BEST OF 3",     hint: "First to 2 wins" },
+  { key: "bo5",    label: "BEST OF 5",     hint: "First to 3 wins" },
+  { key: "bo7",    label: "BEST OF 7",     hint: "First to 4 wins — NBA Finals style" },
+];
+const FORMAT_OPTIONS_4 = [
+  { key: "single",     label: "SINGLE MATCH", hint: "Pick any two teams and play one-off" },
+  { key: "tournament", label: "TOURNAMENT",   hint: "Semi-finals (Bo3) then a Grand Final (Bo5)" },
+];
+
 export default function SetupScreen({ onStart }) {
   const [clubs, setClubs] = useState([makeClub(0), makeClub(1)]);
   const [hideRatings, setHideRatings] = useState(false);
   const [difficulty, setDifficulty] = useState("normal");
+  const [format, setFormat] = useState("bo7");
+
+  const formatOptions = clubs.length === 4 ? FORMAT_OPTIONS_4 : FORMAT_OPTIONS_2;
+  // Reset format when club count changes and current format is incompatible
+  const validFormats = formatOptions.map(f => f.key);
+  const activeFormat = validFormats.includes(format) ? format : (clubs.length === 4 ? "tournament" : "bo7");
 
   function updateClub(i, updated) {
     setClubs(prev => prev.map((c, j) => j === i ? updated : c));
@@ -182,7 +199,7 @@ export default function SetupScreen({ onStart }) {
 
   function handleStart() {
     if (!canStart) return;
-    onStart(clubs.map(c => ({ ...c, dofName: c.dofName.trim(), clubName: c.clubName.trim() })), { hideRatings, difficulty });
+    onStart(clubs.map(c => ({ ...c, dofName: c.dofName.trim(), clubName: c.clubName.trim() })), { hideRatings, difficulty, format: activeFormat });
   }
 
   return (
@@ -240,6 +257,24 @@ export default function SetupScreen({ onStart }) {
             </div>
             <div className="difficulty-hint">
               {DIFFICULTY_INFO.find(d => d.key === difficulty)?.hint}
+            </div>
+          </div>
+
+          <div className="difficulty-section">
+            <span className="field-label-sm">COMPETITION FORMAT</span>
+            <div className="difficulty-row">
+              {formatOptions.map(f => (
+                <button
+                  key={f.key}
+                  className={`difficulty-btn ${activeFormat === f.key ? "active" : ""}`}
+                  onClick={() => setFormat(f.key)}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            <div className="difficulty-hint">
+              {formatOptions.find(f => f.key === activeFormat)?.hint}
             </div>
           </div>
 
