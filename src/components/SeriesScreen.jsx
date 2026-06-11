@@ -119,7 +119,8 @@ export function getSeriesContext(series, managers) {
     }
   }
 
-  return { label: `MATCH ${next.matchNum} · ${next.label}`, standing, homeIdx: next.homeIdx, awayIdx: next.awayIdx, legContext };
+  const isGrandFinal = next.label === "GRAND FINAL";
+  return { label: `MATCH ${next.matchNum} · ${next.label}`, standing, homeIdx: next.homeIdx, awayIdx: next.awayIdx, legContext, isGrandFinal };
 }
 
 // Two-player series standings panel

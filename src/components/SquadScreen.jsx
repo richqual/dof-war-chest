@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { POSITIONS, getRatingBg, getRatingColor, formatValue } from "../data/players";
+import KitSwatch, { kitAccent } from "./KitSwatch";
 
 const FORMATIONS = {
   "4-3-3": [
@@ -240,9 +241,10 @@ function SquadDetail({ manager, managerIdx, setTeamName, swapSquadPlayers, onBac
   );
 }
 
-export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, restartGame, setScreen }) {
+export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, restartGame, setScreen, onBackToSeries }) {
   const [viewIdx, setViewIdx] = useState(null);
   const { managers } = draft;
+  const inSeries = !!draft.series;
 
   if (viewIdx !== null) {
     return (
@@ -252,7 +254,7 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, rest
         setTeamName={setTeamName}
         swapSquadPlayers={swapSquadPlayers}
         onBack={() => setViewIdx(null)}
-        onSimulate={(hi, ai) => { setScreen("match", { homeIdx: hi, awayIdx: ai }); }}
+        onSimulate={inSeries ? null : (hi, ai) => { setScreen("match", { homeIdx: hi, awayIdx: ai }); }}
         allManagers={managers}
         managers={managers}
       />
@@ -262,9 +264,12 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, rest
   return (
     <div className="squads-screen">
       <div className="squads-header">
+        {onBackToSeries && (
+          <button className="back-btn" style={{ marginBottom: "0.5rem" }} onClick={onBackToSeries}>← BACK TO TOURNAMENT</button>
+        )}
         <div className="trophy-icon">🏆</div>
         <h2 className="squads-title">DRAFT COMPLETE</h2>
-        <p className="squads-sub">Select a squad to view or simulate a match</p>
+        <p className="squads-sub">Select a squad to view details</p>
       </div>
 
       <div className="squad-cards">
@@ -272,11 +277,18 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, rest
           const ovr = squadRating(m.squad);
           const starters = m.squad.slice(0, 11).filter(Boolean);
           const best = [...starters].sort((a, b) => b.rating - a.rating)[0];
+          const accent = kitAccent(m.primaryColor, m.secondaryColor);
           return (
-            <div key={i} className="squad-summary-card" onClick={() => setViewIdx(i)}>
-              <div className="squad-ovr">{ovr}</div>
+            <div key={i} className="squad-summary-card" onClick={() => setViewIdx(i)}
+              style={{ borderColor: m.primaryColor }}>
+              <div className="squad-card-kit-header" style={{ background: m.primaryColor, borderBottom: `2px solid ${m.secondaryColor}` }}>
+                <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern} uid={`sc${i}`} size={28} />
+                <span className="squad-card-club" style={{ color: accent === m.primaryColor ? m.secondaryColor : accent }}>
+                  {m.teamName || m.clubName || m.name}
+                </span>
+              </div>
+              <div className="squad-ovr" style={{ color: accent }}>{ovr}</div>
               <div className="squad-ovr-label">OVERALL</div>
-              <div className="squad-mgr-name">{m.teamName || m.name}</div>
               {best && <div className="squad-best">Best: {best.name} ({best.rating})</div>}
               <div className="squad-link">VIEW SQUAD →</div>
             </div>
@@ -284,7 +296,7 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, rest
         })}
       </div>
 
-      {managers.length >= 2 && (
+      {!inSeries && managers.length >= 2 && (
         <div className="match-section">
           <div className="section-title-white">SIMULATE MATCH</div>
           <div className="matchup-grid">
@@ -307,6 +319,9 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, rest
       )}
 
       <div className="squads-footer">
+        {onBackToSeries && (
+          <button className="sim-btn secondary" onClick={onBackToSeries}>← BACK TO TOURNAMENT</button>
+        )}
         <button className="restart-btn" onClick={restartGame}>NEW GAME</button>
       </div>
     </div>

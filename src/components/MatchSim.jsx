@@ -730,7 +730,9 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
               </div>
 
               <div className="post-match-btns">
-                <button className="sim-btn secondary" onClick={startSim}>REPLAY</button>
+                {!onMatchResult && (
+                  <button className="sim-btn secondary" onClick={startSim}>REPLAY</button>
+                )}
                 {onMatchResult && (
                   <button className="sim-btn" onClick={() => {
                     const legCtx = seriesContext?.legContext;
@@ -744,7 +746,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
                     }
                     onMatchResult(side === "home" ? homeIdx : awayIdx, result.score);
                   }}>
-                    CONTINUE SERIES →
+                    {seriesContext?.isGrandFinal ? "SEE THE RESULT →" : seriesContext ? "CONTINUE TOURNAMENT →" : "CONTINUE SERIES →"}
                   </button>
                 )}
               </div>

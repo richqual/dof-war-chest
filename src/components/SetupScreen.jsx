@@ -170,7 +170,7 @@ const FORMAT_OPTIONS_2 = [
 ];
 const FORMAT_OPTIONS_4 = [
   { key: "single",     label: "SINGLE MATCH", hint: "Pick any two teams and play one-off" },
-  { key: "tournament", label: "TOURNAMENT",   hint: "Semi-finals (Bo3) then a Grand Final (Bo5)" },
+  { key: "tournament", label: "TOURNAMENT",   hint: "2-legged semi-finals (aggregate), then a 1-leg Grand Final" },
 ];
 
 export default function SetupScreen({ onStart }) {

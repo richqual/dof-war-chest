@@ -1,4 +1,4 @@
-import { useState, Component } from "react";
+import { useState, useEffect, Component } from "react";
 import { useDraftState } from "./hooks/useDraftState";
 import SetupScreen from "./components/SetupScreen";
 import DraftScreen from "./components/DraftScreen";
@@ -35,17 +35,40 @@ class ErrorBoundary extends Component {
   }
 }
 
+function ThemeToggle({ light, onToggle }) {
+  return (
+    <button
+      onClick={onToggle}
+      title={light ? "Switch to dark mode" : "Switch to light mode"}
+      style={{
+        position: "fixed", top: "8px", right: "8px", zIndex: 10000,
+        background: "var(--bg2)", border: "1px solid var(--border)",
+        color: "var(--text2)", fontSize: "16px", padding: "4px 8px",
+        cursor: "pointer", lineHeight: 1,
+      }}
+    >
+      {light ? "🌙" : "☀️"}
+    </button>
+  );
+}
+
 function AppInner() {
   const {
     screen, setScreen,
     draft, activeManager, activeManagerIdx, currentPos,
     startGame, confirmBudget, pickPlayer, setTeamName,
     swapSquadPlayers, restartGame, getAvailablePlayers, getTakenPlayers,
-    skipTurn, autoCompleteDraft,
+    skipTurn, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult,
   } = useDraftState();
 
   const [matchConfig, setMatchConfig] = useState({ homeIdx: 0, awayIdx: 1 });
+  const [lightMode, setLightMode] = useState(() => localStorage.getItem("tg-theme") === "light");
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("light-mode", lightMode);
+    localStorage.setItem("tg-theme", lightMode ? "light" : "dark");
+  }, [lightMode]);
 
   function handleSetScreen(s, extra) {
     if (s === "match" && extra) setMatchConfig(extra);
@@ -53,52 +76,65 @@ function AppInner() {
     setScreen(s);
   }
 
+  const toggle = <ThemeToggle light={lightMode} onToggle={() => setLightMode(l => !l)} />;
+
   if (screen === "setup" || !draft) {
-    return <SetupScreen onStart={startGame} />;
+    return <>{toggle}<SetupScreen onStart={startGame} /></>;
   }
 
   if (screen === "draft" && draft && currentPos) {
     return (
-      <DraftScreen
-        draft={draft}
-        activeManager={activeManager}
-        activeManagerIdx={activeManagerIdx}
-        currentPos={currentPos}
-        confirmBudget={confirmBudget}
-        pickPlayer={pickPlayer}
-        getAvailablePlayers={getAvailablePlayers}
-        getTakenPlayers={getTakenPlayers}
-        restartGame={restartGame}
-        skipTurn={skipTurn}
-        autoCompleteDraft={autoCompleteDraft}
-      />
+      <>
+        {toggle}
+        <DraftScreen
+          draft={draft}
+          activeManager={activeManager}
+          activeManagerIdx={activeManagerIdx}
+          currentPos={currentPos}
+          confirmBudget={confirmBudget}
+          pickPlayer={pickPlayer}
+          getAvailablePlayers={getAvailablePlayers}
+          getTakenPlayers={getTakenPlayers}
+          restartGame={restartGame}
+          skipTurn={skipTurn}
+          autoCompleteDraft={autoCompleteDraft}
+          skipCpuTurns={skipCpuTurns}
+        />
+      </>
     );
   }
 
   if (screen === "squads" && draft) {
     return (
-      <SquadScreen
-        draft={draft}
-        setTeamName={setTeamName}
-        swapSquadPlayers={swapSquadPlayers}
-        restartGame={restartGame}
-        setScreen={handleSetScreen}
-      />
+      <>
+        {toggle}
+        <SquadScreen
+          draft={draft}
+          setTeamName={setTeamName}
+          swapSquadPlayers={swapSquadPlayers}
+          restartGame={restartGame}
+          setScreen={handleSetScreen}
+          onBackToSeries={draft.series ? () => setScreen("series") : undefined}
+        />
+      </>
     );
   }
 
   if (screen === "draw" && draft?.series?.stage === "draw") {
-    return <DrawScreen draft={draft} onComplete={completeDraw} />;
+    return <>{toggle}<DrawScreen draft={draft} onComplete={completeDraw} /></>;
   }
 
   if (screen === "series" && draft?.series) {
     return (
-      <SeriesScreen
-        draft={draft}
-        setScreen={handleSetScreen}
-        recordMatchResult={recordMatchResult}
-        restartGame={restartGame}
-      />
+      <>
+        {toggle}
+        <SeriesScreen
+          draft={draft}
+          setScreen={handleSetScreen}
+          recordMatchResult={recordMatchResult}
+          restartGame={restartGame}
+        />
+      </>
     );
   }
 
@@ -106,24 +142,26 @@ function AppInner() {
     const homeIdx = matchConfig.homeIdx ?? 0;
     const awayIdx = matchConfig.awayIdx ?? 1;
     if (!draft.managers[homeIdx] || !draft.managers[awayIdx]) {
-      const fallback = draft.series ? "series" : "squads";
-      return <SquadScreen draft={draft} setTeamName={setTeamName} swapSquadPlayers={swapSquadPlayers} restartGame={restartGame} setScreen={handleSetScreen} />;
+      return <>{toggle}<SquadScreen draft={draft} setTeamName={setTeamName} swapSquadPlayers={swapSquadPlayers} restartGame={restartGame} setScreen={handleSetScreen} onBackToSeries={draft.series ? () => setScreen("series") : undefined} /></>;
     }
     const inSeries = !!draft.series;
     const seriesCtx = inSeries ? getSeriesContext(draft.series, draft.managers) : null;
     return (
-      <MatchSim
-        draft={draft}
-        homeIdx={homeIdx}
-        awayIdx={awayIdx}
-        onBack={() => setScreen(inSeries ? "series" : "squads")}
-        onMatchResult={inSeries ? (winnerIdx, score) => recordMatchResult(homeIdx, awayIdx, winnerIdx, score) : undefined}
-        seriesContext={seriesCtx}
-      />
+      <>
+        {toggle}
+        <MatchSim
+          draft={draft}
+          homeIdx={homeIdx}
+          awayIdx={awayIdx}
+          onBack={() => setScreen(inSeries ? "series" : "squads")}
+          onMatchResult={inSeries ? (winnerIdx, score) => recordMatchResult(homeIdx, awayIdx, winnerIdx, score) : undefined}
+          seriesContext={seriesCtx}
+        />
+      </>
     );
   }
 
-  return <SetupScreen onStart={startGame} />;
+  return <>{toggle}<SetupScreen onStart={startGame} /></>;
 }
 
 export default function App() {

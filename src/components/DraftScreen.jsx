@@ -12,13 +12,14 @@ const CPU_PICK_DELAY = 1300;
 export default function DraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
   confirmBudget, pickPlayer, getAvailablePlayers, getTakenPlayers, restartGame,
-  skipTurn, autoCompleteDraft,
+  skipTurn, autoCompleteDraft, skipCpuTurns,
 }) {
   const [filterEra, setFilterEra] = useState("all");
   const [sortBy, setSortBy] = useState("rating");
   const [transition, setTransition] = useState(null);
   const [showMySquad, setShowMySquad] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [pendingPlayer, setPendingPlayer] = useState(null);
 
   const { currentBudget, currentOrder, turnIndex, positionIndex, managers, hideRatings } = draft;
 
@@ -36,6 +37,7 @@ export default function DraftScreen({
 
   function handlePickPlayer(player) {
     const prevManagerName = activeManager.dofName || activeManager.name;
+    const prevKit = activeManager;
     const n = currentOrder.length;
     const isLastTurn = turnIndex + 1 >= n;
     const isLastPosition = isLastTurn && positionIndex + 1 >= POSITIONS.length;
@@ -52,10 +54,14 @@ export default function DraftScreen({
       }
       const nextManager = managers[nextManagerIdx];
       const nextName = nextManager.dofName || nextManager.name;
-      setTransition({ prevManager: prevManagerName, player, nextManager: nextName, nextPosLabel, nextKit: nextManager });
+      setTransition({ prevManager: prevManagerName, player, nextManager: nextName, nextPosLabel, nextKit: nextManager, prevKit });
     }
 
     pickPlayer(player);
+  }
+
+  function handleClickPlayer(player) {
+    setPendingPlayer(player);
   }
 
   // CPU turns run themselves: spin the budget after a short beat, then pick.
@@ -101,6 +107,25 @@ export default function DraftScreen({
 
   return (
     <div className="draft-screen" style={kitTheme}>
+      {pendingPlayer && (
+        <div className="menu-overlay" onClick={() => setPendingPlayer(null)}>
+          <div className="menu-box" onClick={e => e.stopPropagation()}>
+            <div className="menu-title">CONFIRM SIGNING</div>
+            <div className="confirm-player-name">{pendingPlayer.nation} {pendingPlayer.name}</div>
+            <div className="confirm-player-detail">{pendingPlayer.pos} · {pendingPlayer.club} · {pendingPlayer.years}</div>
+            <div className="confirm-player-cost">£{pendingPlayer.value}m</div>
+            <div className="confirm-btns">
+              <button className="menu-item" onClick={() => { handlePickPlayer(pendingPlayer); setPendingPlayer(null); }}>
+                ✓ CONFIRM SIGNING
+              </button>
+              <button className="menu-item" onClick={() => setPendingPlayer(null)}>
+                ✕ CANCEL
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showMySquad && (
         <MySquadPanel manager={activeManager} onClose={() => setShowMySquad(false)} />
       )}
@@ -202,6 +227,11 @@ export default function DraftScreen({
                 : `Budget £${currentBudget}m — scouting for a ${currentPos.label}…`}
             </div>
             <div className="cpu-turn-dots"><span>●</span><span>●</span><span>●</span></div>
+            {skipCpuTurns && (
+              <button className="sim-btn secondary" style={{ marginTop: "1.2rem", fontSize: "13px" }} onClick={skipCpuTurns}>
+                ⏭ SKIP TO MY TURN
+              </button>
+            )}
           </div>
         ) : currentBudget === null ? (
           <div className="roll-area">
@@ -233,7 +263,7 @@ export default function DraftScreen({
                 </div>
               )}
               {affordable.map(p => (
-                <PlayerCard key={p.id} player={p} onPick={handlePickPlayer} canAfford={true} hideRatings={hideRatings} />
+                <PlayerCard key={p.id} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} />
               ))}
               {tooExpensive.length > 0 && (
                 <>

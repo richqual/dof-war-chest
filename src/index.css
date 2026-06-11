@@ -22,6 +22,30 @@
   --font:      'Barlow Condensed', 'Courier New', Courier, monospace;
 }
 
+/* ── LIGHT MODE ──────────────────────────────────────────────────────── */
+html.light-mode {
+  --bg:        #f2f5f2;
+  --bg2:       #e4ece4;
+  --bg3:       #d6e4d6;
+  --border:    #7aaa7a;
+  --border2:   #b0ccb0;
+  --text:      #162016;
+  --text2:     #2a5a2a;
+  --text3:     #6a9a6a;
+  --amber:     #b88000;
+  --amber-d:   #996600;
+  --green:     #007830;
+  --green-l:   #009940;
+  --red:       #cc2200;
+  --pixel-shadow: 2px 2px 0 0 #aaa;
+  --pixel-shadow-sm: 1px 1px 0 0 #aaa;
+}
+html.light-mode body::after { display: none; }
+html.light-mode body {
+  background-image: none;
+  background-color: var(--bg);
+}
+
 html, body, #root {
   height: 100%;
   background: var(--bg);
@@ -552,12 +576,22 @@ input, select { font-family: var(--font); }
   to   { transform: translateY(0) scale(1);       opacity: 1; }
 }
 
+/* signing block uses the signing team's kit colours inline */
+.tt-signing-block {
+  width: 100%;
+  padding: 20px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 0;
+}
 .tt-complete {
   font-family: var(--font-head);
   font-size: 11px;
   letter-spacing: 3px;
   color: var(--green-l);
-  margin-bottom: 20px;
+  margin-bottom: 6px;
 }
 
 .tt-signing {
@@ -565,7 +599,7 @@ input, select { font-family: var(--font); }
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
 }
 .tt-manager {
   font-size: 14px;
@@ -588,16 +622,16 @@ input, select { font-family: var(--font); }
 .tt-detail {
   font-size: 12px;
   color: var(--text3);
-  margin-bottom: 24px;
+  margin-bottom: 0;
   letter-spacing: 0.5px;
 }
 .tt-next-up {
   font-size: 12px;
   color: var(--text3);
   letter-spacing: 2px;
+  margin-top: 16px;
   margin-bottom: 4px;
   font-family: var(--font-head);
-  /* themed inline with the next club's kit colours */
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -820,11 +854,26 @@ input, select { font-family: var(--font); }
   border-radius: 2px;
 }
 .squad-summary-card:hover { border-color: var(--amber); background: rgba(20,14,0,0.9); }
+.squad-card-kit-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+}
+.squad-card-club { font-size: 13px; font-weight: bold; letter-spacing: 1px; font-family: var(--font-head); line-height: 1.2; }
 .squad-ovr { font-size: 32px; font-weight: bold; color: var(--amber); font-family: var(--font-head); }
 .squad-ovr-label { font-size: 9px; letter-spacing: 2px; color: var(--text3); margin-bottom: 12px; font-family: var(--font-head); }
 .squad-mgr-name { font-size: 16px; font-weight: bold; color: var(--text); margin-bottom: 4px; }
 .squad-best { font-size: 12px; color: var(--text2); margin-bottom: 12px; }
 .squad-link { font-size: 11px; color: var(--amber); letter-spacing: 1px; font-family: var(--font-head); }
+
+/* ── CONFIRM SIGNING MODAL ───────────────────────────────────────────── */
+.confirm-player-name { font-size: 20px; font-weight: bold; color: var(--text); margin-bottom: 4px; font-family: var(--font-head); letter-spacing: 1px; }
+.confirm-player-detail { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
+.confirm-player-cost { font-size: 18px; color: var(--amber); font-weight: bold; margin-bottom: 20px; font-family: var(--font-head); }
+.confirm-btns { display: flex; flex-direction: column; gap: 8px; width: 100%; }
 
 .match-section { max-width: 760px; margin: 0 auto; padding: 0 16px; }
 .section-title-white { font-size: 10px; letter-spacing: 2px; color: var(--text3); margin-bottom: 10px; font-family: var(--font-head); }

@@ -298,6 +298,30 @@ export function useDraftState() {
     setScreen(d.series?.stage === "draw" ? "draw" : d.series ? "series" : "squads");
   }
 
+  // Runs CPU turns until the next human player's turn, then stops.
+  function skipCpuTurns() {
+    if (!draft) return;
+    let d = draft;
+    let guard = 0;
+    while (d.phase !== "complete" && guard++ < 500) {
+      const activeIdx = d.currentOrder[d.turnIndex];
+      if (!d.managers[activeIdx].isComputer) break;
+      if (d.currentBudget === null) {
+        const carry = d.managers[activeIdx]?.carryover || 0;
+        d = {
+          ...d,
+          currentBudget: generateBudget(d.difficulty) + carry,
+          managers: d.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
+        };
+      }
+      const posKey = POSITIONS[d.positionIndex].key;
+      const pick = chooseCpuPick(availablePlayersFor(posKey, d.takenIds), d.currentBudget);
+      d = applyPick(d, pick ?? null);
+    }
+    setDraft(d);
+    if (d.phase === "complete") setScreen(d.series?.stage === "draw" ? "draw" : d.series ? "series" : "squads");
+  }
+
   function setTeamName(managerIdx, name) {
     setDraft(prev => ({
       ...prev,
@@ -332,7 +356,7 @@ export function useDraftState() {
     draft, activeManager, activeManagerIdx, currentPos,
     startGame, confirmBudget, pickPlayer, setTeamName,
     swapSquadPlayers, restartGame, getAvailablePlayers, getTakenPlayers,
-    skipTurn, autoCompleteDraft,
+    skipTurn, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult,
   };
 }
