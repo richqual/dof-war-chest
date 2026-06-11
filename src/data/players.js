@@ -295,14 +295,14 @@ export const POSITIONS = [
   { key: "RW",  label: "Right Winger", slot: 8  },
   { key: "LW",  label: "Left Winger",  slot: 9  },
   { key: "ST",  label: "Striker",      slot: 10 },
-  { key: "SUB", label: "Sub 1",        slot: 11 },
+  { key: "GKSUB", label: "Sub Goalkeeper", slot: 11 },
   { key: "SUB", label: "Sub 2",        slot: 12 },
   { key: "SUB", label: "Sub 3",        slot: 13 },
   { key: "SUB", label: "Sub 4",        slot: 14 },
   { key: "SUB", label: "Sub 5",        slot: 15 },
 ];
 
-export const SUB_POSITIONS = ["GK","RB","LB","CB","DM","MF","RW","LW","ST"];
+export const SUB_POSITIONS = ["RB","LB","CB","DM","MF","RW","LW","ST"];
 
 export const ERA_LABELS = { classic: "Classic 98-08", golden: "Golden 08-16", modern: "Modern 16-" };
 export const ERA_COLORS = { classic: "#8B5E3C", golden: "#1A6B4A", modern: "#1A4580" };

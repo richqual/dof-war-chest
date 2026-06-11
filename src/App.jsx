@@ -117,7 +117,7 @@ function AppInner() {
         homeIdx={homeIdx}
         awayIdx={awayIdx}
         onBack={() => setScreen(inSeries ? "series" : "squads")}
-        onMatchResult={inSeries ? (winnerIdx) => recordMatchResult(homeIdx, awayIdx, winnerIdx) : undefined}
+        onMatchResult={inSeries ? (winnerIdx, score) => recordMatchResult(homeIdx, awayIdx, winnerIdx, score) : undefined}
         seriesContext={seriesCtx}
       />
     );

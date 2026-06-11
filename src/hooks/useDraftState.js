@@ -5,6 +5,9 @@ const STORAGE_KEY = "transfer-game-state";
 
 function availablePlayersFor(posKey, takenIds) {
   const taken = new Set(takenIds);
+  if (posKey === "GKSUB") {
+    return PLAYERS.filter(p => p.pos === "GK" && !taken.has(p.id));
+  }
   if (posKey === "SUB") {
     return PLAYERS.filter(p => SUB_POSITIONS.includes(p.pos) && !taken.has(p.id));
   }
@@ -145,16 +148,17 @@ export function useDraftState() {
         ...prev.series,
         stage: "semis",
         semis: [
-          { p: [drawOrder[0], drawOrder[1]], wins: [0, 0], target: 2, winner: null },
-          { p: [drawOrder[2], drawOrder[3]], wins: [0, 0], target: 2, winner: null },
+          { p: [drawOrder[0], drawOrder[1]], goals: [0, 0], legsPlayed: 0, winner: null },
+          { p: [drawOrder[2], drawOrder[3]], goals: [0, 0], legsPlayed: 0, winner: null },
         ],
       },
     }));
     setScreen("series");
   }
 
-  // Called by MatchSim after a match ends. winnerIdx is a draft.managers index.
-  function recordMatchResult(homeIdx, awayIdx, winnerIdx) {
+  // Called by MatchSim after a match ends.
+  // winnerIdx is a draft.managers index; score is { home, away } goals for this match.
+  function recordMatchResult(homeIdx, awayIdx, winnerIdx, score) {
     setDraft(prev => {
       const s = prev.series;
       if (!s) return prev;
@@ -169,25 +173,47 @@ export function useDraftState() {
         return { ...prev, series: { ...s, wins, champion, stage: champion !== null ? "champion" : "playing" } };
       }
 
-      // Tournament — find which matchup this result belongs to
+      // Tournament — find which semi this result belongs to
       const semiIdx = (s.semis || []).findIndex(sm =>
         (sm.p[0] === homeIdx && sm.p[1] === awayIdx) ||
         (sm.p[1] === homeIdx && sm.p[0] === awayIdx)
       );
       if (semiIdx >= 0) {
         const semi = s.semis[semiIdx];
-        const pos = semi.p.indexOf(winnerIdx);
-        const wins = semi.wins.map((w, i) => i === pos ? w + 1 : w);
-        const semiWinner = wins.some(w => w >= semi.target) ? winnerIdx : null;
-        const newSemis = s.semis.map((sm, i) => i === semiIdx ? { ...sm, wins, winner: semiWinner } : sm);
+        const isReplay = semi.legsPlayed >= 2;
+        let newGoals, newLegsPlayed, semiWinner;
+
+        if (isReplay) {
+          // Replay after aggregate level — winner is the match winner (ET/pens included)
+          newGoals = semi.goals;
+          newLegsPlayed = semi.legsPlayed + 1;
+          semiWinner = winnerIdx;
+        } else {
+          // Regular leg — add this match's goals to the aggregate
+          const isP0Home = semi.p[0] === homeIdx;
+          const p0Goals = isP0Home ? (score?.home ?? 0) : (score?.away ?? 0);
+          const p1Goals = isP0Home ? (score?.away ?? 0) : (score?.home ?? 0);
+          newGoals = [semi.goals[0] + p0Goals, semi.goals[1] + p1Goals];
+          newLegsPlayed = semi.legsPlayed + 1;
+
+          if (newLegsPlayed >= 2) {
+            if (newGoals[0] > newGoals[1]) semiWinner = semi.p[0];
+            else if (newGoals[1] > newGoals[0]) semiWinner = semi.p[1];
+            // else null → level on aggregate, replay needed
+          }
+        }
+
+        const newSemis = s.semis.map((sm, i) =>
+          i === semiIdx ? { ...sm, goals: newGoals, legsPlayed: newLegsPlayed, winner: semiWinner } : sm
+        );
         const bothDone = newSemis.every(sm => sm.winner !== null);
         const newFinal = bothDone && !s.final
-          ? { p: newSemis.map(sm => sm.winner), wins: [0, 0], target: 3, winner: null }
+          ? { p: newSemis.map(sm => sm.winner), wins: [0, 0], target: 1, winner: null }
           : s.final;
         return { ...prev, series: { ...s, semis: newSemis, final: newFinal, stage: bothDone ? "final" : "semis" } };
       }
 
-      // Final
+      // Final (single leg)
       if (s.final) {
         const f = s.final;
         const pos = f.p.indexOf(winnerIdx);

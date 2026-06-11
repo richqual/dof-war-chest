@@ -44,17 +44,19 @@ function getNextMatchup(series) {
     };
   }
 
-  // Tournament semis
+  // Tournament semis (aggregate 2-leg format)
   if (series.stage === "semis" && series.semis) {
     for (let si = 0; si < series.semis.length; si++) {
       const sm = series.semis[si];
       if (sm.winner !== null) continue;
-      const played = sm.wins[0] + sm.wins[1];
+      const played = sm.legsPlayed;
+      const isReplay = played >= 2;
+      const legLabel = isReplay ? "REPLAY" : `LEG ${played + 1}`;
       return {
         homeIdx: played % 2 === 0 ? sm.p[0] : sm.p[1],
         awayIdx: played % 2 === 0 ? sm.p[1] : sm.p[0],
         matchNum: played + 1,
-        label: `SEMI-FINAL ${si + 1}`,
+        label: `SEMI ${si + 1} · ${legLabel}`,
       };
     }
   }
@@ -92,7 +94,23 @@ export function getSeriesContext(series, managers) {
     else if (hWins > aWins) standing = `${homeName} lead ${hWins}–${aWins}`;
     else standing = `${awayName} lead ${aWins}–${hWins}`;
   } else {
-    standing = next.label;
+    // Show aggregate standing for semi-final legs
+    const sm = (series.semis || []).find(sm =>
+      sm.winner === null &&
+      (sm.p.includes(next.homeIdx) && sm.p.includes(next.awayIdx))
+    );
+    if (sm && sm.legsPlayed > 0) {
+      const m0 = managers[sm.p[0]], m1 = managers[sm.p[1]];
+      const n0 = m0.teamName || m0.name, n1 = m1.teamName || m1.name;
+      if (sm.goals[0] > sm.goals[1])
+        standing = `${n0} lead ${sm.goals[0]}–${sm.goals[1]} on agg`;
+      else if (sm.goals[1] > sm.goals[0])
+        standing = `${n1} lead ${sm.goals[1]}–${sm.goals[0]} on agg`;
+      else
+        standing = `Level ${sm.goals[0]}–${sm.goals[1]} on aggregate`;
+    } else {
+      standing = next.label;
+    }
   }
 
   return { label: `MATCH ${next.matchNum} · ${next.label}`, standing, homeIdx: next.homeIdx, awayIdx: next.awayIdx };
@@ -125,13 +143,16 @@ function TournamentBracket({ series, managers }) {
             <div className={`bracket-team ${sm.winner === sm.p[0] ? "bracket-winner" : sm.winner !== null ? "bracket-out" : ""}`}>
               <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bs${i}a`} size={22} />
               <span style={{ color: accent0 }}>{m0.teamName || m0.clubName || m0.name}</span>
-              <span className="bracket-wins">{sm.wins[0]}</span>
+              <span className="bracket-wins">{sm.goals?.[0] ?? 0}</span>
             </div>
             <div className={`bracket-team ${sm.winner === sm.p[1] ? "bracket-winner" : sm.winner !== null ? "bracket-out" : ""}`}>
               <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bs${i}b`} size={22} />
               <span style={{ color: accent1 }}>{m1.teamName || m1.clubName || m1.name}</span>
-              <span className="bracket-wins">{sm.wins[1]}</span>
+              <span className="bracket-wins">{sm.goals?.[1] ?? 0}</span>
             </div>
+            {sm.legsPlayed > 0 && sm.winner === null && (
+              <div className="bracket-adv">Agg: {sm.goals[0]}–{sm.goals[1]} · {sm.legsPlayed >= 2 ? "Replay needed" : `Leg ${sm.legsPlayed + 1} to come`}</div>
+            )}
             {sm.winner !== null && (
               <div className="bracket-adv">→ {(managers[sm.winner].teamName || managers[sm.winner].name)} advance</div>
             )}

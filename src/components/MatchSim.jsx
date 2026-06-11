@@ -287,8 +287,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName) {
         }
       }
     } else {
-      const isHome = Math.random() < 0.5;
-      events.push({ min, type: "commentary", team: isHome ? "home" : "away", text: pickNeutral(isHome ? homeName : awayName, isHome ? awayName : homeName) });
+      events.push({ min, type: "commentary", text: pickNeutral(homeName, awayName) });
     }
   }
 
@@ -373,8 +372,8 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName) {
 }
 
 const SPEEDS = [
-  { label: "CRAWL",   ms: 2500 },
-  { label: "SLOW",    ms: 1200 },
+  { label: "CRAWL",   ms: 4000 },
+  { label: "SLOW",    ms: 2500 },
   { label: "NORMAL",  ms: 600  },
   { label: "FAST",    ms: 200  },
   { label: "INSTANT", ms: 0   },
@@ -721,7 +720,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
                 {onMatchResult && (
                   <button className="sim-btn" onClick={() => {
                     const side = result.penWinner || (result.score.home > result.score.away ? "home" : "away");
-                    onMatchResult(side === "home" ? homeIdx : awayIdx);
+                    onMatchResult(side === "home" ? homeIdx : awayIdx, result.score);
                   }}>
                     CONTINUE SERIES →
                   </button>

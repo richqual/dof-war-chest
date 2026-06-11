@@ -5,9 +5,9 @@ const FORMATIONS = {
   "4-3-3": [
     { pos: "GK",  x: 50, y: 88 },
     { pos: "RB",  x: 82, y: 70 },
+    { pos: "LB",  x: 18, y: 70 },
     { pos: "CB",  x: 63, y: 70 },
     { pos: "CB",  x: 37, y: 70 },
-    { pos: "LB",  x: 18, y: 70 },
     { pos: "DM",  x: 50, y: 52 },
     { pos: "MF",  x: 28, y: 48 },
     { pos: "MF",  x: 72, y: 48 },
@@ -18,9 +18,9 @@ const FORMATIONS = {
   "4-4-2": [
     { pos: "GK",  x: 50, y: 88 },
     { pos: "RB",  x: 82, y: 70 },
+    { pos: "LB",  x: 18, y: 70 },
     { pos: "CB",  x: 63, y: 70 },
     { pos: "CB",  x: 37, y: 70 },
-    { pos: "LB",  x: 18, y: 70 },
     { pos: "DM",  x: 75, y: 50 },
     { pos: "MF",  x: 55, y: 50 },
     { pos: "MF",  x: 35, y: 50 },
@@ -31,9 +31,9 @@ const FORMATIONS = {
   "4-5-1": [
     { pos: "GK",  x: 50, y: 88 },
     { pos: "RB",  x: 82, y: 70 },
+    { pos: "LB",  x: 18, y: 70 },
     { pos: "CB",  x: 63, y: 70 },
     { pos: "CB",  x: 37, y: 70 },
-    { pos: "LB",  x: 18, y: 70 },
     { pos: "DM",  x: 50, y: 52 },
     { pos: "MF",  x: 28, y: 46 },
     { pos: "MF",  x: 72, y: 46 },
