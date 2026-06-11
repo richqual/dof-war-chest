@@ -33,6 +33,10 @@ export const PLAYERS = [
   { id: 25, name: "Chris Kirkland",     club: "Wigan",          years: "2006–13", pos: "GK", rating: 79, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "classic" },
   { id: 26, name: "Manuel Almunia",     club: "Arsenal",        years: "2004–11", pos: "GK", rating: 80, value: 0,   nation: "🇪🇸", era: "classic" },
   { id: 27, name: "Robert Green",       club: "West Ham",       years: "2006–12", pos: "GK", rating: 80, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "classic" },
+  { id: 28, name: "Paul Robinson",      club: "Blackburn",      years: "2008–15", pos: "GK", rating: 77, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "golden"  },
+  { id: 29, name: "Heurelho Gomes",     club: "Watford",        years: "2014–20", pos: "GK", rating: 76, value: 0,   nation: "🇧🇷", era: "golden"  },
+  { id: 30, name: "Adrián",             club: "West Ham",       years: "2013–19", pos: "GK", rating: 75, value: 0,   nation: "🇪🇸", era: "golden"  },
+  { id: 31, name: "Steve Harper",       club: "Newcastle",      years: "1993–13", pos: "GK", rating: 73, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "classic" },
 
   // ── RIGHT BACKS ──────────────────────────────────────────────────────
   { id: 100, name: "Gary Neville",           club: "Man Utd",   years: "1992–11", pos: "RB", rating: 88, value: 30,  nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "classic" },
@@ -54,6 +58,10 @@ export const PLAYERS = [
   { id: 116, name: "Serge Aurier",           club: "Spurs",     years: "2017–21", pos: "RB", rating: 82, value: 3,   nation: "🇨🇮", era: "modern"  },
   { id: 117, name: "Gary Kelly",             club: "Leeds",     years: "1991–07", pos: "RB", rating: 82, value: 3,   nation: "🇮🇪", era: "classic" },
   { id: 118, name: "Alan Hutton",            club: "Spurs",     years: "2008–11", pos: "RB", rating: 79, value: 0,   nation: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", era: "golden"  },
+  { id: 119, name: "Phil Bardsley",          club: "Sunderland",years: "2008–14", pos: "RB", rating: 74, value: 0,   nation: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", era: "golden"  },
+  { id: 120, name: "Angel Rangel",           club: "Swansea",   years: "2011–18", pos: "RB", rating: 75, value: 0,   nation: "🇪🇸", era: "golden"  },
+  { id: 121, name: "Carl Jenkinson",         club: "Arsenal",   years: "2011–16", pos: "RB", rating: 72, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "golden"  },
+  { id: 122, name: "Simon Francis",          club: "Bournemouth",years: "2015–20", pos: "RB", rating: 73, value: 0,  nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "modern"  },
 
   // ── LEFT BACKS ───────────────────────────────────────────────────────
   { id: 200, name: "Ashley Cole",         club: "Arsenal",        years: "1999–06", pos: "LB", rating: 93, value: 95,  nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "classic" },
@@ -79,6 +87,10 @@ export const PLAYERS = [
   { id: 220, name: "Fabian Delph",        club: "Man City",       years: "2015–19", pos: "LB", rating: 81, value: 1,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "modern"  },
   { id: 221, name: "Benjamin Mendy",      club: "Man City",       years: "2017–21", pos: "LB", rating: 86, value: 18,  nation: "🇫🇷", era: "modern"  },
   { id: 222, name: "Nuno Tavares",        club: "Arsenal",        years: "2021–22", pos: "LB", rating: 79, value: 0,   nation: "🇵🇹", era: "modern"  },
+  { id: 223, name: "Paul Konchesky",      club: "Fulham",         years: "2005–10", pos: "LB", rating: 75, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "classic" },
+  { id: 224, name: "José Enrique",        club: "Liverpool",      years: "2011–16", pos: "LB", rating: 76, value: 0,   nation: "🇪🇸", era: "golden"  },
+  { id: 225, name: "Stephen Warnock",     club: "Aston Villa",    years: "2009–13", pos: "LB", rating: 74, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "golden"  },
+  { id: 226, name: "Charlie Daniels",     club: "Bournemouth",    years: "2015–20", pos: "LB", rating: 73, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "modern"  },
 
   // ── CENTRE BACKS ─────────────────────────────────────────────────────
   { id: 300, name: "John Terry",          club: "Chelsea",        years: "1998–17", pos: "CB", rating: 94, value: 115, nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "golden"  },
@@ -115,6 +127,10 @@ export const PLAYERS = [
   { id: 331, name: "Matthew Upson",       club: "West Ham",       years: "2007–11", pos: "CB", rating: 82, value: 3,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "golden"  },
   { id: 332, name: "Ugo Ehiogu",          club: "Aston Villa",    years: "1991–00", pos: "CB", rating: 83, value: 5,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "classic" },
   { id: 333, name: "Joël Matip",          club: "Liverpool",      years: "2016–24", pos: "CB", rating: 85, value: 11,  nation: "🇨🇲", era: "modern"  },
+  { id: 334, name: "Ryan Shawcross",      club: "Stoke",          years: "2008–21", pos: "CB", rating: 77, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "golden"  },
+  { id: 335, name: "Titus Bramble",       club: "Newcastle",      years: "2002–07", pos: "CB", rating: 72, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "classic" },
+  { id: 336, name: "Zat Knight",          club: "Fulham",         years: "2000–07", pos: "CB", rating: 73, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "classic" },
+  { id: 337, name: "Sebastien Bassong",   club: "Norwich",        years: "2012–17", pos: "CB", rating: 74, value: 0,   nation: "🇨🇲", era: "golden"  },
 
   // ── DEFENSIVE MIDFIELDERS ─────────────────────────────────────────────
   { id: 400, name: "Roy Keane",         club: "Man Utd",    years: "1993–05", pos: "DM", rating: 94, value: 122, nation: "🇮🇪", era: "classic" },
@@ -144,6 +160,10 @@ export const PLAYERS = [
   { id: 424, name: "Moussa Sissoko",    club: "Spurs",      years: "2016–21", pos: "DM", rating: 81, value: 1,   nation: "🇫🇷", era: "modern"  },
   { id: 425, name: "Nicky Butt",        club: "Man Utd",    years: "1992–04", pos: "DM", rating: 83, value: 5,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "classic" },
   { id: 426, name: "Marc Albrighton",   club: "Leicester",  years: "2014–22", pos: "DM", rating: 80, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "golden"  },
+  { id: 427, name: "Kevin Nolan",       club: "Newcastle",  years: "2009–11", pos: "DM", rating: 78, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "golden"  },
+  { id: 428, name: "Oriol Romeu",       club: "Southampton",years: "2015–22", pos: "DM", rating: 76, value: 0,   nation: "🇪🇸", era: "modern"  },
+  { id: 429, name: "Lee Cattermole",    club: "Sunderland", years: "2009–19", pos: "DM", rating: 75, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "golden"  },
+  { id: 430, name: "Karl Henry",        club: "Wolves",     years: "2009–15", pos: "DM", rating: 73, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "golden"  },
 
   // ── MIDFIELDERS ──────────────────────────────────────────────────────
   { id: 500, name: "Paul Scholes",       club: "Man Utd",  years: "1993–13", pos: "MF", rating: 92, value: 78,  nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "classic" },
@@ -168,6 +188,10 @@ export const PLAYERS = [
   { id: 519, name: "Robbie Savage",      club: "Blackburn",years: "2005–08", pos: "MF", rating: 80, value: 0,   nation: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", era: "classic" },
   { id: 520, name: "Harvey Elliott",     club: "Liverpool",years: "2020–",   pos: "MF", rating: 82, value: 3,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "modern"  },
   { id: 521, name: "Charlie Adam",       club: "Liverpool",years: "2011–12", pos: "MF", rating: 79, value: 0,   nation: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", era: "golden"  },
+  { id: 522, name: "Jonjo Shelvey",      club: "Newcastle",years: "2016–23", pos: "MF", rating: 77, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "modern"  },
+  { id: 523, name: "Glenn Whelan",       club: "Stoke",    years: "2008–17", pos: "MF", rating: 74, value: 0,   nation: "🇮🇪", era: "golden"  },
+  { id: 524, name: "Jack Cork",          club: "Burnley",  years: "2017–23", pos: "MF", rating: 74, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "modern"  },
+  { id: 525, name: "Tom Cleverley",      club: "Everton",  years: "2015–17", pos: "MF", rating: 73, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "golden"  },
 
   // ── RIGHT WINGERS ─────────────────────────────────────────────────────
   { id: 600, name: "Cristiano Ronaldo",     club: "Man Utd",    years: "2003–09", pos: "RW", rating: 95, value: 168, nation: "🇵🇹", era: "classic" },
@@ -193,6 +217,10 @@ export const PLAYERS = [
   { id: 620, name: "Pedro",                 club: "Chelsea",    years: "2015–20", pos: "RW", rating: 83, value: 6,   nation: "🇪🇸", era: "golden"  },
   { id: 621, name: "Kevin Gallagher",       club: "Blackburn",  years: "1993–99", pos: "RW", rating: 82, value: 3,   nation: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", era: "classic" },
   { id: 622, name: "Stewart Downing",       club: "Liverpool",  years: "2011–13", pos: "RW", rating: 80, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "golden"  },
+  { id: 623, name: "Trevor Sinclair",       club: "West Ham",   years: "1998–03", pos: "RW", rating: 78, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "classic" },
+  { id: 624, name: "Andros Townsend",       club: "Crystal Palace", years: "2016–21", pos: "RW", rating: 77, value: 0, nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "modern" },
+  { id: 625, name: "Matt Ritchie",          club: "Newcastle",  years: "2016–23", pos: "RW", rating: 76, value: 0,   nation: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", era: "modern"  },
+  { id: 626, name: "Jordon Ibe",            club: "Bournemouth",years: "2016–20", pos: "RW", rating: 72, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "modern"  },
 
   // ── LEFT WINGERS ──────────────────────────────────────────────────────
   { id: 700, name: "Thierry Henry",       club: "Arsenal",        years: "1999–07", pos: "LW", rating: 96, value: 190, nation: "🇫🇷", era: "classic" },
@@ -215,6 +243,10 @@ export const PLAYERS = [
   { id: 717, name: "Adama Traoré",        club: "Wolves",         years: "2018–22", pos: "LW", rating: 83, value: 6,   nation: "🇪🇸", era: "modern"  },
   { id: 718, name: "Nicolas Anelka",      club: "Arsenal",        years: "1997–99", pos: "LW", rating: 86, value: 20,  nation: "🇫🇷", era: "classic" },
   { id: 719, name: "Anthony Elanga",      club: "Man Utd",        years: "2021–23", pos: "LW", rating: 79, value: 0,   nation: "🇸🇪", era: "modern"  },
+  { id: 720, name: "Yannick Bolasie",     club: "Crystal Palace", years: "2013–16", pos: "LW", rating: 76, value: 0,   nation: "🇨🇩", era: "golden"  },
+  { id: 721, name: "Matt Jarvis",         club: "Wolves",         years: "2009–12", pos: "LW", rating: 74, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "golden"  },
+  { id: 722, name: "Stephen Hunt",        club: "Reading",        years: "2006–09", pos: "LW", rating: 73, value: 0,   nation: "🇮🇪", era: "classic" },
+  { id: 723, name: "James McClean",       club: "West Brom",      years: "2015–18", pos: "LW", rating: 73, value: 0,   nation: "🇮🇪", era: "modern"  },
 
   // ── STRIKERS ─────────────────────────────────────────────────────────
   { id: 800, name: "Erling Haaland",        club: "Man City",    years: "2022–",   pos: "ST", rating: 96, value: 198, nation: "🇳🇴", era: "modern"  },
@@ -245,6 +277,10 @@ export const PLAYERS = [
   { id: 825, name: "Peter Crouch",          club: "Liverpool",   years: "2005–08", pos: "ST", rating: 80, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "golden"  },
   { id: 826, name: "Dion Dublin",           club: "Man Utd",     years: "1992–94", pos: "ST", rating: 82, value: 3,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "classic" },
   { id: 827, name: "Kevin Campbell",        club: "Arsenal",     years: "1988–95", pos: "ST", rating: 82, value: 3,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "classic" },
+  { id: 828, name: "Kevin Davies",          club: "Bolton",      years: "2003–13", pos: "ST", rating: 76, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "classic" },
+  { id: 829, name: "Glenn Murray",          club: "Brighton",    years: "2017–20", pos: "ST", rating: 75, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "modern"  },
+  { id: 830, name: "Shane Long",            club: "Southampton", years: "2014–22", pos: "ST", rating: 74, value: 0,   nation: "🇮🇪", era: "golden"  },
+  { id: 831, name: "Marlon Harewood",       club: "West Ham",    years: "2003–07", pos: "ST", rating: 73, value: 0,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "classic" },
 ];
 
 export const POSITIONS = [
@@ -292,16 +328,56 @@ export function getRatingBg(r) {
   return "#e0e0e0";
 }
 
-export function generateBudget() {
+// The budget wheel: nine fixed segments, £0–£200m in £25m steps.
+export const WHEEL_VALUES = [0, 25, 50, 75, 100, 125, 150, 175, 200];
+
+// Per-difficulty odds for each wheel value (same order as WHEEL_VALUES).
+// Weights are out of 100 and double as the wheel's segment sizes, so the
+// wheel honestly shows the player what they're up against.
+// Approx mean budget per spin: easy ~£81m, normal ~£61m, hard ~£40m.
+export const DIFFICULTY_WEIGHTS = {
+  easy:   [8, 14, 18, 18, 15, 11, 8, 5, 3],
+  normal: [16, 22, 21, 15, 10, 7, 4, 3, 2],
+  hard:   [32, 28, 16, 10, 6, 4, 2, 1, 1],
+};
+
+export const DIFFICULTY_LABELS = { easy: "Easy", normal: "Normal", hard: "Hard" };
+
+export function generateBudget(difficulty = "normal") {
+  const weights = DIFFICULTY_WEIGHTS[difficulty] || DIFFICULTY_WEIGHTS.normal;
+  const total = weights.reduce((s, w) => s + w, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < WHEEL_VALUES.length; i++) {
+    r -= weights[i];
+    if (r < 0) return WHEEL_VALUES[i];
+  }
+  return WHEEL_VALUES[0];
+}
+
+export const RANDOM_MANAGER_NAMES = [
+  "Ron Atherton","Terry Calloway","Dave Brackley","Steve Hollins",
+  "Barry Quigley","Mick Stanhope","Graham Tindall","Les Farnworth",
+  "Alan Dewhurst","Keith Mowbray","Roy Cattermole","Frank Ogden",
+  "Sergio Valenti","Hans Brouwer","Claude Mercier","Jorge Camacho",
+  "Sven Lindqvist","Marco Tardioli","Didier Lavelle","Tomasz Wojcik",
+  "Brian McAllister","Eddie Threlfall","Norman Pickup","Vince Halloran",
+];
+
+// CPU draft brain: usually takes the best player it can afford, sometimes a
+// cheaper near-equal so it banks carryover and squads vary between games.
+export function chooseCpuPick(candidates, budget) {
+  const affordable = candidates.filter(p => p.value <= budget);
+  if (affordable.length === 0) return null;
+  const sorted = [...affordable].sort((a, b) => b.rating - a.rating || a.value - b.value);
+  if (sorted.length === 1) return sorted[0];
   const r = Math.random();
-  if (r < 0.12) return Math.floor(Math.random() * 16);
-  if (r < 0.28) return Math.floor(Math.random() * 25) + 16;
-  if (r < 0.50) return Math.floor(Math.random() * 30) + 41;
-  if (r < 0.70) return Math.floor(Math.random() * 30) + 71;
-  if (r < 0.84) return Math.floor(Math.random() * 25) + 101;
-  if (r < 0.93) return Math.floor(Math.random() * 25) + 126;
-  if (r < 0.98) return Math.floor(Math.random() * 25) + 151;
-  return Math.floor(Math.random() * 15) + 176;
+  if (r < 0.6) return sorted[0];
+  if (r < 0.9) {
+    const best = sorted[0];
+    const nearBest = sorted.filter(p => p.rating >= best.rating - 2);
+    return [...nearBest].sort((a, b) => a.value - b.value)[0];
+  }
+  return sorted[Math.min(1 + Math.floor(Math.random() * 2), sorted.length - 1)];
 }
 
 export const RANDOM_CLUB_NAMES = [

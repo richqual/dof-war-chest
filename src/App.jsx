@@ -38,6 +38,7 @@ function AppInner() {
     draft, activeManager, activeManagerIdx, currentPos,
     startGame, confirmBudget, pickPlayer, setTeamName,
     swapSquadPlayers, restartGame, getAvailablePlayers, getTakenPlayers,
+    skipTurn, autoCompleteDraft,
   } = useDraftState();
 
   const [matchConfig, setMatchConfig] = useState({ homeIdx: 0, awayIdx: 1 });
@@ -64,6 +65,8 @@ function AppInner() {
         getAvailablePlayers={getAvailablePlayers}
         getTakenPlayers={getTakenPlayers}
         restartGame={restartGame}
+        skipTurn={skipTurn}
+        autoCompleteDraft={autoCompleteDraft}
       />
     );
   }

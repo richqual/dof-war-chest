@@ -1,7 +1,55 @@
 import { useState, useEffect } from "react";
-import { PLAYERS, POSITIONS, SUB_POSITIONS } from "../data/players";
+import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick } from "../data/players";
 
 const STORAGE_KEY = "transfer-game-state";
+
+function availablePlayersFor(posKey, takenIds) {
+  const taken = new Set(takenIds);
+  if (posKey === "SUB") {
+    return PLAYERS.filter(p => SUB_POSITIONS.includes(p.pos) && !taken.has(p.id));
+  }
+  return PLAYERS.filter(p => p.pos === posKey && !taken.has(p.id));
+}
+
+// Applies one turn to a draft state: the active manager signs `player`
+// (or banks the whole budget as carryover when player is null), then the
+// turn/position/order advance exactly as before. Pure — returns the next state.
+function applyPick(d, player) {
+  const activeIdx = d.currentOrder[d.turnIndex];
+  const budget = d.currentBudget ?? 0;
+
+  const managers = d.managers.map((m, i) => {
+    if (i !== activeIdx) return m;
+    if (!player) return { ...m, carryover: budget };
+    const squad = [...m.squad];
+    squad[d.positionIndex] = { ...player };
+    return { ...m, squad, carryover: budget - player.value };
+  });
+
+  const takenIds = player ? [...d.takenIds, player.id] : d.takenIds;
+  const n = d.currentOrder.length;
+  const newTurnIndex = d.turnIndex + 1;
+
+  if (newTurnIndex >= n) {
+    const newPositionIndex = d.positionIndex + 1;
+    if (newPositionIndex >= POSITIONS.length) {
+      return { ...d, managers, takenIds, positionIndex: newPositionIndex, phase: "complete" };
+    }
+    const newRound = d.round + 1;
+    return {
+      ...d,
+      managers,
+      takenIds,
+      positionIndex: newPositionIndex,
+      turnIndex: 0,
+      round: newRound,
+      currentBudget: null,
+      currentOrder: Array.from({ length: n }, (_, i) => (i + newRound) % n),
+      phase: "draft",
+    };
+  }
+  return { ...d, managers, takenIds, turnIndex: newTurnIndex, currentBudget: null };
+}
 
 function buildInitialDraft(clubs, options = {}) {
   const n = clubs.length;
@@ -14,6 +62,7 @@ function buildInitialDraft(clubs, options = {}) {
       teamName: c.clubName,
       primaryColor: c.primaryColor || "#1a3a6b",
       secondaryColor: c.secondaryColor || "#ffffff",
+      isComputer: !!c.isComputer,
       squad: Array(16).fill(null),
       carryover: 0,
     })),
@@ -25,6 +74,7 @@ function buildInitialDraft(clubs, options = {}) {
     takenIds: [],
     phase: "draft",
     hideRatings: options.hideRatings || false,
+    difficulty: options.difficulty || "normal",
   };
 }
 
@@ -90,65 +140,48 @@ export function useDraftState() {
   }
 
   function getAvailablePlayers(posKey) {
-    const taken = new Set(draft ? draft.takenIds : []);
-    if (posKey === "SUB") {
-      return PLAYERS.filter(p => SUB_POSITIONS.includes(p.pos) && !taken.has(p.id));
-    }
-    return PLAYERS.filter(p => p.pos === posKey && !taken.has(p.id));
+    return availablePlayersFor(posKey, draft ? draft.takenIds : []);
   }
 
   function pickPlayer(player) {
     if (!draft) return;
-    const {
-      currentBudget, currentOrder, turnIndex, positionIndex,
-      managers, round, takenIds,
-    } = draft;
+    if (draft.currentBudget === null || player.value > draft.currentBudget) return;
+    const next = applyPick(draft, player);
+    setDraft(next);
+    if (next.phase === "complete") setScreen("squads");
+  }
 
-    if (currentBudget === null || player.value > currentBudget) return;
+  // Active manager banks the whole budget as carryover and the turn moves on —
+  // used when nothing is affordable (e.g. a £0 spin with no free players left).
+  function skipTurn() {
+    if (!draft || draft.currentBudget === null) return;
+    const next = applyPick(draft, null);
+    setDraft(next);
+    if (next.phase === "complete") setScreen("squads");
+  }
 
-    const activeIdx = currentOrder[turnIndex];
-    const remaining = currentBudget - player.value;
-
-    const newManagers = managers.map((m, i) => {
-      if (i !== activeIdx) return m;
-      const newSquad = [...m.squad];
-      newSquad[positionIndex] = { ...player };
-      return { ...m, squad: newSquad, carryover: remaining };
-    });
-
-    const newTakenIds = [...takenIds, player.id];
-    const n = currentOrder.length;
-    const newTurnIndex = turnIndex + 1;
-
-    if (newTurnIndex >= n) {
-      const newPositionIndex = positionIndex + 1;
-      if (newPositionIndex >= POSITIONS.length) {
-        setDraft({ ...draft, managers: newManagers, takenIds: newTakenIds, positionIndex: newPositionIndex, phase: "complete" });
-        setScreen("squads");
-        return;
+  // Plays out every remaining turn instantly with CPU picks (spinning budgets
+  // as needed) and jumps straight to the squads screen.
+  function autoCompleteDraft() {
+    if (!draft) return;
+    let d = draft;
+    let guard = 0;
+    while (d.phase !== "complete" && guard++ < 500) {
+      if (d.currentBudget === null) {
+        const activeIdx = d.currentOrder[d.turnIndex];
+        const carry = d.managers[activeIdx]?.carryover || 0;
+        d = {
+          ...d,
+          currentBudget: generateBudget(d.difficulty) + carry,
+          managers: d.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
+        };
       }
-      const newRound = round + 1;
-      const rotated = Array.from({ length: n }, (_, i) => (i + newRound) % n);
-      setDraft({
-        ...draft,
-        managers: newManagers,
-        takenIds: newTakenIds,
-        positionIndex: newPositionIndex,
-        turnIndex: 0,
-        round: newRound,
-        currentBudget: null,
-        currentOrder: rotated,
-        phase: "draft",
-      });
-    } else {
-      setDraft({
-        ...draft,
-        managers: newManagers,
-        takenIds: newTakenIds,
-        turnIndex: newTurnIndex,
-        currentBudget: null,
-      });
+      const posKey = POSITIONS[d.positionIndex].key;
+      const pick = chooseCpuPick(availablePlayersFor(posKey, d.takenIds), d.currentBudget);
+      d = applyPick(d, pick);
     }
+    setDraft(d);
+    setScreen("squads");
   }
 
   function setTeamName(managerIdx, name) {
@@ -185,5 +218,6 @@ export function useDraftState() {
     draft, activeManager, activeManagerIdx, currentPos,
     startGame, confirmBudget, pickPlayer, setTeamName,
     swapSquadPlayers, restartGame, getAvailablePlayers, getTakenPlayers,
+    skipTurn, autoCompleteDraft,
   };
 }

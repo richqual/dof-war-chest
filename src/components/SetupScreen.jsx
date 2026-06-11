@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RANDOM_CLUB_NAMES } from "../data/players";
+import { RANDOM_CLUB_NAMES, RANDOM_MANAGER_NAMES } from "../data/players";
 
 const DEFAULT_COLORS = [
   { primary: "#c8102e", secondary: "#ffffff" }, // Red/White
@@ -8,8 +8,25 @@ const DEFAULT_COLORS = [
   { primary: "#1B5E20", secondary: "#ffffff" }, // Green/White
 ];
 
+const CPU_KITS = [
+  { primary: "#c8102e", secondary: "#ffffff" },
+  { primary: "#003087", secondary: "#ffffff" },
+  { primary: "#1B5E20", secondary: "#ffd700" },
+  { primary: "#6a0dad", secondary: "#ffffff" },
+  { primary: "#f97316", secondary: "#000000" },
+  { primary: "#0e7490", secondary: "#ffffff" },
+  { primary: "#7c2d12", secondary: "#f5e6d0" },
+  { primary: "#111827", secondary: "#fbbf24" },
+  { primary: "#be185d", secondary: "#ffffff" },
+  { primary: "#365314", secondary: "#ffffff" },
+];
+
 function randomClubName() {
   return RANDOM_CLUB_NAMES[Math.floor(Math.random() * RANDOM_CLUB_NAMES.length)];
+}
+
+function randomManagerName() {
+  return RANDOM_MANAGER_NAMES[Math.floor(Math.random() * RANDOM_MANAGER_NAMES.length)];
 }
 
 function KitSwatch({ primary, secondary, pattern = "plain", uid = "0" }) {
@@ -41,24 +58,66 @@ function ClubSetup({ index, club, onChange, onRemove, canRemove }) {
     onChange({ ...club, clubName: name });
   }
 
+  function randomiseDof() {
+    let name;
+    do { name = randomManagerName(); } while (name === club.dofName);
+    onChange({ ...club, dofName: name });
+  }
+
+  // Switching to CPU generates an identity — empty fields get filled, kit is
+  // re-rolled. Everything stays editable so it can all be overridden.
+  function setComputer(isComputer) {
+    if (!isComputer) {
+      onChange({ ...club, isComputer: false });
+      return;
+    }
+    const kit = CPU_KITS[Math.floor(Math.random() * CPU_KITS.length)];
+    onChange({
+      ...club,
+      isComputer: true,
+      dofName: club.dofName.trim() ? club.dofName : randomManagerName(),
+      clubName: club.clubName.trim() ? club.clubName : randomClubName(),
+      primaryColor: kit.primary,
+      secondaryColor: kit.secondary,
+      pattern: Math.random() < 0.4 ? "stripes" : "plain",
+    });
+  }
+
   return (
     <div className="club-setup-card">
       <div className="club-setup-header">
         <span className="club-setup-num">CLUB {index + 1}</span>
-        {canRemove && (
-          <button className="remove-btn" onClick={onRemove} title="Remove club">✕</button>
-        )}
+        <div className="club-setup-header-right">
+          <div className="ctrl-toggle">
+            <button
+              className={`ctrl-toggle-btn ${!club.isComputer ? "active" : ""}`}
+              onClick={() => setComputer(false)}
+            >HUMAN</button>
+            <button
+              className={`ctrl-toggle-btn ${club.isComputer ? "active" : ""}`}
+              onClick={() => setComputer(true)}
+            >CPU</button>
+          </div>
+          {canRemove && (
+            <button className="remove-btn" onClick={onRemove} title="Remove club">✕</button>
+          )}
+        </div>
       </div>
 
       <div className="club-setup-field">
-        <label className="field-label-sm">DIRECTOR OF FOOTBALL</label>
-        <input
-          className="name-input"
-          value={club.dofName}
-          onChange={e => onChange({ ...club, dofName: e.target.value })}
-          placeholder={`DoF Name ${index + 1}`}
-          maxLength={20}
-        />
+        <label className="field-label-sm">{club.isComputer ? "CPU MANAGER" : "DIRECTOR OF FOOTBALL"}</label>
+        <div className="club-name-row">
+          <input
+            className="name-input"
+            value={club.dofName}
+            onChange={e => onChange({ ...club, dofName: e.target.value })}
+            placeholder={`DoF Name ${index + 1}`}
+            maxLength={20}
+          />
+          {club.isComputer && (
+            <button className="randomise-btn" onClick={randomiseDof} title="Random name">🎲</button>
+          )}
+        </div>
       </div>
 
       <div className="club-setup-field">
@@ -113,12 +172,19 @@ function ClubSetup({ index, club, onChange, onRemove, canRemove }) {
 
 function makeClub(index) {
   const d = DEFAULT_COLORS[index % DEFAULT_COLORS.length];
-  return { dofName: "", clubName: "", primaryColor: d.primary, secondaryColor: d.secondary, pattern: "plain" };
+  return { dofName: "", clubName: "", primaryColor: d.primary, secondaryColor: d.secondary, pattern: "plain", isComputer: false };
 }
+
+const DIFFICULTY_INFO = [
+  { key: "easy",   label: "EASY",   hint: "War chest — big budgets flow like the old days" },
+  { key: "normal", label: "NORMAL", hint: "Tighter purse strings — every spin matters" },
+  { key: "hard",   label: "HARD",   hint: "Shoestring — bargain bins and free transfers" },
+];
 
 export default function SetupScreen({ onStart }) {
   const [clubs, setClubs] = useState([makeClub(0), makeClub(1)]);
   const [hideRatings, setHideRatings] = useState(false);
+  const [difficulty, setDifficulty] = useState("normal");
 
   function updateClub(i, updated) {
     setClubs(prev => prev.map((c, j) => j === i ? updated : c));
@@ -135,7 +201,7 @@ export default function SetupScreen({ onStart }) {
 
   function handleStart() {
     if (!canStart) return;
-    onStart(clubs.map(c => ({ ...c, dofName: c.dofName.trim(), clubName: c.clubName.trim() })), { hideRatings });
+    onStart(clubs.map(c => ({ ...c, dofName: c.dofName.trim(), clubName: c.clubName.trim() })), { hideRatings, difficulty });
   }
 
   return (
@@ -150,7 +216,7 @@ export default function SetupScreen({ onStart }) {
         <div className="setup-rules">
           <div className="rules-title">HOW IT WORKS</div>
           <div className="rules-body">
-            Each turn spin a transfer budget (£0–190m). Pick one player for the current
+            Each turn spin the budget wheel (£0–200m). Pick one player for the current
             position — unspent money carries over to your next pick. Draft order rotates
             each round. 16 players: 11 starters + 5 subs. Then simulate the match.
           </div>
@@ -177,6 +243,25 @@ export default function SetupScreen({ onStart }) {
 
         <div className="game-options">
           <div className="options-title">GAME OPTIONS</div>
+
+          <div className="difficulty-section">
+            <span className="field-label-sm">TRANSFER MARKET DIFFICULTY</span>
+            <div className="difficulty-row">
+              {DIFFICULTY_INFO.map(d => (
+                <button
+                  key={d.key}
+                  className={`difficulty-btn ${difficulty === d.key ? "active" : ""}`}
+                  onClick={() => setDifficulty(d.key)}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+            <div className="difficulty-hint">
+              {DIFFICULTY_INFO.find(d => d.key === difficulty)?.hint}
+            </div>
+          </div>
+
           <label className="option-row">
             <input
               type="checkbox"

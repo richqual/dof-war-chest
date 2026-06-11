@@ -1,13 +1,17 @@
-import { useState } from "react";
-import { POSITIONS, formatValue } from "../data/players";
+import { useState, useEffect } from "react";
+import { POSITIONS, generateBudget, chooseCpuPick } from "../data/players";
 import PlayerCard from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
 import TurnTransition from "./TurnTransition";
 import MySquadPanel from "./MySquadPanel";
 
+const CPU_SPIN_DELAY = 900;
+const CPU_PICK_DELAY = 1300;
+
 export default function DraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
   confirmBudget, pickPlayer, getAvailablePlayers, getTakenPlayers, restartGame,
+  skipTurn, autoCompleteDraft,
 }) {
   const [filterEra, setFilterEra] = useState("all");
   const [sortBy, setSortBy] = useState("rating");
@@ -53,6 +57,24 @@ export default function DraftScreen({
     pickPlayer(player);
   }
 
+  // CPU turns run themselves: spin the budget after a short beat, then pick.
+  // Pauses while a transition screen is up so the human can follow along.
+  const isCpuTurn = !!activeManager?.isComputer;
+  useEffect(() => {
+    if (!isCpuTurn || transition) return;
+    const t = setTimeout(() => {
+      if (currentBudget === null) {
+        confirmBudget(generateBudget(draft.difficulty));
+      } else {
+        const pick = chooseCpuPick(getAvailablePlayers(currentPos.key), currentBudget);
+        if (pick) handlePickPlayer(pick);
+        else skipTurn();
+      }
+    }, currentBudget === null ? CPU_SPIN_DELAY : CPU_PICK_DELAY);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isCpuTurn, transition, currentBudget, activeManagerIdx, positionIndex, turnIndex]);
+
   if (transition) {
     return (
       <TurnTransition
@@ -76,6 +98,10 @@ export default function DraftScreen({
           <div className="menu-box" onClick={e => e.stopPropagation()}>
             <div className="menu-title">MENU</div>
             <button className="menu-item" onClick={() => setShowMenu(false)}>▶ CONTINUE DRAFT</button>
+            <button className="menu-item" onClick={() => { setShowMenu(false); autoCompleteDraft(); }}>
+              ⏩ AUTO-PICK REST &amp; SKIP TO END-GAME
+            </button>
+            <p className="menu-warn">CPU picks every remaining player instantly and jumps to the squads screen.</p>
             <div className="menu-divider" />
             <button className="menu-item danger" onClick={() => { setShowMenu(false); restartGame(); }}>
               ✕ ABANDON DRAFT &amp; RESTART
@@ -92,6 +118,7 @@ export default function DraftScreen({
           {managers.map((m, i) => (
             <span key={i} className={`manager-tab ${i === activeManagerIdx ? "active" : ""}`}>
               {m.clubName || m.name}
+              {m.isComputer && <span className="cpu-tag">CPU</span>}
             </span>
           ))}
         </div>
@@ -139,10 +166,21 @@ export default function DraftScreen({
 
       {/* Main area */}
       <div className="draft-main">
-        {currentBudget === null ? (
+        {isCpuTurn ? (
+          <div className="cpu-turn-area">
+            <div className="cpu-turn-badge">CPU TURN</div>
+            <div className="cpu-turn-name">{activeManager?.clubName || activeManager?.name}</div>
+            <div className="cpu-turn-status">
+              {currentBudget === null
+                ? "Spinning transfer budget…"
+                : `Budget £${currentBudget}m — scouting for a ${currentPos.label}…`}
+            </div>
+            <div className="cpu-turn-dots"><span>●</span><span>●</span><span>●</span></div>
+          </div>
+        ) : currentBudget === null ? (
           <div className="roll-area">
             <div className="roll-sub">Spin your transfer budget for <strong>{currentPos.label}</strong></div>
-            <SpinWheel carryover={pendingCarryover} onConfirm={confirmBudget} />
+            <SpinWheel carryover={pendingCarryover} onConfirm={confirmBudget} difficulty={draft.difficulty} />
           </div>
         ) : (
           <div className="player-list-area">
