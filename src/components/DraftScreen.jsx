@@ -141,15 +141,15 @@ export default function DraftScreen({
               style={i === activeManagerIdx
                 ? { background: m.primaryColor, color: readableTextOn(m.primaryColor), borderColor: m.secondaryColor }
                 : undefined}
+              onClick={i === activeManagerIdx ? () => setShowMySquad(s => !s) : undefined}
+              title={i === activeManagerIdx ? "View my squad" : undefined}
             >
               <span className="tab-kit-dot" style={{ background: m.primaryColor, boxShadow: `inset 0 0 0 1px ${m.secondaryColor}` }} />
               {m.clubName || m.name}
               {m.isComputer && <span className="cpu-tag">CPU</span>}
+              {i === activeManagerIdx && <span className="tab-squad-hint">▤</span>}
             </span>
           ))}
-        </div>
-        <div className="draft-header-actions">
-          <button className="my-squad-btn" onClick={() => setShowMySquad(s => !s)}>MY SQUAD</button>
         </div>
       </div>
 

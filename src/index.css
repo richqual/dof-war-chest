@@ -292,8 +292,15 @@ input, select { font-family: var(--font); }
   color: #000;
   border-color: #a08000;
   box-shadow: var(--pixel-shadow-sm);
+  cursor: pointer;
 }
+.manager-tab.active:hover { opacity: 0.88; }
 .manager-tab.active .tab-kit-dot { display: none; }
+.tab-squad-hint {
+  font-size: 10px;
+  opacity: 0.7;
+  margin-left: 2px;
+}
 .tab-kit-dot {
   display: inline-block;
   width: 7px;
@@ -301,20 +308,6 @@ input, select { font-family: var(--font); }
   flex-shrink: 0;
 }
 
-.my-squad-btn {
-  background: var(--bg3);
-  border: 1px solid var(--border);
-  color: var(--text2);
-  padding: 4px 10px;
-  font-size: 10px;
-  letter-spacing: 1px;
-  cursor: pointer;
-  border-radius: 2px;
-  white-space: nowrap;
-  font-family: var(--font-head);
-  transition: border-color 0.15s, color 0.15s;
-}
-.my-squad-btn:hover { border-color: var(--amber); color: var(--amber); }
 
 .turn-banner {
   background: rgba(20,8,0,0.85);
