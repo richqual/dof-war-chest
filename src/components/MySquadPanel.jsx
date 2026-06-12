@@ -15,7 +15,7 @@ export default function MySquadPanel({ manager, onClose }) {
           const player = squad[i];
           return (
             <div key={i} className={`msp-row ${player ? "filled" : "empty"}`}>
-              <span className="msp-pos">{pos.key === "SUB" ? `S${i - 10}` : pos.key}</span>
+              <span className="msp-pos">{pos.key === "GKSUB" ? "GKS" : pos.key === "DEFSUB" ? "DEF" : pos.key === "MIDSUB" ? "MID" : pos.key === "ATTSUB" ? "ATT" : pos.key}</span>
               {player ? (
                 <>
                   <span className="msp-nation">{player.nation}</span>

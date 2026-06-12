@@ -55,8 +55,8 @@ function availablePlayersFor(posKey, takenIds) {
   if (posKey === "GKSUB") {
     return PLAYERS.filter(p => p.pos === "GK" && !taken.has(p.id));
   }
-  if (posKey === "SUB") {
-    return PLAYERS.filter(p => SUB_POSITIONS.includes(p.pos) && !taken.has(p.id));
+  if (SUB_POSITIONS[posKey]) {
+    return PLAYERS.filter(p => SUB_POSITIONS[posKey].includes(p.pos) && !taken.has(p.id));
   }
   return PLAYERS.filter(p => p.pos === posKey && !taken.has(p.id));
 }
@@ -388,8 +388,8 @@ export function useDraftState() {
     if (!draft) return [];
     const taken = new Set(draft.takenIds);
     let candidates;
-    if (posKey === "SUB") {
-      candidates = PLAYERS.filter(p => SUB_POSITIONS.includes(p.pos) && taken.has(p.id));
+    if (SUB_POSITIONS[posKey]) {
+      candidates = PLAYERS.filter(p => SUB_POSITIONS[posKey].includes(p.pos) && taken.has(p.id));
     } else {
       candidates = PLAYERS.filter(p => p.pos === posKey && taken.has(p.id));
     }

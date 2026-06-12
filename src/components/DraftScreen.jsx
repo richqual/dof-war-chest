@@ -259,7 +259,7 @@ export default function DraftScreen({
       <div className="pos-progress">
         {POSITIONS.map((p, i) => (
           <span key={i} className={`pos-chip ${i < positionIndex ? "done" : i === positionIndex ? "current" : "todo"}`}>
-            {i < positionIndex ? "✓" : (p.key === "SUB" || p.key === "GKSUB") ? `S${i - 10}` : p.key}
+            {i < positionIndex ? "✓" : p.key === "GKSUB" ? "GKS" : p.key === "DEFSUB" ? "DEF" : p.key === "MIDSUB" ? "MID" : p.key === "ATTSUB" ? "ATT" : p.key}
           </span>
         ))}
       </div>
