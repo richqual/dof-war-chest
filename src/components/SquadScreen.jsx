@@ -152,7 +152,7 @@ function FormationDiagram({ squad, formation, swapSlot, onSlotClick }) {
   );
 }
 
-function SquadDetail({ manager, managerIdx, setTeamName, swapSquadPlayers, setTactics, onBack, onSimulate, allManagers, managers }) {
+function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers, setTactics, onBack, onSimulate, allManagers, managers }) {
   const [formation, setFormation] = useState("4-3-3");
   const [swapSlot, setSwapSlot] = useState(null);
   const [editingName, setEditingName] = useState(false);
@@ -371,6 +371,7 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
   if (viewIdx !== null) {
     return (
       <SquadDetail
+        draft={draft}
         manager={managers[viewIdx]}
         managerIdx={viewIdx}
         setTeamName={setTeamName}
