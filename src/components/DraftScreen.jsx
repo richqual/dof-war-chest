@@ -15,6 +15,7 @@ export default function DraftScreen({
   skipTurn, autoCompleteDraft, skipCpuTurns,
 }) {
   const [filterEra, setFilterEra] = useState("all");
+  const [filterLeague, setFilterLeague] = useState("all");
   const [sortBy, setSortBy] = useState("rating");
   const [transition, setTransition] = useState(null);
   const [showMySquad, setShowMySquad] = useState(false);
@@ -24,6 +25,7 @@ export default function DraftScreen({
 
   let available = getAvailablePlayers(currentPos.key);
   if (filterEra !== "all") available = available.filter(p => p.era === filterEra);
+  if (filterLeague !== "all") available = available.filter(p => p.league === filterLeague);
   available = [...available].sort((a, b) =>
     sortBy === "rating" ? b.rating - a.rating : a.value - b.value
   );
@@ -222,6 +224,14 @@ export default function DraftScreen({
         ) : (
           <div className="player-list-area">
             <div className="filter-bar">
+              <select className="cm-select" value={filterLeague} onChange={e => setFilterLeague(e.target.value)}>
+                <option value="all">All leagues</option>
+                <option value="premier_league">Premier League</option>
+                <option value="la_liga">La Liga</option>
+                <option value="serie_a">Serie A</option>
+                <option value="bundesliga">Bundesliga</option>
+                <option value="ligue_1">Ligue 1</option>
+              </select>
               <select className="cm-select" value={filterEra} onChange={e => setFilterEra(e.target.value)}>
                 <option value="all">All eras</option>
                 <option value="classic">Classic 98–08</option>

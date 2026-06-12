@@ -197,7 +197,9 @@ function PicksLog({ assignments, draft }) {
 
 export default function ManagerDraftScreen({ draft, onAssignManager }) {
   const [pickOrder] = useState(() => shuffle(draft.managers.map((_, i) => i)));
-  const [pool, setPool] = useState(() => shuffle([...MANAGERS]));
+  const [filterNation, setFilterNation] = useState("all");
+  const filteredManagers = filterNation === "all" ? MANAGERS : MANAGERS.filter(m => m.nation === filterNation);
+  const [pool, setPool] = useState(() => shuffle([...filteredManagers]));
   const [turnIdx, setTurnIdx] = useState(0);
   const [offered, setOffered] = useState(null);       // all 3 selected managers
   const [revealed, setRevealed] = useState(0);        // how many cards are visible (0→3)
@@ -277,6 +279,23 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
       </div>
 
       <div className="mgr-turn-banner">
+        {isHuman && (
+          <div style={{ marginBottom: "12px" }}>
+            <select className="cm-select" value={filterNation} onChange={e => setFilterNation(e.target.value)}>
+              <option value="all">All nations</option>
+              {Array.from(new Set(MANAGERS.map(m => m.nation)))
+                .sort()
+                .map(nation => {
+                  const count = MANAGERS.filter(m => m.nation === nation).length;
+                  return (
+                    <option key={nation} value={nation}>
+                      {nation} ({count} managers)
+                    </option>
+                  );
+                })}
+            </select>
+          </div>
+        )}
         <span className="mgr-turn-label">
           {isHuman
             ? `${playerName}, choose your manager`
