@@ -407,6 +407,20 @@ export function useDraftState() {
     });
   }
 
+  // Pure version — works on any draft state object, used by autocomplete loops
+  function getPlayersFromState(d, posKey) {
+    let players = availablePlayersFor(posKey, d.takenIds);
+    if (d.availablePlayerIds instanceof Set) {
+      players = players.filter(p => d.availablePlayerIds.has(p.id));
+    }
+    return players.map(p => {
+      const player = { ...p };
+      if (d.playerValues instanceof Map) player.value = d.playerValues.get(p.id) ?? p.value;
+      if (d.playerForm instanceof Map) player.rating = Math.max(0, p.rating + (d.playerForm.get(p.id) ?? 0));
+      return player;
+    });
+  }
+
   function getAvailablePlayers(posKey) {
     let players = availablePlayersFor(posKey, draft ? draft.takenIds : []);
     // Filter to only include players available in this game
@@ -475,7 +489,7 @@ export function useDraftState() {
         };
       }
       const posKey = POSITIONS[d.positionIndex].key;
-      const pick = chooseCpuPick(availablePlayersFor(posKey, d.takenIds), d.currentBudget);
+      const pick = chooseCpuPick(getPlayersFromState(d, posKey), d.currentBudget);
       d = applyPick(d, pick);
     }
     setDraft(d);
@@ -499,7 +513,7 @@ export function useDraftState() {
         };
       }
       const posKey = POSITIONS[d.positionIndex].key;
-      const pick = chooseCpuPick(availablePlayersFor(posKey, d.takenIds), d.currentBudget);
+      const pick = chooseCpuPick(getPlayersFromState(d, posKey), d.currentBudget);
       d = applyPick(d, pick ?? null);
     }
     setDraft(d);
