@@ -9,7 +9,6 @@ export default function MySquadPanel({ manager, onClose }) {
     <div className="my-squad-panel">
       <div className="msp-header">
         <span className="msp-title">{teamName || name}'s Squad</span>
-        <button className="msp-close" onClick={onClose}>✕</button>
       </div>
       <div className="msp-list">
         {POSITIONS.map((pos, i) => {
@@ -38,6 +37,7 @@ export default function MySquadPanel({ manager, onClose }) {
       <div className="msp-footer">
         <span>{filled.length} / {POSITIONS.length} signed</span>
         <span className="msp-value">{formatValue(totalValue)}</span>
+        <button className="msp-close" onClick={onClose}>✕ HIDE</button>
       </div>
     </div>
   );
