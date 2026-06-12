@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick } from "../data/players";
 
 const STORAGE_KEY = "transfer-game-state";
-const STORAGE_VERSION = 2; // bump when serialization format changes
+const STORAGE_VERSION = 3; // bump when serialization format changes
 
 function serializeDraft(draft) {
   if (!draft) return draft;

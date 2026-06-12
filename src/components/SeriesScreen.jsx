@@ -200,6 +200,7 @@ async function drawSquadCard(manager) {
   const starters = manager.squad.slice(0, 11).filter(Boolean);
   const bench = manager.squad.slice(11, 16).filter(Boolean);
   const ovr = squadRating(manager.squad);
+  const squadVal = formatValue(manager.squad.filter(Boolean).reduce((s, p) => s + (p.value || 0), 0));
   const teamName = manager.teamName || manager.clubName || manager.name || "Champions";
   const dofName = manager.dofName || manager.name || "";
 
@@ -210,7 +211,7 @@ async function drawSquadCard(manager) {
   const BAR = 8;
 
   // Calculate total height
-  const headerH = 170; // bar + trophy + CHAMPION + name + dof/ovr + divider
+  const headerH = 190; // bar + trophy + CHAMPION + name + dof + ovr/value + divider
   const squadH = (starters.length + bench.length) * ROW_H + 60; // section labels + rows
   const footerH = 48;
   const H = BAR + headerH + squadH + footerH + BAR;
@@ -269,13 +270,19 @@ async function drawSquadCard(manager) {
   ctx.fillText(teamName, W / 2, y + 20);
   y += 28;
 
-  // DoF + OVR row
+  // DoF row
   ctx.font = `14px 'VT323', monospace`;
   ctx.fillStyle = text3;
   ctx.textAlign = "left";
   ctx.fillText(`DoF: ${dofName}`, PAD, y + 14);
-  ctx.textAlign = "right";
+  y += 20;
+
+  // OVR + value row
+  ctx.font = `14px 'VT323', monospace`;
   ctx.fillStyle = amber;
+  ctx.textAlign = "left";
+  ctx.fillText(`Value: ${squadVal}`, PAD, y + 14);
+  ctx.textAlign = "right";
   ctx.fillText(`OVR ${ovr}`, W - PAD, y + 14);
   y += 22;
 
