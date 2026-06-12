@@ -225,7 +225,7 @@ export default function DraftScreen({
               <span className="tab-kit-dot" style={{ background: m.primaryColor, boxShadow: `inset 0 0 0 1px ${m.secondaryColor}` }} />
               {m.clubName || m.name}
               {m.isComputer && <span className="cpu-tag">CPU</span>}
-              {i === activeManagerIdx && <span className="tab-squad-hint">{showMySquad ? "▤ HIDE" : "▤ MY SQUAD"}</span>}
+              {i === activeManagerIdx && <span className="tab-squad-hint">▤</span>}
             </span>
           ))}
         </div>
