@@ -225,7 +225,7 @@ export default function DraftScreen({
               <span className="tab-kit-dot" style={{ background: m.primaryColor, boxShadow: `inset 0 0 0 1px ${m.secondaryColor}` }} />
               {m.clubName || m.name}
               {m.isComputer && <span className="cpu-tag">CPU</span>}
-              {i === activeManagerIdx && <span className="tab-squad-hint">▤</span>}
+              {i === activeManagerIdx && <span className="tab-squad-hint">{showMySquad ? "▤ HIDE" : "▤ SQUAD"}</span>}
             </span>
           ))}
         </div>
@@ -252,12 +252,6 @@ export default function DraftScreen({
           {currentBudget !== null && (
             <span className="budget-badge">Budget: £{currentBudget}m</span>
           )}
-          <button
-            className={`my-squad-toggle-btn ${showMySquad ? "active" : ""}`}
-            onClick={() => setShowMySquad(s => !s)}
-          >
-            {showMySquad ? "▤ HIDE SQUAD" : "▤ MY SQUAD"}
-          </button>
         </div>
       </div>
 
