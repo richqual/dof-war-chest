@@ -193,11 +193,11 @@ function generatePlayerForm(availablePlayerIds) {
 // Convert form value to arrow emoji
 function getFormArrow(formValue) {
   switch (formValue) {
-    case 2: return "↑↑";
+    case 2: return "↑";
     case 1: return "↗";
     case 0: return "→";
     case -1: return "↘";
-    case -2: return "↓↓";
+    case -2: return "↓";
     default: return "→";
   }
 }
