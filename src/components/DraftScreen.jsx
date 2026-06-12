@@ -12,7 +12,7 @@ const CPU_PICK_DELAY = 1300;
 export default function DraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
   confirmBudget, pickPlayer, getAvailablePlayers, getTakenPlayers,
-  skipTurn, autoCompleteDraft, skipCpuTurns,
+  skipTurn, respin, autoCompleteDraft, skipCpuTurns,
 }) {
   const [filterEra, setFilterEra] = useState(new Set(["classic", "golden", "modern"]));
   const [filterLeague, setFilterLeague] = useState(new Set(["premier_league", "la_liga", "serie_a", "bundesliga", "ligue_1"]));
@@ -411,9 +411,14 @@ export default function DraftScreen({
             </div>
 
             <div className="player-list">
-              {affordable.length === 0 && (
-                <div className="no-afford">
-                  No players affordable at £{currentBudget}m — budget carries to your next pick.
+              {affordable.length === 0 && currentBudget !== null && (
+                <div className="no-afford-respin">
+                  <div className="no-afford-title">⚠ NO AFFORDABLE PLAYERS</div>
+                  <div className="no-afford-msg">
+                    £{currentBudget}m isn't enough for anyone available. Re-spin for a new budget —
+                    but this money is lost and <strong>no carryover</strong> after this pick.
+                  </div>
+                  <button className="respin-btn" onClick={respin}>↺ RE-SPIN (NO CARRYOVER)</button>
                 </div>
               )}
               {affordable.map(p => (

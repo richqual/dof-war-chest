@@ -107,7 +107,7 @@ function AppInner() {
     draft, activeManager, activeManagerIdx, currentPos,
     startGame, confirmBudget, pickPlayer, setTeamName,
     swapSquadPlayers, setTactics, restartGame, getAvailablePlayers, getTakenPlayers,
-    skipTurn, autoCompleteDraft, skipCpuTurns,
+    skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
   } = useDraftState();
 
@@ -179,6 +179,7 @@ function AppInner() {
           getAvailablePlayers={getAvailablePlayers}
           getTakenPlayers={getTakenPlayers}
           skipTurn={skipTurn}
+          respin={respin}
           autoCompleteDraft={autoCompleteDraft}
           skipCpuTurns={skipCpuTurns}
         />

@@ -73,7 +73,7 @@ function applyPick(d, player) {
     if (!player) return { ...m, carryover: budget };
     const squad = [...m.squad];
     squad[d.positionIndex] = { ...player };
-    return { ...m, squad, carryover: budget - player.value };
+    return { ...m, squad, carryover: d.noCarryoverNext ? 0 : budget - player.value };
   });
 
   const takenIds = player ? [...d.takenIds, player.id] : d.takenIds;
@@ -94,11 +94,12 @@ function applyPick(d, player) {
       turnIndex: 0,
       round: newRound,
       currentBudget: null,
+      noCarryoverNext: false,
       currentOrder: Array.from({ length: n }, (_, i) => (i + newRound) % n),
       phase: "draft",
     };
   }
-  return { ...d, managers, takenIds, turnIndex: newTurnIndex, currentBudget: null };
+  return { ...d, managers, takenIds, turnIndex: newTurnIndex, currentBudget: null, noCarryoverNext: false };
 }
 
 const FORMAT_TARGETS = { bo3: 2, bo5: 3, bo7: 4, single: 1 };
@@ -467,6 +468,14 @@ export function useDraftState() {
 
   // Active manager banks the whole budget as carryover and the turn moves on —
   // used when nothing is affordable (e.g. a £0 spin with no free players left).
+  function respin() {
+    setDraft(prev => ({
+      ...prev,
+      currentBudget: null,
+      noCarryoverNext: true,
+    }));
+  }
+
   function skipTurn() {
     if (!draft || draft.currentBudget === null) return;
     const next = applyPick(draft, null);
@@ -483,7 +492,7 @@ export function useDraftState() {
     while (d.phase !== "complete" && guard++ < 500) {
       if (d.currentBudget === null) {
         const activeIdx = d.currentOrder[d.turnIndex];
-        const carry = d.managers[activeIdx]?.carryover || 0;
+        const carry = d.noCarryoverNext ? 0 : (d.managers[activeIdx]?.carryover || 0);
         d = {
           ...d,
           currentBudget: generateBudget(d.difficulty) + carry,
@@ -492,6 +501,11 @@ export function useDraftState() {
       }
       const posKey = POSITIONS[d.positionIndex].key;
       const pick = chooseCpuPick(getPlayersFromState(d, posKey), d.currentBudget);
+      if (!pick) {
+        // Can't afford anyone — respin with no carryover
+        d = { ...d, currentBudget: null, noCarryoverNext: true };
+        continue;
+      }
       d = applyPick(d, pick);
     }
     setDraft(d);
@@ -507,7 +521,7 @@ export function useDraftState() {
       const activeIdx = d.currentOrder[d.turnIndex];
       if (!d.managers[activeIdx].isComputer) break;
       if (d.currentBudget === null) {
-        const carry = d.managers[activeIdx]?.carryover || 0;
+        const carry = d.noCarryoverNext ? 0 : (d.managers[activeIdx]?.carryover || 0);
         d = {
           ...d,
           currentBudget: generateBudget(d.difficulty) + carry,
@@ -516,7 +530,11 @@ export function useDraftState() {
       }
       const posKey = POSITIONS[d.positionIndex].key;
       const pick = chooseCpuPick(getPlayersFromState(d, posKey), d.currentBudget);
-      d = applyPick(d, pick ?? null);
+      if (!pick) {
+        d = { ...d, currentBudget: null, noCarryoverNext: true };
+        continue;
+      }
+      d = applyPick(d, pick);
     }
     setDraft(d);
     if (d.phase === "complete") setScreen(d.managerTiming === "before" ? "squads" : "manager-draft");
@@ -571,7 +589,7 @@ export function useDraftState() {
     draft, activeManager, activeManagerIdx, currentPos,
     startGame, confirmBudget, pickPlayer, setTeamName,
     swapSquadPlayers, setTactics, restartGame, getAvailablePlayers, getTakenPlayers,
-    skipTurn, autoCompleteDraft, skipCpuTurns,
+    skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
   };
 }
