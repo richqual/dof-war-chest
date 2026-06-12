@@ -92,11 +92,7 @@ export default function DraftScreen({
   if (sortBy === "az") {
     available = [...available].sort((a, b) => a.name.localeCompare(b.name));
   } else if (sortBy === "value") {
-    available = [...available].sort((a, b) => {
-      const tierCompare = tierOrder[a.tier] - tierOrder[b.tier];
-      if (tierCompare !== 0) return tierCompare;
-      return a.value - b.value;
-    });
+    available = [...available].sort((a, b) => a.value - b.value);
   } else {
     // Default: tier groups, random within tier
     available = [...available].sort((a, b) => {
@@ -367,14 +363,20 @@ export default function DraftScreen({
                 </button>
                 {showTierDropdown && (
                   <div className="filter-dropdown-menu">
-                    {["T1", "T2", "T3", "T4", "T5"].map(tier => (
-                      <label key={tier} className="filter-checkbox">
+                    {[
+                      { value: "T1", label: "T1 — Elite" },
+                      { value: "T2", label: "T2 — World Class" },
+                      { value: "T3", label: "T3 — Star" },
+                      { value: "T4", label: "T4 — Quality" },
+                      { value: "T5", label: "T5 — Solid" },
+                    ].map(tier => (
+                      <label key={tier.value} className="filter-checkbox">
                         <input
                           type="checkbox"
-                          checked={filterTiers.has(tier)}
-                          onChange={() => toggleTier(tier)}
+                          checked={filterTiers.has(tier.value)}
+                          onChange={() => toggleTier(tier.value)}
                         />
-                        {tier}
+                        {tier.label}
                       </label>
                     ))}
                   </div>
