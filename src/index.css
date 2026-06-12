@@ -392,7 +392,13 @@ input, select { font-family: var(--font); }
 }
 .roll-sub { font-size: 13px; color: var(--text2); margin-bottom: 24px; letter-spacing: 0.5px; }
 
-.filter-bar { display: flex; gap: 8px; margin-bottom: 12px; align-items: center; flex-wrap: wrap; }
+.filter-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
 .cm-select {
   background: var(--bg2);
   border: 1px solid var(--border);
@@ -406,6 +412,93 @@ input, select { font-family: var(--font); }
 }
 .cm-select:focus { border-color: var(--amber); }
 .affordable-count { font-size: 11px; color: var(--text3); margin-left: auto; letter-spacing: 0.5px; }
+
+/* Filter dropdowns */
+.filter-dropdown {
+  position: relative;
+}
+.filter-dropdown-btn {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 5px 10px;
+  font-size: 11px;
+  letter-spacing: 1px;
+  font-family: var(--font);
+  cursor: pointer;
+  border-radius: 2px;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+}
+.filter-dropdown-btn:hover,
+.filter-dropdown-btn.open {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+.filter-dropdown-btn.partial {
+  border-color: var(--amber);
+  color: var(--amber);
+  opacity: 0.75;
+}
+.filter-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 200;
+  background: var(--bg2);
+  border: 1px solid var(--amber);
+  border-radius: 3px;
+  padding: 6px 0;
+  min-width: 155px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+}
+.filter-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 12px;
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+.filter-checkbox:hover {
+  background: rgba(255,185,0,0.08);
+  color: var(--text);
+}
+.filter-checkbox input[type="checkbox"] {
+  accent-color: var(--amber);
+  width: 13px;
+  height: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.filter-sort-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+}
+.filter-sort-label {
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.sort-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  padding: 4px 8px;
+  font-size: 10px;
+  letter-spacing: 0.8px;
+  font-family: var(--font);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.sort-btn:hover { border-color: var(--border2); color: var(--text2); }
+.sort-btn.active { border-color: var(--amber); color: var(--amber); }
 
 .player-list { display: flex; flex-direction: column; gap: 4px; }
 .no-afford {

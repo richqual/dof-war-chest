@@ -17,6 +17,7 @@ export default function DraftScreen({
   const [filterEra, setFilterEra] = useState(new Set(["classic", "golden", "modern"]));
   const [filterLeague, setFilterLeague] = useState(new Set(["premier_league", "la_liga", "serie_a", "bundesliga", "ligue_1"]));
   const [filterTiers, setFilterTiers] = useState(new Set(["T1", "T2", "T3", "T4", "T5"]));
+  const [sortBy, setSortBy] = useState("tier");
   const [transition, setTransition] = useState(null);
   const [showMySquad, setShowMySquad] = useState(false);
   const [pendingPlayer, setPendingPlayer] = useState(null);
@@ -83,21 +84,29 @@ export default function DraftScreen({
     }));
   }
 
-  // Filter by selected tiers and sort by tier, then random order within tier
+  // Filter by selected tiers
   available = available.filter(p => filterTiers.has(p.tier));
-  available = [...available].sort((a, b) => {
-    // First sort by tier (T1, T2, T3, T4, T5)
-    const tierOrder = { T1: 1, T2: 2, T3: 3, T4: 4, T5: 5 };
-    const tierCompare = tierOrder[a.tier] - tierOrder[b.tier];
-    if (tierCompare !== 0) return tierCompare;
-    // Within same tier, use random order from draft.playerOrder
-    const orderA = draft?.playerOrder?.get(a.id) ?? 0;
-    const orderB = draft?.playerOrder?.get(b.id) ?? 0;
-    return orderA - orderB;
-  });
 
-  // Sort by value within tier groups
-  available = [...available].sort((a, b) => a.value - b.value);
+  // Sort
+  const tierOrder = { T1: 1, T2: 2, T3: 3, T4: 4, T5: 5 };
+  if (sortBy === "az") {
+    available = [...available].sort((a, b) => a.name.localeCompare(b.name));
+  } else if (sortBy === "value") {
+    available = [...available].sort((a, b) => {
+      const tierCompare = tierOrder[a.tier] - tierOrder[b.tier];
+      if (tierCompare !== 0) return tierCompare;
+      return a.value - b.value;
+    });
+  } else {
+    // Default: tier groups, random within tier
+    available = [...available].sort((a, b) => {
+      const tierCompare = tierOrder[a.tier] - tierOrder[b.tier];
+      if (tierCompare !== 0) return tierCompare;
+      const orderA = draft?.playerOrder?.get(a.id) ?? 0;
+      const orderB = draft?.playerOrder?.get(b.id) ?? 0;
+      return orderA - orderB;
+    });
+  }
 
   const affordable = available.filter(p => currentBudget !== null && p.value <= currentBudget);
   const tooExpensive = available.filter(p => currentBudget !== null && p.value > currentBudget);
@@ -294,8 +303,11 @@ export default function DraftScreen({
           <div className="player-list-area">
             <div className="filter-bar">
               <div className="filter-dropdown">
-                <button className="filter-dropdown-btn" onClick={() => setShowLeagueDropdown(!showLeagueDropdown)}>
-                  LEAGUES ({filterLeague.size})
+                <button
+                  className={`filter-dropdown-btn${showLeagueDropdown ? " open" : filterLeague.size < 5 ? " partial" : ""}`}
+                  onClick={() => { setShowLeagueDropdown(s => !s); setShowEraDropdown(false); setShowTierDropdown(false); }}
+                >
+                  LEAGUES {filterLeague.size < 5 ? `(${filterLeague.size}/5)` : ""}
                 </button>
                 {showLeagueDropdown && (
                   <div className="filter-dropdown-menu">
@@ -320,8 +332,11 @@ export default function DraftScreen({
               </div>
 
               <div className="filter-dropdown">
-                <button className="filter-dropdown-btn" onClick={() => setShowEraDropdown(!showEraDropdown)}>
-                  ERAS ({filterEra.size})
+                <button
+                  className={`filter-dropdown-btn${showEraDropdown ? " open" : filterEra.size < 3 ? " partial" : ""}`}
+                  onClick={() => { setShowEraDropdown(s => !s); setShowLeagueDropdown(false); setShowTierDropdown(false); }}
+                >
+                  ERAS {filterEra.size < 3 ? `(${filterEra.size}/3)` : ""}
                 </button>
                 {showEraDropdown && (
                   <div className="filter-dropdown-menu">
@@ -344,8 +359,11 @@ export default function DraftScreen({
               </div>
 
               <div className="filter-dropdown">
-                <button className="filter-dropdown-btn" onClick={() => setShowTierDropdown(!showTierDropdown)}>
-                  TIERS ({filterTiers.size})
+                <button
+                  className={`filter-dropdown-btn${showTierDropdown ? " open" : filterTiers.size < 5 ? " partial" : ""}`}
+                  onClick={() => { setShowTierDropdown(s => !s); setShowLeagueDropdown(false); setShowEraDropdown(false); }}
+                >
+                  TIERS {filterTiers.size < 5 ? `(${filterTiers.size}/5)` : ""}
                 </button>
                 {showTierDropdown && (
                   <div className="filter-dropdown-menu">
@@ -361,6 +379,13 @@ export default function DraftScreen({
                     ))}
                   </div>
                 )}
+              </div>
+
+              <div className="filter-sort-row">
+                <span className="filter-sort-label">SORT</span>
+                <button className={`sort-btn${sortBy === "tier" ? " active" : ""}`} onClick={() => setSortBy("tier")}>TIER</button>
+                <button className={`sort-btn${sortBy === "az" ? " active" : ""}`} onClick={() => setSortBy("az")}>A–Z</button>
+                <button className={`sort-btn${sortBy === "value" ? " active" : ""}`} onClick={() => setSortBy("value")}>VALUE</button>
               </div>
 
               <span className="affordable-count">
