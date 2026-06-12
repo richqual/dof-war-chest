@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick } from "../data/players";
 
 const STORAGE_KEY = "transfer-game-state";
+const STORAGE_VERSION = 2; // bump when serialization format changes
 
 function serializeDraft(draft) {
   if (!draft) return draft;
@@ -259,9 +260,12 @@ export function useDraftState() {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.draft && parsed.screen) {
+        // Discard saves from older format versions — they have corrupted Maps/Sets
+        if (parsed.v === STORAGE_VERSION && parsed.draft && parsed.screen) {
           setDraft(deserializeDraft(parsed.draft));
           setScreen(parsed.screen);
+        } else if (parsed.v !== STORAGE_VERSION) {
+          localStorage.removeItem(STORAGE_KEY);
         }
       }
     } catch (_) {}
@@ -270,7 +274,7 @@ export function useDraftState() {
   useEffect(() => {
     if (draft) {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ draft: serializeDraft(draft), screen }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ v: STORAGE_VERSION, draft: serializeDraft(draft), screen }));
       } catch (_) {}
     }
   }, [draft, screen]);
