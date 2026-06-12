@@ -16,19 +16,65 @@ export default function DraftScreen({
 }) {
   const [filterEra, setFilterEra] = useState("all");
   const [filterLeague, setFilterLeague] = useState("all");
+  const [filterTiers, setFilterTiers] = useState(new Set(["T1", "T2", "T3", "T4", "T5"]));
   const [sortBy, setSortBy] = useState("rating");
   const [transition, setTransition] = useState(null);
   const [showMySquad, setShowMySquad] = useState(false);
   const [pendingPlayer, setPendingPlayer] = useState(null);
+
+  function toggleTierFilter(tier) {
+    setFilterTiers(prev => {
+      const next = new Set(prev);
+      if (next.has(tier)) next.delete(tier);
+      else next.add(tier);
+      return next;
+    });
+  }
 
   const { currentBudget, currentOrder, turnIndex, positionIndex, managers, hideRatings } = draft;
 
   let available = getAvailablePlayers(currentPos.key);
   if (filterEra !== "all") available = available.filter(p => p.era === filterEra);
   if (filterLeague !== "all") available = available.filter(p => p.league === filterLeague);
-  available = [...available].sort((a, b) =>
-    sortBy === "rating" ? b.rating - a.rating : a.value - b.value
-  );
+
+  // When no era filter, consolidate duplicate players by name to their peak version
+  // Collects all clubs they played for in that league
+  if (filterEra === "all" && filterLeague !== "all") {
+    const byName = {};
+    for (const player of available) {
+      if (!byName[player.name]) {
+        byName[player.name] = { ...player, clubs: [player.club] };
+      } else {
+        // Add club if not already listed
+        if (!byName[player.name].clubs.includes(player.club)) {
+          byName[player.name].clubs.push(player.club);
+        }
+        // Update to peak rating and value
+        if (player.rating > byName[player.name].rating) {
+          byName[player.name].rating = player.rating;
+          byName[player.name].value = player.value;
+        }
+      }
+    }
+    available = Object.values(byName).map(p => ({
+      ...p,
+      club: p.clubs.length > 1 ? p.clubs.join(", ") : p.clubs[0],
+      clubs: undefined, // clean up helper field
+    }));
+  }
+
+  // Filter by selected tiers and sort by tier, then random order within tier
+  available = available.filter(p => filterTiers.has(p.tier));
+  available = [...available].sort((a, b) => {
+    // First sort by tier (T1, T2, T3, T4, T5)
+    const tierOrder = { T1: 1, T2: 2, T3: 3, T4: 4, T5: 5 };
+    const tierCompare = tierOrder[a.tier] - tierOrder[b.tier];
+    if (tierCompare !== 0) return tierCompare;
+    // Within same tier, use random order from draft.playerOrder
+    const orderA = draft?.playerOrder?.get(a.id) ?? 0;
+    const orderB = draft?.playerOrder?.get(b.id) ?? 0;
+    return orderA - orderB;
+  });
 
   const affordable = available.filter(p => currentBudget !== null && p.value <= currentBudget);
   const tooExpensive = available.filter(p => currentBudget !== null && p.value > currentBudget);
@@ -245,6 +291,19 @@ export default function DraftScreen({
               <span className="affordable-count">
                 {affordable.length} affordable / {available.length} total
               </span>
+            </div>
+
+            <div className="tier-filter-bar">
+              <span className="tier-label">TIERS:</span>
+              {["T1", "T2", "T3", "T4", "T5"].map(tier => (
+                <button
+                  key={tier}
+                  className={`tier-btn ${filterTiers.has(tier) ? "active" : ""}`}
+                  onClick={() => toggleTierFilter(tier)}
+                >
+                  {tier}
+                </button>
+              ))}
             </div>
 
             <div className="player-list">

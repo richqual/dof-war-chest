@@ -175,7 +175,9 @@ const FORMAT_OPTIONS_4 = [
 
 export default function SetupScreen({ onStart }) {
   const [clubs, setClubs] = useState([makeClub(0), makeClub(1)]);
-  const [hideRatings, setHideRatings] = useState(false);
+  const [hideRatings, setHideRatings] = useState(true);
+  const [dynamicValues, setDynamicValues] = useState(true);
+  const [dynamicForm, setDynamicForm] = useState(true);
   const [difficulty, setDifficulty] = useState("normal");
   const [format, setFormat] = useState("bo7");
 
@@ -199,7 +201,7 @@ export default function SetupScreen({ onStart }) {
 
   function handleStart() {
     if (!canStart) return;
-    onStart(clubs.map(c => ({ ...c, dofName: c.dofName.trim(), clubName: c.clubName.trim() })), { hideRatings, difficulty, format: activeFormat });
+    onStart(clubs.map(c => ({ ...c, dofName: c.dofName.trim(), clubName: c.clubName.trim() })), { hideRatings, dynamicValues, dynamicForm, difficulty, format: activeFormat });
   }
 
   return (
@@ -287,6 +289,26 @@ export default function SetupScreen({ onStart }) {
             />
             <span className="option-label">Hide player ratings during draft</span>
             <span className="option-hint">Adds mystery — pick on reputation alone</span>
+          </label>
+          <label className="option-row">
+            <input
+              type="checkbox"
+              className="option-checkbox"
+              checked={dynamicValues}
+              onChange={e => setDynamicValues(e.target.checked)}
+            />
+            <span className="option-label">Randomize player values each game</span>
+            <span className="option-hint">Prices vary by tier — no two games are alike</span>
+          </label>
+          <label className="option-row">
+            <input
+              type="checkbox"
+              className="option-checkbox"
+              checked={dynamicForm}
+              onChange={e => setDynamicForm(e.target.checked)}
+            />
+            <span className="option-label">Apply player form variance</span>
+            <span className="option-hint">Hot form +2, poor form -2 — bargains and traps daily</span>
           </label>
         </div>
 

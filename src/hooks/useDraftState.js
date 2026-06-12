@@ -89,9 +89,89 @@ function shuffle(arr) {
   return a;
 }
 
+// Randomly select one version per player (by name) to be available in this game.
+// Returns a Set of player IDs that should be available.
+function selectGamePlayers() {
+  const byName = {};
+  for (const player of PLAYERS) {
+    if (!byName[player.name]) {
+      byName[player.name] = [player];
+    } else {
+      byName[player.name].push(player);
+    }
+  }
+  // For each player name, randomly pick one version
+  const availableIds = new Set();
+  for (const versions of Object.values(byName)) {
+    const selected = versions[Math.floor(Math.random() * versions.length)];
+    availableIds.add(selected.id);
+  }
+  return availableIds;
+}
+
+// Randomize player values within their valueMin/valueMax range for this game.
+// Returns a Map of playerID → randomValue.
+function randomizePlayerValues(availablePlayerIds) {
+  const playerValues = new Map();
+  for (const player of PLAYERS) {
+    if (availablePlayerIds.has(player.id)) {
+      const min = player.valueMin || 0;
+      const max = player.valueMax || 0;
+      const randomValue = min === max ? min : Math.floor(Math.random() * (max - min + 1)) + min;
+      playerValues.set(player.id, randomValue);
+    }
+  }
+  return playerValues;
+}
+
+// Generate random form (-2 to +2) for each available player with weighted distribution.
+// Returns a Map of playerID → formBonus.
+// Form is hidden during draft, revealed on squad screen.
+// Distribution: ±2 (10%), ±1 (20%), 0 (40%)
+function generatePlayerForm(availablePlayerIds) {
+  const playerForm = new Map();
+  for (const playerId of availablePlayerIds) {
+    const rand = Math.random();
+    let form;
+    if (rand < 0.1) form = -2;           // 10%: Very poor form
+    else if (rand < 0.3) form = -1;      // 20%: Poor form
+    else if (rand < 0.7) form = 0;       // 40%: Normal form
+    else if (rand < 0.9) form = 1;       // 20%: Good form
+    else form = 2;                       // 10%: Very hot form
+    playerForm.set(playerId, form);
+  }
+  return playerForm;
+}
+
+// Convert form value to arrow emoji
+function getFormArrow(formValue) {
+  switch (formValue) {
+    case 2: return "↑↑";
+    case 1: return "↗";
+    case 0: return "→";
+    case -1: return "↘";
+    case -2: return "↓↓";
+    default: return "→";
+  }
+}
+
+// Generate random display order for players in this game (for tier-based grouping).
+// Returns a Map of playerID → randomOrder (0-1 value for sorting within tiers).
+function generatePlayerOrder(availablePlayerIds) {
+  const playerOrder = new Map();
+  for (const playerId of availablePlayerIds) {
+    playerOrder.set(playerId, Math.random());
+  }
+  return playerOrder;
+}
+
 function buildInitialDraft(clubs, options = {}) {
   const n = clubs.length;
   const initialOrder = shuffle(Array.from({ length: n }, (_, i) => i));
+  const availablePlayerIds = selectGamePlayers();
+  const playerValues = options.dynamicValues !== false ? randomizePlayerValues(availablePlayerIds) : new Map();
+  const playerForm = options.dynamicForm !== false ? generatePlayerForm(availablePlayerIds) : new Map();
+  const playerOrder = generatePlayerOrder(availablePlayerIds);
   return {
     managers: clubs.map((c, i) => ({
       id: i,
@@ -113,6 +193,10 @@ function buildInitialDraft(clubs, options = {}) {
     currentBudget: null,
     currentOrder: initialOrder,
     takenIds: [],
+    availablePlayerIds,
+    playerValues,
+    playerForm,
+    playerOrder,
     phase: "draft",
     hideRatings: options.hideRatings || false,
     difficulty: options.difficulty || "normal",
@@ -260,12 +344,40 @@ export function useDraftState() {
     }
     return candidates.map(player => {
       const owner = draft.managers.find(m => m.squad.some(s => s && s.id === player.id));
-      return { ...player, ownedBy: owner ? (owner.clubName || owner.name) : null };
+      const p = { ...player, ownedBy: owner ? (owner.clubName || owner.name) : null };
+      // Apply randomized value and form for this game
+      if (draft?.playerValues && draft.playerValues.has(p.id)) {
+        p.value = draft.playerValues.get(p.id);
+      }
+      if (draft?.playerForm && draft.playerForm.has(p.id)) {
+        const formBonus = draft.playerForm.get(p.id);
+        p.rating = Math.max(0, p.rating + formBonus);
+      }
+      return p;
     });
   }
 
   function getAvailablePlayers(posKey) {
-    return availablePlayersFor(posKey, draft ? draft.takenIds : []);
+    let players = availablePlayersFor(posKey, draft ? draft.takenIds : []);
+    // Filter to only include players available in this game
+    if (draft?.availablePlayerIds) {
+      players = players.filter(p => draft.availablePlayerIds.has(p.id));
+    }
+    // Apply randomized values and form for this game
+    if (draft?.playerValues || draft?.playerForm) {
+      players = players.map(p => {
+        const player = { ...p };
+        if (draft.playerValues) {
+          player.value = draft.playerValues.get(p.id) ?? p.value;
+        }
+        if (draft.playerForm) {
+          const formBonus = draft.playerForm.get(p.id) ?? 0;
+          player.rating = Math.max(0, p.rating + formBonus);
+        }
+        return player;
+      });
+    }
+    return players;
   }
 
   function pickPlayer(player) {
@@ -389,3 +501,5 @@ export function useDraftState() {
     completeDraw, recordMatchResult, assignManagers,
   };
 }
+
+export { getFormArrow };

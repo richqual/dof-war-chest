@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { POSITIONS, getRatingBg, getRatingColor, formatValue, ERA_LABELS, ERA_COLORS, ERA_BG } from "../data/players";
 import { TIER_LABELS, TIER_COLORS, TIER_BG } from "../data/managers";
+import { getFormArrow } from "../hooks/useDraftState";
 import KitSwatch, { kitAccent } from "./KitSwatch";
 
 const FORMATIONS = {
@@ -322,6 +323,7 @@ function SquadDetail({ manager, managerIdx, setTeamName, swapSquadPlayers, setTa
                   <span className="xi-pos">{POSITIONS[i].key}</span>
                   <span className="xi-nation">{p.nation}</span>
                   <span className="xi-name">{p.name}</span>
+                  <span className="xi-form">{draft?.playerForm && draft.playerForm.has(p.id) ? getFormArrow(draft.playerForm.get(p.id)) : ""}</span>
                   <span className="xi-club">{p.club}</span>
                   <span className="xi-rating" style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}>{p.rating}</span>
                 </div>
@@ -343,6 +345,7 @@ function SquadDetail({ manager, managerIdx, setTeamName, swapSquadPlayers, setTa
                       <span className="bench-pos">SUB</span>
                       <span className="bench-nation">{p.nation}</span>
                       <span className="bench-name">{p.name}</span>
+                      <span className="bench-form">{draft?.playerForm && draft.playerForm.has(p.id) ? getFormArrow(draft.playerForm.get(p.id)) : ""}</span>
                       <span className="bench-club">{p.club}</span>
                       <span className="bench-rating" style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}>{p.rating}</span>
                       <span className="bench-value">{formatValue(p.value)}</span>
