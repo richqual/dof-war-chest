@@ -1096,22 +1096,20 @@ input, select { font-family: var(--font); }
   border-bottom: 1px solid var(--border2);
   padding: 8px 16px;
   display: flex;
-  gap: 6px;
   align-items: center;
-  flex-wrap: wrap;
 }
-.formation-btn {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--text2);
-  padding: 4px 12px;
-  font-size: 12px;
-  cursor: pointer;
-  border-radius: 2px;
-  letter-spacing: 1px;
+.formation-select {
+  background: var(--bg2);
+  border: 1px solid var(--amber);
+  color: var(--amber);
+  padding: 5px 10px;
+  font-size: 13px;
   font-family: var(--font-head);
+  font-weight: bold;
+  letter-spacing: 1px;
+  cursor: pointer;
+  outline: none;
 }
-.formation-btn.active { background: var(--amber); color: #111; border-color: var(--amber); font-weight: bold; }
 .swap-hint-bar {
   font-size: 11px;
   color: var(--amber);

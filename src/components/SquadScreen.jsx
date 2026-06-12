@@ -287,15 +287,15 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
         {/* Left column: formation selector + pitch */}
         <div className="squad-left">
           <div className="formation-bar">
-            {Object.keys(FORMATIONS).map(f => (
-              <button
-                key={f}
-                className={`formation-btn ${formation === f ? "active" : ""}`}
-                onClick={() => setFormation(f)}
-              >
-                {f}
-              </button>
-            ))}
+            <select
+              className="formation-select"
+              value={formation}
+              onChange={e => setFormation(e.target.value)}
+            >
+              {Object.keys(FORMATIONS).map(f => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
           </div>
 
           <FormationDiagram
