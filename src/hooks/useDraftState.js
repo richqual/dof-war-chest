@@ -416,7 +416,7 @@ export function useDraftState() {
     return players.map(p => {
       const player = { ...p };
       if (d.playerValues instanceof Map) player.value = d.playerValues.get(p.id) ?? p.value;
-      if (d.playerForm instanceof Map) player.rating = Math.max(0, p.rating + (d.playerForm.get(p.id) ?? 0));
+      // Form is a hidden reveal — do NOT apply to rating during draft, only shown on squad screen
       return player;
     });
   }
@@ -427,19 +427,12 @@ export function useDraftState() {
     if (draft?.availablePlayerIds) {
       players = players.filter(p => draft.availablePlayerIds.has(p.id));
     }
-    // Apply randomized values and form for this game
-    if (draft?.playerValues || draft?.playerForm) {
-      players = players.map(p => {
-        const player = { ...p };
-        if (draft.playerValues) {
-          player.value = draft.playerValues.get(p.id) ?? p.value;
-        }
-        if (draft.playerForm) {
-          const formBonus = draft.playerForm.get(p.id) ?? 0;
-          player.rating = Math.max(0, p.rating + formBonus);
-        }
-        return player;
-      });
+    // Apply randomized values for this game (form is reveal-only, not applied here)
+    if (draft?.playerValues) {
+      players = players.map(p => ({
+        ...p,
+        value: draft.playerValues.get(p.id) ?? p.value,
+      }));
     }
     return players;
   }
