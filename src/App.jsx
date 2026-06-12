@@ -9,6 +9,7 @@ import DrawScreen from "./components/DrawScreen";
 import SeriesScreen from "./components/SeriesScreen";
 import { getSeriesContext } from "./components/SeriesScreen";
 import ManagerDraftScreen from "./components/ManagerDraftScreen";
+import PlayerPoolScreen from "./components/PlayerPoolScreen";
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -107,7 +108,7 @@ function AppInner() {
     startGame, confirmBudget, pickPlayer, setTeamName,
     swapSquadPlayers, setTactics, restartGame, getAvailablePlayers, getTakenPlayers,
     skipTurn, autoCompleteDraft, skipCpuTurns,
-    completeDraw, recordMatchResult, assignManagers,
+    completeDraw, recordMatchResult, assignManagers, setPlayerPool,
   } = useDraftState();
 
   const [matchConfig, setMatchConfig] = useState({ homeIdx: 0, awayIdx: 1 });
@@ -140,7 +141,19 @@ function AppInner() {
   }
 
   if (screen === "order-draw" && draft) {
-    return <>{globalMenu}<OrderDrawScreen draft={draft} onStart={() => setScreen(draft.managerTiming === "before" ? "manager-draft" : "draft")} /></>;
+    return <>{globalMenu}<OrderDrawScreen draft={draft} onStart={() => setScreen("player-pool")} /></>;
+  }
+
+  if (screen === "player-pool" && draft) {
+    return (
+      <>
+        {globalMenu}
+        <PlayerPoolScreen onConfirm={filter => {
+          setPlayerPool(filter);
+          setScreen(draft.managerTiming === "before" ? "manager-draft" : "draft");
+        }} />
+      </>
+    );
   }
 
   if (screen === "draft" && draft && currentPos) {

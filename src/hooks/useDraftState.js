@@ -138,16 +138,18 @@ function shuffle(arr) {
 
 // Randomly select one version per player (by name) to be available in this game.
 // Returns a Set of player IDs that should be available.
-function selectGamePlayers() {
+function selectGamePlayers(filter = {}) {
+  const { eras, leagues, tiers } = filter;
+  const pool = PLAYERS.filter(p =>
+    (!eras   || eras.includes(p.era)) &&
+    (!leagues || leagues.includes(p.league)) &&
+    (!tiers  || tiers.includes(p.tier))
+  );
   const byName = {};
-  for (const player of PLAYERS) {
-    if (!byName[player.name]) {
-      byName[player.name] = [player];
-    } else {
-      byName[player.name].push(player);
-    }
+  for (const player of pool) {
+    if (!byName[player.name]) byName[player.name] = [player];
+    else byName[player.name].push(player);
   }
-  // For each player name, randomly pick one version
   const availableIds = new Set();
   for (const versions of Object.values(byName)) {
     const selected = versions[Math.floor(Math.random() * versions.length)];
@@ -215,7 +217,7 @@ function generatePlayerOrder(availablePlayerIds) {
 function buildInitialDraft(clubs, options = {}) {
   const n = clubs.length;
   const initialOrder = shuffle(Array.from({ length: n }, (_, i) => i));
-  const availablePlayerIds = selectGamePlayers();
+  const availablePlayerIds = selectGamePlayers(options.playerFilter);
   const playerValues = options.dynamicValues !== false ? randomizePlayerValues(availablePlayerIds) : new Map();
   const playerForm = options.dynamicForm !== false ? generatePlayerForm(availablePlayerIds) : new Map();
   const playerOrder = generatePlayerOrder(availablePlayerIds);
@@ -552,6 +554,14 @@ export function useDraftState() {
     localStorage.removeItem(STORAGE_KEY);
   }
 
+  function setPlayerPool(filter) {
+    const availablePlayerIds = selectGamePlayers(filter);
+    const playerValues = randomizePlayerValues(availablePlayerIds);
+    const playerForm = generatePlayerForm(availablePlayerIds);
+    const playerOrder = generatePlayerOrder(availablePlayerIds);
+    setDraft(prev => ({ ...prev, availablePlayerIds, playerValues, playerForm, playerOrder }));
+  }
+
   const activeManagerIdx = draft ? draft.currentOrder[draft.turnIndex] : 0;
   const activeManager = draft ? draft.managers[activeManagerIdx] : null;
   const currentPos = draft ? POSITIONS[draft.positionIndex] : null;
@@ -562,7 +572,7 @@ export function useDraftState() {
     startGame, confirmBudget, pickPlayer, setTeamName,
     swapSquadPlayers, setTactics, restartGame, getAvailablePlayers, getTakenPlayers,
     skipTurn, autoCompleteDraft, skipCpuTurns,
-    completeDraw, recordMatchResult, assignManagers,
+    completeDraw, recordMatchResult, assignManagers, setPlayerPool,
   };
 }
 
