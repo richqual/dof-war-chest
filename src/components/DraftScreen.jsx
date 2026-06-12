@@ -18,6 +18,7 @@ export default function DraftScreen({
   const [filterLeague, setFilterLeague] = useState(new Set(["premier_league", "la_liga", "serie_a", "bundesliga", "ligue_1"]));
   const [filterTiers, setFilterTiers] = useState(new Set(["T1", "T2", "T3", "T4", "T5"]));
   const [sortBy, setSortBy] = useState("tier");
+  const [sortDir, setSortDir] = useState("asc");
   const [transition, setTransition] = useState(null);
   const [showMySquad, setShowMySquad] = useState(false);
   const [pendingPlayer, setPendingPlayer] = useState(null);
@@ -89,14 +90,15 @@ export default function DraftScreen({
 
   // Sort
   const tierOrder = { T1: 1, T2: 2, T3: 3, T4: 4, T5: 5 };
+  const dir = sortDir === "desc" ? -1 : 1;
   if (sortBy === "az") {
-    available = [...available].sort((a, b) => a.name.localeCompare(b.name));
+    available = [...available].sort((a, b) => dir * a.name.localeCompare(b.name));
   } else if (sortBy === "value") {
-    available = [...available].sort((a, b) => a.value - b.value);
+    available = [...available].sort((a, b) => dir * (a.value - b.value));
   } else {
-    // Default: tier groups, random within tier
+    // Tier groups, random within tier
     available = [...available].sort((a, b) => {
-      const tierCompare = tierOrder[a.tier] - tierOrder[b.tier];
+      const tierCompare = dir * (tierOrder[a.tier] - tierOrder[b.tier]);
       if (tierCompare !== 0) return tierCompare;
       const orderA = draft?.playerOrder?.get(a.id) ?? 0;
       const orderB = draft?.playerOrder?.get(b.id) ?? 0;
@@ -385,9 +387,22 @@ export default function DraftScreen({
 
               <div className="filter-sort-row">
                 <span className="filter-sort-label">SORT</span>
-                <button className={`sort-btn${sortBy === "tier" ? " active" : ""}`} onClick={() => setSortBy("tier")}>TIER</button>
-                <button className={`sort-btn${sortBy === "az" ? " active" : ""}`} onClick={() => setSortBy("az")}>A–Z</button>
-                <button className={`sort-btn${sortBy === "value" ? " active" : ""}`} onClick={() => setSortBy("value")}>VALUE</button>
+                {[
+                  { key: "tier", label: "TIER" },
+                  { key: "az", label: "A–Z" },
+                  { key: "value", label: "VALUE" },
+                ].map(s => (
+                  <button
+                    key={s.key}
+                    className={`sort-btn${sortBy === s.key ? " active" : ""}`}
+                    onClick={() => {
+                      if (sortBy === s.key) setSortDir(d => d === "asc" ? "desc" : "asc");
+                      else { setSortBy(s.key); setSortDir("asc"); }
+                    }}
+                  >
+                    {s.label}{sortBy === s.key ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                  </button>
+                ))}
               </div>
 
               <span className="affordable-count">

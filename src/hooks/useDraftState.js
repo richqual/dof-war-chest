@@ -3,6 +3,52 @@ import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick } from
 
 const STORAGE_KEY = "transfer-game-state";
 
+function serializeDraft(draft) {
+  if (!draft) return draft;
+  return {
+    ...draft,
+    availablePlayerIds: draft.availablePlayerIds instanceof Set
+      ? [...draft.availablePlayerIds]
+      : draft.availablePlayerIds,
+    playerValues: draft.playerValues instanceof Map
+      ? [...draft.playerValues]
+      : draft.playerValues,
+    playerForm: draft.playerForm instanceof Map
+      ? [...draft.playerForm]
+      : draft.playerForm,
+    playerOrder: draft.playerOrder instanceof Map
+      ? [...draft.playerOrder]
+      : draft.playerOrder,
+  };
+}
+
+function deserializeDraft(draft) {
+  if (!draft) return draft;
+  return {
+    ...draft,
+    availablePlayerIds: Array.isArray(draft.availablePlayerIds)
+      ? new Set(draft.availablePlayerIds)
+      : draft.availablePlayerIds instanceof Set
+        ? draft.availablePlayerIds
+        : new Set(),
+    playerValues: Array.isArray(draft.playerValues)
+      ? new Map(draft.playerValues)
+      : draft.playerValues instanceof Map
+        ? draft.playerValues
+        : new Map(),
+    playerForm: Array.isArray(draft.playerForm)
+      ? new Map(draft.playerForm)
+      : draft.playerForm instanceof Map
+        ? draft.playerForm
+        : new Map(),
+    playerOrder: Array.isArray(draft.playerOrder)
+      ? new Map(draft.playerOrder)
+      : draft.playerOrder instanceof Map
+        ? draft.playerOrder
+        : new Map(),
+  };
+}
+
 function availablePlayersFor(posKey, takenIds) {
   const taken = new Set(takenIds);
   if (posKey === "GKSUB") {
@@ -214,7 +260,7 @@ export function useDraftState() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.draft && parsed.screen) {
-          setDraft(parsed.draft);
+          setDraft(deserializeDraft(parsed.draft));
           setScreen(parsed.screen);
         }
       }
@@ -224,7 +270,7 @@ export function useDraftState() {
   useEffect(() => {
     if (draft) {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ draft, screen }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ draft: serializeDraft(draft), screen }));
       } catch (_) {}
     }
   }, [draft, screen]);
