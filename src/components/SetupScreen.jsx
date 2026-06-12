@@ -163,14 +163,12 @@ const DIFFICULTY_INFO = [
 ];
 
 const FORMAT_OPTIONS_2 = [
-  { key: "single", label: "SINGLE MATCH",  hint: "One match decides it all" },
-  { key: "bo3",    label: "BEST OF 3",     hint: "First to 2 wins" },
-  { key: "bo5",    label: "BEST OF 5",     hint: "First to 3 wins" },
-  { key: "bo7",    label: "BEST OF 7",     hint: "First to 4 wins — NBA Finals style" },
+  { key: "bo3", label: "BEST OF 3", hint: "First to 2 wins" },
+  { key: "bo5", label: "BEST OF 5", hint: "First to 3 wins" },
+  { key: "bo7", label: "BEST OF 7", hint: "First to 4 wins — NBA Finals style" },
 ];
 const FORMAT_OPTIONS_4 = [
-  { key: "single",     label: "SINGLE MATCH", hint: "Pick any two teams and play one-off" },
-  { key: "tournament", label: "TOURNAMENT",   hint: "2-legged semi-finals (aggregate), then a 1-leg Grand Final" },
+  { key: "tournament", label: "TOURNAMENT", hint: "2-legged semi-finals (aggregate), then a 1-leg Grand Final" },
 ];
 
 export default function SetupScreen({ onStart }) {
@@ -180,11 +178,11 @@ export default function SetupScreen({ onStart }) {
   const [dynamicForm, setDynamicForm] = useState(true);
   const [difficulty, setDifficulty] = useState("normal");
   const [format, setFormat] = useState("bo7");
+  const [managerTiming, setManagerTiming] = useState("before");
 
-  const formatOptions = clubs.length === 4 ? FORMAT_OPTIONS_4 : FORMAT_OPTIONS_2;
-  // Reset format when club count changes and current format is incompatible
+  const formatOptions = clubs.length === 2 ? FORMAT_OPTIONS_2 : FORMAT_OPTIONS_4;
   const validFormats = formatOptions.map(f => f.key);
-  const activeFormat = validFormats.includes(format) ? format : (clubs.length === 4 ? "tournament" : "bo7");
+  const activeFormat = validFormats.includes(format) ? format : (clubs.length === 2 ? "bo7" : "tournament");
 
   function updateClub(i, updated) {
     setClubs(prev => prev.map((c, j) => j === i ? updated : c));
@@ -201,7 +199,20 @@ export default function SetupScreen({ onStart }) {
 
   function handleStart() {
     if (!canStart) return;
-    onStart(clubs.map(c => ({ ...c, dofName: c.dofName.trim(), clubName: c.clubName.trim() })), { hideRatings, dynamicValues, dynamicForm, difficulty, format: activeFormat });
+    let finalClubs = clubs.map(c => ({ ...c, dofName: c.dofName.trim(), clubName: c.clubName.trim() }));
+    if (finalClubs.length === 3) {
+      const kit = CPU_KITS[Math.floor(Math.random() * CPU_KITS.length)];
+      const cpu = {
+        isComputer: true,
+        dofName: randomManagerName(),
+        clubName: randomClubName(),
+        primaryColor: kit.primary,
+        secondaryColor: kit.secondary,
+        pattern: Math.random() < 0.4 ? "stripes" : "plain",
+      };
+      finalClubs = [...finalClubs, cpu];
+    }
+    onStart(finalClubs, { hideRatings, dynamicValues, dynamicForm, difficulty, format: activeFormat, managerTiming });
   }
 
   return (
@@ -240,6 +251,11 @@ export default function SetupScreen({ onStart }) {
             + ADD ANOTHER CLUB
           </button>
         )}
+        {clubs.length === 3 && (
+          <div className="cpu-autofill-notice">
+            ⚠ A CPU team will auto-fill the 4th slot — or add a 4th player above
+          </div>
+        )}
 
         <div className="game-options">
           <div className="options-title">GAME OPTIONS</div>
@@ -277,6 +293,25 @@ export default function SetupScreen({ onStart }) {
             </div>
             <div className="difficulty-hint">
               {formatOptions.find(f => f.key === activeFormat)?.hint}
+            </div>
+          </div>
+
+          <div className="difficulty-section">
+            <span className="field-label-sm">MANAGER DRAFT TIMING</span>
+            <div className="difficulty-row">
+              <button
+                className={`difficulty-btn ${managerTiming === "before" ? "active" : ""}`}
+                onClick={() => setManagerTiming("before")}
+              >BEFORE DRAFT</button>
+              <button
+                className={`difficulty-btn ${managerTiming === "after" ? "active" : ""}`}
+                onClick={() => setManagerTiming("after")}
+              >AFTER DRAFT</button>
+            </div>
+            <div className="difficulty-hint">
+              {managerTiming === "before"
+                ? "Spin the Merry-Go-Round first, then build your squad"
+                : "Build your squad first, then spin the Merry-Go-Round"}
             </div>
           </div>
 

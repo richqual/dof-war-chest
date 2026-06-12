@@ -96,6 +96,19 @@ const FORMATIONS = {
     { pos: "LW",  x: 82, y: 48 },
     { pos: "ST",  x: 50, y: 14 },
   ],
+  "4-2-3-1": [
+    { pos: "GK",  x: 50, y: 88 },
+    { pos: "RB",  x: 82, y: 70 },
+    { pos: "LB",  x: 18, y: 70 },
+    { pos: "CB",  x: 63, y: 70 },
+    { pos: "CB",  x: 37, y: 70 },
+    { pos: "DM",  x: 35, y: 54 },
+    { pos: "DM",  x: 65, y: 54 },
+    { pos: "RW",  x: 78, y: 32 },
+    { pos: "MF",  x: 50, y: 30 },
+    { pos: "LW",  x: 22, y: 32 },
+    { pos: "ST",  x: 50, y: 12 },
+  ],
 };
 
 const TACTICS = ["defensive", "balanced", "attacking"];
@@ -184,10 +197,13 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
     }
   }
 
+  const totalSquadValue = manager.squad.filter(Boolean).reduce((s, p) => s + (p.value || 0), 0);
+
   function exportSquad() {
     const lines = [
       `=== ${manager.teamName || manager.name}'s Squad ===`,
       `Overall: ${squadRating(manager.squad)}`,
+      `Squad Value: ${formatValue(totalSquadValue)}`,
       "",
       "STARTING XI:",
       ...starters.map((p, i) => p ? `  ${POSITIONS[i].key.padEnd(3)} ${p.name} (${p.rating}) — ${formatValue(p.value)}` : `  ${POSITIONS[i].key.padEnd(3)} [empty]`),
@@ -254,6 +270,7 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
             </span>
           )}
           <span className="ovr-badge">OVR {squadRating(manager.squad)}</span>
+          <span className="ovr-badge value-badge">{formatValue(totalSquadValue)}</span>
         </div>
         <div className="squad-actions">
           <button className="action-btn" onClick={exportSquad}>EXPORT</button>
@@ -363,7 +380,7 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
   );
 }
 
-export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setTactics, restartGame, setScreen, onBackToSeries }) {
+export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setTactics, restartGame, setScreen, onBackToSeries, onManagerDraft }) {
   const [viewIdx, setViewIdx] = useState(null);
   const { managers } = draft;
   const inSeries = !!draft.series;
@@ -391,6 +408,11 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
         {onBackToSeries && (
           <button className="back-btn" style={{ marginBottom: "0.5rem" }} onClick={onBackToSeries}>← BACK TO TOURNAMENT</button>
         )}
+        {onManagerDraft && (
+          <button className="mgr-go-btn" style={{ marginBottom: "1rem" }} onClick={onManagerDraft}>
+            ⚙ START THE MERRY-GO-ROUND
+          </button>
+        )}
         <div className="trophy-icon">🏆</div>
         <h2 className="squads-title">DRAFT COMPLETE</h2>
         <p className="squads-sub">Select a squad to view details</p>
@@ -401,6 +423,7 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
           const ovr = squadRating(m.squad);
           const starters = m.squad.slice(0, 11).filter(Boolean);
           const best = [...starters].sort((a, b) => b.rating - a.rating)[0];
+          const squadVal = m.squad.filter(Boolean).reduce((s, p) => s + (p.value || 0), 0);
           const accent = kitAccent(m.primaryColor, m.secondaryColor);
           return (
             <div key={i} className="squad-summary-card" onClick={() => setViewIdx(i)}
@@ -417,6 +440,7 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
                 <div className="squad-card-mgr">⚙ {m.footballManager.name}</div>
               )}
               {best && <div className="squad-best">Best: {best.name} ({best.rating})</div>}
+              <div className="squad-best" style={{ color: "var(--amber)" }}>Value: {formatValue(squadVal)}</div>
               <div className="squad-link">VIEW SQUAD →</div>
             </div>
           );

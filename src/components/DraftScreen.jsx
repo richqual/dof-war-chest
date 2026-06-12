@@ -252,6 +252,12 @@ export default function DraftScreen({
           {currentBudget !== null && (
             <span className="budget-badge">Budget: £{currentBudget}m</span>
           )}
+          <button
+            className={`my-squad-toggle-btn ${showMySquad ? "active" : ""}`}
+            onClick={() => setShowMySquad(s => !s)}
+          >
+            {showMySquad ? "▤ HIDE SQUAD" : "▤ MY SQUAD"}
+          </button>
         </div>
       </div>
 
@@ -288,7 +294,7 @@ export default function DraftScreen({
             <div className="cpu-turn-dots"><span>●</span><span>●</span><span>●</span></div>
             {skipCpuTurns && (
               <button className="sim-btn secondary" style={{ marginTop: "1.2rem", fontSize: "13px" }} onClick={skipCpuTurns}>
-                ⏭ SKIP TO MY TURN
+                ⏭ SKIP CPU
               </button>
             )}
           </div>

@@ -140,7 +140,7 @@ function AppInner() {
   }
 
   if (screen === "order-draw" && draft) {
-    return <>{globalMenu}<OrderDrawScreen draft={draft} onStart={() => setScreen("draft")} /></>;
+    return <>{globalMenu}<OrderDrawScreen draft={draft} onStart={() => setScreen(draft.managerTiming === "before" ? "manager-draft" : "draft")} /></>;
   }
 
   if (screen === "draft" && draft && currentPos) {
@@ -183,6 +183,10 @@ function AppInner() {
   }
 
   if (screen === "squads" && draft) {
+    const managersAssigned = draft.managers.some(m => m.footballManager);
+    const onManagerDraft = (draft.managerTiming === "after" && !managersAssigned)
+      ? () => setScreen("manager-draft")
+      : undefined;
     return (
       <>
         {globalMenu}
@@ -194,6 +198,7 @@ function AppInner() {
           restartGame={restartGame}
           setScreen={handleSetScreen}
           onBackToSeries={draft.series ? () => setScreen("series") : undefined}
+          onManagerDraft={onManagerDraft}
         />
       </>
     );
@@ -243,10 +248,21 @@ function AppInner() {
   return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
 }
 
+const APP_VERSION = "1.0.0";
+
+function AppFooter() {
+  return (
+    <div className="app-footer">
+      v{APP_VERSION} · created by <a href="https://x.com/richqual" target="_blank" rel="noreferrer">@richqual</a> with Claude
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <ErrorBoundary>
       <AppInner />
+      <AppFooter />
     </ErrorBoundary>
   );
 }

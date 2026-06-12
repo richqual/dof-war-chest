@@ -1,119 +1,23 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { MANAGERS, TIER_LABELS, TIER_COLORS, TIER_BG } from "../data/managers";
 import { ERA_LABELS, ERA_COLORS, ERA_BG } from "../data/players";
 
-const TIER_SEAT_COLORS = { elite: "#ffd700", established: "#aaaaaa", journeyman: "#cd7f32" };
+const LEAGUE_CONFIG = {
+  all:            { label: "ANY LEAGUE",   flag: "🌍",  key: "all" },
+  premier_league: { label: "Premier League", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", key: "premier_league" },
+  la_liga:        { label: "La Liga",      flag: "🇪🇸",  key: "la_liga" },
+  bundesliga:     { label: "Bundesliga",   flag: "🇩🇪",  key: "bundesliga" },
+  serie_a:        { label: "Serie A",      flag: "🇮🇹",  key: "serie_a" },
+  ligue_1:        { label: "Ligue 1",      flag: "🇫🇷",  key: "ligue_1" },
+};
 
-function MerryGoRound({ pool, spinning }) {
-  const NUM_SEATS = 12;
-  const seats = pool.slice(0, NUM_SEATS);
-  const radius = 90;
-  const cx = 120, cy = 120;
-  const angleRef = useRef(0);
-  const rafRef = useRef(null);
-  const canvasRef = useRef(null);
+function getManagerLeague(m) {
+  return m.league || "premier_league";
+}
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-
-    // Speed: fast when spinning, decelerates to crawl, stops after ~1200ms
-    let speed = spinning ? 8 : 0;
-    let startTime = performance.now();
-    const SPIN_DURATION = 1150; // ms before cards reveal
-
-    function draw(now) {
-      const elapsed = now - startTime;
-      if (spinning) {
-        // Ease-out: fast start, slow down over SPIN_DURATION
-        const t = Math.min(elapsed / SPIN_DURATION, 1);
-        speed = 8 * (1 - t * t); // quadratic ease-out
-        angleRef.current += speed;
-      }
-
-      const W = canvas.width, H = canvas.height;
-      ctx.clearRect(0, 0, W, H);
-
-      // Outer ring shadow
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, radius + 8, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(0,0,0,0.4)";
-      ctx.fill();
-      ctx.restore();
-
-      // Spokes
-      for (let i = 0; i < NUM_SEATS; i++) {
-        const angle = (angleRef.current + (i * 360) / NUM_SEATS) * (Math.PI / 180);
-        const sx = cx + Math.cos(angle) * radius;
-        const sy = cy + Math.sin(angle) * radius;
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(sx, sy);
-        ctx.strokeStyle = "rgba(212,255,212,0.12)";
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      }
-
-      // Center hub
-      ctx.beginPath();
-      ctx.arc(cx, cy, 14, 0, Math.PI * 2);
-      ctx.fillStyle = "#ffd700";
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(cx, cy, 10, 0, Math.PI * 2);
-      ctx.fillStyle = "#111";
-      ctx.fill();
-      ctx.beginPath();
-      ctx.arc(cx, cy, 4, 0, Math.PI * 2);
-      ctx.fillStyle = "#ffd700";
-      ctx.fill();
-
-      // Seats
-      for (let i = 0; i < NUM_SEATS; i++) {
-        const angle = (angleRef.current + (i * 360) / NUM_SEATS) * (Math.PI / 180);
-        const sx = cx + Math.cos(angle) * radius;
-        const sy = cy + Math.sin(angle) * radius;
-        const mgr = seats[i % seats.length];
-        const col = mgr ? TIER_SEAT_COLORS[mgr.tier] : "#3a6a3a";
-
-        // Seat circle
-        ctx.beginPath();
-        ctx.arc(sx, sy, 10, 0, Math.PI * 2);
-        ctx.fillStyle = col;
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(sx, sy, 10, 0, Math.PI * 2);
-        ctx.strokeStyle = "#000";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // Initial letter
-        if (mgr) {
-          ctx.fillStyle = "#000";
-          ctx.font = "bold 9px monospace";
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(mgr.name.split(" ").pop()[0], sx, sy);
-        }
-      }
-
-      rafRef.current = requestAnimationFrame(draw);
-    }
-
-    rafRef.current = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(rafRef.current);
-  }, [spinning, pool]);
-
-  return (
-    <div className="mgr-carousel-wrap">
-      <canvas ref={canvasRef} width={240} height={240} className="mgr-carousel-canvas" />
-      <div className="mgr-carousel-label">
-        {spinning ? "⚙ THE MERRY-GO-ROUND SPINS..." : ""}
-      </div>
-    </div>
-  );
+function getLeaguePool(leagueKey) {
+  if (leagueKey === "all") return MANAGERS;
+  return MANAGERS.filter(m => getManagerLeague(m) === leagueKey);
 }
 
 function shuffle(arr) {
@@ -125,6 +29,41 @@ function shuffle(arr) {
   return a;
 }
 
+// CSS marquee carousel — scrolls through manager name pills
+// Shuffles the order whenever pool size changes (new turn) for variety
+function Carousel({ pool, spinning, allRevealed }) {
+  const shuffledPills = useMemo(() => {
+    const s = shuffle([...pool]);
+    return [...s, ...s]; // doubled for seamless loop
+  }, [pool.length]); // re-shuffle each new turn
+
+  const trackClass = `mgr-slot-track${spinning ? " spinning" : allRevealed ? " paused" : ""}`;
+  return (
+    <div className="mgr-slot-wrap">
+      <div className="mgr-slot-window">
+        <div className={trackClass}>
+          {shuffledPills.map((m, i) => (
+            <span
+              key={`${m.id}-${i}`}
+              className="mgr-slot-pill"
+              style={{
+                background: TIER_BG[m.tier],
+                color: TIER_COLORS[m.tier],
+                border: `1px solid ${TIER_COLORS[m.tier]}55`,
+              }}
+            >
+              {m.name}
+            </span>
+          ))}
+        </div>
+      </div>
+      {spinning && (
+        <div className="mgr-slot-spinning-label">⚙ THE MERRY-GO-ROUND SPINS...</div>
+      )}
+    </div>
+  );
+}
+
 function ManagerCard({ manager, onPick, disabled, highlighted }) {
   const tierColor = TIER_COLORS[manager.tier];
   const tierBg = TIER_BG[manager.tier];
@@ -134,39 +73,25 @@ function ManagerCard({ manager, onPick, disabled, highlighted }) {
   return (
     <div className={`mgr-card ${highlighted ? "mgr-card-highlighted" : ""}`}>
       <div className="mgr-card-head">
-        <span
-          className="era-badge"
-          style={{ background: eraBg, color: eraColor, border: `1px solid ${eraColor}55` }}
-        >
+        <span className="era-badge" style={{ background: eraBg, color: eraColor, border: `1px solid ${eraColor}55` }}>
           {ERA_LABELS[manager.era]}
         </span>
-        <span
-          className="mgr-tier-badge"
-          style={{ background: tierBg, color: tierColor, border: `1px solid ${tierColor}88` }}
-        >
+        <span className="mgr-tier-badge" style={{ background: tierBg, color: tierColor, border: `1px solid ${tierColor}88` }}>
           {TIER_LABELS[manager.tier]}
         </span>
       </div>
-
       <div className="mgr-name">{manager.name}</div>
       <div className="mgr-club">{manager.club}</div>
       <div className="mgr-years">{manager.years}</div>
-
       <div className="mgr-style-label">{manager.styleLabel}</div>
       <div className="mgr-flavour">"{manager.flavourText}"</div>
-
-      <button
-        className="pick-mgr-btn"
-        onClick={() => onPick(manager)}
-        disabled={disabled}
-      >
+      <button className="pick-mgr-btn" onClick={() => onPick(manager)} disabled={disabled}>
         PICK THIS MANAGER
       </button>
     </div>
   );
 }
 
-// The running log of picks made so far
 function PicksLog({ assignments, draft }) {
   const entries = Object.entries(assignments);
   if (!entries.length) return null;
@@ -182,10 +107,7 @@ function PicksLog({ assignments, draft }) {
             <span className="mgr-picks-club">{club.dofName || club.name}</span>
             <span className="mgr-picks-arrow">→</span>
             <span className="mgr-picks-name">{mgr.name}</span>
-            <span
-              className="mgr-tier-badge"
-              style={{ background: tierBg, color: tierColor, border: `1px solid ${tierColor}88`, fontSize: "6px", padding: "1px 5px" }}
-            >
+            <span className="mgr-tier-badge" style={{ background: tierBg, color: tierColor, border: `1px solid ${tierColor}88`, fontSize: "6px", padding: "1px 5px" }}>
               {TIER_LABELS[mgr.tier]}
             </span>
           </div>
@@ -195,59 +117,129 @@ function PicksLog({ assignments, draft }) {
   );
 }
 
+function LeagueSelector({ onConfirm }) {
+  const [selected, setSelected] = useState("all");
+
+  return (
+    <div className="mgr-draft-screen">
+      <div className="mgr-draft-header">
+        <div className="mgr-draft-title">THE MERRY-GO-ROUND</div>
+        <div className="mgr-draft-sub">Manager Draft — Choose your pool</div>
+      </div>
+
+      <div className="mgr-league-prompt">Which league should the managers come from?</div>
+
+      <div className="mgr-league-grid">
+        {Object.values(LEAGUE_CONFIG).map(cfg => {
+          const count = getLeaguePool(cfg.key).length;
+          return (
+            <button
+              key={cfg.key}
+              className={`mgr-league-btn${selected === cfg.key ? " selected" : ""}`}
+              onClick={() => setSelected(cfg.key)}
+            >
+              <span className="mgr-league-flag">{cfg.flag}</span>
+              <span className="mgr-league-name">{cfg.label}</span>
+              <span className="mgr-league-count">{count} managers</span>
+            </button>
+          );
+        })}
+      </div>
+
+      <button className="mgr-go-btn" onClick={() => onConfirm(selected)}>
+        ▶ START THE MERRY-GO-ROUND
+      </button>
+    </div>
+  );
+}
+
 export default function ManagerDraftScreen({ draft, onAssignManager }) {
+  const [phase, setPhase] = useState("league-select");
   const [pickOrder] = useState(() => shuffle(draft.managers.map((_, i) => i)));
-  const [filterNation, setFilterNation] = useState("all");
-  const filteredManagers = filterNation === "all" ? MANAGERS : MANAGERS.filter(m => m.nation === filterNation);
-  const [pool, setPool] = useState(() => shuffle([...filteredManagers]));
+  const [pool, setPool] = useState([]);
   const [turnIdx, setTurnIdx] = useState(0);
-  const [offered, setOffered] = useState(null);       // all 3 selected managers
-  const [revealed, setRevealed] = useState(0);        // how many cards are visible (0→3)
+  const [offered, setOffered] = useState(null);
+  const [revealed, setRevealed] = useState(0);
   const [cpuPick, setCpuPick] = useState(null);
   const [spinning, setSpinning] = useState(false);
+  const [waitingForGo, setWaitingForGo] = useState(true);
   const [assignments, setAssignments] = useState({});
+  const timers = useRef([]);
+  const pendingOffer = useRef(null);
 
   const currentManagerIdx = pickOrder[turnIdx];
   const currentManager = draft.managers[currentManagerIdx];
   const allDone = turnIdx >= pickOrder.length;
+  const isHuman = !currentManager?.isComputer;
+
+  function startWithLeague(leagueKey) {
+    setPool(shuffle([...getLeaguePool(leagueKey)]));
+    setPhase("playing");
+    setWaitingForGo(true);
+  }
+
+  function clearTimers() {
+    timers.current.forEach(t => clearTimeout(t));
+    timers.current = [];
+  }
 
   function spinAndReveal() {
+    clearTimers();
+    setWaitingForGo(false);
     setSpinning(true);
     setCpuPick(null);
     setRevealed(0);
-    setTimeout(() => {
-      const three = pool.slice(0, 3);
-      setOffered(three);
+    setOffered(null);
+
+    // Pre-pick 3 from a fresh shuffle so carousel order ≠ card order
+    pendingOffer.current = shuffle([...pool]).slice(0, 3);
+
+    const t0 = setTimeout(() => {
+      // Carousel stops — then cards reveal one by one
       setSpinning(false);
-      // Reveal cards one by one with suspenseful pauses
-      setTimeout(() => setRevealed(1), 2000);
-      setTimeout(() => setRevealed(2), 5000);
-      setTimeout(() => setRevealed(3), 8000);
-    }, 1200);
+      setOffered(pendingOffer.current);
+      const t1 = setTimeout(() => setRevealed(1), 1800);
+      const t2 = setTimeout(() => setRevealed(2), 4200);
+      const t3 = setTimeout(() => setRevealed(3), 6800);
+      timers.current = [t1, t2, t3];
+    }, 3500);
+    timers.current = [t0];
   }
 
-  useEffect(() => {
-    if (!allDone && offered === null && !spinning) {
-      spinAndReveal();
-    }
-  }, [turnIdx]);
+  function skipReveal() {
+    clearTimers();
+    // Use same pre-picked managers; fall back to fresh pick if spin hadn't started
+    setOffered(pendingOffer.current || shuffle([...pool]).slice(0, 3));
+    setSpinning(false);
+    setRevealed(3);
+  }
 
-  // CPU highlights its pick 600ms after all cards are revealed — never auto-advances.
+  // CPU highlights its top pick after all cards are revealed
   useEffect(() => {
-    if (!offered || currentManager.isComputer === false) return;
+    if (!offered || isHuman) return;
     const sorted = [...offered].sort((a, b) => {
       const order = { elite: 0, established: 1, journeyman: 2 };
       return order[a.tier] - order[b.tier];
     });
-    const t = setTimeout(() => setCpuPick(sorted[0]), 9500); // 8000ms reveal + 1.5s pause
+    const t = setTimeout(() => setCpuPick(sorted[0]), 9500);
     return () => clearTimeout(t);
   }, [offered, currentManagerIdx]);
+
+  // Auto-spin for CPU turns when it's their go
+  useEffect(() => {
+    if (phase !== "playing") return;
+    if (!waitingForGo) return;
+    if (isHuman) return;
+    const t = setTimeout(() => spinAndReveal(), 800);
+    return () => clearTimeout(t);
+  }, [phase, waitingForGo, turnIdx]);
 
   function handlePick(manager) {
     const newPool = pool.filter(m => m.id !== manager.id);
     setPool(shuffle(newPool));
     setCpuPick(null);
     setRevealed(0);
+    setOffered(null);
 
     const newAssignments = { ...assignments, [currentManagerIdx]: manager };
     setAssignments(newAssignments);
@@ -257,7 +249,7 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
       onAssignManager(newAssignments);
     } else {
       setTurnIdx(nextTurn);
-      setOffered(null);
+      setWaitingForGo(true);
     }
   }
 
@@ -266,8 +258,8 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
   }
 
   if (allDone) return null;
+  if (phase === "league-select") return <LeagueSelector onConfirm={startWithLeague} />;
 
-  const isHuman = !currentManager.isComputer;
   const playerName = currentManager.dofName || currentManager.name;
   const cpuReady = !isHuman && !!cpuPick && revealed >= 3;
 
@@ -275,33 +267,20 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
     <div className="mgr-draft-screen">
       <div className="mgr-draft-header">
         <div className="mgr-draft-title">THE MERRY-GO-ROUND</div>
-        <div className="mgr-draft-sub">Manager Draft — Round {turnIdx + 1} of {pickOrder.length}</div>
+        <div className="mgr-draft-sub">Manager Draft — Pick {turnIdx + 1} of {pickOrder.length}</div>
       </div>
 
       <div className="mgr-turn-banner">
-        {isHuman && (
-          <div style={{ marginBottom: "12px" }}>
-            <select className="cm-select" value={filterNation} onChange={e => setFilterNation(e.target.value)}>
-              <option value="all">All nations</option>
-              {Array.from(new Set(MANAGERS.map(m => m.nation)))
-                .sort()
-                .map(nation => {
-                  const count = MANAGERS.filter(m => m.nation === nation).length;
-                  return (
-                    <option key={nation} value={nation}>
-                      {nation} ({count} managers)
-                    </option>
-                  );
-                })}
-            </select>
-          </div>
-        )}
         <span className="mgr-turn-label">
-          {isHuman
-            ? `${playerName}, choose your manager`
-            : cpuReady
-              ? `${playerName} has chosen — confirm to continue`
-              : `${playerName} is deliberating...`}
+          {spinning
+            ? `Spinning the Merry-Go-Round...`
+            : waitingForGo && isHuman
+              ? `${playerName} — spin to see your options`
+              : isHuman && offered
+                ? `${playerName}, choose your manager`
+                : cpuReady
+                  ? `${playerName} has chosen — confirm to continue`
+                  : `${playerName} is deliberating...`}
         </span>
         <div className="mgr-turn-dots">
           {pickOrder.map((idx, i) => (
@@ -316,15 +295,27 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
 
       <div className="mgr-main-area">
         <div className="mgr-left-col">
-          {(spinning || offered) && (
-            <MerryGoRound pool={pool} spinning={spinning} />
+          <Carousel pool={pool} spinning={spinning} allRevealed={revealed >= 3} />
+
+          {waitingForGo && !spinning && isHuman && (
+            <button className="mgr-spin-btn" onClick={spinAndReveal}>
+              ⚙ SPIN THE MERRY-GO-ROUND
+            </button>
+          )}
+
+          {(spinning || (!!offered && revealed < 3)) && (
+            <button className="mgr-skip-btn" onClick={skipReveal}>
+              SKIP ⏩
+            </button>
           )}
 
           {!spinning && offered && (
             <>
               <div className="mgr-instruction">
                 {isHuman
-                  ? "Three managers have been offered. Pick one — the others return to the pool."
+                  ? revealed < 3
+                    ? "The Merry-Go-Round is revealing your options..."
+                    : "Three managers offered — pick one, the rest return to the pool."
                   : cpuReady
                     ? `${playerName} picks ${cpuPick.name}.`
                     : "Deliberating..."}

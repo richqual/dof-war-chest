@@ -248,6 +248,7 @@ function buildInitialDraft(clubs, options = {}) {
     hideRatings: options.hideRatings || false,
     difficulty: options.difficulty || "normal",
     series: buildSeries(n, options.format),
+    managerTiming: options.managerTiming || "before",
   };
 }
 
@@ -442,7 +443,7 @@ export function useDraftState() {
     if (draft.currentBudget === null || player.value > draft.currentBudget) return;
     const next = applyPick(draft, player);
     setDraft(next);
-    if (next.phase === "complete") setScreen("manager-draft");
+    if (next.phase === "complete") setScreen(draft.managerTiming === "before" ? "squads" : "manager-draft");
   }
 
   function assignManagers(assignments) {
@@ -453,7 +454,13 @@ export function useDraftState() {
         assignments[i] ? { ...m, footballManager: assignments[i] } : m
       ),
     }));
-    setScreen(draft.series?.stage === "draw" ? "draw" : draft.series ? "series" : "squads");
+    // "before" timing: managers assigned before player draft, so now go to draft
+    // "after" timing: managers assigned after player draft, so now go to squads/series
+    if (draft.managerTiming === "before") {
+      setScreen("draft");
+    } else {
+      setScreen(draft.series?.stage === "draw" ? "draw" : draft.series ? "series" : "squads");
+    }
   }
 
   // Active manager banks the whole budget as carryover and the turn moves on —
@@ -462,7 +469,7 @@ export function useDraftState() {
     if (!draft || draft.currentBudget === null) return;
     const next = applyPick(draft, null);
     setDraft(next);
-    if (next.phase === "complete") setScreen("manager-draft");
+    if (next.phase === "complete") setScreen(draft.managerTiming === "before" ? "squads" : "manager-draft");
   }
 
   // Plays out every remaining turn instantly with CPU picks (spinning budgets
@@ -486,7 +493,7 @@ export function useDraftState() {
       d = applyPick(d, pick);
     }
     setDraft(d);
-    setScreen("manager-draft");
+    setScreen(d.managerTiming === "before" ? "squads" : "manager-draft");
   }
 
   // Runs CPU turns until the next human player's turn, then stops.
@@ -510,7 +517,7 @@ export function useDraftState() {
       d = applyPick(d, pick ?? null);
     }
     setDraft(d);
-    if (d.phase === "complete") setScreen("manager-draft");
+    if (d.phase === "complete") setScreen(d.managerTiming === "before" ? "squads" : "manager-draft");
   }
 
   function setTeamName(managerIdx, name) {

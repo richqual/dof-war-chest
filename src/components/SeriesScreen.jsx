@@ -1,3 +1,4 @@
+import { useState } from "react";
 import KitSwatch, { kitAccent } from "./KitSwatch";
 import { POSITIONS, getRatingBg, getRatingColor, formatValue } from "../data/players";
 import { squadRating } from "./SquadScreen";
@@ -193,73 +194,257 @@ function TournamentBracket({ series, managers }) {
   );
 }
 
+async function drawSquadCard(manager) {
+  await document.fonts.ready;
+
+  const starters = manager.squad.slice(0, 11).filter(Boolean);
+  const bench = manager.squad.slice(11, 16).filter(Boolean);
+  const ovr = squadRating(manager.squad);
+  const teamName = manager.teamName || manager.clubName || manager.name || "Champions";
+  const dofName = manager.dofName || manager.name || "";
+
+  const W = 420;
+  const DPR = 2;
+  const PAD = 22;
+  const ROW_H = 26;
+  const BAR = 8;
+
+  // Calculate total height
+  const headerH = 170; // bar + trophy + CHAMPION + name + dof/ovr + divider
+  const squadH = (starters.length + bench.length) * ROW_H + 60; // section labels + rows
+  const footerH = 48;
+  const H = BAR + headerH + squadH + footerH + BAR;
+
+  const canvas = document.createElement("canvas");
+  canvas.width = W * DPR;
+  canvas.height = H * DPR;
+  const ctx = canvas.getContext("2d");
+  ctx.scale(DPR, DPR);
+
+  const primary = manager.primaryColor || "#c8a800";
+  const secondary = manager.secondaryColor || primary;
+  const amber = "#c8a800";
+  const bg = "#0a150a";
+  const bg2 = "#111d11";
+  const text = "#d4e8d4";
+  const text3 = "#5a7a5a";
+  const border = "rgba(255,255,255,0.08)";
+
+  // BG
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Top kit-colour bar
+  const topGrad = ctx.createLinearGradient(0, 0, W, 0);
+  topGrad.addColorStop(0, primary);
+  topGrad.addColorStop(1, secondary);
+  ctx.fillStyle = topGrad;
+  ctx.fillRect(0, 0, W, BAR);
+
+  // Subtle inner glow from top bar
+  const glowGrad = ctx.createLinearGradient(0, BAR, 0, BAR + 60);
+  glowGrad.addColorStop(0, primary + "28");
+  glowGrad.addColorStop(1, "transparent");
+  ctx.fillStyle = glowGrad;
+  ctx.fillRect(0, BAR, W, 60);
+
+  let y = BAR + 18;
+
+  // Trophy
+  ctx.font = `40px serif`;
+  ctx.textAlign = "center";
+  ctx.fillText("🏆", W / 2, y + 36);
+  y += 48;
+
+  // CHAMPION title
+  ctx.font = `bold 28px 'VT323', monospace`;
+  ctx.fillStyle = amber;
+  ctx.textAlign = "center";
+  ctx.fillText("CHAMPIONS", W / 2, y + 24);
+  y += 32;
+
+  // Team name
+  ctx.font = `bold 22px 'Share Tech Mono', monospace`;
+  ctx.fillStyle = text;
+  ctx.fillText(teamName, W / 2, y + 20);
+  y += 28;
+
+  // DoF + OVR row
+  ctx.font = `14px 'VT323', monospace`;
+  ctx.fillStyle = text3;
+  ctx.textAlign = "left";
+  ctx.fillText(`DoF: ${dofName}`, PAD, y + 14);
+  ctx.textAlign = "right";
+  ctx.fillStyle = amber;
+  ctx.fillText(`OVR ${ovr}`, W - PAD, y + 14);
+  y += 22;
+
+  // Divider
+  y += 8;
+  ctx.strokeStyle = border;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(PAD, y);
+  ctx.lineTo(W - PAD, y);
+  ctx.stroke();
+  y += 12;
+
+  function drawSection(label, players, posLabel) {
+    ctx.font = `12px 'VT323', monospace`;
+    ctx.fillStyle = text3;
+    ctx.textAlign = "left";
+    ctx.fillText(label, PAD, y + 10);
+    y += 16;
+
+    players.forEach(p => {
+      const pos = posLabel || p.pos || "";
+      // Row bg (subtle alternating not needed — just draw)
+      ctx.font = `16px 'Share Tech Mono', monospace`;
+      ctx.fillStyle = text3;
+      ctx.textAlign = "left";
+      ctx.fillText(pos.padEnd(3), PAD, y + 14);
+
+      ctx.fillStyle = text;
+      ctx.fillText(p.name, PAD + 44, y + 14);
+
+      // Rating badge
+      const ratingBg = p.rating >= 90 ? "#7c3aed" : p.rating >= 85 ? "#1d6b3e" : p.rating >= 80 ? "#1e40af" : "#374151";
+      const ratingColor = "#ffffff";
+      const ratingStr = String(p.rating);
+      const badgeW = 30;
+      const badgeX = W - PAD - badgeW;
+      ctx.fillStyle = ratingBg;
+      roundRect(ctx, badgeX, y + 2, badgeW, 18, 3);
+      ctx.fill();
+      ctx.font = `bold 14px 'VT323', monospace`;
+      ctx.fillStyle = ratingColor;
+      ctx.textAlign = "center";
+      ctx.fillText(ratingStr, badgeX + badgeW / 2, y + 15);
+
+      y += ROW_H;
+    });
+  }
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+
+  drawSection("STARTING XI", starters);
+
+  y += 4;
+  ctx.strokeStyle = border;
+  ctx.beginPath();
+  ctx.moveTo(PAD, y);
+  ctx.lineTo(W - PAD, y);
+  ctx.stroke();
+  y += 10;
+
+  drawSection("BENCH", bench, "SUB");
+
+  // Footer branding
+  y += 12;
+  ctx.strokeStyle = border;
+  ctx.beginPath();
+  ctx.moveTo(PAD, y);
+  ctx.lineTo(W - PAD, y);
+  ctx.stroke();
+  y += 14;
+  ctx.font = `13px 'VT323', monospace`;
+  ctx.fillStyle = text3;
+  ctx.textAlign = "center";
+  ctx.fillText("DOF: WAR CHEST  ·  transfer-game.vercel.app", W / 2, y + 10);
+
+  // Bottom bar
+  ctx.fillStyle = primary;
+  ctx.fillRect(0, H - BAR, W, BAR);
+  const bottomGrad = ctx.createLinearGradient(0, 0, W, 0);
+  bottomGrad.addColorStop(0, primary);
+  bottomGrad.addColorStop(1, secondary);
+  ctx.fillStyle = bottomGrad;
+  ctx.fillRect(0, H - BAR, W, BAR);
+
+  return canvas;
+}
+
 function ChampionSquad({ manager }) {
+  const [collapsed, setCollapsed] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const starters = manager.squad.slice(0, 11);
   const bench = manager.squad.slice(11, 16);
 
-  function exportSquad() {
-    const ovr = squadRating(manager.squad);
-    const lines = [
-      `=== ${manager.teamName || manager.clubName} — CHAMPIONS ===`,
-      `Director of Football: ${manager.dofName || manager.name}`,
-      `Overall: ${ovr}`,
-      "",
-      "STARTING XI:",
-      ...starters.map((p, i) =>
-        p ? `  ${POSITIONS[i].key.padEnd(3)} ${p.name} (${p.rating}) — ${formatValue(p.value)}`
-          : `  ${POSITIONS[i].key.padEnd(3)} [empty]`
-      ),
-      "",
-      "BENCH:",
-      ...bench.map(p =>
-        p ? `  SUB ${p.name} (${p.rating}) — ${formatValue(p.value)}`
-          : `  SUB [empty]`
-      ),
-    ];
-    navigator.clipboard
-      .writeText(lines.join("\n"))
-      .then(() => alert("Copied to clipboard!"))
-      .catch(() => alert(lines.join("\n")));
+  async function exportSquad() {
+    setExporting(true);
+    try {
+      const canvas = await drawSquadCard(manager);
+      const blob = await new Promise(res => canvas.toBlob(res, "image/png"));
+      const file = new File([blob], "squad.png", { type: "image/png" });
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "My Champion Squad" });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${(manager.teamName || "squad").replace(/\s+/g, "-")}.png`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } finally {
+      setExporting(false);
+    }
   }
 
   const ovr = squadRating(manager.squad);
 
   return (
     <div className="champ-squad">
-      <div className="champ-squad-header">
+      <div className="champ-squad-header" onClick={() => setCollapsed(c => !c)}>
         <span className="champ-squad-ovr">OVR {ovr}</span>
-        <button className="action-btn" onClick={exportSquad}>EXPORT SQUAD</button>
+        <span className="champ-squad-toggle-label">SQUAD</span>
+        <span className="champ-squad-toggle">{collapsed ? "▲" : "▼"}</span>
+        <button className="action-btn" disabled={exporting} onClick={e => { e.stopPropagation(); exportSquad(); }}>{exporting ? "…" : "SHARE"}</button>
       </div>
 
-      <div className="champ-squad-section-label">STARTING XI</div>
-      <div className="champ-squad-list">
-        {starters.map((p, i) => p ? (
-          <div key={i} className="champ-squad-row">
-            <span className="champ-squad-pos">{POSITIONS[i].key}</span>
-            <span className="champ-squad-name">{p.name}</span>
-            <span className="champ-squad-club">{p.club}</span>
-            <span
-              className="champ-squad-rating"
-              style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}
-            >{p.rating}</span>
-          </div>
-        ) : null)}
-      </div>
+      {!collapsed && <>
+        <div className="champ-squad-section-label">STARTING XI</div>
+        <div className="champ-squad-list">
+          {starters.map((p, i) => p ? (
+            <div key={i} className="champ-squad-row">
+              <span className="champ-squad-pos">{POSITIONS[i].key}</span>
+              <span className="champ-squad-name">{p.name}</span>
+              <span className="champ-squad-club">{p.club}</span>
+              <span
+                className="champ-squad-rating"
+                style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}
+              >{p.rating}</span>
+            </div>
+          ) : null)}
+        </div>
 
-      <div className="champ-squad-section-label">BENCH</div>
-      <div className="champ-squad-list">
-        {bench.map((p, i) => p ? (
-          <div key={i} className="champ-squad-row">
-            <span className="champ-squad-pos">SUB</span>
-            <span className="champ-squad-name">{p.name}</span>
-            <span className="champ-squad-club">{p.club}</span>
-            <span
-              className="champ-squad-rating"
-              style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}
-            >{p.rating}</span>
-          </div>
-        ) : null)}
-      </div>
+        <div className="champ-squad-section-label">BENCH</div>
+        <div className="champ-squad-list">
+          {bench.map((p, i) => p ? (
+            <div key={i} className="champ-squad-row">
+              <span className="champ-squad-pos">SUB</span>
+              <span className="champ-squad-name">{p.name}</span>
+              <span className="champ-squad-club">{p.club}</span>
+              <span
+                className="champ-squad-rating"
+                style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}
+              >{p.rating}</span>
+            </div>
+          ) : null)}
+        </div>
+      </>}
     </div>
   );
 }

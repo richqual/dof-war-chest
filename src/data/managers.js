@@ -1298,20 +1298,6 @@ export const MANAGERS = [
     styleLabel: "Nice Resurgence",
     flavourText: "Led Nice to second place with a modest budget. His structured pressing and positional mastery made the team punch above their weight.",
   },
-  {
-    id: "mourinho-marseille",
-    name: "José Mourinho",
-    nation: "🇵🇹",
-    club: "Marseille",
-    years: "2017–2018",
-    era: "golden",
-    league: "ligue_1",
-    rating: 87,
-    tier: "established",
-    style: "counter",
-    styleLabel: "Brief Marseille",
-    flavourText: "Arrived with fanfare but departed just 18 months later, unable to gel with the local culture. His defensive mastery was evident but the spark never ignited.",
-  },
 
   // Modern Era
   {

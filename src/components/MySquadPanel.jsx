@@ -3,6 +3,7 @@ import { POSITIONS, getRatingBg, getRatingColor, formatValue } from "../data/pla
 export default function MySquadPanel({ manager, onClose }) {
   const { squad, name, teamName } = manager;
   const filled = squad.filter(Boolean);
+  const totalValue = filled.reduce((sum, p) => sum + (p.value || 0), 0);
 
   return (
     <div className="my-squad-panel">
@@ -35,7 +36,8 @@ export default function MySquadPanel({ manager, onClose }) {
         })}
       </div>
       <div className="msp-footer">
-        {filled.length} / {POSITIONS.length} signed
+        <span>{filled.length} / {POSITIONS.length} signed</span>
+        <span className="msp-value">{formatValue(totalValue)}</span>
       </div>
     </div>
   );

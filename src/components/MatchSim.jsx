@@ -333,6 +333,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   const hCards = [], aCards = [];
   const hBooked = new Set(), aBooked = new Set();
   const hSentOff = new Set(), aSentOff = new Set();
+  let possH = ratio; // running possession [0,1], drifts per event
 
   const onPitch = (squad, sentOff) => squad.slice(0, 11).filter(p => p && !sentOff.has(p.name));
 
@@ -386,12 +387,13 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       const menDown = (isHome ? hSentOff.size : aSentOff.size) - (isHome ? aSentOff.size : hSentOff.size);
       const goalChance = 0.38 + (isHome ? hStr - aStr : aStr - hStr) * 0.004 - menDown * 0.08
         + goalChanceBonus(isHome) - opponentShotPenalty(isHome) + (isHome ? hTierMod : aTierMod);
+      if (isHome) possH = Math.min(0.82, possH + 0.025); else possH = Math.max(0.18, possH - 0.025);
       if (Math.random() < goalChance) {
         const ctx = isHome ? goalContext(hGoals, aGoals) : goalContext(aGoals, hGoals);
         isHome ? hGoals++ : aGoals++;
-        events.push({ min, type: "goal", team: side, scorer: name, text: pick(COMMENTARY_GOAL[ctx])(name, teamName), score: `${hGoals}–${aGoals}` });
+        events.push({ min, type: "goal", team: side, scorer: name, text: pick(COMMENTARY_GOAL[ctx])(name, teamName), score: `${hGoals}–${aGoals}`, poss: Math.round(possH * 100) });
       } else {
-        events.push({ min, type: "miss", team: side, text: pick(COMMENTARY_MISS)(name) });
+        events.push({ min, type: "miss", team: side, text: pick(COMMENTARY_MISS)(name), poss: Math.round(possH * 100) });
       }
     } else if (r < 0.45) {
       const isHome = Math.random() < 0.5;
@@ -401,18 +403,21 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       const pl = onPitch(team, sentOff);
       const target = pl[rand(0, pl.length - 1)];
       if (target) {
+        possH = possH * 0.94 + ratio * 0.06;
         if (booked.has(target.name)) {
           sentOff.add(target.name);
-          events.push({ min, type: "red", team: isHome ? "home" : "away", player: target.name, text: pick(COMMENTARY_RED)(target.name, isHome ? homeName : awayName, 11 - sentOff.size) });
+          events.push({ min, type: "red", team: isHome ? "home" : "away", player: target.name, text: pick(COMMENTARY_RED)(target.name, isHome ? homeName : awayName, 11 - sentOff.size), poss: Math.round(possH * 100) });
         } else {
           booked.add(target.name);
-          events.push({ min, type: "yellow", team: isHome ? "home" : "away", player: target.name, text: pick(COMMENTARY_CARD)(target.name) });
+          events.push({ min, type: "yellow", team: isHome ? "home" : "away", player: target.name, text: pick(COMMENTARY_CARD)(target.name), poss: Math.round(possH * 100) });
           if (isHome) hCards.push(target.name); else aCards.push(target.name);
         }
       }
     } else {
+      possH = possH * 0.94 + ratio * 0.06;
       const styleEv = maybeStyleComment(Math.random() < 0.5, min);
-      events.push(styleEv || { min, type: "commentary", text: pickNeutral(homeName, awayName) });
+      const ev = styleEv || { min, type: "commentary", text: pickNeutral(homeName, awayName) };
+      events.push({ ...ev, poss: Math.round(possH * 100) });
     }
   }
 
@@ -470,7 +475,8 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   }
 
   const allEvents = [...events, ...etEvents];
-  const hPoss = Math.round(40 + ratio * 20);
+  const lastPossEvent = [...events].reverse().find(e => e.poss != null);
+  const hPoss = lastPossEvent ? lastPossEvent.poss : Math.round(40 + ratio * 20);
   const aPoss = 100 - hPoss;
 
   const score = { home: finalHome, away: finalAway };
@@ -666,6 +672,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
   const [visibleEvents, setVisibleEvents] = useState([]);
   const [simulating, setSimulating] = useState(false);
   const [done, setDone] = useState(false);
+  const [summaryCollapsed, setSummaryCollapsed] = useState(false);
   const [speedIdx, setSpeedIdx] = useState(2); // default NORMAL
   const [paused, setPaused] = useState(false);
   const [showLineups, setShowLineups] = useState(false);
@@ -768,6 +775,11 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
     { home: 0, away: 0 }
   );
 
+  const lastPossVisible = [...visibleEvents].reverse().find(e => e.poss != null);
+  const currentPoss = lastPossVisible
+    ? { h: lastPossVisible.poss, a: 100 - lastPossVisible.poss }
+    : { h: 50, a: 50 };
+
   function eventIcon(e) {
     if (e.type === "goal") return "⚽";
     if (e.type === "yellow") return "🟨";
@@ -804,7 +816,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
   return (
     <div className="match-screen">
       <div className="match-header">
-        <button className="back-btn" onClick={onBack}>← BACK</button>
+        {!simulating && !seriesContext && <button className="back-btn" onClick={onBack}>← BACK</button>}
         <span className="match-title">MATCH SIMULATION</span>
         <button className="lineup-btn" onClick={() => setShowLineups(true)}>LINE-UPS</button>
         <div className="speed-controls">
@@ -837,23 +849,52 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
             )}
           </div>
         )}
-        <div className="sb-team home">
-          <KitSwatch primary={homeManager.primaryColor} secondary={homeManager.secondaryColor} pattern={homeManager.pattern} uid="mh" size={32} />
-          <div className="sb-name" style={{ color: homeAccent }}>{homeName}</div>
-          <div className="sb-score">{simulating || done ? currentScore.home : "–"}</div>
+        <div className="sb-teams">
+          <div className="sb-team-row">
+            <KitSwatch primary={homeManager.primaryColor} secondary={homeManager.secondaryColor} pattern={homeManager.pattern} uid="mh" size={28} />
+            <div className="sb-name" style={{ color: homeAccent }}>{homeName}</div>
+            <div className="sb-score">{simulating || done ? currentScore.home : "–"}</div>
+          </div>
+          <div className="sb-team-row">
+            <KitSwatch primary={awayManager.primaryColor} secondary={awayManager.secondaryColor} pattern={awayManager.pattern} uid="ma" size={28} />
+            <div className="sb-name" style={{ color: awayAccent }}>{awayName}</div>
+            <div className="sb-score">{simulating || done ? currentScore.away : "–"}</div>
+          </div>
         </div>
-        <div className="sb-vs">
+        <div className="sb-status">
           {simulating ? (
             paused ? <span className="sim-paused">PAUSED</span> : <span className="sim-live">LIVE</span>
           ) : done ? "FT" : "VS"}
         </div>
-        <div className="sb-team away">
-          <KitSwatch primary={awayManager.primaryColor} secondary={awayManager.secondaryColor} pattern={awayManager.pattern} uid="ma" size={32} />
-          <div className="sb-name" style={{ color: awayAccent }}>{awayName}</div>
-          <div className="sb-score">{simulating || done ? currentScore.away : "–"}</div>
-        </div>
+        {(simulating || done) && (
+          <div className="poss-bar-row">
+            <span className="poss-pct home" style={{ color: homeAccent }}>{currentPoss.h}%</span>
+            <div className="poss-bar">
+              <div className="poss-bar-fill" style={{ flex: currentPoss.h, background: homeAccent }} />
+              <div className="poss-bar-fill" style={{ flex: currentPoss.a, background: awayAccent }} />
+            </div>
+            <span className="poss-pct away" style={{ color: awayAccent }}>{currentPoss.a}%</span>
+          </div>
+        )}
+        {done && onMatchResult && (
+          <button className="sim-btn continue-btn sb-continue-btn" onClick={() => {
+            const legCtx = seriesContext?.legContext;
+            let side;
+            if (result.penWinner) {
+              side = result.penWinner;
+            } else if (legCtx) {
+              side = (result.score.home + legCtx.homeAgg) > (result.score.away + legCtx.awayAgg) ? "home" : "away";
+            } else {
+              side = result.score.home > result.score.away ? "home" : "away";
+            }
+            onMatchResult(side === "home" ? homeIdx : awayIdx, result.score);
+          }}>
+            {seriesContext?.isGrandFinal ? "SEE THE RESULT →" : seriesContext ? "CONTINUE TOURNAMENT →" : "CONTINUE SERIES →"}
+          </button>
+        )}
       </div>
 
+      <div className="match-body">
       {!simulating && !done && (
         <div className="sim-start-area">
           {/* Manager pre-match flavour */}
@@ -908,10 +949,14 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
       </div>
 
       {done && result && (
-        <div className="match-summary">
-          <div className="summary-cols">
+        <div className={`match-summary ${summaryCollapsed ? "summary-collapsed" : ""}`}>
+          <div className="summary-header" onClick={() => setSummaryCollapsed(c => !c)}>
+            <span className="summary-title">FULL TIME</span>
+            <span className="summary-score-inline">{homeName} {result.score.home}–{result.score.away} {awayName}</span>
+            <span className="summary-toggle">{summaryCollapsed ? "▲" : "▼"}</span>
+          </div>
+          {!summaryCollapsed && <div className="summary-cols">
             <div className="summary-main">
-              <div className="summary-title">FULL TIME</div>
               <div className="final-score">
                 {homeName} {result.score.home}–{result.score.away} {awayName}
                 {result.penWinner && (
@@ -974,22 +1019,6 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
                 {!onMatchResult && (
                   <button className="sim-btn secondary" onClick={startSim}>REPLAY</button>
                 )}
-                {onMatchResult && (
-                  <button className="sim-btn" onClick={() => {
-                    const legCtx = seriesContext?.legContext;
-                    let side;
-                    if (result.penWinner) {
-                      side = result.penWinner;
-                    } else if (legCtx) {
-                      side = (result.score.home + legCtx.homeAgg) > (result.score.away + legCtx.awayAgg) ? "home" : "away";
-                    } else {
-                      side = result.score.home > result.score.away ? "home" : "away";
-                    }
-                    onMatchResult(side === "home" ? homeIdx : awayIdx, result.score);
-                  }}>
-                    {seriesContext?.isGrandFinal ? "SEE THE RESULT →" : seriesContext ? "CONTINUE TOURNAMENT →" : "CONTINUE SERIES →"}
-                  </button>
-                )}
               </div>
             </div>
 
@@ -1007,9 +1036,11 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
                 ))}
               </div>
             </div>
-          </div>
+          </div>}
         </div>
       )}
+
+      </div>{/* end .match-body */}
 
       {showLineups && (
         <LineupPanel
