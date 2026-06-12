@@ -2386,55 +2386,62 @@ input, select { font-family: var(--font); }
 }
 
 /* ── League selector ──────────────────────────────────────────────── */
-.mgr-league-prompt {
-  font-family: var(--font-sub);
-  font-size: 20px;
-  color: var(--text2);
-  text-align: center;
-  letter-spacing: 1px;
-  margin: 4px 0 8px;
-}
-.mgr-league-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 10px;
-  max-width: 720px;
+.mgr-pool-selector {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  justify-content: center;
   width: 100%;
+  max-width: 600px;
   padding: 0 12px;
 }
-.mgr-league-btn {
+.mgr-pool-section {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 18px 12px;
-  border: 2px solid var(--border);
-  background: var(--bg2);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  gap: 10px;
+  min-width: 180px;
 }
-.mgr-league-btn:hover { border-color: var(--amber); background: var(--bg3); }
-.mgr-league-btn.selected {
-  border-color: var(--amber);
-  background: var(--bg3);
-  box-shadow: 0 0 12px rgba(255, 215, 0, 0.2);
-}
-.mgr-league-flag { font-size: 28px; line-height: 1; }
-.mgr-league-name {
-  font-family: var(--font-sub);
-  font-size: 15px;
-  font-weight: bold;
-  color: var(--text);
-  letter-spacing: 0.5px;
-  text-align: center;
-}
-.mgr-league-btn.selected .mgr-league-name { color: var(--amber); }
-.mgr-league-count {
-  font-family: var(--font-sub);
-  font-size: 13px;
+.mgr-pool-section-title {
+  font-family: var(--font-head);
+  font-size: 11px;
+  letter-spacing: 2px;
   color: var(--text3);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
 }
+.mgr-pool-checks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.mgr-pool-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+  user-select: none;
+}
+.mgr-pool-check:hover { border-color: var(--amber); background: var(--bg3); }
+.mgr-pool-check.checked { border-color: var(--amber); background: var(--bg3); }
+.mgr-pool-check input[type="checkbox"] { display: none; }
+.mgr-pool-check.checked::before { content: "✓"; color: var(--amber); font-weight: bold; font-size: 12px; width: 12px; }
+.mgr-pool-check:not(.checked)::before { content: "○"; color: var(--text3); font-size: 12px; width: 12px; }
+.mgr-pool-flag { font-size: 18px; line-height: 1; }
+.mgr-pool-label { flex: 1; font-family: var(--font-sub); font-size: 14px; color: var(--text); font-weight: bold; }
+.mgr-pool-check.checked .mgr-pool-label { color: var(--amber); }
+.mgr-pool-count { font-family: var(--font-sub); font-size: 12px; color: var(--text3); }
+.mgr-pool-total {
+  font-family: var(--font-sub);
+  font-size: 14px;
+  color: var(--text2);
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+}
+.mgr-pool-total.too-small { color: #f87171; }
 .mgr-go-btn {
   margin-top: 8px;
   padding: 18px 52px;

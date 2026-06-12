@@ -2,22 +2,27 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { MANAGERS, TIER_LABELS, TIER_COLORS, TIER_BG } from "../data/managers";
 import { ERA_LABELS, ERA_COLORS, ERA_BG } from "../data/players";
 
-const LEAGUE_CONFIG = {
-  all:            { label: "ANY LEAGUE",   flag: "🌍",  key: "all" },
-  premier_league: { label: "Premier League", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", key: "premier_league" },
-  la_liga:        { label: "La Liga",      flag: "🇪🇸",  key: "la_liga" },
-  bundesliga:     { label: "Bundesliga",   flag: "🇩🇪",  key: "bundesliga" },
-  serie_a:        { label: "Serie A",      flag: "🇮🇹",  key: "serie_a" },
-  ligue_1:        { label: "Ligue 1",      flag: "🇫🇷",  key: "ligue_1" },
-};
+const LEAGUE_CONFIG = [
+  { label: "La Liga",    flag: "🇪🇸", key: "la_liga" },
+  { label: "Serie A",    flag: "🇮🇹", key: "serie_a" },
+  { label: "Bundesliga", flag: "🇩🇪", key: "bundesliga" },
+  { label: "Ligue 1",    flag: "🇫🇷", key: "ligue_1" },
+];
+
+const TIER_CONFIG = [
+  { label: "Elite",       key: "elite" },
+  { label: "Established", key: "established" },
+  { label: "Journeyman",  key: "journeyman" },
+];
 
 function getManagerLeague(m) {
-  return m.league || "premier_league";
+  return m.league || "la_liga";
 }
 
-function getLeaguePool(leagueKey) {
-  if (leagueKey === "all") return MANAGERS;
-  return MANAGERS.filter(m => getManagerLeague(m) === leagueKey);
+function getFilteredPool(leagues, tiers) {
+  return MANAGERS.filter(m =>
+    leagues.includes(getManagerLeague(m)) && tiers.includes(m.tier)
+  );
 }
 
 function shuffle(arr) {
@@ -117,36 +122,73 @@ function PicksLog({ assignments, draft }) {
   );
 }
 
-function LeagueSelector({ onConfirm }) {
-  const [selected, setSelected] = useState("all");
+function PoolSelector({ onConfirm }) {
+  const allLeagues = LEAGUE_CONFIG.map(l => l.key);
+  const allTiers = TIER_CONFIG.map(t => t.key);
+  const [leagues, setLeagues] = useState(allLeagues);
+  const [tiers, setTiers] = useState(allTiers);
+
+  function toggleLeague(key) {
+    setLeagues(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+  }
+  function toggleTier(key) {
+    setTiers(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+  }
+
+  const pool = getFilteredPool(leagues, tiers);
+  const tooSmall = pool.length < 3;
 
   return (
     <div className="mgr-draft-screen">
       <div className="mgr-draft-header">
         <div className="mgr-draft-title">THE MERRY-GO-ROUND</div>
-        <div className="mgr-draft-sub">Manager Draft — Choose your pool</div>
+        <div className="mgr-draft-sub">Manager Draft — Build your pool</div>
       </div>
 
-      <div className="mgr-league-prompt">Which league should the managers come from?</div>
+      <div className="mgr-pool-selector">
+        <div className="mgr-pool-section">
+          <div className="mgr-pool-section-title">LEAGUES</div>
+          <div className="mgr-pool-checks">
+            {LEAGUE_CONFIG.map(cfg => {
+              const count = MANAGERS.filter(m => getManagerLeague(m) === cfg.key).length;
+              const checked = leagues.includes(cfg.key);
+              return (
+                <label key={cfg.key} className={`mgr-pool-check${checked ? " checked" : ""}`}>
+                  <input type="checkbox" checked={checked} onChange={() => toggleLeague(cfg.key)} />
+                  <span className="mgr-pool-flag">{cfg.flag}</span>
+                  <span className="mgr-pool-label">{cfg.label}</span>
+                  <span className="mgr-pool-count">{count}</span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
 
-      <div className="mgr-league-grid">
-        {Object.values(LEAGUE_CONFIG).map(cfg => {
-          const count = getLeaguePool(cfg.key).length;
-          return (
-            <button
-              key={cfg.key}
-              className={`mgr-league-btn${selected === cfg.key ? " selected" : ""}`}
-              onClick={() => setSelected(cfg.key)}
-            >
-              <span className="mgr-league-flag">{cfg.flag}</span>
-              <span className="mgr-league-name">{cfg.label}</span>
-              <span className="mgr-league-count">{count} managers</span>
-            </button>
-          );
-        })}
+        <div className="mgr-pool-section">
+          <div className="mgr-pool-section-title">TIERS</div>
+          <div className="mgr-pool-checks">
+            {TIER_CONFIG.map(cfg => {
+              const count = MANAGERS.filter(m => m.tier === cfg.key).length;
+              const checked = tiers.includes(cfg.key);
+              return (
+                <label key={cfg.key} className={`mgr-pool-check${checked ? " checked" : ""}`}>
+                  <input type="checkbox" checked={checked} onChange={() => toggleTier(cfg.key)} />
+                  <span className="mgr-pool-label">{cfg.label}</span>
+                  <span className="mgr-pool-count">{count}</span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      <button className="mgr-go-btn" onClick={() => onConfirm(selected)}>
+      <div className={`mgr-pool-total${tooSmall ? " too-small" : ""}`}>
+        {tooSmall
+          ? `Only ${pool.length} manager${pool.length === 1 ? "" : "s"} match — select more leagues or tiers`
+          : `${pool.length} managers in pool`}
+      </div>
+
+      <button className="mgr-go-btn" disabled={tooSmall} onClick={() => onConfirm(leagues, tiers)}>
         ▶ START THE MERRY-GO-ROUND
       </button>
     </div>
@@ -172,8 +214,8 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
   const allDone = turnIdx >= pickOrder.length;
   const isHuman = !currentManager?.isComputer;
 
-  function startWithLeague(leagueKey) {
-    setPool(shuffle([...getLeaguePool(leagueKey)]));
+  function startWithLeague(leagues, tiers) {
+    setPool(shuffle([...getFilteredPool(leagues, tiers)]));
     setPhase("playing");
     setWaitingForGo(true);
   }
@@ -258,7 +300,7 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
   }
 
   if (allDone) return null;
-  if (phase === "league-select") return <LeagueSelector onConfirm={startWithLeague} />;
+  if (phase === "league-select") return <PoolSelector onConfirm={startWithLeague} />;
 
   const playerName = currentManager.dofName || currentManager.name;
   const cpuReady = !isHuman && !!cpuPick && revealed >= 3;
