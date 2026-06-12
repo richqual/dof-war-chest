@@ -2,6 +2,7 @@ export const MANAGERS = [
   // ── CLASSIC ERA (1998–2008) ──────────────────────────────────────────
   {
     id: "fergie-classic",
+    league: "premier_league",
     name: "Sir Alex Ferguson",
     club: "Manchester United",
     years: "1993–2013",
@@ -13,6 +14,7 @@ export const MANAGERS = [
   },
   {
     id: "wenger-classic",
+    league: "premier_league",
     name: "Arsène Wenger",
     club: "Arsenal",
     years: "1996–2018",
@@ -24,6 +26,7 @@ export const MANAGERS = [
   },
   {
     id: "mourinho-chelsea",
+    league: "premier_league",
     name: "José Mourinho",
     club: "Chelsea",
     years: "2004–2007",
@@ -35,6 +38,7 @@ export const MANAGERS = [
   },
   {
     id: "houllier-classic",
+    league: "premier_league",
     name: "Gérard Houllier",
     club: "Liverpool",
     years: "1998–2004",
@@ -46,6 +50,7 @@ export const MANAGERS = [
   },
   {
     id: "oneill-classic",
+    league: "premier_league",
     name: "Martin O'Neill",
     club: "Aston Villa",
     years: "2006–2010",
@@ -57,6 +62,7 @@ export const MANAGERS = [
   },
   {
     id: "robson-classic",
+    league: "premier_league",
     name: "Bobby Robson",
     club: "Newcastle",
     years: "1999–2004",
@@ -68,6 +74,7 @@ export const MANAGERS = [
   },
   {
     id: "redknapp-classic",
+    league: "premier_league",
     name: "Harry Redknapp",
     club: "Portsmouth",
     years: "2002–2008",
@@ -79,6 +86,7 @@ export const MANAGERS = [
   },
   {
     id: "keegan-classic",
+    league: "premier_league",
     name: "Kevin Keegan",
     club: "Manchester City",
     years: "2001–2005",
@@ -90,6 +98,7 @@ export const MANAGERS = [
   },
   {
     id: "curbishley-classic",
+    league: "premier_league",
     name: "Alan Curbishley",
     club: "Charlton",
     years: "1991–2006",
@@ -101,6 +110,7 @@ export const MANAGERS = [
   },
   {
     id: "hoddle-classic",
+    league: "premier_league",
     name: "Glenn Hoddle",
     club: "Tottenham",
     years: "2001–2003",
@@ -112,6 +122,7 @@ export const MANAGERS = [
   },
   {
     id: "mccarthy-classic",
+    league: "premier_league",
     name: "Mick McCarthy",
     club: "Sunderland",
     years: "2003–2006",
@@ -123,6 +134,7 @@ export const MANAGERS = [
   },
   {
     id: "reid-classic",
+    league: "premier_league",
     name: "Peter Reid",
     club: "Sunderland",
     years: "1995–2002",
@@ -136,6 +148,7 @@ export const MANAGERS = [
   // ── GOLDEN ERA (2008–2016) ───────────────────────────────────────────
   {
     id: "ancelotti-golden",
+    league: "premier_league",
     name: "Carlo Ancelotti",
     club: "Chelsea",
     years: "2009–2011",
@@ -147,6 +160,7 @@ export const MANAGERS = [
   },
   {
     id: "martinez-golden",
+    league: "premier_league",
     name: "Roberto Martínez",
     club: "Wigan Athletic",
     years: "2009–2013",
@@ -158,6 +172,7 @@ export const MANAGERS = [
   },
   {
     id: "laudrup-golden",
+    league: "premier_league",
     name: "Michael Laudrup",
     club: "Swansea City",
     years: "2012–2014",
@@ -169,6 +184,7 @@ export const MANAGERS = [
   },
   {
     id: "poch-golden",
+    league: "premier_league",
     name: "Mauricio Pochettino",
     club: "Southampton",
     years: "2013–2014",
@@ -180,6 +196,7 @@ export const MANAGERS = [
   },
   {
     id: "allardyce-golden",
+    league: "premier_league",
     name: "Sam Allardyce",
     club: "West Ham",
     years: "2011–2015",
@@ -191,6 +208,7 @@ export const MANAGERS = [
   },
   {
     id: "dyche-golden",
+    league: "premier_league",
     name: "Sean Dyche",
     club: "Burnley",
     years: "2012–2022",
@@ -202,6 +220,7 @@ export const MANAGERS = [
   },
   {
     id: "poyet-golden",
+    league: "premier_league",
     name: "Gus Poyet",
     club: "Sunderland",
     years: "2013–2015",
@@ -213,6 +232,7 @@ export const MANAGERS = [
   },
   {
     id: "avb-golden",
+    league: "premier_league",
     name: "André Villas-Boas",
     club: "Tottenham",
     years: "2012–2013",
@@ -224,6 +244,7 @@ export const MANAGERS = [
   },
   {
     id: "rodgers-golden",
+    league: "premier_league",
     name: "Brendan Rodgers",
     club: "Liverpool",
     years: "2012–2015",
@@ -235,6 +256,7 @@ export const MANAGERS = [
   },
   {
     id: "pulis-golden",
+    league: "premier_league",
     name: "Tony Pulis",
     club: "Crystal Palace",
     years: "2013–2014",
@@ -246,6 +268,7 @@ export const MANAGERS = [
   },
   {
     id: "dicanio-golden",
+    league: "premier_league",
     name: "Paolo Di Canio",
     club: "Sunderland",
     years: "2013",
@@ -257,6 +280,7 @@ export const MANAGERS = [
   },
   {
     id: "sherwood-golden",
+    league: "premier_league",
     name: "Tim Sherwood",
     club: "Tottenham",
     years: "2013–2014",
@@ -270,6 +294,7 @@ export const MANAGERS = [
   // ── MODERN ERA (2016–present) ────────────────────────────────────────
   {
     id: "klopp-modern",
+    league: "premier_league",
     name: "Jürgen Klopp",
     club: "Liverpool",
     years: "2015–2024",
@@ -281,6 +306,7 @@ export const MANAGERS = [
   },
   {
     id: "guardiola-modern",
+    league: "premier_league",
     name: "Pep Guardiola",
     club: "Manchester City",
     years: "2016–",
@@ -292,6 +318,7 @@ export const MANAGERS = [
   },
   {
     id: "conte-modern",
+    league: "premier_league",
     name: "Antonio Conte",
     club: "Chelsea",
     years: "2016–2018",
@@ -303,6 +330,7 @@ export const MANAGERS = [
   },
   {
     id: "tuchel-modern",
+    league: "premier_league",
     name: "Thomas Tuchel",
     club: "Chelsea",
     years: "2021–2022",
@@ -314,6 +342,7 @@ export const MANAGERS = [
   },
   {
     id: "arteta-modern",
+    league: "premier_league",
     name: "Mikel Arteta",
     club: "Arsenal",
     years: "2019–",
@@ -325,6 +354,7 @@ export const MANAGERS = [
   },
   {
     id: "howe-modern",
+    league: "premier_league",
     name: "Eddie Howe",
     club: "Newcastle",
     years: "2021–",
@@ -336,6 +366,7 @@ export const MANAGERS = [
   },
   {
     id: "bielsa-modern",
+    league: "premier_league",
     name: "Marcelo Bielsa",
     club: "Leeds United",
     years: "2018–2022",
@@ -347,6 +378,7 @@ export const MANAGERS = [
   },
   {
     id: "emery-modern",
+    league: "premier_league",
     name: "Unai Emery",
     club: "Aston Villa",
     years: "2022–",
@@ -358,6 +390,7 @@ export const MANAGERS = [
   },
   {
     id: "nuno-modern",
+    league: "premier_league",
     name: "Nuno Espírito Santo",
     club: "Wolverhampton",
     years: "2017–2021",
@@ -369,6 +402,7 @@ export const MANAGERS = [
   },
   {
     id: "potter-modern",
+    league: "premier_league",
     name: "Graham Potter",
     club: "Chelsea",
     years: "2022–2023",
@@ -380,6 +414,7 @@ export const MANAGERS = [
   },
   {
     id: "maresca-modern",
+    league: "premier_league",
     name: "Enzo Maresca",
     club: "Chelsea",
     years: "2024–",
@@ -391,6 +426,7 @@ export const MANAGERS = [
   },
   {
     id: "slot-modern",
+    league: "premier_league",
     name: "Arne Slot",
     club: "Liverpool",
     years: "2024–",

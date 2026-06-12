@@ -3,10 +3,11 @@ import { MANAGERS, TIER_LABELS, TIER_COLORS, TIER_BG } from "../data/managers";
 import { ERA_LABELS, ERA_COLORS, ERA_BG } from "../data/players";
 
 const LEAGUE_CONFIG = [
-  { label: "La Liga",    flag: "🇪🇸", key: "la_liga" },
-  { label: "Serie A",    flag: "🇮🇹", key: "serie_a" },
-  { label: "Bundesliga", flag: "🇩🇪", key: "bundesliga" },
-  { label: "Ligue 1",    flag: "🇫🇷", key: "ligue_1" },
+  { label: "Premier League", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", key: "premier_league" },
+  { label: "La Liga",        flag: "🇪🇸", key: "la_liga" },
+  { label: "Serie A",        flag: "🇮🇹", key: "serie_a" },
+  { label: "Bundesliga",     flag: "🇩🇪", key: "bundesliga" },
+  { label: "Ligue 1",        flag: "🇫🇷", key: "ligue_1" },
 ];
 
 const TIER_CONFIG = [
