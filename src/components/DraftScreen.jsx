@@ -14,15 +14,35 @@ export default function DraftScreen({
   confirmBudget, pickPlayer, getAvailablePlayers, getTakenPlayers,
   skipTurn, autoCompleteDraft, skipCpuTurns,
 }) {
-  const [filterEra, setFilterEra] = useState("all");
-  const [filterLeague, setFilterLeague] = useState("all");
+  const [filterEra, setFilterEra] = useState(new Set(["classic", "golden", "modern"]));
+  const [filterLeague, setFilterLeague] = useState(new Set(["premier_league", "la_liga", "serie_a", "bundesliga", "ligue_1"]));
   const [filterTiers, setFilterTiers] = useState(new Set(["T1", "T2", "T3", "T4", "T5"]));
-  const [sortBy, setSortBy] = useState("rating");
   const [transition, setTransition] = useState(null);
   const [showMySquad, setShowMySquad] = useState(false);
   const [pendingPlayer, setPendingPlayer] = useState(null);
+  const [showEraDropdown, setShowEraDropdown] = useState(false);
+  const [showLeagueDropdown, setShowLeagueDropdown] = useState(false);
+  const [showTierDropdown, setShowTierDropdown] = useState(false);
 
-  function toggleTierFilter(tier) {
+  function toggleEra(era) {
+    setFilterEra(prev => {
+      const next = new Set(prev);
+      if (next.has(era)) next.delete(era);
+      else next.add(era);
+      return next;
+    });
+  }
+
+  function toggleLeague(league) {
+    setFilterLeague(prev => {
+      const next = new Set(prev);
+      if (next.has(league)) next.delete(league);
+      else next.add(league);
+      return next;
+    });
+  }
+
+  function toggleTier(tier) {
     setFilterTiers(prev => {
       const next = new Set(prev);
       if (next.has(tier)) next.delete(tier);
@@ -34,12 +54,12 @@ export default function DraftScreen({
   const { currentBudget, currentOrder, turnIndex, positionIndex, managers, hideRatings } = draft;
 
   let available = getAvailablePlayers(currentPos.key);
-  if (filterEra !== "all") available = available.filter(p => p.era === filterEra);
-  if (filterLeague !== "all") available = available.filter(p => p.league === filterLeague);
+  if (filterEra.size > 0) available = available.filter(p => filterEra.has(p.era));
+  if (filterLeague.size > 0) available = available.filter(p => filterLeague.has(p.league));
 
-  // When no era filter, consolidate duplicate players by name to their peak version
+  // When all leagues selected, consolidate duplicate players by name to their peak version
   // Collects all clubs they played for in that league
-  if (filterEra === "all" && filterLeague !== "all") {
+  if (filterLeague.size === 5) {
     const byName = {};
     for (const player of available) {
       if (!byName[player.name]) {
@@ -75,6 +95,9 @@ export default function DraftScreen({
     const orderB = draft?.playerOrder?.get(b.id) ?? 0;
     return orderA - orderB;
   });
+
+  // Sort by value within tier groups
+  available = [...available].sort((a, b) => a.value - b.value);
 
   const affordable = available.filter(p => currentBudget !== null && p.value <= currentBudget);
   const tooExpensive = available.filter(p => currentBudget !== null && p.value > currentBudget);
@@ -270,40 +293,79 @@ export default function DraftScreen({
         ) : (
           <div className="player-list-area">
             <div className="filter-bar">
-              <select className="cm-select" value={filterLeague} onChange={e => setFilterLeague(e.target.value)}>
-                <option value="all">All leagues</option>
-                <option value="premier_league">Premier League</option>
-                <option value="la_liga">La Liga</option>
-                <option value="serie_a">Serie A</option>
-                <option value="bundesliga">Bundesliga</option>
-                <option value="ligue_1">Ligue 1</option>
-              </select>
-              <select className="cm-select" value={filterEra} onChange={e => setFilterEra(e.target.value)}>
-                <option value="all">All eras</option>
-                <option value="classic">Classic 98–08</option>
-                <option value="golden">Golden 08–16</option>
-                <option value="modern">Modern 16–</option>
-              </select>
-              <select className="cm-select" value={sortBy} onChange={e => setSortBy(e.target.value)}>
-                <option value="rating">{hideRatings ? "Sort: Alphabetical" : "Sort: Rating ↓"}</option>
-                <option value="value">Sort: Cheapest first</option>
-              </select>
+              <div className="filter-dropdown">
+                <button className="filter-dropdown-btn" onClick={() => setShowLeagueDropdown(!showLeagueDropdown)}>
+                  LEAGUES ({filterLeague.size})
+                </button>
+                {showLeagueDropdown && (
+                  <div className="filter-dropdown-menu">
+                    {[
+                      { value: "premier_league", label: "Premier League" },
+                      { value: "la_liga", label: "La Liga" },
+                      { value: "serie_a", label: "Serie A" },
+                      { value: "bundesliga", label: "Bundesliga" },
+                      { value: "ligue_1", label: "Ligue 1" }
+                    ].map(league => (
+                      <label key={league.value} className="filter-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={filterLeague.has(league.value)}
+                          onChange={() => toggleLeague(league.value)}
+                        />
+                        {league.label}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="filter-dropdown">
+                <button className="filter-dropdown-btn" onClick={() => setShowEraDropdown(!showEraDropdown)}>
+                  ERAS ({filterEra.size})
+                </button>
+                {showEraDropdown && (
+                  <div className="filter-dropdown-menu">
+                    {[
+                      { value: "classic", label: "Classic 98–08" },
+                      { value: "golden", label: "Golden 08–16" },
+                      { value: "modern", label: "Modern 16–" }
+                    ].map(era => (
+                      <label key={era.value} className="filter-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={filterEra.has(era.value)}
+                          onChange={() => toggleEra(era.value)}
+                        />
+                        {era.label}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="filter-dropdown">
+                <button className="filter-dropdown-btn" onClick={() => setShowTierDropdown(!showTierDropdown)}>
+                  TIERS ({filterTiers.size})
+                </button>
+                {showTierDropdown && (
+                  <div className="filter-dropdown-menu">
+                    {["T1", "T2", "T3", "T4", "T5"].map(tier => (
+                      <label key={tier} className="filter-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={filterTiers.has(tier)}
+                          onChange={() => toggleTier(tier)}
+                        />
+                        {tier}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <span className="affordable-count">
                 {affordable.length} affordable / {available.length} total
               </span>
-            </div>
-
-            <div className="tier-filter-bar">
-              <span className="tier-label">TIERS:</span>
-              {["T1", "T2", "T3", "T4", "T5"].map(tier => (
-                <button
-                  key={tier}
-                  className={`tier-btn ${filterTiers.has(tier) ? "active" : ""}`}
-                  onClick={() => toggleTierFilter(tier)}
-                >
-                  {tier}
-                </button>
-              ))}
             </div>
 
             <div className="player-list">
