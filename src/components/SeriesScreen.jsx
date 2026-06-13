@@ -398,7 +398,7 @@ async function drawSquadCard(manager) {
   ctx.font = `13px 'VT323', monospace`;
   ctx.fillStyle = text3;
   ctx.textAlign = "center";
-  ctx.fillText("DOF: WAR CHEST  ·  transfer-game.vercel.app", W / 2, y + 10);
+  ctx.fillText("THE FOOTBALL DIRECTOR  ·  transfer-game.vercel.app", W / 2, y + 10);
 
   // Bottom bar
   ctx.fillStyle = primary;
@@ -572,7 +572,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
               <button className="sim-btn" onClick={playNextMatch}>
                 ▶ PLAY{nextMatchup.matchNum > 1 ? ` MATCH ${nextMatchup.matchNum}` : " FIRST MATCH"}
               </button>
-              <button className="sim-btn secondary" onClick={() => setScreen("squads")}>VIEW SQUADS</button>
+              <button className="sim-btn secondary" onClick={() => setScreen("squads")}>TEAM MANAGEMENT</button>
             </div>
           )}
 

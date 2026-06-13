@@ -59,7 +59,7 @@ function GlobalMenu({ light, onToggle, hasGame, onAbandon, extraOptions }) {
       {open && (
         <div className="global-menu-overlay" onClick={() => setOpen(false)}>
           <div className="global-menu-box" onClick={e => e.stopPropagation()}>
-            <div className="global-menu-title">DoF: WAR CHEST</div>
+            <div className="global-menu-title">THE FOOTBALL DIRECTOR</div>
 
             <button className="global-menu-item" onClick={() => setOpen(false)}>
               ▶ CONTINUE
@@ -262,7 +262,7 @@ function AppInner() {
   return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
 }
 
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "1.1.2";
 
 function AppFooter() {
   return (

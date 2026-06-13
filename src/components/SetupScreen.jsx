@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RANDOM_CLUB_NAMES, RANDOM_MANAGER_NAMES } from "../data/players";
+import { RANDOM_CLUB_NAMES, RANDOM_MANAGER_NAMES, EASTER_EGG_TEAMS } from "../data/players";
 import KitSwatch from "./KitSwatch";
 
 const DEFAULT_COLORS = [
@@ -30,6 +30,20 @@ function randomManagerName() {
   return RANDOM_MANAGER_NAMES[Math.floor(Math.random() * RANDOM_MANAGER_NAMES.length)];
 }
 
+// 25% chance of an Easter egg identity; otherwise standard random kit + name.
+function randomCpuIdentity(existingClubName = "") {
+  if (Math.random() < 0.25) {
+    const egg = EASTER_EGG_TEAMS[Math.floor(Math.random() * EASTER_EGG_TEAMS.length)];
+    return { clubName: egg.clubName, dofName: egg.dofName, primaryColor: egg.primary, secondaryColor: egg.secondary, pattern: egg.pattern };
+  }
+  const kit = CPU_KITS[Math.floor(Math.random() * CPU_KITS.length)];
+  let name;
+  do { name = randomClubName(); } while (name === existingClubName);
+  const r = Math.random();
+  const pattern = r < 0.35 ? "stripes" : r < 0.45 ? "hoops" : "plain";
+  return { clubName: name, dofName: randomManagerName(), primaryColor: kit.primary, secondaryColor: kit.secondary, pattern };
+}
+
 function ClubSetup({ index, club, onChange, onRemove, canRemove }) {
   const defaults = DEFAULT_COLORS[index % DEFAULT_COLORS.length];
 
@@ -52,15 +66,15 @@ function ClubSetup({ index, club, onChange, onRemove, canRemove }) {
       onChange({ ...club, isComputer: false });
       return;
     }
-    const kit = CPU_KITS[Math.floor(Math.random() * CPU_KITS.length)];
+    const identity = randomCpuIdentity(club.clubName.trim());
     onChange({
       ...club,
       isComputer: true,
-      dofName: club.dofName.trim() ? club.dofName : randomManagerName(),
-      clubName: club.clubName.trim() ? club.clubName : randomClubName(),
-      primaryColor: kit.primary,
-      secondaryColor: kit.secondary,
-      pattern: Math.random() < 0.4 ? "stripes" : "plain",
+      dofName: club.dofName.trim() ? club.dofName : identity.dofName,
+      clubName: club.clubName.trim() ? club.clubName : identity.clubName,
+      primaryColor: identity.primaryColor,
+      secondaryColor: identity.secondaryColor,
+      pattern: identity.pattern,
     });
   }
 
@@ -125,25 +139,31 @@ function ClubSetup({ index, club, onChange, onRemove, canRemove }) {
             uid={`c${index}`}
           />
           <div className="colour-pair">
-            <label className="colour-label">Home
-              <input type="color" className="colour-input"
-                value={club.primaryColor || defaults.primary}
-                onChange={e => onChange({ ...club, primaryColor: e.target.value })} />
-            </label>
-            <label className="colour-label">Away
-              <input type="color" className="colour-input"
-                value={club.secondaryColor || defaults.secondary}
-                onChange={e => onChange({ ...club, secondaryColor: e.target.value })} />
-            </label>
+            <input type="color" className="colour-input"
+              value={club.primaryColor || defaults.primary}
+              onChange={e => onChange({ ...club, primaryColor: e.target.value })} />
+            <input type="color" className="colour-input"
+              value={club.secondaryColor || defaults.secondary}
+              onChange={e => onChange({ ...club, secondaryColor: e.target.value })} />
           </div>
           <div className="pattern-btns">
-            {["plain", "stripes"].map(pat => (
-              <button
-                key={pat}
-                className={`pattern-btn ${(club.pattern || "plain") === pat ? "active" : ""}`}
-                onClick={() => onChange({ ...club, pattern: pat })}
-              >{pat === "plain" ? "■" : "▦"}</button>
-            ))}
+            {(() => {
+              const PATTERNS = [
+                { key: "plain", label: "Plain" },
+                { key: "stripes", label: "Stripes" },
+                { key: "hoops", label: "Hoops" },
+              ];
+              const cur = club.pattern || "plain";
+              const idx = PATTERNS.findIndex(p => p.key === cur);
+              const next = PATTERNS[(idx + 1) % PATTERNS.length];
+              return (
+                <button
+                  className="pattern-btn active"
+                  onClick={() => onChange({ ...club, pattern: next.key })}
+                  title={`Switch to ${next.label}`}
+                >🔄</button>
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -179,6 +199,8 @@ export default function SetupScreen({ onStart }) {
   const [difficulty, setDifficulty] = useState("normal");
   const [format, setFormat] = useState("bo7");
   const [managerTiming, setManagerTiming] = useState("before");
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
   const formatOptions = clubs.length === 2 ? FORMAT_OPTIONS_2 : FORMAT_OPTIONS_4;
   const validFormats = formatOptions.map(f => f.key);
@@ -201,14 +223,14 @@ export default function SetupScreen({ onStart }) {
     if (!canStart) return;
     let finalClubs = clubs.map(c => ({ ...c, dofName: c.dofName.trim(), clubName: c.clubName.trim() }));
     if (finalClubs.length === 3) {
-      const kit = CPU_KITS[Math.floor(Math.random() * CPU_KITS.length)];
+      const identity = randomCpuIdentity();
       const cpu = {
         isComputer: true,
-        dofName: randomManagerName(),
-        clubName: randomClubName(),
-        primaryColor: kit.primary,
-        secondaryColor: kit.secondary,
-        pattern: Math.random() < 0.4 ? "stripes" : "plain",
+        dofName: identity.dofName,
+        clubName: identity.clubName,
+        primaryColor: identity.primaryColor,
+        secondaryColor: identity.secondaryColor,
+        pattern: identity.pattern,
       };
       finalClubs = [...finalClubs, cpu];
     }
@@ -219,18 +241,13 @@ export default function SetupScreen({ onStart }) {
     <div className="setup-screen">
       <div className="setup-card setup-card-wide">
         <div className="setup-header">
-          <div className="setup-badge">TRANSFER WINDOW</div>
-          <h1 className="setup-title">DoF: War Chest</h1>
-          <p className="setup-sub">You are a Director of Football. Build a legendary squad spanning generations.</p>
+          <h1 className="setup-title">The Football Director</h1>
+          <p className="setup-sub">Build a squad. Spin the wheel. Become a legend.</p>
         </div>
 
-        <div className="setup-rules">
-          <div className="rules-title">HOW IT WORKS</div>
-          <div className="rules-body">
-            Each turn spin the budget wheel (£0–200m). Pick one player for the current
-            position — unspent money carries over to your next pick. Draft order rotates
-            each round. 16 players: 11 starters + 5 subs. Then simulate the match.
-          </div>
+        <div className="setup-rules setup-rules-getstarted">
+          <div className="rules-title">GET STARTED</div>
+          <p className="rules-intro">Enter your name and create your club to begin. Supports 1–4 human players, with 2 or 4 teams per game — CPU sides fill any empty slots.</p>
         </div>
 
         <div className="clubs-grid">
@@ -296,55 +313,85 @@ export default function SetupScreen({ onStart }) {
             </div>
           </div>
 
-          <div className="difficulty-section">
-            <span className="field-label-sm">MANAGER DRAFT TIMING</span>
-            <div className="difficulty-row">
-              <button
-                className={`difficulty-btn ${managerTiming === "before" ? "active" : ""}`}
-                onClick={() => setManagerTiming("before")}
-              >BEFORE DRAFT</button>
-              <button
-                className={`difficulty-btn ${managerTiming === "after" ? "active" : ""}`}
-                onClick={() => setManagerTiming("after")}
-              >AFTER DRAFT</button>
-            </div>
-            <div className="difficulty-hint">
-              {managerTiming === "before"
-                ? "Spin the Merry-Go-Round first, then build your squad"
-                : "Build your squad first, then spin the Merry-Go-Round"}
-            </div>
-          </div>
+          <button
+            className="advanced-toggle"
+            onClick={() => setShowAdvanced(v => !v)}
+          >
+            {showAdvanced ? "▲" : "▼"} ADVANCED OPTIONS
+          </button>
 
-          <label className="option-row">
-            <input
-              type="checkbox"
-              className="option-checkbox"
-              checked={hideRatings}
-              onChange={e => setHideRatings(e.target.checked)}
-            />
-            <span className="option-label">Hide player ratings during draft</span>
-            <span className="option-hint">Adds mystery — pick on reputation alone</span>
-          </label>
-          <label className="option-row">
-            <input
-              type="checkbox"
-              className="option-checkbox"
-              checked={dynamicValues}
-              onChange={e => setDynamicValues(e.target.checked)}
-            />
-            <span className="option-label">Randomize player values each game</span>
-            <span className="option-hint">Prices vary by tier — no two games are alike</span>
-          </label>
-          <label className="option-row">
-            <input
-              type="checkbox"
-              className="option-checkbox"
-              checked={dynamicForm}
-              onChange={e => setDynamicForm(e.target.checked)}
-            />
-            <span className="option-label">Apply player form variance</span>
-            <span className="option-hint">Hot form +2, poor form -2 — bargains and traps daily</span>
-          </label>
+          {showAdvanced && (
+            <div className="advanced-options">
+              <label className="option-row">
+                <input
+                  type="checkbox"
+                  className="option-checkbox"
+                  checked={managerTiming === "before"}
+                  onChange={e => setManagerTiming(e.target.checked ? "before" : "after")}
+                />
+                <span className="option-label">Manager draft before squad draft</span>
+                <span className="option-hint">Spin the Merry-Go-Round first, then build your squad</span>
+              </label>
+              <label className="option-row">
+                <input
+                  type="checkbox"
+                  className="option-checkbox"
+                  checked={hideRatings}
+                  onChange={e => setHideRatings(e.target.checked)}
+                />
+                <span className="option-label">Hide player ratings during draft</span>
+                <span className="option-hint">Adds mystery — pick on reputation alone</span>
+              </label>
+              <label className="option-row">
+                <input
+                  type="checkbox"
+                  className="option-checkbox"
+                  checked={dynamicValues}
+                  onChange={e => setDynamicValues(e.target.checked)}
+                />
+                <span className="option-label">Randomize player values each game</span>
+                <span className="option-hint">Prices vary by tier — no two games are alike</span>
+              </label>
+              <label className="option-row">
+                <input
+                  type="checkbox"
+                  className="option-checkbox"
+                  checked={dynamicForm}
+                  onChange={e => setDynamicForm(e.target.checked)}
+                />
+                <span className="option-label">Apply player form variance</span>
+                <span className="option-hint">Hot form +2, poor form -2 — bargains and traps daily</span>
+              </label>
+            </div>
+          )}
+        </div>
+
+        <div className="setup-rules">
+          <div className="rules-title">HOW IT WORKS</div>
+          <p className="rules-intro">
+            You are a Director of Football tasked with building a new team from the ground up.
+            Jump on the Managerial Merry-Go-Round, try your luck on the transfer wheel and
+            build a squad of 16 players to become the ultimate football director.
+          </p>
+          <button className="rules-toggle" onClick={() => setShowRules(v => !v)}>
+            {showRules ? "▲ hide rules" : "▼ see rules"}
+          </button>
+          {showRules && (
+            <div className="rules-detail">
+              <ul className="rules-bullets">
+                <li>Spin the Managerial Merry-Go-Round to assign a manager to your squad</li>
+                <li>Spin the budget wheel each turn — £0 to £200m, unspent carries over</li>
+                <li>Draft one player per position until your squad of 16 is complete</li>
+                <li>Draft order rotates each round — no one picks last forever</li>
+                <li>A squad that suits your manager's style will perform better on match day</li>
+                <li>Simulate the match and see who built the best team</li>
+                <li>Each position is drafted in sequence: GK, DEF ×4, MID ×4, ATT ×3, then 4 subs</li>
+                <li>Player values vary each game if randomised prices is on — no two drafts alike</li>
+                <li>Form variance can add or subtract up to 2 rating points on match day</li>
+                <li>Manager quality affects your team's overall match rating — choose wisely</li>
+              </ul>
+            </div>
+          )}
         </div>
 
         <button

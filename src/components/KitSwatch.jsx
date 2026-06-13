@@ -45,19 +45,27 @@ export function teamAccent(primary, secondary) {
 }
 
 export default function KitSwatch({ primary, secondary, pattern = "plain", uid = "0", size = 36 }) {
-  const patId = `stripe-${uid}`;
+  const patId = `pat-${uid}`;
   return (
     <svg width={size} height={size} viewBox="0 0 28 28" style={{ flexShrink: 0 }}>
-      {pattern === "stripes" && (
+      {(pattern === "stripes" || pattern === "hoops") && (
         <defs>
-          <pattern id={patId} x="0" y="0" width="4" height="28" patternUnits="userSpaceOnUse">
-            <rect width="2" height="28" fill={primary} />
-            <rect x="2" width="2" height="28" fill={secondary} />
-          </pattern>
+          {pattern === "stripes" && (
+            <pattern id={patId} x="0" y="0" width="4" height="28" patternUnits="userSpaceOnUse">
+              <rect width="2" height="28" fill={primary} />
+              <rect x="2" width="2" height="28" fill={secondary} />
+            </pattern>
+          )}
+          {pattern === "hoops" && (
+            <pattern id={patId} x="0" y="0" width="28" height="4" patternUnits="userSpaceOnUse">
+              <rect width="28" height="2" fill={primary} />
+              <rect y="2" width="28" height="2" fill={secondary} />
+            </pattern>
+          )}
         </defs>
       )}
       <path d="M10 2 L4 7 L7 9 L7 24 L21 24 L21 9 L24 7 L18 2 L15 5 L13 5 Z"
-        fill={pattern === "stripes" ? `url(#${patId})` : primary}
+        fill={(pattern === "stripes" || pattern === "hoops") ? `url(#${patId})` : primary}
         stroke={secondary} strokeWidth="1.5" />
       <path d="M10 2 L13 5 L15 5 L18 2 L15 7 L13 7 Z" fill={secondary} />
     </svg>

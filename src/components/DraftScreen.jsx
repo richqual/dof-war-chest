@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { POSITIONS, generateBudget, chooseCpuPick } from "../data/players";
-import PlayerCard from "./PlayerCard";
+import PlayerCard, { ARCHETYPE_COLOR } from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
 import TurnTransition from "./TurnTransition";
 import MySquadPanel from "./MySquadPanel";
@@ -14,9 +14,25 @@ export default function DraftScreen({
   confirmBudget, pickPlayer, getAvailablePlayers, getTakenPlayers,
   skipTurn, respin, autoCompleteDraft, skipCpuTurns,
 }) {
+  const GK_ARCHETYPES = ["Sweeper Keeper", "Shot Stopper", "Organiser"];
+  const OUTFIELD_ARCHETYPES = ["Warrior", "Technician", "Maverick", "Grinder", "Leader", "Athlete"];
+  const isGkPos = currentPos.key === "GK" || currentPos.key === "GKSUB";
+  const relevantArchetypes = isGkPos ? GK_ARCHETYPES : OUTFIELD_ARCHETYPES;
+
   const [filterEra, setFilterEra] = useState(new Set(["classic", "golden", "modern"]));
   const [filterLeague, setFilterLeague] = useState(new Set(["premier_league", "la_liga", "serie_a", "bundesliga", "ligue_1"]));
   const [filterTiers, setFilterTiers] = useState(new Set(["T1", "T2", "T3", "T4", "T5"]));
+  const [filterArchetypes, setFilterArchetypes] = useState(new Set(relevantArchetypes));
+
+  // Reset archetype filter when switching between GK and outfield positions
+  const [lastPosCategory, setLastPosCategory] = useState(isGkPos ? "gk" : "outfield");
+  useEffect(() => {
+    const cat = isGkPos ? "gk" : "outfield";
+    if (cat !== lastPosCategory) {
+      setFilterArchetypes(new Set(relevantArchetypes));
+      setLastPosCategory(cat);
+    }
+  }, [isGkPos]);
   const [sortBy, setSortBy] = useState("tier");
   const [sortDir, setSortDir] = useState("asc");
   const [transition, setTransition] = useState(null);
@@ -25,6 +41,9 @@ export default function DraftScreen({
   const [showEraDropdown, setShowEraDropdown] = useState(false);
   const [showLeagueDropdown, setShowLeagueDropdown] = useState(false);
   const [showTierDropdown, setShowTierDropdown] = useState(false);
+  const [showArchetypeDropdown, setShowArchetypeDropdown] = useState(false);
+  const [hideBadges, setHideBadges] = useState(false);
+  const [showArchetypeLegend, setShowArchetypeLegend] = useState(false);
 
   function toggleEra(era) {
     setFilterEra(prev => {
@@ -49,6 +68,15 @@ export default function DraftScreen({
       const next = new Set(prev);
       if (next.has(tier)) next.delete(tier);
       else next.add(tier);
+      return next;
+    });
+  }
+
+  function toggleArchetype(archetype) {
+    setFilterArchetypes(prev => {
+      const next = new Set(prev);
+      if (next.has(archetype)) next.delete(archetype);
+      else next.add(archetype);
       return next;
     });
   }
@@ -87,6 +115,11 @@ export default function DraftScreen({
 
   // Filter by selected tiers
   available = available.filter(p => filterTiers.has(p.tier));
+
+  // Filter by archetype (only apply when not all relevant archetypes selected)
+  if (filterArchetypes.size < relevantArchetypes.length) {
+    available = available.filter(p => !p.archetype || filterArchetypes.has(p.archetype));
+  }
 
   // Sort
   const tierOrder = { T1: 1, T2: 2, T3: 3, T4: 4, T5: 5 };
@@ -208,9 +241,54 @@ export default function DraftScreen({
         <MySquadPanel manager={activeManager} onClose={() => setShowMySquad(false)} />
       )}
 
+      {showArchetypeLegend && (
+        <div className="menu-overlay" onClick={() => setShowArchetypeLegend(false)}>
+          <div className="menu-box archetype-legend-box" onClick={e => e.stopPropagation()}>
+            <div className="menu-title">ARCHETYPES & ERAS</div>
+            <div className="legend-section-label">ARCHETYPES</div>
+            {[
+              { name: "Warrior",          desc: "Wins the ball, wins the battle. Tough, combative, never gives up." },
+              { name: "Technician",       desc: "Passes, moves, controls. The game flows through them." },
+              { name: "Maverick",         desc: "Unpredictable genius. Moments of magic, moments of madness." },
+              { name: "Grinder",          desc: "Does the dirty work. Consistent, reliable, never flashy." },
+              { name: "Leader",           desc: "Lifts the team. Commands the dressing room and the pitch." },
+              { name: "Athlete",          desc: "Pace, power, engine. Gets up and down all day long." },
+              { name: "Sweeper Keeper",   desc: "Commands the box and beyond. Comfortable with the ball at their feet." },
+              { name: "Shot Stopper",     desc: "Pure reflex goalkeeper. Spectacular saves, line presence." },
+              { name: "Organiser",        desc: "Marshals the defence. Reads the game, talks constantly." },
+            ].map(({ name, desc }) => {
+              const colors = ARCHETYPE_COLOR[name] || { bg: "#222", fg: "#aaa" };
+              return (
+                <div key={name} className="legend-row legend-row--desc">
+                  <span className="legend-initial" style={{ background: colors.bg, color: colors.fg, border: `1px solid ${colors.fg}44` }}>
+                    {name[0]}
+                  </span>
+                  <div>
+                    <div className="legend-name" style={{ color: colors.fg }}>{name}</div>
+                    <div className="legend-desc">{desc}</div>
+                  </div>
+                </div>
+              );
+            })}
+            <div className="legend-section-label" style={{ marginTop: 12 }}>ERAS</div>
+            {[
+              { key: "C", label: "Classic", years: "1998–2008", color: "#88aaff" },
+              { key: "G", label: "Golden", years: "2008–2016", color: "#ffd700" },
+              { key: "M", label: "Modern", years: "2016–present", color: "#80ff80" },
+            ].map(e => (
+              <div key={e.key} className="legend-row">
+                <span className="legend-initial" style={{ background: "#222", color: e.color, border: `1px solid ${e.color}55` }}>{e.key}</span>
+                <span className="legend-name" style={{ color: e.color }}>{e.label} <span style={{ color: "#888", fontSize: 11 }}>{e.years}</span></span>
+              </div>
+            ))}
+            <button className="menu-item" style={{ marginTop: 14 }} onClick={() => setShowArchetypeLegend(false)}>CLOSE</button>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="draft-header">
-        <span className="game-title">DoF: War Chest</span>
+        <span className="game-title">The Football Director</span>
         <div className="manager-tabs">
           {managers.map((m, i) => (
             <span
@@ -303,7 +381,7 @@ export default function DraftScreen({
               <div className="filter-dropdown">
                 <button
                   className={`filter-dropdown-btn${showLeagueDropdown ? " open" : filterLeague.size < 5 ? " partial" : ""}`}
-                  onClick={() => { setShowLeagueDropdown(s => !s); setShowEraDropdown(false); setShowTierDropdown(false); }}
+                  onClick={() => { setShowLeagueDropdown(s => !s); setShowEraDropdown(false); setShowTierDropdown(false); setShowArchetypeDropdown(false); }}
                 >
                   LEAGUES {filterLeague.size < 5 ? `(${filterLeague.size}/5)` : ""}
                 </button>
@@ -332,7 +410,7 @@ export default function DraftScreen({
               <div className="filter-dropdown">
                 <button
                   className={`filter-dropdown-btn${showEraDropdown ? " open" : filterEra.size < 3 ? " partial" : ""}`}
-                  onClick={() => { setShowEraDropdown(s => !s); setShowLeagueDropdown(false); setShowTierDropdown(false); }}
+                  onClick={() => { setShowEraDropdown(s => !s); setShowLeagueDropdown(false); setShowTierDropdown(false); setShowArchetypeDropdown(false); }}
                 >
                   ERAS {filterEra.size < 3 ? `(${filterEra.size}/3)` : ""}
                 </button>
@@ -359,7 +437,7 @@ export default function DraftScreen({
               <div className="filter-dropdown">
                 <button
                   className={`filter-dropdown-btn${showTierDropdown ? " open" : filterTiers.size < 5 ? " partial" : ""}`}
-                  onClick={() => { setShowTierDropdown(s => !s); setShowLeagueDropdown(false); setShowEraDropdown(false); }}
+                  onClick={() => { setShowTierDropdown(s => !s); setShowLeagueDropdown(false); setShowEraDropdown(false); setShowArchetypeDropdown(false); }}
                 >
                   TIERS {filterTiers.size < 5 ? `(${filterTiers.size}/5)` : ""}
                 </button>
@@ -385,6 +463,32 @@ export default function DraftScreen({
                 )}
               </div>
 
+              <div className="filter-dropdown">
+                <button
+                  className={`filter-dropdown-btn${showArchetypeDropdown ? " open" : filterArchetypes.size < relevantArchetypes.length ? " partial" : ""}`}
+                  onClick={() => { setShowArchetypeDropdown(s => !s); setShowTierDropdown(false); setShowLeagueDropdown(false); setShowEraDropdown(false); }}
+                >
+                  TYPE {filterArchetypes.size < relevantArchetypes.length ? `(${filterArchetypes.size}/${relevantArchetypes.length})` : ""}
+                </button>
+                {showArchetypeDropdown && (
+                  <div className="filter-dropdown-menu">
+                    {relevantArchetypes.map(archetype => {
+                      const arc = ARCHETYPE_COLOR[archetype] || { fg: "#aaa" };
+                      return (
+                        <label key={archetype} className="filter-checkbox">
+                          <input
+                            type="checkbox"
+                            checked={filterArchetypes.has(archetype)}
+                            onChange={() => toggleArchetype(archetype)}
+                          />
+                          <span style={{ color: arc.fg }}>{archetype}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
               <div className="filter-sort-row">
                 <span className="filter-sort-label">SORT</span>
                 {[
@@ -405,6 +509,23 @@ export default function DraftScreen({
                 ))}
               </div>
 
+              <div className="filter-badge-controls">
+                <button
+                  className={`sort-btn${hideBadges ? " active" : ""}`}
+                  onClick={() => setHideBadges(h => !h)}
+                  title="Toggle era & archetype badges"
+                >
+                  {hideBadges ? "BADGES OFF" : "BADGES ON"}
+                </button>
+                <button
+                  className="sort-btn legend-btn"
+                  onClick={() => setShowArchetypeLegend(true)}
+                  title="Archetype & era legend"
+                >
+                  ?
+                </button>
+              </div>
+
               <span className="affordable-count">
                 {affordable.length} affordable / {available.length} total
               </span>
@@ -422,13 +543,13 @@ export default function DraftScreen({
                 </div>
               )}
               {affordable.map(p => (
-                <PlayerCard key={p.id} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} />
+                <PlayerCard key={p.id} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} />
               ))}
               {tooExpensive.length > 0 && (
                 <>
                   <div className="section-divider">OUT OF BUDGET</div>
                   {tooExpensive.map(p => (
-                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} />
+                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} />
                   ))}
                 </>
               )}
@@ -436,7 +557,7 @@ export default function DraftScreen({
                 <>
                   <div className="section-divider">ALREADY SIGNED</div>
                   {takenPlayers.map(p => (
-                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} takenBy={p.ownedBy} />
+                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} takenBy={p.ownedBy} />
                   ))}
                 </>
               )}

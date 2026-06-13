@@ -1384,12 +1384,23 @@ export function generateBudget(difficulty = "normal") {
 }
 
 export const RANDOM_MANAGER_NAMES = [
+  // English
   "Ron Atherton","Terry Calloway","Dave Brackley","Steve Hollins",
   "Barry Quigley","Mick Stanhope","Graham Tindall","Les Farnworth",
   "Alan Dewhurst","Keith Mowbray","Roy Cattermole","Frank Ogden",
-  "Sergio Valenti","Hans Brouwer","Claude Mercier","Jorge Camacho",
-  "Sven Lindqvist","Marco Tardioli","Didier Lavelle","Tomasz Wojcik",
   "Brian McAllister","Eddie Threlfall","Norman Pickup","Vince Halloran",
+  // Italian
+  "Marco Tardioli","Sergio Valenti","Luca Ferretti","Enzo Mancino",
+  "Roberto Sabbatini","Giacomo Peruzzi","Fabio Dellarocca","Antonio Rinaldi",
+  // Spanish
+  "Jorge Camacho","Luis Montero","Raúl Esperanza","Javier Castellano",
+  "Carlos Andújar","Álvaro Medina","Fernando Belmonte","Ignacio Rueda",
+  // German
+  "Hans Brouwer","Sven Lindqvist","Dieter Harmann","Klaus Wengler",
+  "Ralf Steinbach","Tobias Grunewald","Markus Berghoff","Jürgen Kolbe",
+  // French
+  "Claude Mercier","Didier Lavelle","Thierry Maubert","Patrice Lebrun",
+  "Stéphane Girardot","Nicolas Fauveau","Laurent Chabrol","Julien Devereaux",
 ];
 
 // CPU draft brain: usually takes the best player it can afford, sometimes a
@@ -1410,6 +1421,7 @@ export function chooseCpuPick(candidates, budget) {
 }
 
 export const RANDOM_CLUB_NAMES = [
+  // English
   "Northgate United","Ironbridge FC","Crestfield Athletic","Ashdown Rovers",
   "Riverdale City","Stonewick Town","Brentmoor Wanderers","Coppermill FC",
   "Ashworth United","Blackwell City","Greystone Athletic","Hartfield Rovers",
@@ -1418,4 +1430,30 @@ export const RANDOM_CLUB_NAMES = [
   "Belston City","Cranfield United","Holmewood Athletic","Fernside Rovers",
   "Westgate United","Oakmoor City","Ironhaven United","Coppergate City",
   "Mossfield Athletic","Alderton FC",
+  // Italian
+  "AC Ferrovia","Unione Calcio Valdese","Sporting Lacovara","FC Montebruno",
+  "Atletico Rivara","Calcio Serravalle","AS Pompeiana","Virtus Bardolino",
+  // Spanish
+  "CD Montealto","UD Valcampo","Atlético Serranillos","CF Peñalara",
+  "Racing Club Benicarló","Deportivo Morales","SD Galapagos","FC Entreríos",
+  // German
+  "FC Braunfelde","SV Niederwald","TSV Kaltenberg","Sportfreunde Grenzbach",
+  "1. FC Steinhorst","Borussia Langenmoor","VfB Haselbach","FC Fichtenau",
+  // French
+  "FC Valdombre","AS Rochebrune","Olympique Pierrevert","SC Hautecombe",
+  "Stade Lavaudieu","RC Bellerive","FC Montmorency","AS Châteauvert",
+];
+
+// Easter egg CPU identities — fictional clubs from film, TV & fiction.
+// Picked ~25% of the time when a full CPU identity is generated.
+export const EASTER_EGG_TEAMS = [
+  { clubName: "Harchester United",   dofName: "Karl Fletcher",    primary: "#6a0dad", secondary: "#ffffff", pattern: "plain"   },
+  { clubName: "Leddersford Town",    dofName: "Steve Barnes",     primary: "#003087", secondary: "#ffffff", pattern: "stripes" },
+  { clubName: "Wirral County",       dofName: "Mike Bassett",     primary: "#c8102e", secondary: "#ffffff", pattern: "stripes" },
+  { clubName: "Melchester Rovers",   dofName: "Roy Race",         primary: "#c8102e", secondary: "#ffd700", pattern: "hoops"   },
+  { clubName: "Allies PoW",          dofName: "Sly Stallone",     primary: "#c8102e", secondary: "#003087", pattern: "stripes" },
+  { clubName: "Longmarsh Prisoners", dofName: "Danny Meehan",     primary: "#111827", secondary: "#111827", pattern: "plain"   },
+  { clubName: "Renford Rejects",     dofName: "Jason Summerbee",  primary: "#1a1a6e", secondary: "#6a0dad", pattern: "stripes" },
+  { clubName: "Hounslow Harriers",   dofName: "Juliette Paxton",  primary: "#ffffff", secondary: "#c8102e", pattern: "plain"   },
+  { clubName: "Real San Tadeo",      dofName: "Santiago Muñez",   primary: "#111827", secondary: "#ffffff", pattern: "stripes" },
 ];

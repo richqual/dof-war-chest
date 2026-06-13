@@ -8,8 +8,8 @@
   --border:    #1a5c1a;
   --border2:   #103010;
   --text:      #d4ffd4;
-  --text2:     #6aba6a;
-  --text3:     #3a6a3a;
+  --text2:     #8fd98f;
+  --text3:     #5a9a5a;
   --amber:     #ffd700;
   --amber-d:   #e6c200;
   --green:     #00e676;
@@ -130,18 +130,18 @@ input, select { font-family: var(--font); }
 }
 
 .setup-title {
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 900;
-  letter-spacing: 1px;
+  letter-spacing: 2px;
   color: var(--amber);
   text-transform: uppercase;
   margin-bottom: 12px;
   font-family: var(--font-head);
-  line-height: 1.6;
-  text-shadow: 3px 3px 0 rgba(0,0,0,0.8), 0 0 20px rgba(255,215,0,0.3);
+  line-height: 1.4;
+  text-shadow: 4px 4px 0 rgba(0,0,0,0.9), 0 0 30px rgba(255,215,0,0.4);
 }
 
-.setup-sub { font-size: 14px; color: var(--text3); letter-spacing: 1px; font-family: var(--font-sub); }
+.setup-sub { font-size: 16px; color: var(--text2); letter-spacing: 0.5px; font-family: var(--font-sub); margin-bottom: 4px; }
 
 .setup-rules {
   background: var(--bg3);
@@ -152,8 +152,29 @@ input, select { font-family: var(--font); }
   box-shadow: var(--pixel-shadow-sm);
 }
 
-.rules-title { font-size: 7px; letter-spacing: 1px; color: var(--amber); margin-bottom: 8px; font-family: var(--font-head); }
-.rules-body { font-size: 16px; color: var(--text2); line-height: 1.5; font-family: var(--font-sub); }
+.rules-title { font-size: 7px; letter-spacing: 1px; color: var(--amber); margin-bottom: 10px; font-family: var(--font-head); }
+.rules-intro { font-size: 16px; color: var(--text2); line-height: 1.5; font-family: var(--font); margin-bottom: 10px; }
+.rules-bullets { list-style: none; padding: 0; margin: 0 0 10px 0; }
+.rules-bullets li { font-size: 16px; color: var(--text2); font-family: var(--font); line-height: 1.5; padding: 2px 0 2px 18px; position: relative; }
+.rules-bullets li::before { content: "▸"; position: absolute; left: 0; color: var(--amber); }
+
+.setup-rules-getstarted { border-left-color: var(--green); }
+.setup-rules-getstarted .rules-title { color: var(--green); }
+
+.rules-toggle {
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 14px;
+  font-family: var(--font);
+  cursor: pointer;
+  padding: 0;
+  letter-spacing: 0.5px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.rules-toggle:hover { color: var(--text2); }
+.rules-detail { margin-top: 10px; }
 
 .setup-field { margin-bottom: 20px; }
 
@@ -259,7 +280,7 @@ input, select { font-family: var(--font); }
   /* CM00/01-style: the menu bar wears the active club's kit colours */
   background: var(--kit-primary, #000);
   border-bottom: 3px solid var(--kit-secondary, var(--amber));
-  padding: 10px 16px;
+  padding: 10px 52px 10px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -519,7 +540,7 @@ input, select { font-family: var(--font); }
 .sort-btn {
   background: transparent;
   border: 1px solid var(--border);
-  color: var(--text3);
+  color: var(--text2);
   padding: 4px 8px;
   font-size: 10px;
   letter-spacing: 0.8px;
@@ -528,7 +549,7 @@ input, select { font-family: var(--font); }
   border-radius: 2px;
   transition: border-color 0.15s, color 0.15s;
 }
-.sort-btn:hover { border-color: var(--border2); color: var(--text2); }
+.sort-btn:hover { border-color: var(--border2); color: var(--text); }
 .sort-btn.active { border-color: var(--amber); color: var(--amber); }
 
 .player-list { display: flex; flex-direction: column; gap: 4px; }
@@ -950,7 +971,7 @@ input, select { font-family: var(--font); }
 }
 .card-info { flex: 1; min-width: 0; }
 .card-name-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.card-name { font-weight: 700; font-size: 14px; color: var(--text); }
+.card-name { font-weight: 700; font-size: 16px; color: var(--text); }
 .era-badge {
   font-size: 7px;
   padding: 2px 6px;
@@ -960,7 +981,13 @@ input, select { font-family: var(--font); }
   font-family: var(--font-head);
   border: 1px solid;
 }
-.card-club { font-size: 13px; color: var(--text3); margin-top: 2px; font-family: var(--font-sub); }
+.era-badge--initial {
+  font-size: 9px;
+  padding: 2px 5px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.card-club { font-size: 13px; color: var(--text2); margin-top: 2px; font-family: var(--font-sub); }
 .card-value { font-size: 13px; font-weight: bold; flex-shrink: 0; min-width: 52px; text-align: right; font-family: var(--font-head); }
 .pick-btn {
   background: var(--amber);
@@ -1032,11 +1059,33 @@ input, select { font-family: var(--font); }
   gap: 10px;
   width: 100%;
   padding: 8px 12px;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 .squad-card-club { font-size: 13px; font-weight: bold; letter-spacing: 1px; font-family: var(--font-head); line-height: 1.2; }
-.squad-ovr { font-size: 32px; font-weight: bold; color: var(--amber); font-family: var(--font-head); }
-.squad-ovr-label { font-size: 9px; letter-spacing: 2px; color: var(--text3); margin-bottom: 12px; font-family: var(--font-head); }
+.squad-card-body { display: flex; align-items: stretch; gap: 0; padding: 10px 0 4px; }
+.squad-card-info { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.squad-card-mgr { font-size: 18px; font-family: var(--font-sub); color: var(--text2); padding: 0 0.5rem; }
+.squad-card-captain { font-size: 18px; font-family: var(--font-sub); color: var(--text); padding: 0 0.5rem; margin-bottom: 4px; }
+.squad-card-value { font-size: 18px; color: var(--amber); padding: 0 0.5rem; font-family: var(--font-sub); }
+.squad-card-ovr-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border2);
+  padding: 6px 12px;
+  margin-right: 10px;
+  gap: 1px;
+}
+.squad-card-ovr-box .squad-link {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border2);
+  width: 100%;
+  text-align: center;
+}
+.squad-card-ovr { font-size: 28px; font-weight: bold; font-family: var(--font-head); color: var(--amber); line-height: 1; }
+.squad-card-ovr-label { font-size: 8px; letter-spacing: 2px; color: var(--text3); font-family: var(--font-head); }
 .squad-mgr-name { font-size: 16px; font-weight: bold; color: var(--text); margin-bottom: 4px; }
 .squad-best { font-size: 12px; color: var(--text2); margin-bottom: 12px; }
 .squad-link { font-size: 11px; color: var(--amber); letter-spacing: 1px; font-family: var(--font-head); }
@@ -1083,7 +1132,7 @@ input, select { font-family: var(--font); }
 .squad-detail-header {
   background: rgba(0,0,0,0.7);
   border-bottom: 2px solid var(--amber);
-  padding: 10px 16px;
+  padding: 10px 52px 10px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -1107,7 +1156,7 @@ input, select { font-family: var(--font); }
 .back-btn:hover { border-color: var(--amber); color: var(--amber); }
 
 .squad-title-area { flex: 1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.squad-team-name { font-size: 16px; font-weight: bold; color: var(--amber); letter-spacing: 1px; cursor: pointer; font-family: var(--font-head); }
+.squad-team-name { font-size: 26px; font-weight: bold; color: var(--amber); letter-spacing: 1px; cursor: pointer; font-family: var(--font-sub); line-height: 1; }
 .edit-hint { font-size: 12px; color: var(--text3); }
 .squad-team-name:hover .edit-hint { color: var(--amber); }
 .team-name-input {
@@ -1148,17 +1197,19 @@ input, select { font-family: var(--font); }
   align-items: center;
 }
 .formation-select {
-  background: var(--bg2);
-  border: 1px solid var(--amber);
-  color: var(--amber);
-  padding: 5px 10px;
-  font-size: 13px;
-  font-family: var(--font-head);
-  font-weight: bold;
-  letter-spacing: 1px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 4px 8px;
+  font-size: 10px;
+  font-family: var(--font);
+  letter-spacing: 0.8px;
   cursor: pointer;
   outline: none;
+  border-radius: 2px;
+  transition: border-color 0.15s, color 0.15s;
 }
+.formation-select:hover { border-color: var(--border2); color: var(--text); }
 .swap-hint-bar {
   font-size: 11px;
   color: var(--amber);
@@ -1177,24 +1228,27 @@ input, select { font-family: var(--font); }
   text-decoration: underline;
 }
 
-/* Two-column squad layout */
+/* Squad layout: pitch on top, squad list always full width */
 .squad-layout {
   display: flex;
-  align-items: flex-start;
-  gap: 0;
+  flex-direction: column;
+  max-width: 860px;
 }
-.squad-left {
-  flex: 0 0 auto;
+.squad-pitch-row {
+  border-bottom: 1px solid var(--border2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.squad-pitch-row .formation-bar {
+  align-self: stretch;
+}
+.squad-pitch-row .formation-pitch {
   width: 280px;
-  border-right: 1px solid var(--border2);
 }
 .squad-right {
-  flex: 1;
+  width: 100%;
   min-width: 0;
-}
-@media (max-width: 720px) {
-  .squad-layout { flex-direction: column; }
-  .squad-left { width: 100%; border-right: none; border-bottom: 1px solid var(--border2); }
 }
 
 /* Tactics bar */
@@ -1205,6 +1259,14 @@ input, select { font-family: var(--font); }
   padding: 8px 12px;
   background: rgba(0,0,0,0.2);
   border-bottom: 1px solid var(--border2);
+  flex-wrap: wrap;
+}
+.tactics-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+  margin: 0 4px;
+  flex-shrink: 0;
 }
 .tactics-label {
   font-size: 9px;
@@ -1217,15 +1279,15 @@ input, select { font-family: var(--font); }
   background: none;
   border: 1px solid var(--border);
   color: var(--text2);
-  padding: 3px 10px;
+  padding: 4px 8px;
   font-size: 10px;
   cursor: pointer;
   border-radius: 2px;
-  letter-spacing: 1px;
-  font-family: var(--font-head);
+  letter-spacing: 0.8px;
+  font-family: var(--font);
   transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
-.tactics-btn:hover { border-color: var(--text2); }
+.tactics-btn:hover { border-color: var(--border2); color: var(--text); }
 .tactics-btn.active[data-t="defensive"] { background: #1e40af; color: #93c5fd; border-color: #3b82f6; }
 .tactics-btn.active[data-t="balanced"]  { background: #166534; color: #86efac; border-color: #22c55e; }
 .tactics-btn.active[data-t="attacking"] { background: #7f1d1d; color: #fca5a5; border-color: #ef4444; }
@@ -1311,6 +1373,7 @@ input, select { font-family: var(--font); }
 .xi-name { flex: 1; font-weight: 600; color: var(--text); }
 .xi-club { font-size: 12px; color: var(--text3); }
 .xi-rating { font-size: 11px; font-weight: bold; padding: 2px 6px; border-radius: 2px; font-family: var(--font-head); }
+.xi-value { font-size: 12px; color: var(--text2); min-width: 44px; text-align: right; font-family: var(--font-head); }
 
 .bench-section { padding: 12px 16px; }
 .section-title { font-size: 10px; letter-spacing: 2px; color: var(--text3); margin-bottom: 8px; font-family: var(--font-head); }
@@ -1559,9 +1622,9 @@ input, select { font-family: var(--font); }
 
 .field-label-sm {
   display: block;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 1.5px;
-  color: var(--text3);
+  color: var(--amber-d);
   margin-bottom: 6px;
   font-family: var(--font-head);
 }
@@ -1611,17 +1674,35 @@ input, select { font-family: var(--font); }
   background: var(--bg);
   border: 2px solid var(--border);
   color: var(--text2);
-  width: 32px;
+  padding: 0 8px;
   height: 28px;
-  font-size: 14px;
+  font-size: 12px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
   transition: border-color 0.1s, color 0.1s;
 }
 .pattern-btn.active { border-color: var(--amber); color: var(--amber); background: rgba(255,215,0,0.1); }
 .pattern-btn:hover { border-color: var(--text2); }
+
+.advanced-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  padding: 6px 10px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  margin-top: 10px;
+  transition: color 0.1s, border-color 0.1s;
+}
+.advanced-toggle:hover { color: var(--text2); border-color: var(--text3); }
+.advanced-options { margin-top: 8px; }
 
 .game-options {
   background: var(--bg3);
@@ -1632,9 +1713,9 @@ input, select { font-family: var(--font); }
 }
 
 .options-title {
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 2px;
-  color: var(--text3);
+  color: var(--amber);
   margin-bottom: 10px;
   font-family: var(--font-head);
 }
@@ -1678,15 +1759,15 @@ input, select { font-family: var(--font); }
 }
 
 .difficulty-hint {
-  font-size: 11px;
-  color: var(--text3);
+  font-size: 14px;
+  color: var(--text2);
   font-style: italic;
   margin-top: 6px;
 }
 
 .option-label { font-size: 14px; color: var(--text); flex: 1; }
 
-.option-hint { font-size: 11px; color: var(--text3); font-style: italic; }
+.option-hint { font-size: 13px; color: var(--text2); font-style: italic; }
 
 .setup-validation {
   text-align: center;
@@ -1850,16 +1931,16 @@ input, select { font-family: var(--font); }
 
 /* ── MOBILE ──────────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
-  .draft-header { padding: 8px 12px; }
+  .draft-header { padding: 8px 48px 8px 12px; }
   .game-title { font-size: 10px; letter-spacing: 1px; }
   .manager-tab { font-size: 10px; padding: 2px 7px; }
   .turn-banner { padding: 8px 12px; }
   .draft-main { padding: 12px; }
-  .setup-title { font-size: 20px; }
+  .setup-title { font-size: 14px; }
   .setup-card { padding: 24px 18px; }
   .sb-name { font-size: 12px; }
   .sb-score { font-size: 28px; min-width: 32px; }
-  .squad-detail-header { padding: 8px 12px; }
+  .squad-detail-header { padding: 8px 48px 8px 12px; }
   .bench-club, .bench-value { display: none; }
   .formation-pitch { max-height: 320px; }
   .my-squad-panel { width: 240px; }
@@ -2882,9 +2963,22 @@ input, select { font-family: var(--font); }
   margin-bottom: 4px;
 }
 
-.mgr-squad-name {
+.mgr-squad-banner-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 44px;
+}
+.mgr-section-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--text3);
   font-family: var(--font-head);
-  font-size: clamp(9px, 2vw, 13px);
+  flex-shrink: 0;
+}
+.mgr-squad-name {
+  font-family: var(--font-sub);
+  font-size: 20px;
   color: var(--amber);
   letter-spacing: 1px;
 }
@@ -2913,7 +3007,7 @@ input, select { font-family: var(--font); }
 .mgr-squad-flavour {
   font-family: var(--font);
   font-size: 12px;
-  color: var(--text3);
+  color: var(--text2);
   font-style: italic;
 }
 
@@ -2977,13 +3071,17 @@ input, select { font-family: var(--font); }
   font-style: italic;
 }
 
-/* Squad summary card manager name */
-.squad-card-mgr {
-  font-family: var(--font-sub);
-  font-size: 12px;
-  color: var(--text3);
-  padding: 0 0.5rem 0.25rem;
-}
+
+.squad-best--unset { color: var(--text3); font-style: italic; }
+.xi-name { cursor: default; }
+.xi-captain { color: var(--amber); }
+.captain-badge { font-size: 10px; margin-right: 5px; color: var(--amber); font-family: var(--font-head); letter-spacing: 0.5px; }
+
+.section-title-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 4px; }
+.section-title-row .section-title { padding: 0; }
+
+.xi-row.captain-selectable { cursor: pointer; }
+.xi-row.captain-selectable:hover { background: rgba(255,196,0,0.08); outline: 1px dashed var(--amber); outline-offset: -2px; }
 
 
 /* ── Global Persistent Menu ──────────────────────────────── */
@@ -3123,6 +3221,34 @@ input, select { font-family: var(--font); }
   text-transform: uppercase;
   margin-top: 3px;
 }
+.archetype-badge--initial {
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+/* ── Badge controls & legend ──────────────────────────────────────────── */
+.filter-badge-controls { display: flex; align-items: center; gap: 4px; }
+.legend-btn { font-weight: 900; min-width: 26px; }
+.archetype-legend-box { max-width: 280px; }
+.legend-section-label { font-size: 9px; letter-spacing: 1px; color: var(--text3); font-family: var(--font-head); margin-bottom: 6px; }
+.legend-row { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+.legend-initial {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-head);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.legend-name { font-size: 13px; font-family: var(--font-sub); }
+.legend-row--desc { align-items: flex-start; }
+.legend-desc { font-size: 11px; color: var(--text2); font-family: var(--font-sub); margin-top: 2px; line-height: 1.3; }
 
 /* In XI rows */
 .xi-archetype {
