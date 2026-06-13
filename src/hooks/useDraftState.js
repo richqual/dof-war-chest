@@ -111,6 +111,8 @@ function buildSeries(n, format) {
       format,
       participants: [0, 1],
       wins: [0, 0],
+      draws: 0,
+      played: 0,
       target: FORMAT_TARGETS[format] || 4,
       stage: "playing",
       champion: null,
@@ -313,13 +315,26 @@ export function useDraftState() {
       if (!s) return prev;
 
       if (s.format !== "tournament") {
+        const newPlayed = (s.played ?? s.wins[0] + s.wins[1]) + 1;
+        const maxGames = s.target * 2 - 1;
+
+        if (winnerIdx === null) {
+          // Draw — no wins change
+          const newDraws = (s.draws ?? 0) + 1;
+          const tied = newPlayed >= maxGames && s.wins[0] === s.wins[1];
+          return { ...prev, series: { ...s, draws: newDraws, played: newPlayed, stage: tied ? "tiebreaker" : "playing" } };
+        }
+
         const pos = s.participants.indexOf(winnerIdx);
         if (pos < 0) return prev;
         const wins = s.wins.map((w, i) => i === pos ? w + 1 : w);
-        const champion = wins.some(w => w >= s.target)
-          ? s.participants[wins.findIndex(w => w >= s.target)]
+        // Champion: hit target wins, OR all games played and one leads (includes tiebreaker result)
+        const hitTarget = wins.some(w => w >= s.target);
+        const allPlayed = newPlayed > maxGames || (newPlayed >= maxGames && wins[0] !== wins[1]);
+        const champion = hitTarget || allPlayed
+          ? s.participants[wins[0] >= wins[1] ? 0 : 1]
           : null;
-        return { ...prev, series: { ...s, wins, champion, stage: champion !== null ? "champion" : "playing" } };
+        return { ...prev, series: { ...s, wins, played: newPlayed, champion, stage: champion !== null ? "champion" : "playing" } };
       }
 
       // Tournament — find which semi this result belongs to

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { POSITIONS, getRatingBg, getRatingColor, formatValue, ERA_LABELS, ERA_COLORS, ERA_BG } from "../data/players";
 import { TIER_LABELS, TIER_COLORS, TIER_BG } from "../data/managers";
+import { ARCHETYPE_COLOR } from "./PlayerCard";
 import { getFormArrow } from "../hooks/useDraftState";
 import KitSwatch, { kitAccent } from "./KitSwatch";
 
@@ -112,6 +113,13 @@ const FORMATIONS = {
 };
 
 const TACTICS = ["defensive", "balanced", "attacking"];
+
+function cohesionPct(squad, fm) {
+  if (!fm?.preferredArchetypes?.length) return null;
+  const starters = squad.slice(0, 11).filter(Boolean);
+  if (!starters.length) return null;
+  return Math.round((starters.filter(p => fm.preferredArchetypes.includes(p.archetype)).length / starters.length) * 100);
+}
 
 function squadRating(squad) {
   const starters = squad.slice(0, 11).filter(Boolean);
@@ -249,6 +257,33 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
             Your team {STYLE_TACTICAL_LINE[fm.style] || fm.flavourText}
           </div>
           <div className="mgr-squad-flavour">"{fm.flavourText}"</div>
+          {fm.preferredArchetypes?.length > 0 && (
+            <div className="mgr-archetype-tip">
+              <span className="archetype-tip-label">FAVOURS</span>
+              {fm.preferredArchetypes.map(a => {
+                const arc = ARCHETYPE_COLOR[a] || { bg: "#222", fg: "#aaa" };
+                return (
+                  <span key={a} className="archetype-badge" style={{ background: arc.bg, color: arc.fg, border: `1px solid ${arc.fg}44` }}>
+                    {a}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+          {(() => {
+            const pct = cohesionPct(manager.squad, fm);
+            if (pct === null) return null;
+            const color = pct >= 70 ? "#6bbb6b" : pct >= 40 ? "#f0c040" : "#ff6b6b";
+            return (
+              <div className="mgr-cohesion-bar">
+                <span className="cohesion-label">SQUAD COHESION</span>
+                <span className="cohesion-pct" style={{ color }}>{pct}%</span>
+                <div className="cohesion-track">
+                  <div className="cohesion-fill" style={{ width: `${pct}%`, background: color }} />
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
       <div className="squad-detail-header">
@@ -342,6 +377,19 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
                   <span className="xi-name">{p.name}</span>
                   <span className="xi-form">{draft?.playerForm && draft.playerForm.has(p.id) ? getFormArrow(draft.playerForm.get(p.id)) : ""}</span>
                   <span className="xi-club">{p.club}</span>
+                  {p.archetype && (() => {
+                    const arc = ARCHETYPE_COLOR[p.archetype] || { bg: "#222", fg: "#aaa" };
+                    const preferred = fm?.preferredArchetypes?.includes(p.archetype);
+                    return (
+                      <span
+                        className="xi-archetype"
+                        style={{ background: arc.bg, color: arc.fg, border: `1px solid ${preferred ? arc.fg : arc.fg + "44"}`, opacity: preferred ? 1 : 0.55 }}
+                        title={preferred ? "Matches manager preference" : ""}
+                      >
+                        {p.archetype}
+                      </span>
+                    );
+                  })()}
                   <span className="xi-rating" style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}>{p.rating}</span>
                 </div>
               ) : null)}
@@ -364,6 +412,15 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
                       <span className="bench-name">{p.name}</span>
                       <span className="bench-form">{draft?.playerForm && draft.playerForm.has(p.id) ? getFormArrow(draft.playerForm.get(p.id)) : ""}</span>
                       <span className="bench-club">{p.club}</span>
+                      {p.archetype && (() => {
+                        const arc = ARCHETYPE_COLOR[p.archetype] || { bg: "#222", fg: "#aaa" };
+                        const preferred = fm?.preferredArchetypes?.includes(p.archetype);
+                        return (
+                          <span className="xi-archetype" style={{ background: arc.bg, color: arc.fg, border: `1px solid ${preferred ? arc.fg : arc.fg + "44"}`, opacity: preferred ? 1 : 0.55 }}>
+                            {p.archetype}
+                          </span>
+                        );
+                      })()}
                       <span className="bench-rating" style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}>{p.rating}</span>
                       <span className="bench-value">{formatValue(p.value)}</span>
                     </>

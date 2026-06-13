@@ -35,13 +35,17 @@ function getNextMatchup(series) {
   if (!series || series.stage === "champion") return null;
 
   if (series.format !== "tournament") {
-    const played = series.wins[0] + series.wins[1];
+    const played = series.played ?? (series.wins[0] + series.wins[1]);
     const [p0, p1] = series.participants;
+    const isTiebreaker = series.stage === "tiebreaker";
     return {
       homeIdx: played % 2 === 0 ? p0 : p1,
       awayIdx: played % 2 === 0 ? p1 : p0,
       matchNum: played + 1,
-      label: series.format.toUpperCase().replace("BO", "BEST OF "),
+      label: isTiebreaker
+        ? series.format.toUpperCase().replace("BO", "BEST OF ") + " · TIEBREAKER"
+        : series.format.toUpperCase().replace("BO", "BEST OF "),
+      isSeriesTiebreaker: isTiebreaker,
     };
   }
 
@@ -90,9 +94,12 @@ export function getSeriesContext(series, managers) {
     const [p0, p1] = series.participants;
     const hWins = next.homeIdx === p0 ? w0 : w1;
     const aWins = next.homeIdx === p0 ? w1 : w0;
-    if (hWins === aWins) standing = `All square · ${hWins}–${aWins}`;
-    else if (hWins > aWins) standing = `${homeName} lead ${hWins}–${aWins}`;
-    else standing = `${awayName} lead ${aWins}–${hWins}`;
+    const draws = series.draws ?? 0;
+    const drawSuffix = draws > 0 ? ` · ${draws}D` : "";
+    if (next.isSeriesTiebreaker) standing = `Level ${hWins}–${aWins}${drawSuffix} · TIEBREAKER`;
+    else if (hWins === aWins) standing = `All square · ${hWins}–${aWins}${drawSuffix}`;
+    else if (hWins > aWins) standing = `${homeName} lead ${hWins}–${aWins}${drawSuffix}`;
+    else standing = `${awayName} lead ${aWins}–${hWins}${drawSuffix}`;
   } else {
     // Show aggregate standing for semi-final legs
     const sm = next.semiIdx != null ? series.semis[next.semiIdx] : null;
@@ -124,7 +131,26 @@ export function getSeriesContext(series, managers) {
   }
 
   const isGrandFinal = next.label === "GRAND FINAL";
-  return { label: `MATCH ${next.matchNum} · ${next.label}`, standing, homeIdx: next.homeIdx, awayIdx: next.awayIdx, legContext, isLeg1, isGrandFinal };
+
+  // Momentum context: who won the previous match?
+  // For 2-legged ties only — leg 2 knows who won leg 1.
+  // In leg 2: homeIdx = sm.p[1], awayIdx = sm.p[0]
+  let homePrevResult = null, awayPrevResult = null;
+  if (next.semiIdx != null && series.semis) {
+    const sm = series.semis[next.semiIdx];
+    if (sm && sm.legsPlayed === 1) {
+      if (sm.goals[0] > sm.goals[1]) {
+        // p[0] won leg 1 → p[0] is away team in leg 2
+        awayPrevResult = "win"; homePrevResult = "loss";
+      } else if (sm.goals[1] > sm.goals[0]) {
+        // p[1] won leg 1 → p[1] is home team in leg 2
+        homePrevResult = "win"; awayPrevResult = "loss";
+      }
+      // Tied on agg going into leg 2 → no momentum
+    }
+  }
+
+  return { label: `MATCH ${next.matchNum} · ${next.label}`, standing, homeIdx: next.homeIdx, awayIdx: next.awayIdx, legContext, isLeg1, isGrandFinal, homePrevResult, awayPrevResult, isSeriesTiebreaker: next.isSeriesTiebreaker ?? false };
 }
 
 // Two-player series standings panel
@@ -134,7 +160,10 @@ function TwoPlayerStandings({ series, managers }) {
   return (
     <div className="series-standings">
       <ManagerStrip mgr={m0} wins={series.wins[0]} target={series.target} isChampion={series.champion === p0} />
-      <div className="series-vs-divider">{series.wins[0]}–{series.wins[1]}</div>
+      <div className="series-vs-divider">
+        {series.wins[0]}–{series.wins[1]}
+        {(series.draws ?? 0) > 0 && <span className="series-draws-label">{series.draws}D</span>}
+      </div>
       <ManagerStrip mgr={m1} wins={series.wins[1]} target={series.target} isChampion={series.champion === p1} />
     </div>
   );

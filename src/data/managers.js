@@ -11,6 +11,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Relentless Attack & Killer Instinct",
     flavourText: "Never knows when he's beaten. His teams score late, win ugly, and find a way.",
+    preferredArchetypes: ["Warrior","Leader","Athlete"],
   },
   {
     id: "wenger-classic",
@@ -23,6 +24,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Fluid Passing & Artistry",
     flavourText: "Beautiful football, built on trust and technique. The game played the right way.",
+    preferredArchetypes: ["Technician","Maverick","Athlete"],
   },
   {
     id: "mourinho-chelsea",
@@ -35,6 +37,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Defensive Mastery & Counter",
     flavourText: "The Special One. Compact, ruthless, and devastatingly effective on the break.",
+    preferredArchetypes: ["Grinder","Warrior","Leader"],
   },
   {
     id: "houllier-classic",
@@ -47,6 +50,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Press & Organisation",
     flavourText: "Disciplined and hardworking. His teams gave everything for ninety minutes.",
+    preferredArchetypes: ["Grinder","Warrior","Leader"],
   },
   {
     id: "oneill-classic",
@@ -59,6 +63,7 @@ export const MANAGERS = [
     style: "direct",
     styleLabel: "Physical & Set Piece Threat",
     flavourText: "Passionate and demanding. Aerial power and dead-ball expertise.",
+    preferredArchetypes: ["Warrior","Grinder","Leader"],
   },
   {
     id: "robson-classic",
@@ -71,6 +76,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Adventurous & Free-Flowing",
     flavourText: "The loveable grandfather of the game. His teams play with joy and freedom.",
+    preferredArchetypes: ["Maverick","Athlete","Leader"],
   },
   {
     id: "redknapp-classic",
@@ -83,6 +89,7 @@ export const MANAGERS = [
     style: "wildcard",
     styleLabel: "Wheel-Dealer & Street Smarts",
     flavourText: "A wheeler-dealer in the market and a gut-feel merchant in the dugout. Unpredictable genius.",
+    preferredArchetypes: ["Maverick","Warrior","Athlete"],
   },
   {
     id: "keegan-classic",
@@ -95,6 +102,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Attack at All Costs",
     flavourText: "I would love it if we beat them. Exciting, attack-minded, occasionally leaky at the back.",
+    preferredArchetypes: ["Maverick","Athlete","Leader"],
   },
   {
     id: "curbishley-classic",
@@ -107,6 +115,7 @@ export const MANAGERS = [
     style: "direct",
     styleLabel: "Hard Work & Long Ball",
     flavourText: "Dependable and resolute. Not pretty, but they always compete.",
+    preferredArchetypes: ["Warrior","Grinder","Leader"],
   },
   {
     id: "hoddle-classic",
@@ -119,6 +128,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Technical Possession Play",
     flavourText: "Wants his team to pass it beautifully — the results don't always agree.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "mccarthy-classic",
@@ -131,6 +141,7 @@ export const MANAGERS = [
     style: "direct",
     styleLabel: "No-Nonsense Direct Football",
     flavourText: "Old school and proud of it. Long ball, strong tackle, big heart.",
+    preferredArchetypes: ["Warrior","Grinder","Leader"],
   },
   {
     id: "reid-classic",
@@ -143,6 +154,7 @@ export const MANAGERS = [
     style: "direct",
     styleLabel: "Gritty & Physical",
     flavourText: "Sleeves rolled up, fully committed. You know what you're getting.",
+    preferredArchetypes: ["Warrior","Grinder","Leader"],
   },
 
   // ── GOLDEN ERA (2008–2016) ───────────────────────────────────────────
@@ -157,6 +169,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Elegant Attack & Composure",
     flavourText: "The coolest head in football. His teams are easy on the eye and lethal in the final third.",
+    preferredArchetypes: ["Maverick","Athlete","Leader"],
   },
   {
     id: "martinez-golden",
@@ -169,6 +182,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Brave Possession Football",
     flavourText: "Wants to play out from the back at all costs. Beautiful, occasionally maddening.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "laudrup-golden",
@@ -181,6 +195,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Swansea Tiki-Taka Attack",
     flavourText: "Silky combinations and quick movement. Football with a European flair.",
+    preferredArchetypes: ["Maverick","Athlete","Leader"],
   },
   {
     id: "poch-golden",
@@ -193,6 +208,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "High Energy Pressing",
     flavourText: "The press is everything. Hard-working, intense, and organised out of possession.",
+    preferredArchetypes: ["Warrior","Grinder","Athlete"],
   },
   {
     id: "allardyce-golden",
@@ -205,6 +221,7 @@ export const MANAGERS = [
     style: "direct",
     styleLabel: "Route One & Set Piece King",
     flavourText: "Big Sam knows how to keep teams up. Direct, physical, and dangerous at set pieces.",
+    preferredArchetypes: ["Warrior","Grinder","Leader"],
   },
   {
     id: "dyche-golden",
@@ -217,6 +234,7 @@ export const MANAGERS = [
     style: "direct",
     styleLabel: "Compact Block & Direct Ball",
     flavourText: "The Ginger Mourinho. Organised, hard to beat, and brutally effective.",
+    preferredArchetypes: ["Warrior","Grinder","Leader"],
   },
   {
     id: "poyet-golden",
@@ -229,6 +247,7 @@ export const MANAGERS = [
     style: "wildcard",
     styleLabel: "Surprise Tactics & Chaos",
     flavourText: "Great escape specialist. You're never quite sure what you're going to get.",
+    preferredArchetypes: ["Maverick","Warrior","Athlete"],
   },
   {
     id: "avb-golden",
@@ -241,6 +260,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Data-Driven Possession",
     flavourText: "Analytically sound, tactically complex — the dressing room doesn't always follow.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "rodgers-golden",
@@ -253,6 +273,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Gegenpressing Lite",
     flavourText: "Passionate belief in playing out from the back. Nearly, nearly — but brilliant at his best.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "pulis-golden",
@@ -265,6 +286,7 @@ export const MANAGERS = [
     style: "direct",
     styleLabel: "Stoke-Ball & Survival Mode",
     flavourText: "A cap, a tracksuit, and a game plan involving long throws. Effective if unglamorous.",
+    preferredArchetypes: ["Warrior","Grinder","Leader"],
   },
   {
     id: "dicanio-golden",
@@ -277,6 +299,7 @@ export const MANAGERS = [
     style: "wildcard",
     styleLabel: "Passionate Chaos",
     flavourText: "Volatile, passionate, and utterly unpredictable. Football as performance art.",
+    preferredArchetypes: ["Maverick","Warrior","Athlete"],
   },
   {
     id: "sherwood-golden",
@@ -289,6 +312,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Gung-Ho & Raw Enthusiasm",
     flavourText: "Rolls up the sleeves and goes for it. Lots of heart, occasionally lacking in plan.",
+    preferredArchetypes: ["Maverick","Athlete","Leader"],
   },
 
   // ── MODERN ERA (2016–present) ────────────────────────────────────────
@@ -303,6 +327,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Gegenpressing & Heavy Metal Football",
     flavourText: "Full throttle from the first whistle. His teams press relentlessly and never stop believing.",
+    preferredArchetypes: ["Warrior","Athlete","Grinder"],
   },
   {
     id: "guardiola-modern",
@@ -315,6 +340,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Total Possession & High Line",
     flavourText: "The Professor. His teams dominate the ball, the space, and the opponent's mind.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "conte-modern",
@@ -327,6 +353,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Wing-Back Power & Counter Press",
     flavourText: "Fiercely intense. Compact defensively, lethal with the wing-backs in transition.",
+    preferredArchetypes: ["Warrior","Athlete","Leader"],
   },
   {
     id: "tuchel-modern",
@@ -339,6 +366,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Disciplined Press & Structure",
     flavourText: "Meticulous preparation meets high-intensity execution. A winner.",
+    preferredArchetypes: ["Warrior","Grinder","Technician"],
   },
   {
     id: "arteta-modern",
@@ -351,6 +379,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Structured Press & Progressive Play",
     flavourText: "The student became the master. Organised, brave, and building something special.",
+    preferredArchetypes: ["Technician","Athlete","Warrior"],
   },
   {
     id: "howe-modern",
@@ -363,6 +392,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Energetic Attack-Minded Football",
     flavourText: "Infectious enthusiasm and an attacking mindset. His teams always go for the win.",
+    preferredArchetypes: ["Maverick","Athlete","Leader"],
   },
   {
     id: "bielsa-modern",
@@ -375,6 +405,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Man-Marking Press & Intensity",
     flavourText: "El Loco's philosophy: press everywhere, attack always, tire no one out except yourself.",
+    preferredArchetypes: ["Warrior","Athlete","Grinder"],
   },
   {
     id: "emery-modern",
@@ -387,6 +418,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Tactical Discipline & Counter",
     flavourText: "The Cup King. Organised defensively and deadly in the moments that matter.",
+    preferredArchetypes: ["Grinder","Technician","Warrior"],
   },
   {
     id: "nuno-modern",
@@ -399,6 +431,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Low Block & Quick Counter",
     flavourText: "Fist-pump on the touchline. Solid defensively and a threat on the counter.",
+    preferredArchetypes: ["Athlete","Warrior","Grinder"],
   },
   {
     id: "potter-modern",
@@ -411,6 +444,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Positional Play & Experimentation",
     flavourText: "Tactically adventurous — rotates shapes, inverts wingers, confuses everyone equally.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "maresca-modern",
@@ -423,6 +457,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Pep-Style Positional Play",
     flavourText: "The Guardiola disciple. Structured, positional, and building patiently.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "slot-modern",
@@ -435,6 +470,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Organised Possession & Press",
     flavourText: "Calm, measured, and tactically precise. A worthy heir to the Anfield throne.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
 
   // ── LA LIGA MANAGERS ────────────────────────────────────────────────────
@@ -453,6 +489,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Patient Possession & Winners",
     flavourText: "Unassuming and calm. Under him Real Madrid played open, confident football and never seemed to panic.",
+    preferredArchetypes: ["Technician","Leader","Maverick"],
   },
   {
     id: "capello-realmadrid",
@@ -467,6 +504,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Defensive Solidity & Clinical Counter",
     flavourText: "Iron discipline and ruthless pragmatism. If you score, he'll make damn sure you don't concede.",
+    preferredArchetypes: ["Grinder","Warrior","Leader"],
   },
   {
     id: "benitez-valencia",
@@ -481,6 +519,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Tactical Discipline & Set Pieces",
     flavourText: "The data man before data was fashionable. Compact, structured, and deadly from dead balls.",
+    preferredArchetypes: ["Grinder","Technician","Warrior"],
   },
   {
     id: "vangaal-barca",
@@ -495,6 +534,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Total Football & High Line",
     flavourText: "Demanding, meticulous, and convinced he is always the smartest person in the room. Brilliant when the players buy in.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "schuster-realmadrid",
@@ -509,6 +549,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Attack-First Galáctico Football",
     flavourText: "Let the stars do their thing. Gave the Galácticos freedom and reaped a title before it all unravelled.",
+    preferredArchetypes: ["Maverick","Athlete","Leader"],
   },
   {
     id: "juanderamos-sevilla",
@@ -523,6 +564,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "High Press & Cup Ruthlessness",
     flavourText: "Made Sevilla feared across Europe. Intense, aggressive, and a serial cup winner.",
+    preferredArchetypes: ["Warrior","Grinder","Athlete"],
   },
   {
     id: "aragones-atletico",
@@ -537,6 +579,7 @@ export const MANAGERS = [
     style: "direct",
     styleLabel: "Old-School Intensity",
     flavourText: "El Sabio de Hortaleza. Gruff, passionate, and tactically shrewd in the Spanish tradition.",
+    preferredArchetypes: ["Warrior","Grinder","Leader"],
   },
 
   // ── GOLDEN ERA (2008–2016) ───────────────────────────────────────────
@@ -553,6 +596,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Tiki-Taka & Gegenpressing Fusion",
     flavourText: "The greatest club manager of his generation. His Barcelona side redefined what football could look like.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "simeone-atletico",
@@ -567,6 +611,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Low Block & Lethal Counter",
     flavourText: "El Cholo made Atlético into a fortress. Relentless intensity, collective sacrifice, and ice-cold on the break.",
+    preferredArchetypes: ["Warrior","Grinder","Leader"],
   },
   {
     id: "mourinho-realmadrid",
@@ -581,6 +626,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Organised Attack & Mind Games",
     flavourText: "Brought his Special One mentality to the Bernabéu. Brilliant tactically, combustible politically.",
+    preferredArchetypes: ["Grinder","Warrior","Leader"],
   },
   {
     id: "emery-sevilla",
@@ -595,6 +641,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Structured Press & Copa del Rey King",
     flavourText: "Three Europa League titles on the bounce. Detail-obsessed and devastatingly effective in knockouts.",
+    preferredArchetypes: ["Warrior","Grinder","Athlete"],
   },
   {
     id: "vilanova-barca",
@@ -609,6 +656,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Guardiola's Tiki-Taka Heir",
     flavourText: "Continued the Barcelona project with 100 points in La Liga. His legacy was cut cruelly short.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "quiqueflores-getafe",
@@ -623,6 +671,7 @@ export const MANAGERS = [
     style: "direct",
     styleLabel: "Compact & Counterattacking",
     flavourText: "A solid organiser who punched above his weight with limited resources. Teams are always hard to beat.",
+    preferredArchetypes: ["Warrior","Grinder","Leader"],
   },
 
   // ── MODERN ERA (2016–present) ────────────────────────────────────────
@@ -639,6 +688,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Freedom, Balance & Winning Moments",
     flavourText: "Three Champions Leagues in a row. Got the best from galactic egos and won when it mattered most.",
+    preferredArchetypes: ["Maverick","Athlete","Leader"],
   },
   {
     id: "ancelotti-realmadrid",
@@ -653,6 +703,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Trust, Freedom & Clinical Attack",
     flavourText: "The players run through walls for him. Tactically flexible, emotionally intelligent, eternally calm.",
+    preferredArchetypes: ["Maverick","Leader","Technician"],
   },
   {
     id: "simeone-atletico-modern",
@@ -667,6 +718,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Colchonero Steel & Counter Threat",
     flavourText: "The same relentless Simeone philosophy, now hardened by experience and a league title.",
+    preferredArchetypes: ["Warrior","Grinder","Leader"],
   },
   {
     id: "valverde-barca",
@@ -681,6 +733,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Pragmatic Possession Football",
     flavourText: "Won back-to-back La Liga titles but was undone by historic European collapses. Steady if unspectacular.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "xavi-barca",
@@ -695,6 +748,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "True Believer Tiki-Taka",
     flavourText: "The DNA made flesh. Plays the Barcelona way because there is no other way he would consider.",
+    preferredArchetypes: ["Technician","Maverick","Grinder"],
   },
   {
     id: "setien-betis",
@@ -709,6 +763,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Pure Possession Idealism",
     flavourText: "Talks about football like a philosopher. His teams try to play out from everywhere — the results can be chaotic.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
 
   // ── SERIE A MANAGERS ─────────────────────────────────────────────────────
@@ -727,6 +782,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Pragmatic Elegance",
     flavourText: "Won two Champions Leagues at the San Siro with a squad built for big nights. Calm, adaptable, and tactically shrewd — his teams always had stars shining in the right places.",
+    preferredArchetypes: ["Maverick","Leader","Technician"],
   },
   {
     id: "capello-juventus-classic",
@@ -741,6 +797,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Ruthless Organisation",
     flavourText: "Turned clubs into title machines through sheer defensive discipline and clinical transitions. No fuss, just results — often controversial, always effective.",
+    preferredArchetypes: ["Grinder","Warrior","Leader"],
   },
   {
     id: "lippi-juventus",
@@ -755,6 +812,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Championship Blueprint",
     flavourText: "Built the Juve dynasty of the late 90s and later led Italy to the 2006 World Cup. A master of using technically gifted players in a structured system.",
+    preferredArchetypes: ["Technician","Leader","Warrior"],
   },
   {
     id: "mancini-inter-classic",
@@ -769,6 +827,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Attacking Intent",
     flavourText: "Won three consecutive Serie A titles with Inter but never quite cracked Europe. Known for stylish football and a fiery sideline temperament.",
+    preferredArchetypes: ["Maverick","Athlete","Leader"],
   },
   {
     id: "trapattoni-inter",
@@ -783,6 +842,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Old School Italian Defence",
     flavourText: "The godfather of Italian football management. Catenaccio in its purest form — concede nothing, nick a goal, defend the lead.",
+    preferredArchetypes: ["Athlete","Warrior","Grinder"],
   },
 
   // Golden Era
@@ -799,6 +859,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "The Special One's Masterpiece",
     flavourText: "The treble-winning Inter side of 2010 was peak Mourinho — defensively unbreakable, lethal on the break, and united by force of personality. Snodo went the distance.",
+    preferredArchetypes: ["Grinder","Warrior","Leader"],
   },
   {
     id: "conte-juventus",
@@ -813,6 +874,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "High-Intensity Domination",
     flavourText: "Rebuilt Juventus from a mid-table club into Serie A's dominant force. His 3-5-2 with relentless pressing brought three unbeaten league titles and total intensity.",
+    preferredArchetypes: ["Warrior","Athlete","Leader"],
   },
   {
     id: "allegri-juventus-golden",
@@ -827,6 +889,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Calculated Control",
     flavourText: "Five consecutive Serie A titles and two Champions League finals. Allegri's pragmatism was occasionally infuriating to purists but undeniably effective.",
+    preferredArchetypes: ["Warrior","Grinder","Leader"],
   },
   {
     id: "mazzarri-napoli",
@@ -841,6 +904,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Underdog Ambition",
     flavourText: "Turned Napoli into genuine title contenders on a modest budget. His pressing-heavy 3-4-3 was ahead of its time in Italian football.",
+    preferredArchetypes: ["Warrior","Grinder","Athlete"],
   },
   {
     id: "benitez-napoli",
@@ -855,6 +919,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Structured Intelligence",
     flavourText: "Won the Coppa Italia in his first season but never quite replicated his peak European form. Meticulous and analytical — a tactics board brought to life.",
+    preferredArchetypes: ["Athlete","Warrior","Grinder"],
   },
   {
     id: "sarri-napoli",
@@ -869,6 +934,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Sarriball",
     flavourText: "Brought the most beautiful football Serie A had seen in years. Napoli were breathtaking under Sarri — only Juventus's resources denied them the title.",
+    preferredArchetypes: ["Technician","Maverick","Athlete"],
   },
 
   // Modern Era
@@ -885,6 +951,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Serie A Title Reclaimed",
     flavourText: "Ended Juventus's nine-year stranglehold on the Scudetto. His Inter were relentless, direct, and built around Lukaku and Lautaro up top.",
+    preferredArchetypes: ["Warrior","Athlete","Leader"],
   },
   {
     id: "gasperini-atalanta",
@@ -899,6 +966,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Attacking Overloads",
     flavourText: "Transformed a provincial club into one of Europe's most exciting attacking sides. His 3-4-3 with fluid wide play and relentless pressing redefined what a smaller club could achieve.",
+    preferredArchetypes: ["Athlete","Warrior","Maverick"],
   },
   {
     id: "spalletti-napoli",
@@ -913,6 +981,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Historic Scudetto",
     flavourText: "Delivered Napoli's first Serie A title in 33 years with a swashbuckling side built around Osimhen and Kvaratskhelia. A masterclass in modern pressing football.",
+    preferredArchetypes: ["Athlete","Warrior","Technician"],
   },
   {
     id: "mourinho-roma",
@@ -927,6 +996,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Conference Kings",
     flavourText: "Won the Conference League in his first season — a trophy no other Italian side had claimed. His Roma were hard to beat but rarely spectacular.",
+    preferredArchetypes: ["Athlete","Warrior","Grinder"],
   },
   {
     id: "pioli-acmilan",
@@ -941,6 +1011,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Milan Resurgence",
     flavourText: "Rebuilt AC Milan's identity and delivered their first Scudetto in 11 years in 2022. A quiet revolution built on young energy and Leao's pace.",
+    preferredArchetypes: ["Warrior","Grinder","Athlete"],
   },
   {
     id: "inzaghi-inter",
@@ -955,6 +1026,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Fluid Three-Back Architect",
     flavourText: "Reached the Champions League final in 2023 and won the Scudetto in 2024. His 3-5-2 system is one of the most fluid and attacking in Italian football history.",
+    preferredArchetypes: ["Maverick","Athlete","Leader"],
   },
   {
     id: "allegri-juventus-modern",
@@ -969,6 +1041,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Pragmatism Revisited",
     flavourText: "Returned to Juve but the magic was gone. Points deductions, European disappointment, and cautious football defined his second spell at the Allianz.",
+    preferredArchetypes: ["Athlete","Warrior","Grinder"],
   },
 
   {
@@ -982,6 +1055,7 @@ export const MANAGERS = [
     style: "balanced",
     styleLabel: "Steady Hand, Modest Ambitions",
     flavourText: "Kept the lights on at clubs that had no right to survive. Workmanlike, reliable, quietly underrated.",
+    preferredArchetypes: ["Grinder","Warrior","Leader"],
   },
   {
     id: "ranieri-serie-a",
@@ -994,6 +1068,7 @@ export const MANAGERS = [
     style: "defensive",
     styleLabel: "Solid Structure & Set Pieces",
     flavourText: "The Tinkerman. Always tinkering, often exasperating, occasionally inspired. But the fans loved him anyway.",
+    preferredArchetypes: ["Grinder","Warrior","Leader"],
   },
   {
     id: "zaccheroni-classic",
@@ -1006,6 +1081,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "High-Energy Wing Play",
     flavourText: "Took Udinese to third with a shoestring budget. Never quite recaptured that magic but always gave it a go.",
+    preferredArchetypes: ["Maverick","Athlete","Leader"],
   },
   {
     id: "ballardini-golden",
@@ -1018,6 +1094,7 @@ export const MANAGERS = [
     style: "defensive",
     styleLabel: "Survival Specialist",
     flavourText: "The fireman. Called in when relegation looms, leaves when the job is done — then does it all over again.",
+    preferredArchetypes: ["Grinder","Warrior","Leader"],
   },
 
   // ── BUNDESLIGA MANAGERS ───────────────────────────────────────────────────
@@ -1036,6 +1113,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "European Royalty",
     flavourText: "Won the Champions League with Dortmund and then Bayern — one of only a handful of managers to win the trophy with two different clubs. Disciplined, respected, and quietly lethal in big games.",
+    preferredArchetypes: ["Maverick","Athlete","Leader"],
   },
   {
     id: "magath-wolfsburg",
@@ -1050,6 +1128,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Iron Discipline",
     flavourText: "Notoriously demanding — his training sessions were feared across German football. Won the Bundesliga with Wolfsburg in 2009 against all odds, built around an inspired Grafite-Dzeko partnership.",
+    preferredArchetypes: ["Athlete","Warrior","Grinder"],
   },
   {
     id: "heynckes-leverkusen",
@@ -1064,6 +1143,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Steady Hand",
     flavourText: "Built the Leverkusen side that reached the Champions League final in 2002. A calm, methodical manager who got the best from world-class talent.",
+    preferredArchetypes: ["Maverick","Athlete","Leader"],
   },
   {
     id: "skibbe-dortmund",
@@ -1078,6 +1158,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Transition Custodian",
     flavourText: "Steered Dortmund through a chaotic period of financial difficulties. Got results without resources — a survival specialist rather than a builder.",
+    preferredArchetypes: ["Athlete","Warrior","Grinder"],
   },
 
   // Golden Era
@@ -1094,6 +1175,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Gegenpressing Godfather",
     flavourText: "Turned a broke Dortmund into back-to-back Bundesliga champions and Champions League finalists. His relentless high press and infectious personality redefined modern football. Simply electric.",
+    preferredArchetypes: ["Warrior","Athlete","Grinder"],
   },
   {
     id: "guardiola-bayern",
@@ -1108,6 +1190,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Positional Perfection",
     flavourText: "Won three consecutive Bundesliga titles and reshaped how Bayern played. His tiki-taka adaptation — Lahm as an inverted midfielder, Boateng as a ball-playing centre-back — was tactical theatre.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "heynckes-bayern-treble",
@@ -1122,6 +1205,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "The Treble Blueprint",
     flavourText: "His final season at Bayern was one of the greatest in European club history — Bundesliga, DFB-Pokal, and Champions League. A masterclass in structured intensity.",
+    preferredArchetypes: ["Warrior","Grinder","Leader"],
   },
   {
     id: "favre-dortmund",
@@ -1136,6 +1220,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Tactical Perfectionist",
     flavourText: "Known for his intricate positional systems — took Dortmund to second place twice but was dismissed after poor form. A fascinating coach undone by big-game nerves at crucial moments.",
+    preferredArchetypes: ["Athlete","Warrior","Grinder"],
   },
   {
     id: "rangnick-leipzig",
@@ -1150,6 +1235,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Gegenpressing Architect",
     flavourText: "The theorist behind the Red Bull pressing philosophy. Took Leipzig from the fourth division to the Bundesliga top four in four years. His influence on modern pressing football is enormous.",
+    preferredArchetypes: ["Warrior","Athlete","Grinder"],
   },
   {
     id: "tuchel-dortmund",
@@ -1164,6 +1250,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Attacking Systems Builder",
     flavourText: "Immediately after Klopp, Tuchel brought different but equally exciting football. Won the DFB-Pokal, created brilliant Bundesliga spells — but clashed with the board and left on sour terms.",
+    preferredArchetypes: ["Maverick","Technician","Athlete"],
   },
 
   // Modern Era
@@ -1180,6 +1267,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "The Wunderkind",
     flavourText: "Reached the Champions League semi-final with Leipzig aged 33. Incredibly versatile tactically — capable of shifting between 3-4-3, 4-3-3, and 4-2-2-2 within a single match.",
+    preferredArchetypes: ["Technician","Athlete","Warrior"],
   },
   {
     id: "nagelsmann-bayern",
@@ -1194,6 +1282,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Bayern Experiment",
     flavourText: "Won the Bundesliga but was sacked mid-season in controversial fashion. His Bayern were exciting but inconsistent — a coaching talent still searching for the perfect environment.",
+    preferredArchetypes: ["Warrior","Grinder","Athlete"],
   },
   {
     id: "flick-bayern",
@@ -1208,6 +1297,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Sextuple Architect",
     flavourText: "Took over mid-season and won everything — Bundesliga, DFB-Pokal, Champions League, DFL-Supercup, UEFA Super Cup, FIFA Club World Cup. His Bayern were ferocious, fast, and utterly dominant.",
+    preferredArchetypes: ["Athlete","Warrior","Grinder"],
   },
   {
     id: "tuchel-bayern",
@@ -1222,6 +1312,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Short-Lived Tenure",
     flavourText: "Won the Bundesliga but was let go as Bayern lost the title the following season. His relationship with the club never fully clicked despite Champions League semi-final runs.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "glasner-frankfurt",
@@ -1236,6 +1327,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Europa League Hero",
     flavourText: "Won the Europa League with Frankfurt in 2022, beating Barcelona and West Ham. Intense, attack-minded, and masterful at making a collective greater than the sum of its parts.",
+    preferredArchetypes: ["Warrior","Grinder","Athlete"],
   },
   {
     id: "xabi-alonso-leverkusen",
@@ -1250,6 +1342,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Invincible Season",
     flavourText: "Led Leverkusen to an unbeaten Bundesliga title in 2024 — the first in German top-flight history. Elegant, composed, and tactically meticulous. A generational coaching debut.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "rose-dortmund",
@@ -1264,6 +1357,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Missed Opportunity",
     flavourText: "Had a Dortmund squad good enough to win the title — and then didn't. Some brilliant performances were undone by inexplicable collapses. Sacked after one turbulent season.",
+    preferredArchetypes: ["Warrior","Grinder","Athlete"],
   },
 
   // ── LIGUE 1 MANAGERS ──────────────────────────────────────────────────────
@@ -1282,6 +1376,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Monégasque Foundation",
     flavourText: "Built Monaco into a continental threat before heading to Arsenal. His innovative thinking and eye for talent laid the groundwork for all his later success.",
+    preferredArchetypes: ["Technician","Maverick","Athlete"],
   },
   {
     id: "blanc-bordeaux",
@@ -1296,6 +1391,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Bordeaux Renaissance",
     flavourText: "Restored Bordeaux to European prominence and won the title in 2009. A calm, intelligent manager who prioritised stability and youth development.",
+    preferredArchetypes: ["Warrior","Grinder","Athlete"],
   },
   {
     id: "genesio-lyon",
@@ -1310,6 +1406,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Lyon Steward",
     flavourText: "Inherited a powerful Lyon team but couldn't deliver sustained success in Europe. Often criticised for caution in big matches despite talent at his disposal.",
+    preferredArchetypes: ["Athlete","Warrior","Grinder"],
   },
 
   // Golden Era
@@ -1326,6 +1423,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Qatari Awakening",
     flavourText: "Won the title in 2013 with newly billionaire PSG. His calm authority and European pedigree were exactly what the club needed during their transformation.",
+    preferredArchetypes: ["Maverick","Leader","Technician"],
   },
   {
     id: "emery-psg",
@@ -1340,6 +1438,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "PSG Intensity",
     flavourText: "Won multiple Ligue 1 titles but couldn't deliver the Champions League crown PSG craved. His intensity was evident but clashed with superstar egos.",
+    preferredArchetypes: ["Grinder","Technician","Warrior"],
   },
   {
     id: "villas-boas-marseille",
@@ -1354,6 +1453,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Marseille Resurrection",
     flavourText: "Won the title with a unified Marseille side in 2010 despite PSG's spending. His man-management brought harmony to a fractious club.",
+    preferredArchetypes: ["Warrior","Grinder","Athlete"],
   },
   {
     id: "garcia-marseille",
@@ -1368,6 +1468,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Solid Administrator",
     flavourText: "Provided stability at Marseille through transitional years. Not a tactician, but a dependable operator who knew how to manage a squad.",
+    preferredArchetypes: ["Athlete","Warrior","Grinder"],
   },
   {
     id: "favre-nice",
@@ -1382,6 +1483,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Nice Resurgence",
     flavourText: "Led Nice to second place with a modest budget. His structured pressing and positional mastery made the team punch above their weight.",
+    preferredArchetypes: ["Warrior","Grinder","Athlete"],
   },
 
   // Modern Era
@@ -1398,6 +1500,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "PSG Experiment",
     flavourText: "Won the title but looked out of his depth with the Neymar-Mbappe circus. His Tottenham methods didn't translate to PSG's dressing room politics.",
+    preferredArchetypes: ["Warrior","Grinder","Athlete"],
   },
   {
     id: "enrique-psg",
@@ -1412,6 +1515,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Barcelona Veteran",
     flavourText: "Arrived to rebuild PSG's identity after years of Qatari chaos. His charisma, tactical depth, and winning pedigree offer real hope after Pochettino's mediocrity.",
+    preferredArchetypes: ["Athlete","Technician","Maverick"],
   },
   {
     id: "vieira-marseille",
@@ -1426,6 +1530,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Midfielder's Mind",
     flavourText: "Brought former player credibility to Marseille. His tactical evolution from his management days in the MLS is still unfolding in Europe.",
+    preferredArchetypes: ["Warrior","Grinder","Athlete"],
   },
   {
     id: "galtier-nice",
@@ -1440,6 +1545,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Pragmatic Operator",
     flavourText: "Known for steady, no-nonsense football. Won with Lille and St-Étienne — a reliable manager who gets results without flash.",
+    preferredArchetypes: ["Athlete","Warrior","Grinder"],
   },
   {
     id: "haise-lens",
@@ -1454,6 +1560,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Lens Resurgence",
     flavourText: "Took Lens from the second division to European contention in three seasons. Dynamic, high-energy football that's endeared him to a passionate fanbase.",
+    preferredArchetypes: ["Warrior","Grinder","Athlete"],
   },
   {
     id: "bosz-lyon",
@@ -1468,6 +1575,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Dutch Idealism",
     flavourText: "Tried to impose his attacking principles at Lyon but clashed with the club's defensive tradition. Beautiful football but fragile results.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "sampaoli-marseille",
@@ -1482,6 +1590,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Intensity Without Win",
     flavourText: "Brought chaotic energy to Marseille — beloved by fans for his passion but limited by tactical predictability. A personality manager rather than a systems coach.",
+    preferredArchetypes: ["Warrior","Grinder","Athlete"],
   },
   {
     id: "conceiçao-marseille",
@@ -1496,6 +1605,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Porto Pedigree",
     flavourText: "Won the Europa League at Porto, now tasked with stabilising Marseille's culture. A demanding perfectionist who believes in hard work above talent.",
+    preferredArchetypes: ["Athlete","Warrior","Grinder"],
   },
 
   // ── LA LIGA MANAGERS (EXPANSION) ───────────────────────────────────────────
@@ -1513,6 +1623,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Villarreal Foundation",
     flavourText: "Built Villarreal from a modest club into a European force. His attractive, possession-based football and eye for talent defined an era.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "bielsa-athletic",
@@ -1527,6 +1638,7 @@ export const MANAGERS = [
     style: "pressing",
     styleLabel: "Basque Intensity",
     flavourText: "Brought his relentless intensity to Athletic but couldn't overcome their restriction to Basque-only players. Tactically brilliant but often frustrated.",
+    preferredArchetypes: ["Warrior","Grinder","Athlete"],
   },
   {
     id: "lippi-valencia",
@@ -1541,6 +1653,7 @@ export const MANAGERS = [
     style: "attacking",
     styleLabel: "Valencia Interlude",
     flavourText: "Brief but impactful spell in Valencia before his legendary Juventus era. Brought European know-how to Spanish football.",
+    preferredArchetypes: ["Maverick","Athlete","Leader"],
   },
   {
     id: "pellegrini-malaga",
@@ -1555,6 +1668,7 @@ export const MANAGERS = [
     style: "possession",
     styleLabel: "Málaga Miracle",
     flavourText: "Took newly-rich Málaga to the Champions League semi-final. Proved money plus smart management could build something genuine.",
+    preferredArchetypes: ["Technician","Maverick","Leader"],
   },
   {
     id: "mendilibar-sociedad",
@@ -1569,6 +1683,7 @@ export const MANAGERS = [
     style: "counter",
     styleLabel: "Sociedad Pragmatism",
     flavourText: "Brought defensive solidity to Sociedad but was seen as too cautious. A reliable operator without grand ambitions.",
+    preferredArchetypes: ["Athlete","Warrior","Grinder"],
   },
 ];
 

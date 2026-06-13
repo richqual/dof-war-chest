@@ -1,5 +1,17 @@
 import { ERA_LABELS, ERA_COLORS, ERA_BG, formatValue, getRatingColor, getRatingBg } from "../data/players";
 
+export const ARCHETYPE_COLOR = {
+  Warrior:        { bg: "#5a1a1a", fg: "#ff6b6b" },
+  Technician:     { bg: "#1a2a4a", fg: "#6ba8ff" },
+  Maverick:       { bg: "#2d1a4a", fg: "#b06bff" },
+  Grinder:        { bg: "#1a2a1a", fg: "#6bbb6b" },
+  Leader:         { bg: "#3a2a00", fg: "#f0c040" },
+  Athlete:        { bg: "#003a3a", fg: "#40d4d4" },
+  "Sweeper Keeper": { bg: "#1a3a1a", fg: "#60d080" },
+  "Shot Stopper":   { bg: "#3a1a1a", fg: "#ff7050" },
+  Organiser:        { bg: "#1a1a3a", fg: "#8899ff" },
+};
+
 export default function PlayerCard({ player, onPick, canAfford, compact = false, hideRatings = false, takenBy = null }) {
   const cardClass = takenBy
     ? "player-card taken"
@@ -37,6 +49,14 @@ export default function PlayerCard({ player, onPick, canAfford, compact = false,
         {!compact && (
           <div className="card-club">{player.club} · {player.years}</div>
         )}
+        {player.archetype && (() => {
+          const arc = ARCHETYPE_COLOR[player.archetype] || { bg: "#222", fg: "#aaa" };
+          return (
+            <span className="archetype-badge" style={{ background: arc.bg, color: arc.fg, border: `1px solid ${arc.fg}44` }}>
+              {player.archetype}
+            </span>
+          );
+        })()}
       </div>
 
       <div className="card-value" style={{ color: canAfford ? "#f0d060" : "#888" }}>

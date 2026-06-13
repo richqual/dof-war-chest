@@ -273,11 +273,57 @@ const MGR_MOTM_LINES = {
   wildcard:   (mgr, team) => `Only ${mgr} could have planned that. Or perhaps didn't.`,
 };
 
+// Style matchup soft bonuses: [advantaged style][disadvantaged style] = +3 eff strength
+const STYLE_MATCHUP = {
+  pressing:   { direct: true, wildcard: true },
+  possession: { pressing: true },
+  counter:    { possession: true, attacking: true },
+  attacking:  { direct: true },
+  direct:     { counter: true },
+};
+
+function styleMatchupBonus(myStyle, oppStyle) {
+  if (!myStyle || !oppStyle) return 0;
+  return STYLE_MATCHUP[myStyle]?.[oppStyle] ? 3 : 0;
+}
+
+function cohesionBonus(squad, mgr) {
+  if (!mgr?.preferredArchetypes?.length) return 0;
+  const starters = squad.slice(0, 11).filter(Boolean);
+  if (!starters.length) return 0;
+  const matches = starters.filter(p => mgr.preferredArchetypes.includes(p.archetype)).length;
+  const pct = matches / starters.length;
+  return pct * 5; // up to +5 at 100% cohesion
+}
+
+// Commentary lines for the new systems
+const COHESION_COMMENTARY = [
+  (mgr, team) => `${team}'s players look perfectly suited to ${mgr}'s system — real cohesion on display.`,
+  (mgr, team) => `${mgr} has assembled exactly the profile of player he craves. ${team} look fluid and purposeful.`,
+  (mgr, team) => `You can see the understanding in ${team}'s movement. ${mgr}'s philosophy runs through this squad.`,
+];
+const MOMENTUM_COMMENTARY_WIN = [
+  (team, mgr) => `${team} carry the momentum from the first leg — ${mgr} will have drilled this into them all week.`,
+  (team, mgr) => `The first-leg result is in their heads. ${team} believing right now under ${mgr}.`,
+  (team, mgr) => `${mgr}'s team rode that first-leg wave beautifully. ${team} looking full of confidence.`,
+];
+const MOMENTUM_COMMENTARY_LOSS = [
+  (team, mgr) => `${team} have a mountain to climb — ${mgr} needs a reaction and needs it now.`,
+  (team, mgr) => `The first-leg defeat is a weight on ${team}'s shoulders. ${mgr} will have to rally his players.`,
+  (team, mgr) => `${team} desperate to overturn the deficit. ${mgr} demanding an immediate response.`,
+];
+const STYLE_MATCHUP_COMMENTARY = [
+  (myTeam, oppTeam) => `${myTeam} exploiting exactly the space ${oppTeam} leaves — the tactical matchup firmly in their favour.`,
+  (myTeam, oppTeam) => `${oppTeam} struggling to cope with the shape ${myTeam} are deploying. A real mismatch developing here.`,
+  (myTeam, oppTeam) => `Tactically, ${myTeam} have found the blueprint to unlock ${oppTeam}'s system. Fascinating.`,
+];
+
 // legContext = { homeAgg, awayAgg } when this is leg 2 of an aggregate tie.
 // ET/pens trigger on aggregate level rather than match level.
 // isLeg1 = true suppresses ET entirely (leg 1 of a 2-legged tie is always 90 min).
 // homeTactics / awayTactics: "defensive" | "balanced" | "attacking"
-export function generateEvents(homeSquad, awaySquad, homeName, awayName, legContext = null, homeFootballMgr = null, awayFootballMgr = null, isLeg1 = false, homeTactics = "balanced", awayTactics = "balanced") {
+// seriesContext = { homePrevResult: "win"|"loss"|null, awayPrevResult: "win"|"loss"|null } for momentum
+export function generateEvents(homeSquad, awaySquad, homeName, awayName, legContext = null, homeFootballMgr = null, awayFootballMgr = null, isLeg1 = false, homeTactics = "balanced", awayTactics = "balanced", seriesContext = null) {
   // Resolve wildcard: pick a random style for the match
   function resolveStyle(fm) {
     if (!fm) return null;
@@ -314,9 +360,26 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   const TACTICS_MOD = { attacking: 0.05, balanced: 0, defensive: -0.04 };
   const tacticsDelta = (TACTICS_MOD[homeTactics] ?? 0) - (TACTICS_MOD[awayTactics] ?? 0);
 
-  const hEffStr = hStr + styleStrengthBonus(hStyle, true) + hTierMod * 50;
-  const aEffStr = aStr + styleStrengthBonus(aStyle, true) + aTierMod * 50;
+  // Cohesion bonuses (squad archetype alignment with manager philosophy)
+  const hCohesion = cohesionBonus(homeSquad, homeFootballMgr);
+  const aCohesion = cohesionBonus(awaySquad, awayFootballMgr);
+
+  // Style matchup bonuses
+  const hMatchupBonus = styleMatchupBonus(hStyle, aStyle);
+  const aMatchupBonus = styleMatchupBonus(aStyle, hStyle);
+
+  // Momentum (±1 from previous match result in series)
+  const hMomentum = seriesContext?.homePrevResult === "win" ? 1 : seriesContext?.homePrevResult === "loss" ? -1 : 0;
+  const aMomentum = seriesContext?.awayPrevResult === "win" ? 1 : seriesContext?.awayPrevResult === "loss" ? -1 : 0;
+
+  const hEffStr = hStr + styleStrengthBonus(hStyle, true) + hTierMod * 50 + hCohesion + hMatchupBonus + hMomentum;
+  const aEffStr = aStr + styleStrengthBonus(aStyle, true) + aTierMod * 50 + aCohesion + aMatchupBonus + aMomentum;
   const ratio = Math.min(0.82, Math.max(0.18, hEffStr / (hEffStr + aEffStr) + tacticsDelta));
+
+  // Track which new commentary has been used this match (fire each at most once)
+  let cohesionCommentaryFired = false;
+  let momentumCommentaryFired = false;
+  let matchupCommentaryFired = false;
 
   // Shuffle neutral lines once per match so no line repeats within a game.
   // With ~10 neutral events and 36 lines, repetition is extremely unlikely.
@@ -329,6 +392,44 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   }
 
   const events = [];
+
+  // Inject early contextual commentary (minutes 2-15) for new systems
+  const earlyMins = [];
+  if (hMomentum === 1 && homeFootballMgr) {
+    earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_WIN)(homeName, homeFootballMgr.name.split(" ").pop()) });
+  }
+  if (aMomentum === 1 && awayFootballMgr) {
+    earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_WIN)(awayName, awayFootballMgr.name.split(" ").pop()) });
+  }
+  if (hMomentum === -1 && homeFootballMgr) {
+    earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_LOSS)(homeName, homeFootballMgr.name.split(" ").pop()) });
+  }
+  if (aMomentum === -1 && awayFootballMgr) {
+    earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_LOSS)(awayName, awayFootballMgr.name.split(" ").pop()) });
+  }
+  // Cohesion commentary for the team with higher cohesion (>60% match)
+  const hCohesionPct = homeFootballMgr?.preferredArchetypes?.length
+    ? homeSquad.slice(0, 11).filter(Boolean).filter(p => homeFootballMgr.preferredArchetypes.includes(p.archetype)).length / Math.max(1, homeSquad.slice(0, 11).filter(Boolean).length)
+    : 0;
+  const aCohesionPct = awayFootballMgr?.preferredArchetypes?.length
+    ? awaySquad.slice(0, 11).filter(Boolean).filter(p => awayFootballMgr.preferredArchetypes.includes(p.archetype)).length / Math.max(1, awaySquad.slice(0, 11).filter(Boolean).length)
+    : 0;
+  if (hCohesionPct >= 0.6 && homeFootballMgr) {
+    earlyMins.push({ min: rand(5, 20), text: pick(COHESION_COMMENTARY)(homeFootballMgr.name.split(" ").pop(), homeName) });
+  }
+  if (aCohesionPct >= 0.6 && awayFootballMgr) {
+    earlyMins.push({ min: rand(5, 20), text: pick(COHESION_COMMENTARY)(awayFootballMgr.name.split(" ").pop(), awayName) });
+  }
+  // Style matchup commentary (fire once mid-match if there's a clear advantage)
+  if (hMatchupBonus > 0) {
+    earlyMins.push({ min: rand(25, 55), text: pick(STYLE_MATCHUP_COMMENTARY)(homeName, awayName) });
+  } else if (aMatchupBonus > 0) {
+    earlyMins.push({ min: rand(25, 55), text: pick(STYLE_MATCHUP_COMMENTARY)(awayName, homeName) });
+  }
+  for (const e of earlyMins) {
+    events.push({ ...e, type: "commentary", poss: Math.round(ratio * 100) });
+  }
+
   let hGoals = 0, aGoals = 0;
   const hCards = [], aCards = [];
   const hBooked = new Set(), aBooked = new Set();
@@ -429,7 +530,11 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   // Leg 1 never has ET — it's always a straight 90-minute result.
   const aggHome = () => finalHome + (legContext?.homeAgg ?? 0);
   const aggAway = () => finalAway + (legContext?.awayAgg ?? 0);
-  const needsET = !isLeg1 && (legContext ? aggHome() === aggAway() : hGoals === aGoals);
+  // ET fires: aggregate tie in leg 2, series tiebreaker, or standalone match level.
+  // Regular series matches (bo3/bo5/bo7) allow draws — no ET.
+  const isSeriesTiebreaker = seriesContext?.isSeriesTiebreaker ?? false;
+  const isRegularSeriesMatch = !!seriesContext && !isSeriesTiebreaker && !legContext;
+  const needsET = !isLeg1 && !isRegularSeriesMatch && (legContext ? aggHome() === aggAway() : hGoals === aGoals);
 
   if (needsET) {
     const ftNote = legContext
@@ -661,6 +766,7 @@ function LineupPanel({ homeManager, awayManager, homeName, awayName, onClose }) 
 }
 
 export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResult, seriesContext }) {
+  const isRegularSeriesMatch = !!seriesContext && !seriesContext.isSeriesTiebreaker && !seriesContext.legContext;
   const homeManager = draft.managers[homeIdx];
   const awayManager = draft.managers[awayIdx];
   const homeName = homeManager.teamName || homeManager.name;
@@ -723,6 +829,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
       seriesContext?.isLeg1 ?? false,
       homeManager.tactics ?? "balanced",
       awayManager.tactics ?? "balanced",
+      seriesContext ? { homePrevResult: seriesContext.homePrevResult ?? null, awayPrevResult: seriesContext.awayPrevResult ?? null } : null,
     );
     eventsRef.current = r.events;
     nextIdxRef.current = 0;
@@ -879,15 +986,20 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
         {done && onMatchResult && (
           <button className="sim-btn continue-btn sb-continue-btn" onClick={() => {
             const legCtx = seriesContext?.legContext;
-            let side;
-            if (result.penWinner) {
-              side = result.penWinner;
-            } else if (legCtx) {
-              side = (result.score.home + legCtx.homeAgg) > (result.score.away + legCtx.awayAgg) ? "home" : "away";
+            const isDraw = !result.penWinner && result.score.home === result.score.away && isRegularSeriesMatch;
+            if (isDraw) {
+              onMatchResult(null, result.score);
             } else {
-              side = result.score.home > result.score.away ? "home" : "away";
+              let side;
+              if (result.penWinner) {
+                side = result.penWinner;
+              } else if (legCtx) {
+                side = (result.score.home + legCtx.homeAgg) > (result.score.away + legCtx.awayAgg) ? "home" : "away";
+              } else {
+                side = result.score.home > result.score.away ? "home" : "away";
+              }
+              onMatchResult(side === "home" ? homeIdx : awayIdx, result.score);
             }
-            onMatchResult(side === "home" ? homeIdx : awayIdx, result.score);
           }}>
             {seriesContext?.isGrandFinal ? "SEE THE RESULT →" : seriesContext ? "CONTINUE TOURNAMENT →" : "CONTINUE SERIES →"}
           </button>
