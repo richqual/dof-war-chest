@@ -647,7 +647,7 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
     <div className="squads-screen">
       <div className="squads-header">
         {onBackToSeries && (
-          <button className="back-btn" style={{ marginBottom: "0.5rem" }} onClick={onBackToSeries}>← BACK TO TOURNAMENT</button>
+          <button className="back-btn" style={{ marginBottom: "0.5rem" }} onClick={onBackToSeries}>← TO TOURNAMENT</button>
         )}
         {onManagerDraft && (
           <button className="mgr-go-btn" style={{ marginBottom: "1rem" }} onClick={onManagerDraft}>
@@ -656,7 +656,7 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
         )}
         <div className="trophy-icon">🏆</div>
         <h2 className="squads-title">DRAFT COMPLETE</h2>
-        <p className="squads-sub">Select a squad to view details</p>
+        <p className="squads-sub">Select a squad to adjust your starting XI and tactics</p>
       </div>
 
       <div className="squad-cards">
@@ -722,7 +722,7 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
 
       <div className="squads-footer">
         {onBackToSeries && (
-          <button className="sim-btn secondary" onClick={onBackToSeries}>← BACK TO TOURNAMENT</button>
+          <button className="sim-btn secondary" onClick={onBackToSeries}>← TO TOURNAMENT</button>
         )}
         {!onBackToSeries && (
           <button className="restart-btn" onClick={restartGame}>NEW GAME</button>

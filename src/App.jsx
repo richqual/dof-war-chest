@@ -211,7 +211,7 @@ function AppInner() {
           setTactics={setTactics}
           restartGame={restartGame}
           setScreen={handleSetScreen}
-          onBackToSeries={draft.series ? () => setScreen("series") : undefined}
+          onBackToSeries={draft.series ? () => setScreen(draft.series.stage === "draw" ? "draw" : "series") : undefined}
           onManagerDraft={onManagerDraft}
         />
       </>
@@ -252,7 +252,7 @@ function AppInner() {
           homeIdx={homeIdx}
           awayIdx={awayIdx}
           onBack={() => setScreen(inSeries ? "series" : "squads")}
-          onMatchResult={inSeries ? (winnerIdx, score) => recordMatchResult(homeIdx, awayIdx, winnerIdx, score) : undefined}
+          onMatchResult={inSeries ? (winnerIdx, score, ratings, events, matchInjuries) => recordMatchResult(homeIdx, awayIdx, winnerIdx, score, ratings, events, matchInjuries) : undefined}
           seriesContext={seriesCtx}
         />
       </>
@@ -262,7 +262,7 @@ function AppInner() {
   return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
 }
 
-const APP_VERSION = "1.1.2";
+const APP_VERSION = "1.2.3";
 
 function AppFooter() {
   return (

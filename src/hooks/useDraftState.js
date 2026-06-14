@@ -309,80 +309,123 @@ export function useDraftState() {
 
   // Called by MatchSim after a match ends.
   // winnerIdx is a draft.managers index; score is { home, away } goals for this match.
-  function recordMatchResult(homeIdx, awayIdx, winnerIdx, score) {
+  // matchRatings is { home: [...], away: [...] } player rating objects from generateEvents.
+  function recordMatchResult(homeIdx, awayIdx, winnerIdx, score, matchRatings, matchEvents, matchInjuries) {
     setDraft(prev => {
       const s = prev.series;
       if (!s) return prev;
+
+      let next = prev;
 
       if (s.format !== "tournament") {
         const newPlayed = (s.played ?? s.wins[0] + s.wins[1]) + 1;
         const maxGames = s.target * 2 - 1;
 
         if (winnerIdx === null) {
-          // Draw — no wins change
           const newDraws = (s.draws ?? 0) + 1;
           const tied = newPlayed >= maxGames && s.wins[0] === s.wins[1];
-          return { ...prev, series: { ...s, draws: newDraws, played: newPlayed, stage: tied ? "tiebreaker" : "playing" } };
+          next = { ...prev, series: { ...s, draws: newDraws, played: newPlayed, stage: tied ? "tiebreaker" : "playing" } };
+        } else {
+          const pos = s.participants.indexOf(winnerIdx);
+          if (pos < 0) return prev;
+          const wins = s.wins.map((w, i) => i === pos ? w + 1 : w);
+          const hitTarget = wins.some(w => w >= s.target);
+          const allPlayed = newPlayed > maxGames || (newPlayed >= maxGames && wins[0] !== wins[1]);
+          const champion = hitTarget || allPlayed
+            ? s.participants[wins[0] >= wins[1] ? 0 : 1]
+            : null;
+          next = { ...prev, series: { ...s, wins, played: newPlayed, champion, stage: champion !== null ? "champion" : "playing" } };
         }
+      } else {
+        // Tournament — find which semi this result belongs to
+        const semiIdx = (s.semis || []).findIndex(sm =>
+          (sm.p[0] === homeIdx && sm.p[1] === awayIdx) ||
+          (sm.p[1] === homeIdx && sm.p[0] === awayIdx)
+        );
+        if (semiIdx >= 0) {
+          const semi = s.semis[semiIdx];
+          const isP0Home = semi.p[0] === homeIdx;
+          const p0Goals = isP0Home ? (score?.home ?? 0) : (score?.away ?? 0);
+          const p1Goals = isP0Home ? (score?.away ?? 0) : (score?.home ?? 0);
+          const newGoals = [semi.goals[0] + p0Goals, semi.goals[1] + p1Goals];
+          const newLegsPlayed = semi.legsPlayed + 1;
 
-        const pos = s.participants.indexOf(winnerIdx);
-        if (pos < 0) return prev;
-        const wins = s.wins.map((w, i) => i === pos ? w + 1 : w);
-        // Champion: hit target wins, OR all games played and one leads (includes tiebreaker result)
-        const hitTarget = wins.some(w => w >= s.target);
-        const allPlayed = newPlayed > maxGames || (newPlayed >= maxGames && wins[0] !== wins[1]);
-        const champion = hitTarget || allPlayed
-          ? s.participants[wins[0] >= wins[1] ? 0 : 1]
-          : null;
-        return { ...prev, series: { ...s, wins, played: newPlayed, champion, stage: champion !== null ? "champion" : "playing" } };
+          let semiWinner = null;
+          let wonOnPens = false;
+          if (newLegsPlayed >= 2) {
+            if (newGoals[0] > newGoals[1]) semiWinner = semi.p[0];
+            else if (newGoals[1] > newGoals[0]) semiWinner = semi.p[1];
+            else { semiWinner = winnerIdx; wonOnPens = true; }
+          }
+
+          const newSemis = s.semis.map((sm, i) =>
+            i === semiIdx ? { ...sm, goals: newGoals, legsPlayed: newLegsPlayed, winner: semiWinner, wonOnPens } : sm
+          );
+          const bothDone = newSemis.every(sm => sm.winner !== null);
+          const newFinal = bothDone && !s.final
+            ? { p: newSemis.map(sm => sm.winner), wins: [0, 0], target: 1, winner: null }
+            : s.final;
+          next = { ...prev, series: { ...s, semis: newSemis, final: newFinal, stage: bothDone ? "final" : "semis" } };
+        } else if (s.final) {
+          // Final (single leg)
+          const f = s.final;
+          const pos = f.p.indexOf(winnerIdx);
+          if (pos < 0) return prev;
+          const wins = f.wins.map((w, i) => i === pos ? w + 1 : w);
+          const champion = wins.some(w => w >= f.target) ? winnerIdx : null;
+          next = { ...prev, series: { ...s, final: { ...f, wins, winner: champion }, champion, stage: champion !== null ? "champion" : "final" } };
+        }
       }
 
-      // Tournament — find which semi this result belongs to
-      const semiIdx = (s.semis || []).findIndex(sm =>
-        (sm.p[0] === homeIdx && sm.p[1] === awayIdx) ||
-        (sm.p[1] === homeIdx && sm.p[0] === awayIdx)
-      );
-      if (semiIdx >= 0) {
-        const semi = s.semis[semiIdx];
-        const isP0Home = semi.p[0] === homeIdx;
-        const p0Goals = isP0Home ? (score?.home ?? 0) : (score?.away ?? 0);
-        const p1Goals = isP0Home ? (score?.away ?? 0) : (score?.home ?? 0);
-        const newGoals = [semi.goals[0] + p0Goals, semi.goals[1] + p1Goals];
-        const newLegsPlayed = semi.legsPlayed + 1;
+      // Accumulate tournament stats from this match's player ratings
+      if (matchRatings) {
+        const stats = { ...(next.tournamentStats || {}) };
+        const accum = (ratings, mgrIdx) => {
+          for (const r of ratings) {
+            if (!stats[r.name]) stats[r.name] = { goals: 0, assists: 0, ratings: [], managerIdx: mgrIdx };
+            stats[r.name].goals += r.goals || 0;
+            stats[r.name].assists += r.assists || 0;
+            stats[r.name].ratings.push(r.rating);
+          }
+        };
+        accum(matchRatings.home, homeIdx);
+        accum(matchRatings.away, awayIdx);
+        next = { ...next, tournamentStats: stats };
+      }
 
-        let semiWinner = null;
-        let wonOnPens = false;
-        if (newLegsPlayed >= 2) {
-          if (newGoals[0] > newGoals[1]) semiWinner = semi.p[0];
-          else if (newGoals[1] > newGoals[0]) semiWinner = semi.p[1];
-          else {
-            // Level on aggregate — ET/pens in leg 2 already decided it
-            semiWinner = winnerIdx;
-            wonOnPens = true;
+      // Process suspensions & injuries
+      {
+        const absences = {};
+        // Carry over existing absences, decrementing by 1 (remove expired ones)
+        for (const [name, abs] of Object.entries(next.playerAbsences || {})) {
+          if (abs.matchesRemaining > 1) absences[name] = { ...abs, matchesRemaining: abs.matchesRemaining - 1 };
+        }
+        // Red cards this match → 1-match suspension
+        if (matchEvents) {
+          const sideToIdx = { home: homeIdx, away: awayIdx };
+          for (const ev of matchEvents) {
+            if (ev.type === "red") {
+              const mgrIdx = sideToIdx[ev.team];
+              if (ev.player && mgrIdx !== undefined) {
+                absences[ev.player] = { type: "suspension", mgrIdx, matchesRemaining: 1 };
+              }
+            }
           }
         }
-
-        const newSemis = s.semis.map((sm, i) =>
-          i === semiIdx ? { ...sm, goals: newGoals, legsPlayed: newLegsPlayed, winner: semiWinner, wonOnPens } : sm
-        );
-        const bothDone = newSemis.every(sm => sm.winner !== null);
-        const newFinal = bothDone && !s.final
-          ? { p: newSemis.map(sm => sm.winner), wins: [0, 0], target: 1, winner: null }
-          : s.final;
-        return { ...prev, series: { ...s, semis: newSemis, final: newFinal, stage: bothDone ? "final" : "semis" } };
+        // Injuries this match → 1-match injury absence
+        if (matchInjuries) {
+          const sideToIdx = { home: homeIdx, away: awayIdx };
+          for (const inj of matchInjuries) {
+            const mgrIdx = sideToIdx[inj.team];
+            if (inj.name && mgrIdx !== undefined && !absences[inj.name]) {
+              absences[inj.name] = { type: "injury", mgrIdx, matchesRemaining: 1 };
+            }
+          }
+        }
+        next = { ...next, playerAbsences: absences };
       }
 
-      // Final (single leg)
-      if (s.final) {
-        const f = s.final;
-        const pos = f.p.indexOf(winnerIdx);
-        if (pos < 0) return prev;
-        const wins = f.wins.map((w, i) => i === pos ? w + 1 : w);
-        const champion = wins.some(w => w >= f.target) ? winnerIdx : null;
-        return { ...prev, series: { ...s, final: { ...f, wins, winner: champion }, champion, stage: champion !== null ? "champion" : "final" } };
-      }
-
-      return prev;
+      return next;
     });
     setScreen("series");
   }

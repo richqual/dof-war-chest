@@ -485,6 +485,79 @@ function ChampionSquad({ manager }) {
   );
 }
 
+function TournamentResults({ tournamentStats, managers }) {
+  if (!tournamentStats || Object.keys(tournamentStats).length === 0) return null;
+
+  const allStats = Object.entries(tournamentStats);
+
+  const topScorers = allStats
+    .filter(([, s]) => s.goals > 0)
+    .sort((a, b) => b[1].goals - a[1].goals || b[1].assists - a[1].assists)
+    .slice(0, 5);
+
+  const topAssisters = allStats
+    .filter(([, s]) => s.assists > 0)
+    .sort((a, b) => b[1].assists - a[1].assists || b[1].goals - a[1].goals)
+    .slice(0, 5);
+
+  const pott = allStats
+    .filter(([, s]) => s.ratings.length > 0)
+    .map(([name, s]) => {
+      const avgRating = s.ratings.reduce((a, b) => a + b, 0) / s.ratings.length;
+      return { name, ...s, avgRating, score: s.goals * 3 + s.assists * 2 + avgRating };
+    })
+    .sort((a, b) => b.score - a.score)[0];
+
+  function teamName(mgrIdx) {
+    const m = managers[mgrIdx];
+    return m ? (m.teamName || m.clubName || m.name) : "–";
+  }
+
+  return (
+    <div className="tourn-results">
+      {pott && (
+        <div className="tourn-pott">
+          <div className="tourn-pott-label">⭐ PLAYER OF THE TOURNAMENT</div>
+          <div className="tourn-pott-name">{pott.name}</div>
+          <div className="tourn-pott-team">{teamName(pott.managerIdx)}</div>
+          <div className="tourn-pott-stats">
+            <span>⚽ {pott.goals}</span>
+            <span>🅰️ {pott.assists}</span>
+            <span>★ {pott.avgRating.toFixed(2)} avg</span>
+          </div>
+        </div>
+      )}
+
+      <div className="tourn-tables">
+        {topScorers.length > 0 && (
+          <div className="tourn-table">
+            <div className="tourn-table-title">TOP SCORERS</div>
+            {topScorers.map(([name, s]) => (
+              <div className="tourn-table-row" key={name}>
+                <span className="tourn-row-name">{name}</span>
+                <span className="tourn-row-team">{teamName(s.managerIdx)}</span>
+                <span className="tourn-row-val">⚽ {s.goals}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        {topAssisters.length > 0 && (
+          <div className="tourn-table">
+            <div className="tourn-table-title">TOP ASSISTS</div>
+            {topAssisters.map(([name, s]) => (
+              <div className="tourn-table-row" key={name}>
+                <span className="tourn-row-name">{name}</span>
+                <span className="tourn-row-team">{teamName(s.managerIdx)}</span>
+                <span className="tourn-row-val">🅰️ {s.assists}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function SeriesScreen({ draft, setScreen, recordMatchResult, restartGame }) {
   const { managers, series } = draft;
   if (!series) return null;
@@ -545,6 +618,9 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
             {/* Full squad */}
             <ChampionSquad manager={champion} />
 
+            {/* Tournament stats */}
+            <TournamentResults tournamentStats={draft.tournamentStats} managers={managers} />
+
             {/* Actions */}
             <div className="champion-actions">
               <button className="sim-btn secondary" onClick={() => setScreen("squads")}>VIEW ALL SQUADS</button>
@@ -558,7 +634,13 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
           <div className="series-header">
             <div className="setup-badge">{formatLabel}</div>
             {nextMatchup && (
-              <div className="series-next-label">MATCH {nextMatchup.matchNum} · {nextMatchup.label}</div>
+              <div className="series-next-label">
+                {series.format === "tournament"
+                  ? nextMatchup.label
+                  : nextMatchup.isSeriesTiebreaker
+                    ? `MATCH ${nextMatchup.matchNum} · TIEBREAKER`
+                    : `MATCH ${nextMatchup.matchNum}`}
+              </div>
             )}
           </div>
 

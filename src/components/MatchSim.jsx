@@ -77,6 +77,33 @@ const COMMENTARY_GOAL = {
   ],
 };
 
+// Used when a goal has an assister — replaces the standard ctx line.
+const COMMENTARY_GOAL_ASSIST = [
+  (a, s, t) => `${a}'s through ball is perfectly weighted and ${s} does the rest. ${t} ahead!`,
+  (a, s, t) => `What a ball from ${a}! ${s} runs onto it and finishes with aplomb. ${t} score!`,
+  (a, s, t) => `${a} whips in the cross and ${s} is there to head it home. ${t} in front!`,
+  (a, s, t) => `${a} picks out ${s} with a sublime pass — and he doesn't need a second invitation!`,
+  (a, s, t) => `Brilliant assist from ${a}, drilled low across the box, and ${s} taps it in for ${t}!`,
+  (a, s, t) => `${a} with the corner — swung in perfectly, and ${s} meets it at the near post. ${t} lead!`,
+  (a, s, t) => `${a} plays ${s} in behind the defence — one-on-one with the keeper, and he doesn't miss!`,
+  (a, s, t) => `A gorgeous clipped ball from ${a} over the top, ${s} brings it down and finishes. ${t}!`,
+  (a, s, t) => `${a} cuts it back from the byline and ${s} has the simplest of finishes for ${t}!`,
+  (a, s, t) => `Free kick from ${a} — curled right into the danger zone — and ${s} is on hand to convert!`,
+  (a, s, t) => `${a} with a delicious flick, ${s} latches onto it and drives it home. ${t} go ahead!`,
+  (a, s, t) => `${a} releases ${s} in acres of space. He takes one touch and buries it. Textbook from ${t}!`,
+  (a, s, t) => `The one-two between ${a} and ${s} rips the defence open — ${s} finishes calmly for ${t}!`,
+  (a, s, t) => `${a} sees the run and hits the pass early. ${s} is through and slots it. ${t} score!`,
+  (a, s, t) => `A long ball from ${a}, flicked on, and somehow ${s} is the first to react. Goal for ${t}!`,
+  (a, s, t) => `${a} pulls it back across the six-yard box and ${s} can't miss from there. ${t} in front!`,
+  (a, s, t) => `${a} drives forward and lays it off at exactly the right moment — ${s} finishes it off for ${t}!`,
+  (a, s, t) => `What vision from ${a}! A pass of the highest quality, and ${s} does what he does. ${t} lead!`,
+  (a, s, t) => `${a} with the delivery from the right flank — floated, dangerous — and ${s} heads home for ${t}!`,
+  (a, s, t) => `${a} skips past his man and squares it to ${s}, who only has the keeper to beat. He doesn't miss. ${t}!`,
+  (a, s, t) => `Corner from ${a}. It's got pace on it. ${s} attacks the ball brilliantly and ${t} are ahead!`,
+  (a, s, t) => `${a} with the long diagonal switch — sensational pass — found ${s} who made no mistake for ${t}!`,
+  (a, s, t) => `${a} threads the needle in a packed penalty area. Only ${s} saw the run. Only ${s} could finish that.`,
+];
+
 const COMMENTARY_MISS = [
   (p) => `${p} drives wide! So close.`,
   (p) => `${p} rattles the crossbar! Agonising.`,
@@ -157,6 +184,49 @@ const COMMENTARY_NEUTRAL = [
   (a, b) => `${a}'s substitutes are warming up along the touchline. Whether anyone wants them on is another matter.`,
 ];
 
+const COMMENTARY_INJURY = [
+  (p, t) => `${p} goes down and stays down — ${t} will be worried. He looks to be struggling with his hamstring.`,
+  (p, t) => `${p} is receiving treatment on the pitch. This doesn't look good for ${t}.`,
+  (p, t) => `${p} pulls up sharply! He's holding his knee — could be a problem for ${t}.`,
+  (p, t) => `Tough luck for ${t} — ${p} limps off after pulling his calf. He won't finish this one.`,
+  (p, t) => `${p} is down injured. The physio is on. ${t} will be hoping it's nothing serious — but it doesn't look that way.`,
+  (p, t) => `A concerned look on the ${t} bench as ${p} goes down clutching his ankle. He looks in real discomfort.`,
+  (p, t) => `${p} signals he can't continue. A blow for ${t} — he'll be assessed after the match.`,
+];
+
+const POS_PRIORITY = {
+  GK:  ["GK"],
+  CB:  ["CB", "LB", "RB", "DM", "MF"],
+  LB:  ["LB", "RB", "CB", "DM", "MF"],
+  RB:  ["RB", "LB", "CB", "DM", "MF"],
+  DM:  ["DM", "MF", "CB"],
+  MF:  ["MF", "DM", "LW", "RW"],
+  LW:  ["LW", "RW", "MF", "ST"],
+  RW:  ["RW", "LW", "MF", "ST"],
+  ST:  ["ST", "LW", "RW", "MF"],
+};
+
+function buildEffectiveSquad(manager, playerAbsences) {
+  if (!playerAbsences || Object.keys(playerAbsences).length === 0) return manager.squad;
+  const starters = manager.squad.slice(0, 11).map(p => p || null);
+  const bench = manager.squad.slice(11, 16).filter(p => p);
+  const usedFromBench = new Set();
+  const effectiveStarters = starters.map(p => {
+    if (!p || !playerAbsences[p.name]) return p;
+    const priority = POS_PRIORITY[p.pos] || Object.keys(POS_PRIORITY);
+    let replacement = null;
+    for (const posGroup of priority) {
+      replacement = bench.find(b => b.pos === posGroup && !usedFromBench.has(b.name) && !playerAbsences[b.name]);
+      if (replacement) break;
+    }
+    if (!replacement) replacement = bench.find(b => !usedFromBench.has(b.name) && !playerAbsences[b.name]);
+    if (replacement) { usedFromBench.add(replacement.name); return replacement; }
+    return null;
+  });
+  const remainingBench = bench.filter(b => !usedFromBench.has(b.name));
+  return [...effectiveStarters, ...remainingBench];
+}
+
 function goalContext(forGoals, againstGoals) {
   // Called BEFORE incrementing the scorer's tally
   if (forGoals === againstGoals) return "lead";
@@ -170,11 +240,13 @@ const DEFENSIVE_POS = new Set(["GK", "RB", "LB", "CB", "DM"]);
 function buildRatings(squad, side, allEvents, conceded, won, drew) {
   return squad.slice(0, 11).filter(Boolean).map(p => {
     const goals = allEvents.filter(e => e.type === "goal" && e.team === side && e.scorer === p.name).length;
+    const assists = allEvents.filter(e => e.type === "goal" && e.team === side && e.assister === p.name).length;
     const yellow = allEvents.some(e => e.type === "yellow" && e.team === side && e.player === p.name);
     const red = allEvents.some(e => e.type === "red" && e.team === side && e.player === p.name);
 
     let r = 6.2 + (p.rating - 80) * 0.04 + Math.random() * 0.9;
     r += goals * 1.2;
+    r += assists * 0.5;
     if (yellow) r -= 0.4;
     if (red) r -= 1.8;
     r += won ? 0.4 : drew ? 0 : -0.4;
@@ -182,7 +254,7 @@ function buildRatings(squad, side, allEvents, conceded, won, drew) {
     else if (DEFENSIVE_POS.has(p.pos) && conceded >= 3) r -= 0.5;
     r = Math.min(10, Math.max(3.5, Math.round(r * 10) / 10));
 
-    return { name: p.name, pos: p.pos, rating: r, goals, yellow, red };
+    return { name: p.name, pos: p.pos, rating: r, goals, assists, yellow, red };
   });
 }
 
@@ -318,6 +390,197 @@ const STYLE_MATCHUP_COMMENTARY = [
   (myTeam, oppTeam) => `Tactically, ${myTeam} have found the blueprint to unlock ${oppTeam}'s system. Fascinating.`,
 ];
 
+function generatePreMatchNarrative(draft, homeIdx, awayIdx, seriesContext) {
+  if (!seriesContext || !draft?.series) return null;
+  const { series, managers, tournamentStats } = draft;
+  const hm = managers[homeIdx], am = managers[awayIdx];
+  const homeName = hm.teamName || hm.clubName || hm.name;
+  const awayName = am.teamName || am.clubName || am.name;
+  const hmFm = hm.footballManager, amFm = am.footballManager;
+  const hmFmName = hmFm ? hmFm.name.split(" ").pop() : null;
+  const amFmName = amFm ? amFm.name.split(" ").pop() : null;
+
+  function topScorerFor(mgrIndices) {
+    if (!tournamentStats) return null;
+    return Object.entries(tournamentStats)
+      .filter(([, s]) => mgrIndices.includes(s.managerIdx) && s.goals > 0)
+      .sort((a, b) => b[1].goals - a[1].goals)[0] || null;
+  }
+  function topScorerOverall() {
+    if (!tournamentStats) return null;
+    return Object.entries(tournamentStats)
+      .filter(([, s]) => s.goals > 0)
+      .sort((a, b) => b[1].goals - a[1].goals)[0] || null;
+  }
+  function mgrTeamRef(fmName, teamName, style) {
+    const styleDescriptions = {
+      pressing: `${fmName}'s high-press side`,
+      counter: `${fmName}'s disciplined outfit`,
+      attacking: `${fmName}'s attack-minded ${teamName}`,
+      possession: `${fmName}'s possession-hungry ${teamName}`,
+      direct: `${fmName}'s direct, physical ${teamName}`,
+      wildcard: `the unpredictable ${teamName} under ${fmName}`,
+    };
+    return styleDescriptions[style] || `${fmName}'s ${teamName}`;
+  }
+
+  const sentences = [];
+
+  if (series.format === "tournament") {
+    const semiIdx = (series.semis || []).findIndex(sm =>
+      sm.p.includes(homeIdx) && sm.p.includes(awayIdx)
+    );
+    if (semiIdx >= 0) {
+      const sm = series.semis[semiIdx];
+      const otherSemi = series.semis[1 - semiIdx];
+      const otherFinalist = otherSemi?.winner != null ? managers[otherSemi.winner] : null;
+      const otherFinalistName = otherFinalist ? (otherFinalist.teamName || otherFinalist.name) : null;
+
+      if (sm.legsPlayed === 0) {
+        if (otherFinalistName) {
+          sentences.push(`${homeName} and ${awayName} kick off their semi-final tonight knowing ${otherFinalistName} are already waiting in the grand final.`);
+        } else {
+          sentences.push(`The semi-finals are underway — ${homeName} welcome ${awayName} for the first leg of what promises to be a mouthwatering tie.`);
+        }
+        if (hmFmName && amFmName) {
+          sentences.push(`${hmFmName} and ${amFmName} go head to head — two very different football philosophies about to collide.`);
+        } else if (hmFmName) {
+          sentences.push(`All eyes on ${hmFmName} tonight — can ${mgrTeamRef(hmFmName, homeName, hmFm.style)} take a crucial first-leg advantage?`);
+        } else if (amFmName) {
+          sentences.push(`${amFmName} brings his side here with one objective: leave with an advantage heading into the second leg.`);
+        }
+      } else {
+        // Leg 2
+        const homeAgg = sm.goals[1], awayAgg = sm.goals[0];
+        const tieScorer = topScorerFor(sm.p);
+        const margin = Math.abs(homeAgg - awayAgg);
+        const slender = margin === 1 ? "slender " : "";
+
+        if (homeAgg > awayAgg) {
+          if (otherFinalistName) {
+            sentences.push(`${homeName} will be hoping to join ${otherFinalistName} in the final tonight, taking a ${slender}${homeAgg}–${awayAgg} aggregate lead into the second leg.`);
+          } else {
+            sentences.push(`${homeName} hold a ${slender}${homeAgg}–${awayAgg} aggregate advantage — ${awayName} must overturn the deficit or go home.`);
+          }
+          if (tieScorer) {
+            const hitFor = managers[tieScorer[1].managerIdx];
+            const hitName = hitFor?.teamName || hitFor?.name || "";
+            sentences.push(`${tieScorer[0]} broke the deadlock in the first leg${tieScorer[1].goals > 1 ? ` and leads the tie with ${tieScorer[1].goals} goals` : ""} for ${hitName}.`);
+          }
+          if (amFmName) sentences.push(`${amFmName} needs an immediate response — there is no tomorrow.`);
+        } else if (awayAgg > homeAgg) {
+          if (otherFinalistName) {
+            sentences.push(`${awayName} are hoping to join ${otherFinalistName} in the grand final, holding a ${slender}${awayAgg}–${homeAgg} aggregate lead going into the second leg at ${homeName}.`);
+          } else {
+            sentences.push(`${awayName} arrive here with a ${slender}${awayAgg}–${homeAgg} lead on aggregate — ${homeName} have a mountain to climb.`);
+          }
+          if (tieScorer) {
+            sentences.push(`${tieScorer[0]}'s crucial away goal in the first leg has put${tieScorer[1].goals > 1 ? ` ${tieScorer[1].goals} goals in the tie and` : ""} ${managers[tieScorer[1].managerIdx]?.teamName || ""} in the driving seat.`);
+          }
+          if (hmFmName) sentences.push(`${hmFmName} will demand a reaction from ${homeName} — they cannot afford to go out without a fight.`);
+          else sentences.push(`${homeName} must attack from the first whistle. A draw is not enough.`);
+        } else {
+          if (otherFinalistName) {
+            sentences.push(`${otherFinalistName} are in the final and waiting. Tonight, ${homeName} and ${awayName} — level at ${homeAgg}–${awayAgg} on aggregate — decide who joins them.`);
+          } else {
+            sentences.push(`Perfectly poised. After the first leg, ${homeName} and ${awayName} are level at ${homeAgg}–${awayAgg} on aggregate — everything to play for.`);
+          }
+          if (tieScorer) sentences.push(`${tieScorer[0]} found the net in the first leg, but the tie remains in the balance.`);
+          sentences.push(`Extra time and penalties loom if neither side can break the deadlock tonight.`);
+        }
+      }
+    } else if (series.final) {
+      const topScorer = topScorerOverall();
+      sentences.push(`This is it — the grand final. ${homeName} against ${awayName}.`);
+      if (topScorer) {
+        const scorerMgr = managers[topScorer[1].managerIdx];
+        const scorerTeam = scorerMgr?.teamName || scorerMgr?.name || "";
+        sentences.push(`${topScorer[0]} has lit up the tournament with ${topScorer[1].goals} goal${topScorer[1].goals !== 1 ? "s" : ""}${topScorer[1].assists > 0 ? ` and ${topScorer[1].assists} assist${topScorer[1].assists !== 1 ? "s" : ""}` : ""} for ${scorerTeam}.`);
+      }
+      if (hmFmName && amFmName) {
+        sentences.push(`${hmFmName} against ${amFmName} — a tactical battle to decide the tournament.`);
+      } else if (hmFmName) {
+        sentences.push(`${mgrTeamRef(hmFmName, homeName, hmFm.style)} arrive as favourites — but ${awayName} didn't read the script.`);
+      } else if (amFmName) {
+        sentences.push(`${amFmName} leads ${awayName} into the biggest match of the tournament. ${homeName} will make them earn it.`);
+      }
+    }
+  } else {
+    // Series format
+    const [p0, p1] = series.participants;
+    const [w0, w1] = series.wins;
+    const played = series.played ?? (w0 + w1);
+    const hWins = homeIdx === p0 ? w0 : w1;
+    const aWins = homeIdx === p0 ? w1 : w0;
+    const draws = series.draws ?? 0;
+    const target = series.target;
+    const fmtStr = series.format === "bo3" ? "best-of-three" : series.format === "bo5" ? "best-of-five" : "best-of-seven";
+    const topScorer = topScorerOverall();
+    const topHome = topScorerFor([homeIdx]);
+    const topAway = topScorerFor([awayIdx]);
+    const isTiebreaker = series.stage === "tiebreaker";
+
+    if (played === 0) {
+      if (hmFmName && amFmName) {
+        sentences.push(`${mgrTeamRef(hmFmName, homeName, hmFm.style)} kick off this ${fmtStr} series against ${mgrTeamRef(amFmName, awayName, amFm.style)} — two managers, one trophy.`);
+      } else {
+        sentences.push(`${homeName} and ${awayName} get their ${fmtStr} series underway. First to ${target} wins takes it all.`);
+      }
+      if (hmFmName) {
+        const openers = {
+          pressing: `Expect ${hmFmName} to set the tempo early — ${homeName} will press hard from the first whistle.`,
+          counter: `${hmFmName} will set up compact and patient — dangerous on the counter.`,
+          attacking: `${hmFmName} won't be cautious. ${homeName} come here to score.`,
+          possession: `${hmFmName}'s ${homeName} will look to dominate the ball and suffocate ${awayName}.`,
+          direct: `${hmFmName} keeps it simple — ${homeName} will look to win the physical battle.`,
+          wildcard: `Nobody quite knows what ${hmFmName} will conjure up tonight. That's rather the point.`,
+        };
+        if (openers[hmFm.style]) sentences.push(openers[hmFm.style]);
+      }
+    } else if (isTiebreaker) {
+      sentences.push(`It all comes down to this. ${homeName} and ${awayName} are locked at ${hWins}–${aWins} in the ${fmtStr} — one match decides everything.`);
+      if (topScorer) {
+        const sc = managers[topScorer[1].managerIdx];
+        sentences.push(`${topScorer[0]} has been the standout performer across the series with ${topScorer[1].goals} goal${topScorer[1].goals !== 1 ? "s" : ""} for ${sc?.teamName || sc?.name || ""}.`);
+      }
+      const fm = hmFmName || amFmName;
+      const fmTeam = hmFmName ? homeName : awayName;
+      if (fm) sentences.push(`${fm} has come this far — ${fmTeam} will not go quietly.`);
+    } else if (hWins === aWins) {
+      sentences.push(`Level at ${hWins}–${aWins} in the ${fmtStr} — ${homeName} and ${awayName} couldn't be more evenly matched heading into match ${played + 1}.`);
+      if (topScorer) {
+        const sc = managers[topScorer[1].managerIdx];
+        sentences.push(`${topScorer[0]} leads the scoring charts with ${topScorer[1].goals} in the series for ${sc?.teamName || sc?.name || ""}.`);
+      }
+      if (draws > 0) sentences.push(`${draws} draw${draws > 1 ? "s" : ""} have left this series delicately balanced — tonight, someone has to blink first.`);
+    } else if (hWins > aWins) {
+      if (target - hWins === 1) {
+        sentences.push(`${homeName} are one win from glory, leading the ${fmtStr} ${hWins}–${aWins}. ${awayName} must win or go home.`);
+        if (topHome) sentences.push(`${topHome[0]} has been pivotal with ${topHome[1].goals} goal${topHome[1].goals !== 1 ? "s" : ""} in the series.`);
+        if (amFmName) sentences.push(`${amFmName} needs a response — and it has to come tonight.`);
+        else sentences.push(`${awayName} cannot allow another defeat. Everything is on the line.`);
+      } else {
+        sentences.push(`${homeName} lead ${hWins}–${aWins} in the ${fmtStr} and are building real momentum heading into match ${played + 1}.`);
+        if (topHome) sentences.push(`The ${homeName} attack has been in fine form — ${topHome[0]} with ${topHome[1].goals} goal${topHome[1].goals !== 1 ? "s" : ""} to show for it.`);
+        if (amFmName) sentences.push(`${amFmName} needs a reaction from ${awayName} before this series slips away.`);
+      }
+    } else {
+      if (target - aWins === 1) {
+        sentences.push(`${awayName} are a single win from the title, leading ${aWins}–${hWins} in the ${fmtStr}. ${homeName} have their backs against the wall.`);
+        if (topAway) sentences.push(`${topAway[0]} has been the difference-maker with ${topAway[1].goals} goal${topAway[1].goals !== 1 ? "s" : ""} for ${awayName}.`);
+        if (hmFmName) sentences.push(`${hmFmName} must galvanise ${homeName} tonight — or the series is over.`);
+        else sentences.push(`${homeName} cannot afford another loss. Tonight is a must-win.`);
+      } else {
+        sentences.push(`${awayName} have taken a ${aWins}–${hWins} series lead and now come to ${homeName} looking to extend their advantage in match ${played + 1}.`);
+        if (topAway) sentences.push(`${topAway[0]} has caught the eye for ${awayName} with ${topAway[1].goals} goal${topAway[1].goals !== 1 ? "s" : ""} in the series.`);
+        if (hmFmName) sentences.push(`${hmFmName}'s ${homeName} haven't been at their best — but there's still everything to play for.`);
+      }
+    }
+  }
+
+  return sentences.slice(0, 3).join(" ");
+}
+
 // legContext = { homeAgg, awayAgg } when this is leg 2 of an aggregate tie.
 // ET/pens trigger on aggregate level rather than match level.
 // isLeg1 = true suppresses ET entirely (leg 1 of a 2-legged tie is always 90 min).
@@ -431,6 +694,8 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   }
 
   let hGoals = 0, aGoals = 0;
+  let hOnTarget = 0, aOnTarget = 0;
+  let hFouls = 0, aFouls = 0;
   const hCards = [], aCards = [];
   const hBooked = new Set(), aBooked = new Set();
   const hSentOff = new Set(), aSentOff = new Set();
@@ -492,9 +757,21 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       if (Math.random() < goalChance) {
         const ctx = isHome ? goalContext(hGoals, aGoals) : goalContext(aGoals, hGoals);
         isHome ? hGoals++ : aGoals++;
-        events.push({ min, type: "goal", team: side, scorer: name, text: pick(COMMENTARY_GOAL[ctx])(name, teamName), score: `${hGoals}–${aGoals}`, poss: Math.round(possH * 100) });
+        const pitchPlayers = onPitch(team, isHome ? hSentOff : aSentOff);
+        const assistCandidates = pitchPlayers.filter(p => p.name !== name);
+        let assister = null;
+        if (Math.random() < 0.72 && assistCandidates.length > 0) {
+          const ap = bestPlayer(assistCandidates, weighted([{ v: "MF", w: 2.5 }, { v: "RW", w: 1.5 }, { v: "LW", w: 1.5 }, { v: "ST", w: 0.8 }, { v: "DM", w: 0.5 }]));
+          assister = (ap || pick(assistCandidates))?.name || null;
+        }
+        const goalText = assister
+          ? pick(COMMENTARY_GOAL_ASSIST)(assister, name, teamName)
+          : pick(COMMENTARY_GOAL[ctx])(name, teamName);
+        events.push({ min, type: "goal", team: side, scorer: name, assister, text: goalText, score: `${hGoals}–${aGoals}`, poss: Math.round(possH * 100) });
+        if (isHome) hOnTarget++; else aOnTarget++;
       } else {
         events.push({ min, type: "miss", team: side, text: pick(COMMENTARY_MISS)(name), poss: Math.round(possH * 100) });
+        if (Math.random() < 0.5) { if (isHome) hOnTarget++; else aOnTarget++; }
       }
     } else if (r < 0.45) {
       const isHome = Math.random() < 0.5;
@@ -505,6 +782,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       const target = pl[rand(0, pl.length - 1)];
       if (target) {
         possH = possH * 0.94 + ratio * 0.06;
+        if (isHome) hFouls++; else aFouls++;
         if (booked.has(target.name)) {
           sentOff.add(target.name);
           events.push({ min, type: "red", team: isHome ? "home" : "away", player: target.name, text: pick(COMMENTARY_RED)(target.name, isHome ? homeName : awayName, 11 - sentOff.size), poss: Math.round(possH * 100) });
@@ -521,6 +799,23 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       events.push({ ...ev, poss: Math.round(possH * 100) });
     }
   }
+
+  // Injury events: one possible injury per team, fired at a random mid-match minute
+  // We pick the player now (post loop so we know who stayed on), then inject a commentary event
+  const matchInjuries = []; // { name, team: "home"|"away" }
+  for (const [squad, side, teamName] of [[homeSquad, "home", homeName], [awaySquad, "away", awayName]]) {
+    if (Math.random() < 0.08) {
+      const eligible = squad.slice(0, 11).filter(p => p);
+      if (eligible.length > 0) {
+        const victim = pick(eligible);
+        const injMin = rand(20, 88);
+        events.push({ min: injMin, type: "injury", team: side, player: victim.name, text: pick(COMMENTARY_INJURY)(victim.name, teamName), poss: Math.round(possH * 100) });
+        matchInjuries.push({ name: victim.name, team: side });
+      }
+    }
+  }
+  // Re-sort events by minute after injection
+  events.sort((a, b) => a.min - b.min);
 
   let etEvents = [];
   let penWinner = null;
@@ -553,7 +848,16 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
         if (Math.random() < 0.45) {
           const ctx = isHome ? goalContext(finalHome, finalAway) : goalContext(finalAway, finalHome);
           isHome ? finalHome++ : finalAway++;
-          etEvents.push({ min, type: "goal", team: side, scorer: name, text: pick(COMMENTARY_GOAL[ctx])(name, teamName), score: `${finalHome}–${finalAway}` });
+          const etPitch = onPitch(isHome ? homeSquad : awaySquad, isHome ? hSentOff : aSentOff);
+          const etAssistCands = etPitch.filter(p => p.name !== name);
+          let etAssister = null;
+          if (Math.random() < 0.72 && etAssistCands.length > 0) {
+            etAssister = (bestPlayer(etAssistCands, null) || pick(etAssistCands))?.name || null;
+          }
+          const etGoalText = etAssister
+            ? pick(COMMENTARY_GOAL_ASSIST)(etAssister, name, teamName)
+            : pick(COMMENTARY_GOAL[ctx])(name, teamName);
+          etEvents.push({ min, type: "goal", team: side, scorer: name, assister: etAssister, text: etGoalText, score: `${finalHome}–${finalAway}` });
         } else {
           etEvents.push({ min, type: "miss", team: side, text: pick(COMMENTARY_MISS)(name) });
         }
@@ -677,9 +981,12 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     stats: {
       hShots: Math.max(finalHome, rand(3, 8)),
       aShots: Math.max(finalAway, rand(2, 7)),
+      hOnTarget: Math.min(hOnTarget + finalHome, Math.max(finalHome, hOnTarget)),
+      aOnTarget: Math.min(aOnTarget + finalAway, Math.max(finalAway, aOnTarget)),
       hPoss, aPoss,
       hCards: hCards.length, aCards: aCards.length,
       hReds: hSentOff.size, aReds: aSentOff.size,
+      hFouls: hFouls + rand(8, 12), aFouls: aFouls + rand(8, 12),
     },
     ratings: { home: homeRatings, away: awayRatings },
     motm: motmLine,
@@ -690,6 +997,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     awayReaction,
     homePreFlavour: preFlavour(homeFootballMgr, homeName),
     awayPreFlavour: preFlavour(awayFootballMgr, awayName),
+    matchInjuries,
   };
 }
 
@@ -715,6 +1023,7 @@ function PlayerRatingRow({ r }) {
       <span className="mr-name">
         {r.name}
         {r.goals > 0 && <span className="mr-marks"> {"⚽".repeat(r.goals)}</span>}
+        {r.assists > 0 && <span className="mr-marks mr-assist"> {"🅰️".repeat(r.assists)}</span>}
         {r.red ? <span className="mr-marks"> 🟥</span> : r.yellow ? <span className="mr-marks"> 🟨</span> : null}
         {r.motm && <span className="mr-marks"> ⭐</span>}
       </span>
@@ -821,8 +1130,10 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
   }
 
   function startSim() {
+    const homeSquadEff = buildEffectiveSquad(homeManager, draft.playerAbsences);
+    const awaySquadEff = buildEffectiveSquad(awayManager, draft.playerAbsences);
     const r = generateEvents(
-      homeManager.squad, awayManager.squad, homeName, awayName,
+      homeSquadEff, awaySquadEff, homeName, awayName,
       seriesContext?.legContext ?? null,
       homeManager.footballManager ?? null,
       awayManager.footballManager ?? null,
@@ -893,6 +1204,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
     if (e.type === "red") return "🟥";
     if (e.type === "miss") return "↗";
     if (e.type === "pens") return "🎯";
+    if (e.type === "injury") return "🚑";
     return "▸";
   }
 
@@ -902,6 +1214,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
     if (e.type === "red") return "event-red";
     if (e.type === "miss") return "event-miss";
     if (e.type === "pens") return "event-pens";
+    if (e.type === "injury") return "event-injury";
     return "event-commentary";
   }
 
@@ -924,7 +1237,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
     <div className="match-screen">
       <div className="match-header">
         {!simulating && !seriesContext && <button className="back-btn" onClick={onBack}>← BACK</button>}
-        <span className="match-title">MATCH SIMULATION</span>
+        <span className="match-title">LIVE MATCH</span>
         <button className="lineup-btn" onClick={() => setShowLineups(true)}>LINE-UPS</button>
         <div className="speed-controls">
           {simulating && (
@@ -988,7 +1301,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
             const legCtx = seriesContext?.legContext;
             const isDraw = !result.penWinner && result.score.home === result.score.away && isRegularSeriesMatch;
             if (isDraw) {
-              onMatchResult(null, result.score);
+              onMatchResult(null, result.score, null, result.events);
             } else {
               let side;
               if (result.penWinner) {
@@ -998,7 +1311,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
               } else {
                 side = result.score.home > result.score.away ? "home" : "away";
               }
-              onMatchResult(side === "home" ? homeIdx : awayIdx, result.score);
+              onMatchResult(side === "home" ? homeIdx : awayIdx, result.score, result.ratings, result.events, result.matchInjuries);
             }
           }}>
             {seriesContext?.isGrandFinal ? "SEE THE RESULT →" : seriesContext ? "CONTINUE TOURNAMENT →" : "CONTINUE SERIES →"}
@@ -1009,6 +1322,16 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
       <div className="match-body">
       {!simulating && !done && (
         <div className="sim-start-area">
+          {/* Pre-match narrative */}
+          {seriesContext && (() => {
+            const narrative = generatePreMatchNarrative(draft, homeIdx, awayIdx, seriesContext);
+            return narrative ? (
+              <div className="pre-match-narrative">
+                <div className="pre-match-narrative-label">MATCH PREVIEW</div>
+                <p className="pre-match-narrative-text">{narrative}</p>
+              </div>
+            ) : null;
+          })()}
           {/* Manager pre-match flavour */}
           {(homeManager.footballManager || awayManager.footballManager) && (
             <div className="pre-mgr-quotes">
@@ -1037,6 +1360,34 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
               <div className="pre-stat-label">AVG RATING</div>
             </div>
           </div>
+          {/* Absences notice */}
+          {draft.playerAbsences && Object.keys(draft.playerAbsences).length > 0 && (() => {
+            const homeAbsent = Object.entries(draft.playerAbsences).filter(([, a]) => a.mgrIdx === homeIdx);
+            const awayAbsent = Object.entries(draft.playerAbsences).filter(([, a]) => a.mgrIdx === awayIdx);
+            if (!homeAbsent.length && !awayAbsent.length) return null;
+            return (
+              <div className="pre-absences">
+                {homeAbsent.length > 0 && (
+                  <div className="pre-absence-side" style={{ color: homeAccent }}>
+                    {homeAbsent.map(([name, a]) => (
+                      <div key={name} className="pre-absence-row">
+                        {a.type === "suspension" ? "🟥" : "🚑"} {name} <span className="pre-absence-reason">({a.type === "suspension" ? "suspended" : "injured"})</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {awayAbsent.length > 0 && (
+                  <div className="pre-absence-side" style={{ color: awayAccent }}>
+                    {awayAbsent.map(([name, a]) => (
+                      <div key={name} className="pre-absence-row">
+                        {a.type === "suspension" ? "🟥" : "🚑"} {name} <span className="pre-absence-reason">({a.type === "suspension" ? "suspended" : "injured"})</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
           <button className="sim-btn" onClick={startSim}>▶ KICK OFF</button>
         </div>
       )}
@@ -1063,42 +1414,24 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
       {done && result && (
         <div className={`match-summary ${summaryCollapsed ? "summary-collapsed" : ""}`}>
           <div className="summary-header" onClick={() => setSummaryCollapsed(c => !c)}>
-            <span className="summary-title">FULL TIME</span>
-            <span className="summary-score-inline">{homeName} {result.score.home}–{result.score.away} {awayName}</span>
+            <div className="summary-header-left">
+              <span className="summary-title">FULL TIME</span>
+              <span className="summary-score-inline">{homeName} {result.score.home}–{result.score.away} {awayName}</span>
+            </div>
             <span className="summary-toggle">{summaryCollapsed ? "▲" : "▼"}</span>
           </div>
           {!summaryCollapsed && <div className="summary-cols">
             <div className="summary-main">
-              <div className="final-score">
-                {homeName} {result.score.home}–{result.score.away} {awayName}
-                {result.penWinner && (
-                  <div className="pen-note">
-                    ({result.penWinner === "home" ? homeName : awayName} win on penalties)
-                  </div>
-                )}
-              </div>
-
-              <p className="match-report">{result.summary}</p>
-
-              {(result.homeReaction || result.awayReaction) && (
-                <div className="post-mgr-reactions">
-                  {result.homeReaction && (
-                    <div className="post-mgr-quote" style={{ borderColor: homeAccent }}>
-                      <span className="post-mgr-team" style={{ color: homeAccent }}>{homeName}</span>
-                      <span className="post-mgr-text">{result.homeReaction}</span>
-                    </div>
-                  )}
-                  {result.awayReaction && (
-                    <div className="post-mgr-quote" style={{ borderColor: awayAccent }}>
-                      <span className="post-mgr-team" style={{ color: awayAccent }}>{awayName}</span>
-                      <span className="post-mgr-text">{result.awayReaction}</span>
-                    </div>
-                  )}
+              {result.penWinner && (
+                <div className="pen-note">
+                  ({result.penWinner === "home" ? homeName : awayName} win on penalties)
                 </div>
               )}
 
+              <p className="match-report">{result.summary}</p>
+
               <div className="motm-row">
-                <span className="motm-label">MAN OF THE MATCH</span>
+                <span className="motm-label">POTM</span>
                 <span className="motm-name">⭐ {result.motm}</span>
               </div>
 
@@ -1109,22 +1442,30 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
                   <span className="stat-away">{result.stats.aShots}</span>
                 </div>
                 <div className="stat-row">
+                  <span className="stat-home">{result.stats.hOnTarget}</span>
+                  <span className="stat-label">ON TARGET</span>
+                  <span className="stat-away">{result.stats.aOnTarget}</span>
+                </div>
+                <div className="stat-row">
                   <span className="stat-home">{result.stats.hPoss}%</span>
                   <span className="stat-label">POSSESSION</span>
                   <span className="stat-away">{result.stats.aPoss}%</span>
+                </div>
+                <div className="stat-row">
+                  <span className="stat-home">{result.stats.hFouls}</span>
+                  <span className="stat-label">FOULS</span>
+                  <span className="stat-away">{result.stats.aFouls}</span>
                 </div>
                 <div className="stat-row">
                   <span className="stat-home">{result.stats.hCards}</span>
                   <span className="stat-label">YELLOW CARDS</span>
                   <span className="stat-away">{result.stats.aCards}</span>
                 </div>
-                {(result.stats.hReds > 0 || result.stats.aReds > 0) && (
-                  <div className="stat-row">
-                    <span className="stat-home">{result.stats.hReds}</span>
-                    <span className="stat-label">RED CARDS</span>
-                    <span className="stat-away">{result.stats.aReds}</span>
-                  </div>
-                )}
+                <div className="stat-row">
+                  <span className="stat-home">{result.stats.hReds}</span>
+                  <span className="stat-label">RED CARDS</span>
+                  <span className="stat-away">{result.stats.aReds}</span>
+                </div>
               </div>
 
               <div className="post-match-btns">
@@ -1138,12 +1479,17 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
               <div className="ratings-title">PLAYER RATINGS</div>
               <div className="ratings-cols">
                 {[
-                  { rs: result.ratings.home, accent: homeAccent, name: homeName },
-                  { rs: result.ratings.away, accent: awayAccent, name: awayName },
-                ].map(({ rs, accent, name }) => (
+                  { rs: result.ratings.home, accent: homeAccent, name: homeName, reaction: result.homeReaction },
+                  { rs: result.ratings.away, accent: awayAccent, name: awayName, reaction: result.awayReaction },
+                ].map(({ rs, accent, name, reaction }) => (
                   <div className="ratings-col" key={name}>
                     <div className="ratings-team" style={{ color: accent }}>{name}</div>
                     {rs.map(r => <PlayerRatingRow key={r.name} r={r} />)}
+                    {reaction && (
+                      <div className="post-mgr-quote" style={{ borderColor: accent }}>
+                        <span className="post-mgr-text">{reaction}</span>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
