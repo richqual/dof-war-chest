@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick } from "../data/players";
+import { GROUP_SLOT_INDICES, GROUP_ORDER } from "../data/formations";
 
 const STORAGE_KEY = "transfer-game-state";
-const STORAGE_VERSION = 3; // bump when serialization format changes
+const STORAGE_VERSION = 4; // bump when serialization format changes
 
 function serializeDraft(draft) {
   if (!draft) return draft;
@@ -67,13 +68,23 @@ function availablePlayersFor(posKey, takenIds) {
 function applyPick(d, player) {
   const activeIdx = d.currentOrder[d.turnIndex];
   const budget = d.currentBudget ?? 0;
+  const isRandomStarter = d.positionMode === "random" && d.positionIndex < 11;
 
   const managers = d.managers.map((m, i) => {
     if (i !== activeIdx) return m;
     if (!player) return { ...m, carryover: budget };
     const squad = [...m.squad];
-    squad[d.positionIndex] = { ...player };
-    return { ...m, squad, carryover: d.noCarryoverNext ? 0 : budget - player.value };
+    let squadSlot;
+    let newGroupProgress = m.groupProgress;
+    if (isRandomStarter && d.currentGroup) {
+      const gp = m.groupProgress?.[d.currentGroup] ?? 0;
+      squadSlot = GROUP_SLOT_INDICES[d.currentGroup][gp];
+      newGroupProgress = { ...m.groupProgress, [d.currentGroup]: gp + 1 };
+    } else {
+      squadSlot = d.positionIndex;
+    }
+    squad[squadSlot] = { ...player };
+    return { ...m, squad, groupProgress: newGroupProgress, carryover: d.noCarryoverNext ? 0 : budget - player.value };
   });
 
   const takenIds = player ? [...d.takenIds, player.id] : d.takenIds;
@@ -83,7 +94,7 @@ function applyPick(d, player) {
   if (newTurnIndex >= n) {
     const newPositionIndex = d.positionIndex + 1;
     if (newPositionIndex >= POSITIONS.length) {
-      return { ...d, managers, takenIds, positionIndex: newPositionIndex, phase: "complete" };
+      return { ...d, managers, takenIds, positionIndex: newPositionIndex, phase: "complete", currentGroup: null };
     }
     const newRound = d.round + 1;
     return {
@@ -95,11 +106,12 @@ function applyPick(d, player) {
       round: newRound,
       currentBudget: null,
       noCarryoverNext: false,
+      currentGroup: null,
       currentOrder: Array.from({ length: n }, (_, i) => (i + newRound) % n),
       phase: "draft",
     };
   }
-  return { ...d, managers, takenIds, turnIndex: newTurnIndex, currentBudget: null, noCarryoverNext: false };
+  return { ...d, managers, takenIds, turnIndex: newTurnIndex, currentBudget: null, noCarryoverNext: false, currentGroup: null };
 }
 
 const FORMAT_TARGETS = { bo3: 2, bo5: 3, bo7: 4, single: 1 };
@@ -238,6 +250,8 @@ function buildInitialDraft(clubs, options = {}) {
       squad: Array(16).fill(null),
       carryover: 0,
       tactics: "balanced",
+      formation: c.formation || "4-3-3",
+      groupProgress: { GK: 0, DEF: 0, MID: 0, ATT: 0 },
     })),
     positionIndex: 0,
     turnIndex: 0,
@@ -254,6 +268,8 @@ function buildInitialDraft(clubs, options = {}) {
     difficulty: options.difficulty || "normal",
     series: buildSeries(n, options.format),
     managerTiming: options.managerTiming || "before",
+    positionMode: options.positionMode || "fixed",
+    currentGroup: null,
   };
 }
 
@@ -430,6 +446,11 @@ export function useDraftState() {
     setScreen("series");
   }
 
+  // Called when the position wheel resolves — locks in which group to draft from.
+  function confirmGroup(group) {
+    setDraft(prev => ({ ...prev, currentGroup: group }));
+  }
+
   // Called when spin wheel locks in a value — adds carryover and resets it
   function confirmBudget(spunVal) {
     setDraft(prev => {
@@ -541,6 +562,26 @@ export function useDraftState() {
     if (next.phase === "complete") setScreen(draft.managerTiming === "before" ? "squads" : "manager-draft");
   }
 
+  function autoDrawGroup(d) {
+    if (d.positionMode !== "random" || d.positionIndex >= 11 || d.currentGroup) return d;
+    const activeIdx = d.currentOrder[d.turnIndex];
+    const m = d.managers[activeIdx];
+    const avail = GROUP_ORDER.filter(g => (m.groupProgress?.[g] ?? 0) < GROUP_SLOT_INDICES[g].length);
+    if (!avail.length) return d;
+    const group = avail[Math.floor(Math.random() * avail.length)];
+    return { ...d, currentGroup: group };
+  }
+
+  function resolveCurrentPosKey(d) {
+    if (d.positionMode === "random" && d.positionIndex < 11 && d.currentGroup) {
+      const m = d.managers[d.currentOrder[d.turnIndex]];
+      const gp = m?.groupProgress?.[d.currentGroup] ?? 0;
+      const slotIdx = GROUP_SLOT_INDICES[d.currentGroup]?.[gp];
+      if (slotIdx !== undefined) return POSITIONS[slotIdx].key;
+    }
+    return POSITIONS[d.positionIndex].key;
+  }
+
   // Plays out every remaining turn instantly with CPU picks (spinning budgets
   // as needed) and jumps straight to the squads screen.
   function autoCompleteDraft() {
@@ -548,6 +589,7 @@ export function useDraftState() {
     let d = draft;
     let guard = 0;
     while (d.phase !== "complete" && guard++ < 500) {
+      d = autoDrawGroup(d);
       if (d.currentBudget === null) {
         const activeIdx = d.currentOrder[d.turnIndex];
         const carry = d.noCarryoverNext ? 0 : (d.managers[activeIdx]?.carryover || 0);
@@ -557,10 +599,9 @@ export function useDraftState() {
           managers: d.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
         };
       }
-      const posKey = POSITIONS[d.positionIndex].key;
+      const posKey = resolveCurrentPosKey(d);
       const pick = chooseCpuPick(getPlayersFromState(d, posKey), d.currentBudget);
       if (!pick) {
-        // Can't afford anyone — respin with no carryover
         d = { ...d, currentBudget: null, noCarryoverNext: true };
         continue;
       }
@@ -578,6 +619,7 @@ export function useDraftState() {
     while (d.phase !== "complete" && guard++ < 500) {
       const activeIdx = d.currentOrder[d.turnIndex];
       if (!d.managers[activeIdx].isComputer) break;
+      d = autoDrawGroup(d);
       if (d.currentBudget === null) {
         const carry = d.noCarryoverNext ? 0 : (d.managers[activeIdx]?.carryover || 0);
         d = {
@@ -586,7 +628,7 @@ export function useDraftState() {
           managers: d.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
         };
       }
-      const posKey = POSITIONS[d.positionIndex].key;
+      const posKey = resolveCurrentPosKey(d);
       const pick = chooseCpuPick(getPlayersFromState(d, posKey), d.currentBudget);
       if (!pick) {
         d = { ...d, currentBudget: null, noCarryoverNext: true };
@@ -640,12 +682,24 @@ export function useDraftState() {
 
   const activeManagerIdx = draft ? draft.currentOrder[draft.turnIndex] : 0;
   const activeManager = draft ? draft.managers[activeManagerIdx] : null;
-  const currentPos = draft ? POSITIONS[draft.positionIndex] : null;
+
+  function resolveCurrentPos(d) {
+    if (!d) return null;
+    if (d.positionMode === "random" && d.positionIndex < 11 && d.currentGroup) {
+      const m = d.managers[d.currentOrder[d.turnIndex]];
+      const gp = m?.groupProgress?.[d.currentGroup] ?? 0;
+      const slotIdx = GROUP_SLOT_INDICES[d.currentGroup]?.[gp];
+      if (slotIdx !== undefined) return POSITIONS[slotIdx];
+    }
+    return POSITIONS[d.positionIndex];
+  }
+
+  const currentPos = resolveCurrentPos(draft);
 
   return {
     screen, setScreen,
     draft, activeManager, activeManagerIdx, currentPos,
-    startGame, confirmBudget, pickPlayer, setTeamName,
+    startGame, confirmBudget, confirmGroup, pickPlayer, setTeamName,
     swapSquadPlayers, setTactics, restartGame, getAvailablePlayers, getTakenPlayers,
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,

@@ -1,116 +1,11 @@
 import { useState } from "react";
 import { POSITIONS, getRatingBg, getRatingColor, formatValue, ERA_LABELS, ERA_COLORS, ERA_BG } from "../data/players";
+import { FORMATIONS, FORMATION_LIST } from "../data/formations";
 import { TIER_LABELS, TIER_COLORS, TIER_BG } from "../data/managers";
 import { ARCHETYPE_COLOR } from "./PlayerCard";
 import { getFormArrow } from "../hooks/useDraftState";
 import KitSwatch, { kitAccent } from "./KitSwatch";
 
-const FORMATIONS = {
-  "4-3-3": [
-    { pos: "GK",  x: 50, y: 88 },
-    { pos: "RB",  x: 82, y: 70 },
-    { pos: "LB",  x: 18, y: 70 },
-    { pos: "CB",  x: 63, y: 70 },
-    { pos: "CB",  x: 37, y: 70 },
-    { pos: "DM",  x: 50, y: 52 },
-    { pos: "MF",  x: 28, y: 48 },
-    { pos: "MF",  x: 72, y: 48 },
-    { pos: "RW",  x: 80, y: 26 },
-    { pos: "LW",  x: 20, y: 26 },
-    { pos: "ST",  x: 50, y: 12 },
-  ],
-  "4-4-2": [
-    { pos: "GK",  x: 50, y: 88 },
-    { pos: "RB",  x: 82, y: 70 },
-    { pos: "LB",  x: 18, y: 70 },
-    { pos: "CB",  x: 63, y: 70 },
-    { pos: "CB",  x: 37, y: 70 },
-    { pos: "DM",  x: 78, y: 50 },
-    { pos: "MF",  x: 56, y: 50 },
-    { pos: "MF",  x: 34, y: 50 },
-    { pos: "RW",  x: 12, y: 50 },
-    { pos: "LW",  x: 34, y: 20 },
-    { pos: "ST",  x: 66, y: 20 },
-  ],
-  "4-5-1": [
-    { pos: "GK",  x: 50, y: 88 },
-    { pos: "RB",  x: 82, y: 70 },
-    { pos: "LB",  x: 18, y: 70 },
-    { pos: "CB",  x: 63, y: 70 },
-    { pos: "CB",  x: 37, y: 70 },
-    { pos: "DM",  x: 50, y: 52 },
-    { pos: "MF",  x: 28, y: 46 },
-    { pos: "MF",  x: 72, y: 46 },
-    { pos: "RW",  x: 82, y: 28 },
-    { pos: "LW",  x: 18, y: 28 },
-    { pos: "ST",  x: 50, y: 12 },
-  ],
-  "3-5-2": [
-    { pos: "GK",  x: 50, y: 88 },
-    { pos: "RB",  x: 86, y: 54 },
-    { pos: "LB",  x: 14, y: 54 },
-    { pos: "CB",  x: 67, y: 74 },
-    { pos: "CB",  x: 33, y: 74 },
-    { pos: "DM",  x: 50, y: 74 },
-    { pos: "MF",  x: 28, y: 44 },
-    { pos: "MF",  x: 50, y: 42 },
-    { pos: "RW",  x: 72, y: 44 },
-    { pos: "LW",  x: 33, y: 20 },
-    { pos: "ST",  x: 67, y: 20 },
-  ],
-  "3-4-3": [
-    { pos: "GK",  x: 50, y: 88 },
-    { pos: "RB",  x: 86, y: 56 },
-    { pos: "LB",  x: 14, y: 56 },
-    { pos: "CB",  x: 65, y: 74 },
-    { pos: "CB",  x: 35, y: 74 },
-    { pos: "DM",  x: 50, y: 74 },
-    { pos: "MF",  x: 34, y: 48 },
-    { pos: "MF",  x: 66, y: 48 },
-    { pos: "RW",  x: 78, y: 20 },
-    { pos: "LW",  x: 22, y: 20 },
-    { pos: "ST",  x: 50, y: 12 },
-  ],
-  "5-3-2": [
-    { pos: "GK",  x: 50, y: 88 },
-    { pos: "RB",  x: 88, y: 64 },
-    { pos: "LB",  x: 12, y: 64 },
-    { pos: "CB",  x: 70, y: 76 },
-    { pos: "CB",  x: 30, y: 76 },
-    { pos: "DM",  x: 50, y: 74 },
-    { pos: "MF",  x: 25, y: 48 },
-    { pos: "MF",  x: 50, y: 46 },
-    { pos: "RW",  x: 75, y: 48 },
-    { pos: "LW",  x: 33, y: 20 },
-    { pos: "ST",  x: 67, y: 20 },
-  ],
-  "5-4-1": [
-    { pos: "GK",  x: 50, y: 88 },
-    { pos: "RB",  x: 88, y: 64 },
-    { pos: "LB",  x: 12, y: 64 },
-    { pos: "CB",  x: 70, y: 76 },
-    { pos: "CB",  x: 30, y: 76 },
-    { pos: "DM",  x: 50, y: 74 },
-    { pos: "MF",  x: 18, y: 48 },
-    { pos: "MF",  x: 40, y: 48 },
-    { pos: "RW",  x: 60, y: 48 },
-    { pos: "LW",  x: 82, y: 48 },
-    { pos: "ST",  x: 50, y: 14 },
-  ],
-  "4-2-3-1": [
-    { pos: "GK",  x: 50, y: 88 },
-    { pos: "RB",  x: 82, y: 70 },
-    { pos: "LB",  x: 18, y: 70 },
-    { pos: "CB",  x: 63, y: 70 },
-    { pos: "CB",  x: 37, y: 70 },
-    { pos: "DM",  x: 35, y: 54 },
-    { pos: "DM",  x: 65, y: 54 },
-    { pos: "RW",  x: 78, y: 32 },
-    { pos: "MF",  x: 50, y: 30 },
-    { pos: "LW",  x: 22, y: 32 },
-    { pos: "ST",  x: 50, y: 12 },
-  ],
-};
 
 const TACTICS = ["defensive", "balanced", "attacking"];
 
@@ -286,7 +181,7 @@ function drawSquadCard(manager, captainId, starters, bench) {
 }
 
 function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers, setTactics, onBack, onSimulate, allManagers, managers, captainId, setCaptain }) {
-  const [formation, setFormation] = useState("4-3-3");
+  const [formation, setFormation] = useState(manager.formation || "4-3-3");
   const [swapSlot, setSwapSlot] = useState(null);
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(manager.teamName || "");
@@ -465,7 +360,7 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
               value={formation}
               onChange={e => setFormation(e.target.value)}
             >
-              {Object.keys(FORMATIONS).map(f => (
+              {FORMATION_LIST.map(f => (
                 <option key={f} value={f}>{f}</option>
               ))}
             </select>

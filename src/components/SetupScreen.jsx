@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { RANDOM_CLUB_NAMES, RANDOM_MANAGER_NAMES, EASTER_EGG_TEAMS } from "../data/players";
+import { FORMATION_LIST } from "../data/formations";
 import KitSwatch from "./KitSwatch";
 
 const DEFAULT_COLORS = [
@@ -130,6 +131,19 @@ function ClubSetup({ index, club, onChange, onRemove, canRemove }) {
       </div>
 
       <div className="club-setup-field">
+        <label className="field-label-sm">FORMATION</label>
+        <select
+          className="formation-select"
+          value={club.formation || "4-3-3"}
+          onChange={e => onChange({ ...club, formation: e.target.value })}
+        >
+          {FORMATION_LIST.map(f => (
+            <option key={f} value={f}>{f}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="club-setup-field">
         <label className="field-label-sm">KIT COLOURS &amp; PATTERN</label>
         <div className="kit-row">
           <KitSwatch
@@ -173,7 +187,7 @@ function ClubSetup({ index, club, onChange, onRemove, canRemove }) {
 
 function makeClub(index) {
   const d = DEFAULT_COLORS[index % DEFAULT_COLORS.length];
-  return { dofName: "", clubName: "", primaryColor: d.primary, secondaryColor: d.secondary, pattern: "plain", isComputer: false };
+  return { dofName: "", clubName: "", primaryColor: d.primary, secondaryColor: d.secondary, pattern: "plain", isComputer: false, formation: "4-3-3" };
 }
 
 const DIFFICULTY_INFO = [
@@ -199,6 +213,7 @@ export default function SetupScreen({ onStart }) {
   const [difficulty, setDifficulty] = useState("normal");
   const [format, setFormat] = useState("bo7");
   const [managerTiming, setManagerTiming] = useState("before");
+  const [positionMode, setPositionMode] = useState("fixed");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showRules, setShowRules] = useState(false);
 
@@ -234,7 +249,7 @@ export default function SetupScreen({ onStart }) {
       };
       finalClubs = [...finalClubs, cpu];
     }
-    onStart(finalClubs, { hideRatings, dynamicValues, dynamicForm, difficulty, format: activeFormat, managerTiming });
+    onStart(finalClubs, { hideRatings, dynamicValues, dynamicForm, difficulty, format: activeFormat, managerTiming, positionMode });
   }
 
   return (
@@ -292,6 +307,29 @@ export default function SetupScreen({ onStart }) {
             </div>
             <div className="difficulty-hint">
               {DIFFICULTY_INFO.find(d => d.key === difficulty)?.hint}
+            </div>
+          </div>
+
+          <div className="difficulty-section">
+            <span className="field-label-sm">DRAFT ORDER MODE</span>
+            <div className="difficulty-row">
+              <button
+                className={`difficulty-btn ${positionMode === "fixed" ? "active" : ""}`}
+                onClick={() => setPositionMode("fixed")}
+              >
+                FIXED
+              </button>
+              <button
+                className={`difficulty-btn ${positionMode === "random" ? "active" : ""}`}
+                onClick={() => setPositionMode("random")}
+              >
+                RANDOM
+              </button>
+            </div>
+            <div className="difficulty-hint">
+              {positionMode === "fixed"
+                ? "Classic order — GK first, subs last. Predictable and competitive"
+                : "Spin to reveal your position each round — chaos, carnage, and competition"}
             </div>
           </div>
 

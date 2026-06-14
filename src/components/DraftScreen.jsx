@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { POSITIONS, generateBudget, chooseCpuPick } from "../data/players";
+import { GROUP_ORDER, GROUP_SLOT_INDICES } from "../data/formations";
 import PlayerCard, { ARCHETYPE_COLOR } from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
+import PositionWheel from "./PositionWheel";
 import TurnTransition from "./TurnTransition";
 import MySquadPanel from "./MySquadPanel";
 import KitSwatch, { readableTextOn, kitAccent } from "./KitSwatch";
@@ -11,7 +13,7 @@ const CPU_PICK_DELAY = 1300;
 
 export default function DraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
-  confirmBudget, pickPlayer, getAvailablePlayers, getTakenPlayers,
+  confirmBudget, confirmGroup, pickPlayer, getAvailablePlayers, getTakenPlayers,
   skipTurn, respin, autoCompleteDraft, skipCpuTurns,
 }) {
   const GK_ARCHETYPES = ["Sweeper Keeper", "Shot Stopper", "Organiser"];
@@ -157,10 +159,14 @@ export default function DraftScreen({
       if (isLastTurn) {
         const newRound = draft.round + 1;
         nextManagerIdx = (0 + newRound) % n;
-        nextPosLabel = POSITIONS[positionIndex + 1]?.label || "";
+        nextPosLabel = draft.positionMode === "random" && positionIndex + 1 < 11
+          ? "?"
+          : POSITIONS[positionIndex + 1]?.label || "";
       } else {
         nextManagerIdx = currentOrder[turnIndex + 1];
-        nextPosLabel = currentPos.label;
+        nextPosLabel = draft.positionMode === "random" && positionIndex < 11
+          ? "?"
+          : currentPos.label;
       }
       const nextManager = managers[nextManagerIdx];
       const nextName = nextManager.dofName || nextManager.name;
@@ -174,23 +180,39 @@ export default function DraftScreen({
     setPendingPlayer(player);
   }
 
-  // CPU turns run themselves: spin the budget after a short beat, then pick.
+  const isRandomStarter = draft.positionMode === "random" && positionIndex < 11;
+  const needsGroupDraw = isRandomStarter && draft.currentGroup === null;
+
+  // CPU turns run themselves: draw group (random mode), spin budget, then pick.
   // Pauses while a transition screen is up so the human can follow along.
   const isCpuTurn = !!activeManager?.isComputer;
   useEffect(() => {
     if (!isCpuTurn || transition) return;
     const t = setTimeout(() => {
-      if (currentBudget === null) {
+      if (needsGroupDraw) {
+        // Auto-pick a group weighted by remaining slots
+        const gp = activeManager?.groupProgress || {};
+        const avail = GROUP_ORDER.filter(g => (gp[g] ?? 0) < GROUP_SLOT_INDICES[g].length);
+        if (!avail.length) return;
+        const total = avail.reduce((s, g) => s + GROUP_SLOT_INDICES[g].length - (gp[g] ?? 0), 0);
+        let r = Math.random() * total;
+        let chosen = avail[0];
+        for (const g of avail) {
+          r -= GROUP_SLOT_INDICES[g].length - (gp[g] ?? 0);
+          if (r <= 0) { chosen = g; break; }
+        }
+        confirmGroup(chosen);
+      } else if (currentBudget === null) {
         confirmBudget(generateBudget(draft.difficulty));
       } else {
         const pick = chooseCpuPick(getAvailablePlayers(currentPos.key), currentBudget);
         if (pick) handlePickPlayer(pick);
         else skipTurn();
       }
-    }, currentBudget === null ? CPU_SPIN_DELAY : CPU_PICK_DELAY);
+    }, needsGroupDraw ? CPU_SPIN_DELAY : currentBudget === null ? CPU_SPIN_DELAY : CPU_PICK_DELAY);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isCpuTurn, transition, currentBudget, activeManagerIdx, positionIndex, turnIndex]);
+  }, [isCpuTurn, transition, currentBudget, activeManagerIdx, positionIndex, turnIndex, needsGroupDraw]);
 
   if (transition) {
     return (
@@ -321,7 +343,7 @@ export default function DraftScreen({
           />
           <span className="turn-name">{activeManager?.dofName || activeManager?.name}</span>
           <span className="turn-club">({activeManager?.clubName})</span>
-          <span className="turn-pos">signing: <strong>{currentPos.label}</strong></span>
+          <span className="turn-pos">signing: <strong>{needsGroupDraw ? "?" : currentPos.label}</strong></span>
         </div>
         <div className="turn-right">
           {pendingCarryover > 0 && currentBudget === null && (
@@ -359,9 +381,11 @@ export default function DraftScreen({
             <div className="cpu-turn-badge">CPU TURN</div>
             <div className="cpu-turn-name">{activeManager?.clubName || activeManager?.name}</div>
             <div className="cpu-turn-status">
-              {currentBudget === null
-                ? "Spinning transfer budget…"
-                : `Budget £${currentBudget}m — scouting for a ${currentPos.label}…`}
+              {needsGroupDraw
+                ? "Drawing position group…"
+                : currentBudget === null
+                  ? "Spinning transfer budget…"
+                  : `Budget £${currentBudget}m — scouting for a ${currentPos.label}…`}
             </div>
             <div className="cpu-turn-dots"><span>●</span><span>●</span><span>●</span></div>
             {skipCpuTurns && (
@@ -369,6 +393,13 @@ export default function DraftScreen({
                 ⏭ SKIP CPU
               </button>
             )}
+          </div>
+        ) : needsGroupDraw ? (
+          <div className="roll-area">
+            <PositionWheel
+              groupProgress={activeManager?.groupProgress}
+              onConfirm={confirmGroup}
+            />
           </div>
         ) : currentBudget === null ? (
           <div className="roll-area">
