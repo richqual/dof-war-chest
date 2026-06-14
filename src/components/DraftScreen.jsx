@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { POSITIONS, generateBudget, chooseCpuPick } from "../data/players";
-import { GROUP_ORDER, GROUP_SLOT_INDICES } from "../data/formations";
+import { GROUP_COLORS, FORMATIONS, FORMATION_DISPLAY_ORDER } from "../data/formations";
+import { POSITIONS as ALL_POSITIONS } from "../data/players";
 import PlayerCard, { ARCHETYPE_COLOR } from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
 import PositionWheel from "./PositionWheel";
@@ -13,28 +14,39 @@ const CPU_PICK_DELAY = 1300;
 
 export default function DraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
-  confirmBudget, confirmGroup, pickPlayer, getAvailablePlayers, getTakenPlayers,
+  confirmBudget, confirmSlot, pickPlayer, getAvailablePlayers, getTakenPlayers,
   skipTurn, respin, autoCompleteDraft, skipCpuTurns,
 }) {
   const GK_ARCHETYPES = ["Sweeper Keeper", "Shot Stopper", "Organiser"];
   const OUTFIELD_ARCHETYPES = ["Warrior", "Technician", "Maverick", "Grinder", "Leader", "Athlete"];
+  const OUTFIELD_POS = ["RB", "LB", "CB", "DM", "CM", "CAM", "RM", "LM", "RW", "LW", "ST"];
+  const SLOT_DEFAULT_POS = {
+    RB: new Set(["RB"]), LB: new Set(["LB"]), CB: new Set(["CB"]),
+    DM: new Set(["DM"]),
+    CM: new Set(["CM", "CAM"]),
+    RW: new Set(["RW", "RM"]), LW: new Set(["LW", "LM"]), ST: new Set(["ST"]),
+  };
   const isGkPos = currentPos.key === "GK" || currentPos.key === "GKSUB";
+  const isSubPos = ["DEFSUB", "MIDSUB", "ATTSUB"].includes(currentPos.key);
+  const showPosChips = !isGkPos && !isSubPos;
   const relevantArchetypes = isGkPos ? GK_ARCHETYPES : OUTFIELD_ARCHETYPES;
 
   const [filterEra, setFilterEra] = useState(new Set(["classic", "golden", "modern"]));
   const [filterLeague, setFilterLeague] = useState(new Set(["premier_league", "la_liga", "serie_a", "bundesliga", "ligue_1"]));
   const [filterTiers, setFilterTiers] = useState(new Set(["T1", "T2", "T3", "T4", "T5"]));
   const [filterArchetypes, setFilterArchetypes] = useState(new Set(relevantArchetypes));
+  const [filterPos, setFilterPos] = useState(SLOT_DEFAULT_POS[currentPos.key] || new Set(OUTFIELD_POS));
 
-  // Reset archetype filter when switching between GK and outfield positions
-  const [lastPosCategory, setLastPosCategory] = useState(isGkPos ? "gk" : "outfield");
+  // Reset position and archetype filters when the slot changes
+  const [lastPosKey, setLastPosKey] = useState(currentPos.key);
   useEffect(() => {
+    if (currentPos.key === lastPosKey) return;
+    setLastPosKey(currentPos.key);
+    setFilterPos(SLOT_DEFAULT_POS[currentPos.key] || new Set(OUTFIELD_POS));
     const cat = isGkPos ? "gk" : "outfield";
-    if (cat !== lastPosCategory) {
-      setFilterArchetypes(new Set(relevantArchetypes));
-      setLastPosCategory(cat);
-    }
-  }, [isGkPos]);
+    const prevCat = ["GK", "GKSUB"].includes(lastPosKey) ? "gk" : "outfield";
+    if (cat !== prevCat) setFilterArchetypes(new Set(relevantArchetypes));
+  }, [currentPos.key]);
   const [sortBy, setSortBy] = useState("tier");
   const [sortDir, setSortDir] = useState("asc");
   const [transition, setTransition] = useState(null);
@@ -85,7 +97,19 @@ export default function DraftScreen({
 
   const { currentBudget, currentOrder, turnIndex, positionIndex, managers, hideRatings } = draft;
 
+  function togglePos(pos) {
+    setFilterPos(prev => {
+      const next = new Set(prev);
+      if (next.has(pos) && next.size > 1) next.delete(pos);
+      else next.add(pos);
+      return next;
+    });
+  }
+
   let available = getAvailablePlayers(currentPos.key);
+  if (showPosChips && filterPos.size < OUTFIELD_POS.length) {
+    available = available.filter(p => filterPos.has(p.pos) || (p.pos2 && filterPos.has(p.pos2)));
+  }
   if (filterEra.size > 0) available = available.filter(p => filterEra.has(p.era));
   if (filterLeague.size > 0) available = available.filter(p => filterLeague.has(p.league));
 
@@ -166,7 +190,7 @@ export default function DraftScreen({
         nextManagerIdx = currentOrder[turnIndex + 1];
         nextPosLabel = draft.positionMode === "random" && positionIndex < 11
           ? "?"
-          : currentPos.label;
+          : currentPos.label;  // same round, sub mode or fixed
       }
       const nextManager = managers[nextManagerIdx];
       const nextName = nextManager.dofName || nextManager.name;
@@ -181,27 +205,22 @@ export default function DraftScreen({
   }
 
   const isRandomStarter = draft.positionMode === "random" && positionIndex < 11;
-  const needsGroupDraw = isRandomStarter && draft.currentGroup === null;
+  const needsSlotDraw = isRandomStarter && (draft.currentSlot === null || draft.currentSlot === undefined);
 
-  // CPU turns run themselves: draw group (random mode), spin budget, then pick.
+  // CPU turns run themselves: draw slot (random mode), spin budget, then pick.
   // Pauses while a transition screen is up so the human can follow along.
   const isCpuTurn = !!activeManager?.isComputer;
   useEffect(() => {
     if (!isCpuTurn || transition) return;
     const t = setTimeout(() => {
-      if (needsGroupDraw) {
-        // Auto-pick a group weighted by remaining slots
-        const gp = activeManager?.groupProgress || {};
-        const avail = GROUP_ORDER.filter(g => (gp[g] ?? 0) < GROUP_SLOT_INDICES[g].length);
+      if (needsSlotDraw) {
+        // Pick a random unfilled starter slot
+        const squad = activeManager?.squad || [];
+        const avail = [];
+        for (let i = 0; i < 11; i++) if (!squad[i]) avail.push(i);
         if (!avail.length) return;
-        const total = avail.reduce((s, g) => s + GROUP_SLOT_INDICES[g].length - (gp[g] ?? 0), 0);
-        let r = Math.random() * total;
-        let chosen = avail[0];
-        for (const g of avail) {
-          r -= GROUP_SLOT_INDICES[g].length - (gp[g] ?? 0);
-          if (r <= 0) { chosen = g; break; }
-        }
-        confirmGroup(chosen);
+        const slot = avail[Math.floor(Math.random() * avail.length)];
+        confirmSlot(slot);
       } else if (currentBudget === null) {
         confirmBudget(generateBudget(draft.difficulty));
       } else {
@@ -209,10 +228,10 @@ export default function DraftScreen({
         if (pick) handlePickPlayer(pick);
         else skipTurn();
       }
-    }, needsGroupDraw ? CPU_SPIN_DELAY : currentBudget === null ? CPU_SPIN_DELAY : CPU_PICK_DELAY);
+    }, needsSlotDraw ? CPU_SPIN_DELAY : currentBudget === null ? CPU_SPIN_DELAY : CPU_PICK_DELAY);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isCpuTurn, transition, currentBudget, activeManagerIdx, positionIndex, turnIndex, needsGroupDraw]);
+  }, [isCpuTurn, transition, currentBudget, activeManagerIdx, positionIndex, turnIndex, needsSlotDraw]);
 
   if (transition) {
     return (
@@ -310,7 +329,6 @@ export default function DraftScreen({
 
       {/* Header */}
       <div className="draft-header">
-        <span className="game-title">The Football Director</span>
         <div className="manager-tabs">
           {managers.map((m, i) => (
             <span
@@ -343,7 +361,7 @@ export default function DraftScreen({
           />
           <span className="turn-name">{activeManager?.dofName || activeManager?.name}</span>
           <span className="turn-club">({activeManager?.clubName})</span>
-          <span className="turn-pos">signing: <strong>{needsGroupDraw ? "?" : currentPos.label}</strong></span>
+          <span className="turn-pos">signing: <strong>{needsSlotDraw ? "?" : currentPos.label}</strong></span>
         </div>
         <div className="turn-right">
           {pendingCarryover > 0 && currentBudget === null && (
@@ -357,11 +375,60 @@ export default function DraftScreen({
 
       {/* Position progress */}
       <div className="pos-progress">
-        {POSITIONS.map((p, i) => (
-          <span key={i} className={`pos-chip ${i < positionIndex ? "done" : i === positionIndex ? "current" : "todo"}`}>
-            {i < positionIndex ? "✓" : p.key === "GKSUB" ? "GKS" : p.key === "DEFSUB" ? "DEF" : p.key === "MIDSUB" ? "MID" : p.key === "ATTSUB" ? "ATT" : p.key}
-          </span>
-        ))}
+        {draft.positionMode === "random" ? (
+          <>
+            {/* Random mode: show individual position slots based on what's been filled */}
+            {(FORMATION_DISPLAY_ORDER[activeManager?.formation] ?? Array.from({length:11},(_,i)=>i)).map(i => {
+              const entry = FORMATIONS[activeManager?.formation]?.[i];
+              const posLabel = entry?.label ?? entry?.pos ?? POSITIONS[i].key;
+              const isDone = !!activeManager?.squad?.[i];
+              const isCurrent = !isDone && draft.currentSlot === i && positionIndex < 11;
+              return (
+                <span
+                  key={i}
+                  className={`pos-chip ${isDone ? "done" : isCurrent ? "current" : "todo"}`}
+                >
+                  {posLabel}
+                </span>
+              );
+            })}
+            {/* Subs divider + chips */}
+            <span className="pos-chip-divider" />
+            {POSITIONS.slice(11).map((p, i) => {
+              const absIdx = 11 + i;
+              const label = p.key === "GKSUB" ? "GKS" : p.key === "DEFSUB" ? "DEF" : p.key === "MIDSUB" ? "MID" : p.key === "ATTSUB" ? "ATT" : p.key;
+              const state = absIdx < positionIndex ? "done" : absIdx === positionIndex ? "current" : "todo";
+              return (
+                <span key={absIdx} className={`pos-chip sub ${state}`}>
+                  {label}
+                </span>
+              );
+            })}
+          </>
+        ) : (
+          <>
+            {(FORMATION_DISPLAY_ORDER[activeManager?.formation] ?? Array.from({length:11},(_,i)=>i)).map(i => {
+              const entry = FORMATIONS[activeManager?.formation]?.[i];
+              const posLabel = entry?.label ?? entry?.pos ?? POSITIONS[i].key;
+              return (
+                <span key={i} className={`pos-chip ${i < positionIndex ? "done" : i === positionIndex ? "current" : "todo"}`}>
+                  {posLabel}
+                </span>
+              );
+            })}
+            <span className="pos-chip-divider" />
+            {POSITIONS.slice(11).map((p, i) => {
+              const absIdx = 11 + i;
+              const label = p.key === "GKSUB" ? "GKS" : p.key === "DEFSUB" ? "DEF" : p.key === "MIDSUB" ? "MID" : p.key === "ATTSUB" ? "ATT" : p.key;
+              const state = absIdx < positionIndex ? "done" : absIdx === positionIndex ? "current" : "todo";
+              return (
+                <span key={absIdx} className={`pos-chip sub ${state}`}>
+                  {label}
+                </span>
+              );
+            })}
+          </>
+        )}
       </div>
 
       {/* Draft order strip */}
@@ -381,11 +448,21 @@ export default function DraftScreen({
             <div className="cpu-turn-badge">CPU TURN</div>
             <div className="cpu-turn-name">{activeManager?.clubName || activeManager?.name}</div>
             <div className="cpu-turn-status">
-              {needsGroupDraw
-                ? "Drawing position group…"
-                : currentBudget === null
-                  ? "Spinning transfer budget…"
-                  : `Budget £${currentBudget}m — scouting for a ${currentPos.label}…`}
+              {needsSlotDraw
+                ? "Drawing position…"
+                : isRandomStarter && draft.currentSlot !== null && draft.currentSlot !== undefined
+                  ? <>
+                      Drew{" "}
+                      <strong style={{ color: (draft.currentSlot === 0 ? GROUP_COLORS.GK : draft.currentSlot <= 4 ? GROUP_COLORS.DEF : draft.currentSlot <= 9 ? GROUP_COLORS.MID : GROUP_COLORS.ATT).fill }}>
+                        {ALL_POSITIONS[draft.currentSlot]?.label}
+                      </strong>
+                      {currentBudget === null
+                        ? " — Spinning transfer budget…"
+                        : ` — Budget £${currentBudget}m · signing…`}
+                    </>
+                  : currentBudget === null
+                    ? "Spinning transfer budget…"
+                    : `Budget £${currentBudget}m — scouting for a ${currentPos.label}…`}
             </div>
             <div className="cpu-turn-dots"><span>●</span><span>●</span><span>●</span></div>
             {skipCpuTurns && (
@@ -394,11 +471,12 @@ export default function DraftScreen({
               </button>
             )}
           </div>
-        ) : needsGroupDraw ? (
+        ) : needsSlotDraw ? (
           <div className="roll-area">
             <PositionWheel
-              groupProgress={activeManager?.groupProgress}
-              onConfirm={confirmGroup}
+              squad={activeManager?.squad}
+              onConfirm={confirmSlot}
+              formation={activeManager?.formation}
             />
           </div>
         ) : currentBudget === null ? (
@@ -409,6 +487,20 @@ export default function DraftScreen({
         ) : (
           <div className="player-list-area">
             <div className="filter-bar">
+              {showPosChips && (
+                <div className="filter-pos-chips">
+                  {OUTFIELD_POS.map(pos => (
+                    <button
+                      key={pos}
+                      className={`pos-filter-chip${filterPos.has(pos) ? " active" : ""}`}
+                      onClick={() => togglePos(pos)}
+                    >
+                      {pos}
+                    </button>
+                  ))}
+                </div>
+              )}
+              <div className="filter-dropdowns-row">
               <div className="filter-dropdown">
                 <button
                   className={`filter-dropdown-btn${showLeagueDropdown ? " open" : filterLeague.size < 5 ? " partial" : ""}`}
@@ -519,6 +611,7 @@ export default function DraftScreen({
                   </div>
                 )}
               </div>
+              </div>{/* filter-dropdowns-row */}
 
               <div className="filter-sort-row">
                 <span className="filter-sort-label">SORT</span>

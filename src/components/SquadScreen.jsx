@@ -349,34 +349,7 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
         </div>
       )}
       <div className="squad-layout">
-        {/* Top row: formation bar + optional pitch diagram */}
-        <div className="squad-pitch-row">
-          <div className="formation-bar">
-            <button className="sort-btn" onClick={() => setShowPitch(p => !p)}>
-              {showPitch ? "▲ HIDE PITCH" : "▼ SHOW PITCH"}
-            </button>
-            <select
-              className="formation-select"
-              value={formation}
-              onChange={e => setFormation(e.target.value)}
-            >
-              {FORMATION_LIST.map(f => (
-                <option key={f} value={f}>{f}</option>
-              ))}
-            </select>
-          </div>
-
-          {showPitch && (
-            <FormationDiagram
-              squad={starters}
-              formation={formation}
-              swapSlot={swapSlot}
-              onSlotClick={handleSlotClick}
-            />
-          )}
-        </div>
-
-        {/* Full-width: tactics + XI list + bench */}
+        {/* Tactics bar always on top */}
         <div className="squad-right">
           <div className="tactics-bar">
             <span className="tactics-label">TACTICS</span>
@@ -390,6 +363,19 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
                 {t.toUpperCase()}
               </button>
             ))}
+            <span className="tactics-divider" />
+            <button className="sort-btn" onClick={() => setShowPitch(p => !p)}>
+              {showPitch ? "▲ HIDE PITCH" : "▼ SHOW PITCH"}
+            </button>
+            <select
+              className="formation-select"
+              value={formation}
+              onChange={e => setFormation(e.target.value)}
+            >
+              {FORMATION_LIST.map(f => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
             <span className="tactics-divider" />
             <button className={`sort-btn${hideBadges ? " active" : ""}`} onClick={() => setHideBadges(h => !h)}>
               {hideBadges ? "BADGES OFF" : "BADGES ON"}
@@ -409,6 +395,17 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
                   : "SET CAPTAIN"}
             </button>
           </div>
+
+          {showPitch && (
+            <div className="squad-pitch-row">
+              <FormationDiagram
+                squad={starters}
+                formation={formation}
+                swapSlot={swapSlot}
+                onSlotClick={handleSlotClick}
+              />
+            </div>
+          )}
 
           {swapSlot !== null && (
             <div className="swap-hint-bar">

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import KitSwatch, { readableTextOn, teamAccent } from "./KitSwatch";
 import { TIER_SIM_MODIFIER } from "../data/managers";
+import { FORMATIONS } from "../data/formations";
+import { getRatingBg, getRatingColor } from "../data/players";
 
 function teamStrength(squad) {
   const starters = squad.slice(0, 11).filter(Boolean);
@@ -33,6 +35,103 @@ function rand(min, max) {
 
 function pick(arr) {
   return arr[rand(0, arr.length - 1)];
+}
+
+// ---------------------------------------------------------------------------
+// Player attributes derived from position + archetype + rating.
+// No manual data entry — everything is computed at runtime.
+// ---------------------------------------------------------------------------
+
+const POS_ATTR_BASE = {
+  GK:  { att: 5,  def: 72, pac: 45, tec: 50, aer: 55 },
+  CB:  { att: 15, def: 72, pac: 50, tec: 45, aer: 68 },
+  RB:  { att: 28, def: 62, pac: 62, tec: 52, aer: 40 },
+  LB:  { att: 28, def: 62, pac: 62, tec: 52, aer: 40 },
+  DM:  { att: 30, def: 65, pac: 52, tec: 58, aer: 48 },
+  CM:  { att: 45, def: 45, pac: 55, tec: 65, aer: 45 },
+  CAM: { att: 60, def: 22, pac: 56, tec: 72, aer: 42 },
+  RM:  { att: 50, def: 38, pac: 62, tec: 60, aer: 38 },
+  LM:  { att: 50, def: 38, pac: 62, tec: 60, aer: 38 },
+  LW:  { att: 58, def: 25, pac: 68, tec: 62, aer: 38 },
+  RW:  { att: 58, def: 25, pac: 68, tec: 62, aer: 38 },
+  ST:  { att: 72, def: 18, pac: 62, tec: 52, aer: 60 },
+};
+
+const ARCHETYPE_MOD = {
+  "Athlete":        { pac: +8,  att: -2,  tec: -2,  def: -2,  aer: -2  },
+  "Technician":     { tec: +8,  att: +2,  pac: -5,  def: -3,  aer: -2  },
+  "Grinder":        { def: +8,  pac: +2,  att: -5,  tec: -3,  aer: -2  },
+  "Warrior":        { def: +5,  pac: +5,  aer: +2,  att: -6,  tec: -6  },
+  "Maverick":       { att: +5,  tec: +5,  pac: +2,  def: -8,  aer: -4  },
+  "Leader":         { def: +5,  aer: +8,  att: -5,  pac: -3,  tec: -5  },
+  "Shot Stopper":   { pac: +8,  tec: -5,  def: -3,  att: 0,   aer: 0   },
+  "Sweeper Keeper": { pac: +8,  tec: +8,  def: -12, aer: -4,  att: 0   },
+  "Organiser":      { tec: +10, aer: +5,  def: -8,  pac: -5,  att: -2  },
+};
+
+function deriveAttributes(player) {
+  const base = POS_ATTR_BASE[player.pos] || POS_ATTR_BASE.MF;
+  const mod = ARCHETYPE_MOD[player.archetype] || {};
+  const scale = (player.rating - 80) * 0.5;
+  const clamp = v => Math.round(Math.min(99, Math.max(1, v)));
+  return {
+    att: clamp(base.att + (mod.att || 0) + scale),
+    def: clamp(base.def + (mod.def || 0) + scale),
+    pac: clamp(base.pac + (mod.pac || 0) + scale * 0.5),
+    tec: clamp(base.tec + (mod.tec || 0) + scale * 0.7),
+    aer: clamp(base.aer + (mod.aer || 0) + scale * 0.6),
+  };
+}
+
+// Pick a player from a list, weighted by a scorer function.
+// Uses squared weighting to strongly favour high-attribute players.
+function pickWeightedPlayer(players, scoreFn) {
+  if (!players.length) return null;
+  const scored = players.map(p => ({ p, w: Math.pow(Math.max(1, scoreFn(p)), 2) }));
+  const total = scored.reduce((s, x) => s + x.w, 0);
+  let r = Math.random() * total;
+  for (const x of scored) {
+    r -= x.w;
+    if (r <= 0) return x.p;
+  }
+  return scored[scored.length - 1].p;
+}
+
+function pickAttacker(players) {
+  return pickWeightedPlayer(players, p => {
+    const a = deriveAttributes(p);
+    return a.att * 0.6 + a.pac * 0.2 + a.tec * 0.2;
+  });
+}
+
+function pickAssister(players, excludeName) {
+  const cands = players.filter(p => p.name !== excludeName);
+  if (!cands.length) return null;
+  return pickWeightedPlayer(cands, p => {
+    const a = deriveAttributes(p);
+    return a.tec * 0.55 + a.att * 0.20 + a.pac * 0.15 + a.aer * 0.10;
+  });
+}
+
+function pickAerialScorer(players) {
+  return pickWeightedPlayer(players, p => {
+    const a = deriveAttributes(p);
+    return a.aer * 0.70 + a.att * 0.30;
+  });
+}
+
+// Average attacking attribute of the outfield players (used for goal chance).
+function teamAttStrength(squad) {
+  const outfield = squad.slice(0, 11).filter(p => p && p.pos !== "GK");
+  if (!outfield.length) return 50;
+  return outfield.reduce((s, p) => s + deriveAttributes(p).att, 0) / outfield.length;
+}
+
+// Average defensive attribute of all starters (used for goal chance against).
+function teamDefStrength(squad) {
+  const starters = squad.slice(0, 11).filter(Boolean);
+  if (!starters.length) return 50;
+  return starters.reduce((s, p) => s + deriveAttributes(p).def, 0) / starters.length;
 }
 
 // Goal commentary keyed by match situation, so an equaliser never
@@ -196,14 +295,17 @@ const COMMENTARY_INJURY = [
 
 const POS_PRIORITY = {
   GK:  ["GK"],
-  CB:  ["CB", "LB", "RB", "DM", "MF"],
-  LB:  ["LB", "RB", "CB", "DM", "MF"],
-  RB:  ["RB", "LB", "CB", "DM", "MF"],
-  DM:  ["DM", "MF", "CB"],
-  MF:  ["MF", "DM", "LW", "RW"],
-  LW:  ["LW", "RW", "MF", "ST"],
-  RW:  ["RW", "LW", "MF", "ST"],
-  ST:  ["ST", "LW", "RW", "MF"],
+  CB:  ["CB", "LB", "RB", "DM", "CM"],
+  LB:  ["LB", "RB", "CB", "DM", "CM"],
+  RB:  ["RB", "LB", "CB", "DM", "CM"],
+  DM:  ["DM", "CM", "CB"],
+  CM:  ["CM", "CAM", "DM", "LM", "RM", "LW", "RW"],
+  CAM: ["CAM", "CM", "RM", "LM", "LW", "RW"],
+  RM:  ["RM", "RW", "CM", "CAM"],
+  LM:  ["LM", "LW", "CM", "CAM"],
+  LW:  ["LW", "LM", "RW", "RM", "CAM", "CM", "ST"],
+  RW:  ["RW", "RM", "LW", "LM", "CAM", "CM", "ST"],
+  ST:  ["ST", "LW", "RW", "CAM"],
 };
 
 function buildEffectiveSquad(manager, playerAbsences) {
@@ -605,6 +707,10 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
 
   const hStr = teamStrength(homeSquad);
   const aStr = teamStrength(awaySquad);
+  const hAttStr = teamAttStrength(homeSquad);
+  const aAttStr = teamAttStrength(awaySquad);
+  const hDefStr = teamDefStrength(homeSquad);
+  const aDefStr = teamDefStrength(awaySquad);
 
   // Style modifiers on effective team strength
   function styleStrengthBonus(style, isHome) {
@@ -620,8 +726,17 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     return 0;
   }
 
+  // Possession ratio: attacking gets more of the ball, defensive less
   const TACTICS_MOD = { attacking: 0.05, balanced: 0, defensive: -0.04 };
   const tacticsDelta = (TACTICS_MOD[homeTactics] ?? 0) - (TACTICS_MOD[awayTactics] ?? 0);
+
+  // Attribute modifiers: attacking boosts effective att but opens up defensively, and vice versa
+  const TACTICS_ATT_MOD = { attacking: +8, balanced: 0, defensive: -6 };
+  const TACTICS_DEF_MOD = { attacking: -6, balanced: 0, defensive: +8 };
+  const hEffAttStr = hAttStr + (TACTICS_ATT_MOD[homeTactics] ?? 0);
+  const aEffAttStr = aAttStr + (TACTICS_ATT_MOD[awayTactics] ?? 0);
+  const hEffDefStr = hDefStr + (TACTICS_DEF_MOD[homeTactics] ?? 0);
+  const aEffDefStr = aDefStr + (TACTICS_DEF_MOD[awayTactics] ?? 0);
 
   // Cohesion bonuses (squad archetype alignment with manager philosophy)
   const hCohesion = cohesionBonus(homeSquad, homeFootballMgr);
@@ -746,23 +861,25 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       const team = isHome ? homeSquad : awaySquad;
       const teamName = isHome ? homeName : awayName;
       const side = isHome ? "home" : "away";
-      const attacker = bestPlayer(onPitch(team, isHome ? hSentOff : aSentOff), weighted([{ v: "ST", w: 3 }, { v: "RW", w: 1.5 }, { v: "LW", w: 1.5 }, { v: "MF", w: 1 }]));
+      const pitchPlayers = onPitch(team, isHome ? hSentOff : aSentOff);
+      // ~15% of goals are aerial (headed) — scored by players with high aer attribute
+      const isAerial = Math.random() < 0.15;
+      const attacker = isAerial ? pickAerialScorer(pitchPlayers) : pickAttacker(pitchPlayers);
       const name = attacker ? attacker.name : "The striker";
 
       // Being a man (or more) down makes scoring harder
       const menDown = (isHome ? hSentOff.size : aSentOff.size) - (isHome ? aSentOff.size : hSentOff.size);
-      const goalChance = 0.38 + (isHome ? hStr - aStr : aStr - hStr) * 0.004 - menDown * 0.08
+      // Goal chance: tactics-adjusted att vs def — attacking opens up play, defensive tightens it
+      const attVsDef = isHome ? (hEffAttStr - aEffDefStr) : (aEffAttStr - hEffDefStr);
+      const goalChance = 0.38 + attVsDef * 0.002 - menDown * 0.08
         + goalChanceBonus(isHome) - opponentShotPenalty(isHome) + (isHome ? hTierMod : aTierMod);
       if (isHome) possH = Math.min(0.82, possH + 0.025); else possH = Math.max(0.18, possH - 0.025);
       if (Math.random() < goalChance) {
         const ctx = isHome ? goalContext(hGoals, aGoals) : goalContext(aGoals, hGoals);
         isHome ? hGoals++ : aGoals++;
-        const pitchPlayers = onPitch(team, isHome ? hSentOff : aSentOff);
-        const assistCandidates = pitchPlayers.filter(p => p.name !== name);
         let assister = null;
-        if (Math.random() < 0.72 && assistCandidates.length > 0) {
-          const ap = bestPlayer(assistCandidates, weighted([{ v: "MF", w: 2.5 }, { v: "RW", w: 1.5 }, { v: "LW", w: 1.5 }, { v: "ST", w: 0.8 }, { v: "DM", w: 0.5 }]));
-          assister = (ap || pick(assistCandidates))?.name || null;
+        if (Math.random() < 0.72) {
+          assister = pickAssister(pitchPlayers, name)?.name || null;
         }
         const goalText = assister
           ? pick(COMMENTARY_GOAL_ASSIST)(assister, name, teamName)
@@ -843,16 +960,15 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
         const team = isHome ? homeSquad : awaySquad;
         const teamName = isHome ? homeName : awayName;
         const side = isHome ? "home" : "away";
-        const attacker = bestPlayer(onPitch(team, isHome ? hSentOff : aSentOff), null);
-        const name = attacker ? attacker.name : "The striker";
+        const etPitch = onPitch(team, isHome ? hSentOff : aSentOff);
+        const etAttacker = pickAttacker(etPitch);
+        const name = etAttacker ? etAttacker.name : "The striker";
         if (Math.random() < 0.45) {
           const ctx = isHome ? goalContext(finalHome, finalAway) : goalContext(finalAway, finalHome);
           isHome ? finalHome++ : finalAway++;
-          const etPitch = onPitch(isHome ? homeSquad : awaySquad, isHome ? hSentOff : aSentOff);
-          const etAssistCands = etPitch.filter(p => p.name !== name);
           let etAssister = null;
-          if (Math.random() < 0.72 && etAssistCands.length > 0) {
-            etAssister = (bestPlayer(etAssistCands, null) || pick(etAssistCands))?.name || null;
+          if (Math.random() < 0.72) {
+            etAssister = pickAssister(etPitch, name)?.name || null;
           }
           const etGoalText = etAssister
             ? pick(COMMENTARY_GOAL_ASSIST)(etAssister, name, teamName)
@@ -1028,6 +1144,47 @@ function PlayerRatingRow({ r }) {
         {r.motm && <span className="mr-marks"> ⭐</span>}
       </span>
       <span className={`mr-val ${ratingClass(r.rating)}`}>{r.rating.toFixed(1)}</span>
+    </div>
+  );
+}
+
+function PreMatchPitch({ manager, accent, formation }) {
+  const coords = FORMATIONS[formation] || FORMATIONS["4-3-3"];
+  return (
+    <div className="pre-pitch-wrap">
+      <div className="formation-pitch pre-match-pitch">
+        <svg viewBox="0 0 100 100" className="pitch-svg">
+          <rect x="5" y="5" width="90" height="90" fill="none" stroke="#ffffff22" strokeWidth="0.5" />
+          <line x1="5" y1="50" x2="95" y2="50" stroke="#ffffff22" strokeWidth="0.4" />
+          <circle cx="50" cy="50" r="12" fill="none" stroke="#ffffff22" strokeWidth="0.4" />
+          <rect x="28" y="5" width="44" height="18" fill="none" stroke="#ffffff22" strokeWidth="0.4" />
+          <rect x="28" y="77" width="44" height="18" fill="none" stroke="#ffffff22" strokeWidth="0.4" />
+          <rect x="38" y="5" width="24" height="8" fill="none" stroke="#ffffff22" strokeWidth="0.4" />
+          <rect x="38" y="87" width="24" height="8" fill="none" stroke="#ffffff22" strokeWidth="0.4" />
+        </svg>
+        <div className="pitch-players">
+          {coords.map((coord, i) => {
+            const player = manager.squad[i];
+            return (
+              <div key={i} className="pitch-dot" style={{ left: `${coord.x}%`, top: `${coord.y}%`, cursor: "default" }}>
+                <div className="pitch-dot-inner">
+                  {player ? (
+                    <>
+                      <div className="dot-rating" style={{ background: getRatingBg(player.rating), color: getRatingColor(player.rating), borderColor: `${accent}55` }}>
+                        {player.pos}
+                      </div>
+                      <div className="dot-name">{player.name.split(" ").pop()}</div>
+                    </>
+                  ) : (
+                    <div className="dot-empty">{coord.pos}</div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div className="pre-pitch-formation" style={{ color: accent }}>{formation}</div>
     </div>
   );
 }
@@ -1332,63 +1489,76 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
               </div>
             ) : null;
           })()}
-          {/* Manager pre-match flavour */}
-          {(homeManager.footballManager || awayManager.footballManager) && (
-            <div className="pre-mgr-quotes">
+
+          {/* Kick Off button above formations */}
+          <div className="pre-kickoff-top">
+            <button className="sim-btn pre-kickoff-btn" onClick={startSim}>▶ KICK OFF</button>
+          </div>
+
+          {/* Formations side-by-side */}
+          <div className="pre-formations-row">
+            {/* Home */}
+            <div className="pre-team-col">
+              <div className="pre-team-name" style={{ color: homeAccent }}>{homeName}</div>
               {homeManager.footballManager && (
-                <div className="pre-mgr-quote home" style={{ color: homeAccent }}>
-                  <div className="pre-mgr-name">{homeManager.footballManager.name}</div>
+                <div className="pre-team-mgr">
+                  <div className="pre-mgr-name" style={{ color: homeAccent }}>{homeManager.footballManager.name}</div>
                   <div className="pre-mgr-style">{homeManager.footballManager.styleLabel}</div>
                 </div>
               )}
+              <div className="pre-stat-inline">
+                <span className="pre-stat-val">{Math.round(teamStrength(homeManager.squad))}</span>
+                <span className="pre-stat-label">AVG</span>
+              </div>
+              <PreMatchPitch manager={homeManager} accent={homeAccent} formation={homeManager.formation || "4-3-3"} />
+              {/* Home absences */}
+              {draft.playerAbsences && (() => {
+                const absent = Object.entries(draft.playerAbsences).filter(([, a]) => a.mgrIdx === homeIdx);
+                return absent.length > 0 ? (
+                  <div className="pre-absence-side" style={{ color: homeAccent }}>
+                    {absent.map(([name, a]) => (
+                      <div key={name} className="pre-absence-row">
+                        {a.type === "suspension" ? "🟥" : "🚑"} {name}
+                      </div>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
+            </div>
+
+            {/* Centre: VS */}
+            <div className="pre-centre-col">
+              <div className="pre-stat-label-mid">VS</div>
+            </div>
+
+            {/* Away */}
+            <div className="pre-team-col pre-team-col--away">
+              <div className="pre-team-name" style={{ color: awayAccent }}>{awayName}</div>
               {awayManager.footballManager && (
-                <div className="pre-mgr-quote away" style={{ color: awayAccent }}>
-                  <div className="pre-mgr-name">{awayManager.footballManager.name}</div>
+                <div className="pre-team-mgr">
+                  <div className="pre-mgr-name" style={{ color: awayAccent }}>{awayManager.footballManager.name}</div>
                   <div className="pre-mgr-style">{awayManager.footballManager.styleLabel}</div>
                 </div>
               )}
-            </div>
-          )}
-          <div className="pre-match-stats">
-            <div className="pre-stat">
-              <div className="pre-stat-val">{Math.round(teamStrength(homeManager.squad))}</div>
-              <div className="pre-stat-label">AVG RATING</div>
-            </div>
-            <div className="pre-stat-label-mid">VS</div>
-            <div className="pre-stat">
-              <div className="pre-stat-val">{Math.round(teamStrength(awayManager.squad))}</div>
-              <div className="pre-stat-label">AVG RATING</div>
+              <div className="pre-stat-inline">
+                <span className="pre-stat-val">{Math.round(teamStrength(awayManager.squad))}</span>
+                <span className="pre-stat-label">AVG</span>
+              </div>
+              <PreMatchPitch manager={awayManager} accent={awayAccent} formation={awayManager.formation || "4-3-3"} />
+              {draft.playerAbsences && (() => {
+                const absent = Object.entries(draft.playerAbsences).filter(([, a]) => a.mgrIdx === awayIdx);
+                return absent.length > 0 ? (
+                  <div className="pre-absence-side" style={{ color: awayAccent }}>
+                    {absent.map(([name, a]) => (
+                      <div key={name} className="pre-absence-row">
+                        {a.type === "suspension" ? "🟥" : "🚑"} {name}
+                      </div>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
             </div>
           </div>
-          {/* Absences notice */}
-          {draft.playerAbsences && Object.keys(draft.playerAbsences).length > 0 && (() => {
-            const homeAbsent = Object.entries(draft.playerAbsences).filter(([, a]) => a.mgrIdx === homeIdx);
-            const awayAbsent = Object.entries(draft.playerAbsences).filter(([, a]) => a.mgrIdx === awayIdx);
-            if (!homeAbsent.length && !awayAbsent.length) return null;
-            return (
-              <div className="pre-absences">
-                {homeAbsent.length > 0 && (
-                  <div className="pre-absence-side" style={{ color: homeAccent }}>
-                    {homeAbsent.map(([name, a]) => (
-                      <div key={name} className="pre-absence-row">
-                        {a.type === "suspension" ? "🟥" : "🚑"} {name} <span className="pre-absence-reason">({a.type === "suspension" ? "suspended" : "injured"})</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {awayAbsent.length > 0 && (
-                  <div className="pre-absence-side" style={{ color: awayAccent }}>
-                    {awayAbsent.map(([name, a]) => (
-                      <div key={name} className="pre-absence-row">
-                        {a.type === "suspension" ? "🟥" : "🚑"} {name} <span className="pre-absence-reason">({a.type === "suspension" ? "suspended" : "injured"})</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-          <button className="sim-btn" onClick={startSim}>▶ KICK OFF</button>
         </div>
       )}
 

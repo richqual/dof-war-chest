@@ -105,7 +105,7 @@ function AppInner() {
   const {
     screen, setScreen,
     draft, activeManager, activeManagerIdx, currentPos,
-    startGame, confirmBudget, confirmGroup, pickPlayer, setTeamName,
+    startGame, confirmBudget, confirmSlot, pickPlayer, setTeamName,
     swapSquadPlayers, setTactics, restartGame, getAvailablePlayers, getTakenPlayers,
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
@@ -175,7 +175,7 @@ function AppInner() {
           activeManagerIdx={activeManagerIdx}
           currentPos={currentPos}
           confirmBudget={confirmBudget}
-          confirmGroup={confirmGroup}
+          confirmSlot={confirmSlot}
           pickPlayer={pickPlayer}
           getAvailablePlayers={getAvailablePlayers}
           getTakenPlayers={getTakenPlayers}
@@ -263,7 +263,7 @@ function AppInner() {
   return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
 }
 
-const APP_VERSION = "1.3.0";
+const APP_VERSION = "1.7.7";
 
 function AppFooter() {
   return (

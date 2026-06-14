@@ -87,10 +87,17 @@ function ManagerCard({ manager, onPick, disabled, highlighted }) {
         </span>
       </div>
       <div className="mgr-name">{manager.name}</div>
-      <div className="mgr-club">{manager.club}</div>
-      <div className="mgr-years">{manager.years}</div>
+      <div className="mgr-club-years"><span className="mgr-club-name">{manager.club}</span> · {manager.years}</div>
       <div className="mgr-style-label">{manager.styleLabel}</div>
       <div className="mgr-flavour">"{manager.flavourText}"</div>
+      {manager.preferredArchetypes?.length > 0 && (
+        <div className="mgr-preferred">
+          <span className="mgr-preferred-label">Prefers:</span>
+          {manager.preferredArchetypes.map(a => (
+            <span key={a} className="mgr-preferred-tag">{a}</span>
+          ))}
+        </div>
+      )}
       <button className="pick-mgr-btn" onClick={() => onPick(manager)} disabled={disabled}>
         PICK THIS MANAGER
       </button>
@@ -113,9 +120,6 @@ function PicksLog({ assignments, draft }) {
             <span className="mgr-picks-club">{club.dofName || club.name}</span>
             <span className="mgr-picks-arrow">→</span>
             <span className="mgr-picks-name">{mgr.name}</span>
-            <span className="mgr-tier-badge" style={{ background: tierBg, color: tierColor, border: `1px solid ${tierColor}88`, fontSize: "6px", padding: "1px 5px" }}>
-              {TIER_LABELS[mgr.tier]}
-            </span>
           </div>
         );
       })}

@@ -31,18 +31,41 @@ function randomManagerName() {
   return RANDOM_MANAGER_NAMES[Math.floor(Math.random() * RANDOM_MANAGER_NAMES.length)];
 }
 
+// Weighted formation picker — more common modern formations appear more often.
+const WEIGHTED_FORMATIONS = [
+  { f: "4-3-3",   w: 35 },
+  { f: "4-2-3-1", w: 25 },
+  { f: "4-4-2",   w: 15 },
+  { f: "3-5-2",   w: 10 },
+  { f: "4-5-1",   w: 6  },
+  { f: "3-4-3",   w: 5  },
+  { f: "5-3-2",   w: 3  },
+  { f: "5-4-1",   w: 1  },
+];
+const FORMATION_TOTAL = WEIGHTED_FORMATIONS.reduce((s, e) => s + e.w, 0);
+
+function randomCpuFormation() {
+  let r = Math.random() * FORMATION_TOTAL;
+  for (const { f, w } of WEIGHTED_FORMATIONS) {
+    r -= w;
+    if (r <= 0) return f;
+  }
+  return "4-3-3";
+}
+
 // 25% chance of an Easter egg identity; otherwise standard random kit + name.
 function randomCpuIdentity(existingClubName = "") {
+  const formation = randomCpuFormation();
   if (Math.random() < 0.25) {
     const egg = EASTER_EGG_TEAMS[Math.floor(Math.random() * EASTER_EGG_TEAMS.length)];
-    return { clubName: egg.clubName, dofName: egg.dofName, primaryColor: egg.primary, secondaryColor: egg.secondary, pattern: egg.pattern };
+    return { clubName: egg.clubName, dofName: egg.dofName, primaryColor: egg.primary, secondaryColor: egg.secondary, pattern: egg.pattern, formation };
   }
   const kit = CPU_KITS[Math.floor(Math.random() * CPU_KITS.length)];
   let name;
   do { name = randomClubName(); } while (name === existingClubName);
   const r = Math.random();
   const pattern = r < 0.35 ? "stripes" : r < 0.45 ? "hoops" : "plain";
-  return { clubName: name, dofName: randomManagerName(), primaryColor: kit.primary, secondaryColor: kit.secondary, pattern };
+  return { clubName: name, dofName: randomManagerName(), primaryColor: kit.primary, secondaryColor: kit.secondary, pattern, formation };
 }
 
 function ClubSetup({ index, club, onChange, onRemove, canRemove }) {
@@ -76,6 +99,7 @@ function ClubSetup({ index, club, onChange, onRemove, canRemove }) {
       primaryColor: identity.primaryColor,
       secondaryColor: identity.secondaryColor,
       pattern: identity.pattern,
+      formation: identity.formation,
     });
   }
 
@@ -191,9 +215,11 @@ function makeClub(index) {
 }
 
 const DIFFICULTY_INFO = [
-  { key: "easy",   label: "EASY",   hint: "War chest — big budgets flow like the old days" },
-  { key: "normal", label: "NORMAL", hint: "Tighter purse strings — every spin matters" },
-  { key: "hard",   label: "HARD",   hint: "Shoestring — bargain bins and free transfers" },
+  { key: "easy",   label: "EASY",   hint: "War chest — big budgets, one zero on the wheel (avg £109m)" },
+  { key: "normal", label: "NORMAL", hint: "Tighter purse strings — every spin matters (avg £80m)" },
+  { key: "hard",   label: "HARD",   hint: "Shoestring — bargain bins and frequent zeros (avg £48m)" },
+  { key: "expert", label: "EXPERT", hint: "Ruthless economy — mostly scraps, many zeros (avg £38m)" },
+  { key: "brutal", label: "BRUTAL", hint: "Scrap heap — half the wheel is zero, fight for free transfers (avg £23m)" },
 ];
 
 const FORMAT_OPTIONS_2 = [
@@ -246,6 +272,7 @@ export default function SetupScreen({ onStart }) {
         primaryColor: identity.primaryColor,
         secondaryColor: identity.secondaryColor,
         pattern: identity.pattern,
+        formation: identity.formation,
       };
       finalClubs = [...finalClubs, cpu];
     }

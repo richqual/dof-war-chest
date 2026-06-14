@@ -1,107 +1,107 @@
-import { useState, useMemo, useRef, useEffect } from "react";
-import { GROUP_ORDER, GROUP_LABELS, GROUP_COLORS, GROUP_SLOT_INDICES } from "../data/formations";
+import { useState, useRef, useEffect } from "react";
+import { POSITIONS } from "../data/players";
+import { GROUP_COLORS, FORMATIONS } from "../data/formations";
 
 const SPIN_DURATION = 3000;
 const FULL_SPINS = 6;
 
-function polar(angleDeg, r) {
-  const a = ((angleDeg - 90) * Math.PI) / 180;
-  return [100 + r * Math.cos(a), 100 + r * Math.sin(a)];
+// Map position key → group color
+function posColor(posKey) {
+  if (posKey === "GK") return GROUP_COLORS.GK;
+  if (["RB","LB","CB"].includes(posKey)) return GROUP_COLORS.DEF;
+  if (["ST"].includes(posKey)) return GROUP_COLORS.ATT;
+  return GROUP_COLORS.MID; // DM, MF, AM, RW, LW
 }
 
-function arcPath(startDeg, endDeg, r = 85) {
+function polar(angleDeg, r, cx = 100, cy = 100) {
+  const a = ((angleDeg - 90) * Math.PI) / 180;
+  return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+}
+
+function slicePath(startDeg, endDeg, r = 88) {
   const [x1, y1] = polar(startDeg, r);
   const [x2, y2] = polar(endDeg, r);
-  const largeArc = endDeg - startDeg > 180 ? 1 : 0;
-  return `M 100 100 L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+  const large = endDeg - startDeg > 180 ? 1 : 0;
+  return `M 100 100 L ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`;
 }
 
-export default function PositionWheel({ groupProgress, onConfirm }) {
+export default function PositionWheel({ squad, onConfirm, formation = "4-3-3" }) {
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
-  const [result, setResult] = useState(null);
+  const [resultSlot, setResultSlot] = useState(null);
   const [done, setDone] = useState(false);
   const fallbackRef = useRef(null);
 
   useEffect(() => () => clearTimeout(fallbackRef.current), []);
 
-  // Build available groups and their remaining slot counts
-  const availableGroups = GROUP_ORDER.filter(
-    g => (groupProgress?.[g] ?? 0) < GROUP_SLOT_INDICES[g].length
-  );
-  const remaining = Object.fromEntries(
-    availableGroups.map(g => [g, GROUP_SLOT_INDICES[g].length - (groupProgress?.[g] ?? 0)])
-  );
-  const total = availableGroups.reduce((s, g) => s + remaining[g], 0);
+  // Available slots = unfilled starter positions (indices 0–10)
+  const availSlots = [];
+  for (let i = 0; i < 11; i++) {
+    if (!squad?.[i]) availSlots.push(i);
+  }
 
-  // Build wheel segments
-  const segments = useMemo(() => {
-    let angle = 0;
-    return availableGroups.map(g => {
-      const span = (remaining[g] / total) * 360;
-      const seg = { group: g, start: angle, span };
-      angle += span;
-      return seg;
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [availableGroups.join(","), JSON.stringify(remaining)]);
+  const n = availSlots.length;
+  const sliceDeg = n > 0 ? 360 / n : 360;
+
+  // Build segments: each slot gets equal slice, in the order they appear in availSlots
+  const segments = availSlots.map((slotIdx, i) => {
+    const entry = FORMATIONS[formation]?.[slotIdx];
+    const posKey = entry?.pos ?? POSITIONS[slotIdx]?.key ?? "";
+    const label = entry?.label ?? posKey;
+    return {
+      slotIdx,
+      start: i * sliceDeg,
+      span: sliceDeg,
+      color: posColor(posKey),
+      label,
+    };
+  });
 
   function spin() {
-    if (spinning || done) return;
+    if (spinning || done || n === 0) return;
 
-    // Weighted random pick
-    const r = Math.random() * total;
-    let acc = 0;
-    let chosen = availableGroups[0];
-    for (const g of availableGroups) {
-      acc += remaining[g];
-      if (r < acc) { chosen = g; break; }
-    }
+    // Uniform random pick
+    const pick = Math.floor(Math.random() * n);
+    const seg = segments[pick];
 
-    // Find the center angle of the chosen segment
-    const seg = segments.find(s => s.group === chosen);
+    // Rotate so the picked segment's center lands at top (pointer)
     const centerAngle = seg.start + seg.span / 2;
-
-    // The pointer is at the top (0deg). Rotate so chosen segment center lands at top.
-    // We need: (currentRotation + delta) % 360 = 360 - centerAngle (so center faces up)
-    const targetOffset = (360 - centerAngle + Math.random() * (seg.span * 0.4) - seg.span * 0.2) % 360;
+    const jitter = (Math.random() - 0.5) * seg.span * 0.4;
+    const targetOffset = (360 - centerAngle + jitter + 360) % 360;
     const finalRotation = rotation + FULL_SPINS * 360 + targetOffset;
 
     setRotation(finalRotation);
     setSpinning(true);
 
-    const onDone = () => {
+    fallbackRef.current = setTimeout(() => {
       setSpinning(false);
       setDone(true);
-      setResult(chosen);
-    };
-
-    fallbackRef.current = setTimeout(onDone, SPIN_DURATION + 200);
+      setResultSlot(seg.slotIdx);
+    }, SPIN_DURATION + 200);
   }
 
   function confirm() {
-    if (result) onConfirm(result);
+    if (resultSlot !== null) onConfirm(resultSlot);
   }
 
-  const colors = result ? GROUP_COLORS[result] : null;
+  const resultSeg = done ? segments.find(s => s.slotIdx === resultSlot) : null;
 
   return (
     <div className="position-wheel-wrap">
       <div className="position-wheel-title">DRAW YOUR POSITION</div>
       <div className="position-wheel-sub">
         {done
-          ? `You're signing a ${GROUP_LABELS[result] || result}`
-          : "Spin to find out which position you're filling this round"}
+          ? `You're signing a ${resultSeg?.label || ""}`
+          : "Spin to reveal which position you're filling this round"}
       </div>
 
       <div className="position-wheel-stage">
-        {/* Pointer/needle at top */}
-        <div className="wheel-pointer">▼</div>
+        <div className="pos-wheel-pointer" />
 
         <svg
           viewBox="0 0 200 200"
-          width="220"
-          height="220"
+          width="230"
+          height="230"
           className="position-wheel-svg"
           style={{
             transform: `rotate(${rotation}deg)`,
@@ -110,43 +110,37 @@ export default function PositionWheel({ groupProgress, onConfirm }) {
               : "none",
           }}
         >
-          {segments.map((seg, i) => {
-            const col = GROUP_COLORS[seg.group];
-            const isResult = done && seg.group === result;
+          {segments.map((seg) => {
+            const isResult = done && seg.slotIdx === resultSlot;
+            const [lx, ly] = polar(seg.start + seg.span / 2, 60);
             return (
-              <g key={seg.group}>
+              <g key={seg.slotIdx}>
                 <path
-                  d={arcPath(seg.start, seg.start + seg.span)}
-                  fill={col.fill}
-                  stroke="#111"
+                  d={slicePath(seg.start, seg.start + seg.span)}
+                  fill={seg.color.fill}
+                  stroke="#0a0a0a"
                   strokeWidth="1.5"
-                  opacity={done && !isResult ? 0.45 : 1}
+                  opacity={done && !isResult ? 0.35 : 1}
                 />
-                {/* Label — only show if segment is wide enough */}
-                {seg.span > 30 && (() => {
-                  const midAngle = seg.start + seg.span / 2;
-                  const [lx, ly] = polar(midAngle, 54);
-                  return (
-                    <text
-                      x={lx}
-                      y={ly}
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      fontSize={seg.span > 80 ? 13 : 11}
-                      fontWeight="700"
-                      fontFamily="monospace"
-                      fill={col.text}
-                      style={{ userSelect: "none" }}
-                    >
-                      {seg.group}
-                    </text>
-                  );
-                })()}
+                {seg.span > 18 && (
+                  <text
+                    x={lx}
+                    y={ly}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize={seg.span > 60 ? 12 : seg.span > 35 ? 10 : 8}
+                    fontWeight="700"
+                    fontFamily="monospace"
+                    fill={seg.color.text}
+                    style={{ userSelect: "none" }}
+                  >
+                    {seg.label}
+                  </text>
+                )}
               </g>
             );
           })}
-          {/* Centre circle */}
-          <circle cx="100" cy="100" r="18" fill="#111" stroke="#333" strokeWidth="1.5" />
+          <circle cx="100" cy="100" r="16" fill="#111" stroke="#333" strokeWidth="1.5" />
         </svg>
       </div>
 
@@ -160,28 +154,19 @@ export default function PositionWheel({ groupProgress, onConfirm }) {
         <div className="wheel-spinning-label">Spinning…</div>
       )}
 
-      {done && result && (
+      {done && resultSlot !== null && (
         <div className="wheel-result-wrap">
           <div
             className="wheel-result-badge"
-            style={{ background: colors.fill, color: colors.text }}
+            style={{ background: resultSeg?.color.fill, color: resultSeg?.color.text }}
           >
-            {GROUP_LABELS[result]}
+            {resultSeg?.label}
           </div>
           <button className="wheel-spin-btn" onClick={confirm}>
             ✓ CONFIRM
           </button>
         </div>
       )}
-
-      {/* Remaining slots legend */}
-      <div className="wheel-slots-legend">
-        {availableGroups.map(g => (
-          <span key={g} className="wheel-slot-chip" style={{ borderColor: GROUP_COLORS[g].fill, color: GROUP_COLORS[g].fill }}>
-            {g} ×{remaining[g]}
-          </span>
-        ))}
-      </div>
     </div>
   );
 }
