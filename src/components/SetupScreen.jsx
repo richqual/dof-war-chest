@@ -125,13 +125,13 @@ function ClubSetup({ index, club, onChange, onRemove, canRemove }) {
       </div>
 
       <div className="club-setup-field">
-        <label className="field-label-sm">{club.isComputer ? "CPU MANAGER" : "DIRECTOR OF FOOTBALL"}</label>
+        <label className="field-label-sm">DIRECTOR OF FOOTBALL</label>
         <div className="club-name-row">
           <input
             className="name-input"
             value={club.dofName}
             onChange={e => onChange({ ...club, dofName: e.target.value })}
-            placeholder={`DoF Name ${index + 1}`}
+            placeholder={club.isComputer ? `CPU DoF Name ${index + 1}` : `DoF Name ${index + 1}`}
             maxLength={20}
           />
           {club.isComputer && (
@@ -321,17 +321,15 @@ export default function SetupScreen({ onStart }) {
 
           <div className="difficulty-section">
             <span className="field-label-sm">TRANSFER MARKET DIFFICULTY</span>
-            <div className="difficulty-row">
+            <select
+              className="difficulty-select"
+              value={difficulty}
+              onChange={e => setDifficulty(e.target.value)}
+            >
               {DIFFICULTY_INFO.map(d => (
-                <button
-                  key={d.key}
-                  className={`difficulty-btn ${difficulty === d.key ? "active" : ""}`}
-                  onClick={() => setDifficulty(d.key)}
-                >
-                  {d.label}
-                </button>
+                <option key={d.key} value={d.key}>{d.label}</option>
               ))}
-            </div>
+            </select>
             <div className="difficulty-hint">
               {DIFFICULTY_INFO.find(d => d.key === difficulty)?.hint}
             </div>

@@ -20,12 +20,6 @@ export default function DraftScreen({
   const GK_ARCHETYPES = ["Sweeper Keeper", "Shot Stopper", "Organiser"];
   const OUTFIELD_ARCHETYPES = ["Warrior", "Technician", "Maverick", "Grinder", "Leader", "Athlete"];
   const OUTFIELD_POS = ["RB", "LB", "CB", "DM", "CM", "CAM", "RM", "LM", "RW", "LW", "ST"];
-  const SLOT_DEFAULT_POS = {
-    RB: new Set(["RB"]), LB: new Set(["LB"]), CB: new Set(["CB"]),
-    DM: new Set(["DM"]),
-    CM: new Set(["CM", "CAM"]),
-    RW: new Set(["RW", "RM"]), LW: new Set(["LW", "LM"]), ST: new Set(["ST"]),
-  };
   const isGkPos = currentPos.key === "GK" || currentPos.key === "GKSUB";
   const isSubPos = ["DEFSUB", "MIDSUB", "ATTSUB"].includes(currentPos.key);
   const showPosChips = !isGkPos && !isSubPos;
@@ -35,14 +29,14 @@ export default function DraftScreen({
   const [filterLeague, setFilterLeague] = useState(new Set(["premier_league", "la_liga", "serie_a", "bundesliga", "ligue_1"]));
   const [filterTiers, setFilterTiers] = useState(new Set(["T1", "T2", "T3", "T4", "T5"]));
   const [filterArchetypes, setFilterArchetypes] = useState(new Set(relevantArchetypes));
-  const [filterPos, setFilterPos] = useState(SLOT_DEFAULT_POS[currentPos.key] || new Set(OUTFIELD_POS));
+  const [filterPos, setFilterPos] = useState(() => new Set([currentPos.key]));
 
   // Reset position and archetype filters when the slot changes
   const [lastPosKey, setLastPosKey] = useState(currentPos.key);
   useEffect(() => {
     if (currentPos.key === lastPosKey) return;
     setLastPosKey(currentPos.key);
-    setFilterPos(SLOT_DEFAULT_POS[currentPos.key] || new Set(OUTFIELD_POS));
+    setFilterPos(new Set([currentPos.key]));
     const cat = isGkPos ? "gk" : "outfield";
     const prevCat = ["GK", "GKSUB"].includes(lastPosKey) ? "gk" : "outfield";
     if (cat !== prevCat) setFilterArchetypes(new Set(relevantArchetypes));
@@ -52,6 +46,7 @@ export default function DraftScreen({
   const [transition, setTransition] = useState(null);
   const [showMySquad, setShowMySquad] = useState(false);
   const [pendingPlayer, setPendingPlayer] = useState(null);
+  const [showPosDropdown, setShowPosDropdown] = useState(false);
   const [showEraDropdown, setShowEraDropdown] = useState(false);
   const [showLeagueDropdown, setShowLeagueDropdown] = useState(false);
   const [showTierDropdown, setShowTierDropdown] = useState(false);
@@ -487,24 +482,35 @@ export default function DraftScreen({
         ) : (
           <div className="player-list-area">
             <div className="filter-bar">
+              <div className="filter-dropdowns-row">
               {showPosChips && (
-                <div className="filter-pos-chips">
-                  {OUTFIELD_POS.map(pos => (
-                    <button
-                      key={pos}
-                      className={`pos-filter-chip${filterPos.has(pos) ? " active" : ""}`}
-                      onClick={() => togglePos(pos)}
-                    >
-                      {pos}
-                    </button>
-                  ))}
+                <div className="filter-dropdown">
+                  <button
+                    className={`filter-dropdown-btn${showPosDropdown ? " open" : filterPos.size < OUTFIELD_POS.length ? " partial" : ""}`}
+                    onClick={() => { setShowPosDropdown(s => !s); setShowLeagueDropdown(false); setShowEraDropdown(false); setShowTierDropdown(false); setShowArchetypeDropdown(false); }}
+                  >
+                    POSITION {filterPos.size < OUTFIELD_POS.length ? `(${[...filterPos].join(", ")})` : ""}
+                  </button>
+                  {showPosDropdown && (
+                    <div className="filter-dropdown-menu">
+                      {OUTFIELD_POS.map(pos => (
+                        <label key={pos} className="filter-checkbox">
+                          <input
+                            type="checkbox"
+                            checked={filterPos.has(pos)}
+                            onChange={() => togglePos(pos)}
+                          />
+                          {pos}
+                        </label>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
-              <div className="filter-dropdowns-row">
               <div className="filter-dropdown">
                 <button
                   className={`filter-dropdown-btn${showLeagueDropdown ? " open" : filterLeague.size < 5 ? " partial" : ""}`}
-                  onClick={() => { setShowLeagueDropdown(s => !s); setShowEraDropdown(false); setShowTierDropdown(false); setShowArchetypeDropdown(false); }}
+                  onClick={() => { setShowLeagueDropdown(s => !s); setShowPosDropdown(false); setShowEraDropdown(false); setShowTierDropdown(false); setShowArchetypeDropdown(false); }}
                 >
                   LEAGUES {filterLeague.size < 5 ? `(${filterLeague.size}/5)` : ""}
                 </button>
@@ -533,7 +539,7 @@ export default function DraftScreen({
               <div className="filter-dropdown">
                 <button
                   className={`filter-dropdown-btn${showEraDropdown ? " open" : filterEra.size < 3 ? " partial" : ""}`}
-                  onClick={() => { setShowEraDropdown(s => !s); setShowLeagueDropdown(false); setShowTierDropdown(false); setShowArchetypeDropdown(false); }}
+                  onClick={() => { setShowEraDropdown(s => !s); setShowPosDropdown(false); setShowLeagueDropdown(false); setShowTierDropdown(false); setShowArchetypeDropdown(false); }}
                 >
                   ERAS {filterEra.size < 3 ? `(${filterEra.size}/3)` : ""}
                 </button>
@@ -560,7 +566,7 @@ export default function DraftScreen({
               <div className="filter-dropdown">
                 <button
                   className={`filter-dropdown-btn${showTierDropdown ? " open" : filterTiers.size < 5 ? " partial" : ""}`}
-                  onClick={() => { setShowTierDropdown(s => !s); setShowLeagueDropdown(false); setShowEraDropdown(false); setShowArchetypeDropdown(false); }}
+                  onClick={() => { setShowTierDropdown(s => !s); setShowPosDropdown(false); setShowLeagueDropdown(false); setShowEraDropdown(false); setShowArchetypeDropdown(false); }}
                 >
                   TIERS {filterTiers.size < 5 ? `(${filterTiers.size}/5)` : ""}
                 </button>
@@ -589,7 +595,7 @@ export default function DraftScreen({
               <div className="filter-dropdown">
                 <button
                   className={`filter-dropdown-btn${showArchetypeDropdown ? " open" : filterArchetypes.size < relevantArchetypes.length ? " partial" : ""}`}
-                  onClick={() => { setShowArchetypeDropdown(s => !s); setShowTierDropdown(false); setShowLeagueDropdown(false); setShowEraDropdown(false); }}
+                  onClick={() => { setShowArchetypeDropdown(s => !s); setShowPosDropdown(false); setShowTierDropdown(false); setShowLeagueDropdown(false); setShowEraDropdown(false); }}
                 >
                   TYPE {filterArchetypes.size < relevantArchetypes.length ? `(${filterArchetypes.size}/${relevantArchetypes.length})` : ""}
                 </button>
@@ -611,8 +617,6 @@ export default function DraftScreen({
                   </div>
                 )}
               </div>
-              </div>{/* filter-dropdowns-row */}
-
               <div className="filter-sort-row">
                 <span className="filter-sort-label">SORT</span>
                 {[
@@ -653,6 +657,7 @@ export default function DraftScreen({
               <span className="affordable-count">
                 {affordable.length} affordable / {available.length} total
               </span>
+              </div>{/* filter-dropdowns-row */}
             </div>
 
             <div className="player-list">

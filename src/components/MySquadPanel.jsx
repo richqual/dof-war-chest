@@ -1,10 +1,25 @@
 import { POSITIONS, getRatingBg, getRatingColor, formatValue } from "../data/players";
+import { FORMATIONS } from "../data/formations";
 import { ARCHETYPE_COLOR } from "./PlayerCard";
 
 export default function MySquadPanel({ manager, onClose }) {
-  const { squad, name, teamName, footballManager: fm } = manager;
+  const { squad, name, teamName, formation, footballManager: fm } = manager;
   const filled = squad.filter(Boolean);
   const totalValue = filled.reduce((sum, p) => sum + (p.value || 0), 0);
+  const fmSlots = FORMATIONS[formation] ?? [];
+
+  function slotLabel(i) {
+    if (i < 11) {
+      const s = fmSlots[i];
+      return s?.pos ?? POSITIONS[i].key;
+    }
+    const key = POSITIONS[i].key;
+    if (key === "GKSUB")  return "GKS";
+    if (key === "DEFSUB") return "DEF";
+    if (key === "MIDSUB") return "MID";
+    if (key === "ATTSUB") return "ATT";
+    return key;
+  }
 
   return (
     <div className="my-squad-panel">
@@ -16,7 +31,7 @@ export default function MySquadPanel({ manager, onClose }) {
           const player = squad[i];
           return (
             <div key={i} className={`msp-row ${player ? "filled" : "empty"}`}>
-              <span className="msp-pos">{pos.key === "GKSUB" ? "GKS" : pos.key === "DEFSUB" ? "DEF" : pos.key === "MIDSUB" ? "MID" : pos.key === "ATTSUB" ? "ATT" : pos.key}</span>
+              <span className="msp-pos">{slotLabel(i)}</span>
               {player ? (
                 <>
                   <span className="msp-nation">{player.nation}</span>

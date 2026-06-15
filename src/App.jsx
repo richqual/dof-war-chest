@@ -81,6 +81,12 @@ function GlobalMenu({ light, onToggle, hasGame, onAbandon, extraOptions }) {
 
             <div className="global-menu-divider" />
 
+            <button className="global-menu-item" onClick={() => window.location.reload()}>
+              ↺ RESTART APP
+            </button>
+
+            <div className="global-menu-divider" />
+
             <button className="global-menu-item" onClick={() => { setOpen(false); onToggle(); }}>
               {light ? "🌙 DARK MODE" : "☀️ LIGHT MODE"}
             </button>
@@ -263,7 +269,7 @@ function AppInner() {
   return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
 }
 
-const APP_VERSION = "1.7.7";
+const APP_VERSION = "1.8.0";
 
 function AppFooter() {
   return (

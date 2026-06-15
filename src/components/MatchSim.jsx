@@ -1405,15 +1405,15 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
               {paused ? "▶ RESUME" : "⏸ PAUSE"}
             </button>
           )}
-          {SPEEDS.map((s, i) => (
-            <button
-              key={s.label}
-              className={`speed-btn ${speedIdx === i ? "active" : ""}`}
-              onClick={() => changeSpeed(i)}
-            >
-              {s.label}
-            </button>
-          ))}
+          <select
+            className="speed-select"
+            value={speedIdx}
+            onChange={e => changeSpeed(Number(e.target.value))}
+          >
+            {SPEEDS.map((s, i) => (
+              <option key={s.label} value={i}>{s.label}</option>
+            ))}
+          </select>
         </div>
       </div>
 

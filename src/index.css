@@ -547,9 +547,6 @@ input, select { font-family: var(--font); }
 .roll-sub { font-size: 13px; color: var(--text2); margin-bottom: 24px; letter-spacing: 0.5px; }
 
 .filter-bar {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
   margin-bottom: 10px;
 }
 .cm-select {
@@ -659,26 +656,6 @@ input, select { font-family: var(--font); }
 .sort-btn:hover { border-color: var(--border2); color: var(--text); }
 .sort-btn.active { border-color: var(--amber); color: var(--amber); }
 
-.filter-pos-chips {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-  margin-bottom: 6px;
-}
-.pos-filter-chip {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--text3);
-  padding: 3px 8px;
-  font-size: 10px;
-  letter-spacing: 0.8px;
-  font-family: var(--font);
-  cursor: pointer;
-  border-radius: 2px;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
-}
-.pos-filter-chip:hover { border-color: var(--border2); color: var(--text2); }
-.pos-filter-chip.active { border-color: var(--amber); color: var(--amber); background: rgba(255,176,0,0.06); }
 
 .player-list {
   display: grid;
@@ -1633,7 +1610,26 @@ input, select { font-family: var(--font); }
 .match-title { font-size: 12px; letter-spacing: 3px; color: var(--amber); font-family: var(--font-head); flex: 1; }
 
 /* Speed controls */
-.speed-controls { display: flex; gap: 4px; }
+.speed-controls { display: flex; gap: 4px; align-items: center; }
+.speed-select {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--amber);
+  padding: 3px 6px;
+  font-size: 10px;
+  cursor: pointer;
+  border-radius: 2px;
+  letter-spacing: 1px;
+  font-family: var(--font-head);
+  font-weight: bold;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath fill='%23f59e0b' d='M0 0l4 5 4-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 5px center;
+  padding-right: 18px;
+}
+.speed-select:focus { outline: none; border-color: var(--amber); }
 .speed-btn {
   background: var(--bg3);
   border: 1px solid var(--border);
@@ -2029,6 +2025,27 @@ input, select { font-family: var(--font); }
 
 .difficulty-section { margin-bottom: 14px; }
 
+.difficulty-select {
+  width: 100%;
+  margin-top: 6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--amber);
+  padding: 8px 28px 8px 10px;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  cursor: pointer;
+  border-radius: 2px;
+  font-family: var(--font-head);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath fill='%23f59e0b' d='M0 0l4 5 4-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+}
+.difficulty-select:focus { outline: none; border-color: var(--amber); }
+
 .difficulty-row {
   display: flex;
   gap: 6px;
@@ -2244,7 +2261,6 @@ input, select { font-family: var(--font); }
   .formation-pitch { max-height: 320px; }
   .my-squad-panel { width: 240px; }
   .speed-controls { gap: 2px; }
-  .speed-btn { padding: 2px 5px; font-size: 9px; }
 }
 
 /* ── MATCH: LINE-UPS, RATINGS & REPORT ──────────────────────────────── */
@@ -3170,9 +3186,16 @@ input, select { font-family: var(--font); }
   gap: 0.5rem;
   flex: 1 1 240px;
   max-width: 300px;
-  min-width: 200px;
+  min-width: 0;
   box-shadow: var(--pixel-shadow);
   animation: mgr-card-in 0.35s ease both;
+}
+
+@media (max-width: 560px) {
+  .mgr-cards-row {
+    grid-template-columns: 1fr;
+  }
+  .mgr-card { max-width: 100%; }
 }
 
 @keyframes mgr-card-in {
@@ -3780,4 +3803,37 @@ input, select { font-family: var(--font); }
   line-height: 1.4;
   color: var(--text2);
   margin: 0;
+}
+
+@media (max-width: 560px) {
+  .pre-formations-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+  .pre-team-col {
+    width: 100%;
+    padding: 8px 0;
+  }
+  .pre-centre-col {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 6px 0;
+    gap: 12px;
+  }
+  .pre-centre-col::before,
+  .pre-centre-col::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .pre-stat-label-mid {
+    font-size: 14px;
+    letter-spacing: 3px;
+    margin-bottom: 0;
+  }
+  .pre-match-pitch { max-height: 260px; }
 }

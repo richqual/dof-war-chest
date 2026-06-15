@@ -1119,7 +1119,6 @@ export const PLAYERS = [
 
   // ── DEFENSIVE MIDFIELDERS (Ligue 1) ───────────────────────────────────
   { id: 5400, name: "Juninho Paulista",       club: "Lyon",           years: "2000–2009", pos: "DM", rating: 91, valueMin: 48, valueMax: 78,  nation: "🇧🇷", era: "classic", league: "ligue_1", tier: "T2",   nationality_code: "BRA", archetype: "Maverick" },
-  { id: 5401, name: "Patrick Vieira",          club: "Arsenal",        years: "2000–2005", pos: "DM", rating: 88, valueMin: 19, valueMax: 39,  nation: "🇸🇳", era: "classic", league: "ligue_1", tier: "T3", nationality_code: "SEN", archetype: "Warrior" },
   { id: 5402, name: "Claude Makélélé",        club: "Paris",          years: "2005–2010", pos: "DM", rating: 87, valueMin: 12, valueMax: 32,  nation: "🇫🇷", era: "classic", league: "ligue_1", tier: "T3", nationality_code: "FRA", archetype: "Grinder" },
   { id: 5403, name: "Alou Diarra",            club: "Marseille",      years: "2005–2014", pos: "DM", rating: 84, valueMin: 1, valueMax: 13,   nation: "🇫🇷", era: "classic", league: "ligue_1", tier: "T4", nationality_code: "FRA", archetype: "Grinder" },
   { id: 5404, name: "Paul Nolan",             club: "Lyon",           years: "2004–2010", pos: "DM", rating: 81, valueMin: 0, valueMax: 7,   nation: "🇬🇧", era: "classic", league: "ligue_1", tier: "T4",   nationality_code: "ENG", archetype: "Grinder" },

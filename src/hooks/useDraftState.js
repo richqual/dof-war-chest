@@ -4,7 +4,7 @@ import { GROUP_SLOT_INDICES, FORMATIONS } from "../data/formations";
 
 const POS_LABELS = {
   GK: "Goalkeeper", RB: "Right Back", LB: "Left Back", CB: "Centre Back",
-  DM: "Def. Mid", MF: "Midfielder", AM: "Att. Mid",
+  DM: "Def. Mid", CM: "Midfielder", MF: "Midfielder", CAM: "Att. Mid", AM: "Att. Mid",
   RW: "Right Winger", LW: "Left Winger", ST: "Striker",
   RM: "Right Mid", LM: "Left Mid",
 };
@@ -65,6 +65,24 @@ function deserializeDraft(draft) {
         : new Map(),
   };
 }
+
+const CPU_POS_ACCEPTABLE = {
+  GK:  ["GK"],
+  CB:  ["CB", "LB", "RB", "DM", "CM"],
+  LB:  ["LB", "RB", "CB", "DM", "CM"],
+  RB:  ["RB", "LB", "CB", "DM", "CM"],
+  DM:  ["DM", "CM", "CB"],
+  CM:  ["CM", "CAM", "DM", "LM", "RM", "LW", "RW"],
+  CAM: ["CAM", "CM", "RM", "LM", "LW", "RW"],
+  RM:  ["RM", "RW", "CM", "CAM"],
+  LM:  ["LM", "LW", "CM", "CAM"],
+  LW:  ["LW", "LM", "RW", "RM", "CAM", "CM"],
+  RW:  ["RW", "RM", "LW", "LM", "CAM", "CM"],
+  ST:  ["ST", "LW", "RW", "CAM"],
+  DEFSUB: ["RB", "LB", "CB", "DM"],
+  MIDSUB: ["DM", "CM", "CAM", "RM", "LM", "RW", "LW"],
+  ATTSUB: ["CAM", "RM", "LM", "RW", "LW", "ST"],
+};
 
 function availablePlayersFor(posKey, takenIds) {
   const taken = new Set(takenIds);
@@ -509,12 +527,19 @@ export function useDraftState() {
     if (d.availablePlayerIds instanceof Set) {
       players = players.filter(p => d.availablePlayerIds.has(p.id));
     }
-    return players.map(p => {
+    // Apply values before position filtering so affordable check works correctly
+    players = players.map(p => {
       const player = { ...p };
       if (d.playerValues instanceof Map) player.value = d.playerValues.get(p.id) ?? p.value;
-      // Form is a hidden reveal — do NOT apply to rating during draft, only shown on squad screen
       return player;
     });
+    // Filter by position-appropriate players for CPU; fall back to full pool if too thin
+    const acceptable = CPU_POS_ACCEPTABLE[posKey];
+    if (acceptable) {
+      const posFiltered = players.filter(p => acceptable.includes(p.pos));
+      if (posFiltered.length >= 3) players = posFiltered;
+    }
+    return players;
   }
 
   function getAvailablePlayers(posKey) {
