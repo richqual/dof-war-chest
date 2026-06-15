@@ -2782,6 +2782,7 @@ input, select { font-family: var(--font); }
   padding: 1rem 1rem 2rem;
   gap: 1rem;
   background: var(--bg);
+  overflow-x: hidden;
 }
 
 .mgr-draft-header {
@@ -3064,6 +3065,7 @@ input, select { font-family: var(--font); }
   gap: 0.75rem;
   flex: 1 1 600px;
   min-width: 0;
+  width: 100%;
 }
 
 /* Picks log sidebar */
