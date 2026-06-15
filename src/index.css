@@ -2094,6 +2094,188 @@ input, select { font-family: var(--font); }
 
 .turn-club { font-size: 12px; color: var(--text3); }
 
+/* ── LOBBY & CLUB CREATOR ────────────────────────────────────────────────── */
+
+/* Back link sits above the card content */
+.creator-back-link {
+  background: none;
+  border: none;
+  color: var(--text3);
+  font-size: 11px;
+  letter-spacing: 1px;
+  font-family: var(--font-head);
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 18px;
+  display: inline-block;
+  transition: color 0.15s;
+}
+.creator-back-link:hover { color: var(--amber); }
+
+/* Step header row: "CLUB 1 OF 2" + badge */
+.creator-step-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.creator-step-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Full-width inputs in the club creator wizard */
+.creator-name-input { width: 100%; box-sizing: border-box; }
+
+/* Kit design + formation on the same row */
+.kit-formation-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+.kit-formation-col { display: flex; flex-direction: column; }
+.kit-formation-col--formation { flex-shrink: 0; }
+.kit-formation-col--formation .formation-select { font-size: 15px; padding: 10px 32px 10px 12px; }
+
+
+.randomise-all-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  font-size: 10px;
+  letter-spacing: 1px;
+  font-family: var(--font-head);
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.randomise-all-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+.creator-step-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--amber);
+  font-family: var(--font-head);
+}
+
+/* Progress dots for multi-human wizard */
+.creator-step-dots {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.creator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.2s;
+}
+.creator-dot.done { background: var(--amber-d); }
+.creator-dot.active { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+
+/* Player badge (human wizard step) */
+.player-badge {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  font-family: var(--font-head);
+  color: var(--amber);
+  border: 1px solid var(--amber);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+/* Human badge (overview card) */
+.human-badge {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  font-family: var(--font-head);
+  color: var(--green);
+  border: 1px solid var(--green);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+/* CPU badge */
+.cpu-badge {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  font-family: var(--font-head);
+  color: var(--text3);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 2px;
+}
+
+/* Edit button on CPU overview cards */
+.cpu-edit-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  font-size: 10px;
+  letter-spacing: 1px;
+  font-family: var(--font-head);
+  padding: 3px 8px;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: border-color 0.15s, color 0.15s;
+}
+.cpu-edit-btn:hover { border-color: var(--amber); color: var(--amber); }
+
+/* Overview card (shared base for human + CPU) */
+.club-overview-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 14px;
+}
+
+/* CPU locked card — dimmed */
+.club-overview-card.cpu-locked {
+  background: var(--bg2);
+  border-style: dashed;
+  opacity: 0.72;
+}
+.club-overview-card.cpu-locked:hover { opacity: 0.9; }
+
+/* Kit + text row inside overview cards */
+.overview-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.overview-info { display: flex; flex-direction: column; gap: 3px; }
+
+.overview-club-name {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--text);
+  font-family: var(--font-head);
+  letter-spacing: 0.5px;
+}
+
+.overview-meta {
+  font-size: 12px;
+  color: var(--text3);
+  font-family: var(--font);
+}
+
+/* Hint below the overview grid */
+.creator-overview-hint {
+  font-size: 13px;
+  color: var(--text3);
+  text-align: center;
+  margin: 10px 0 16px;
+  font-style: italic;
+}
+.creator-overview-hint strong { color: var(--text2); font-style: normal; }
+
 /* ── DRAFT IN-GAME MENU ──────────────────────────────────────────────── */
 .draft-header-actions { display: flex; gap: 6px; align-items: center; }
 

@@ -1,0 +1,247 @@
+import { useState } from "react";
+
+const DIFFICULTY_INFO = [
+  { key: "easy",   label: "EASY",   hint: "War chest — big budgets, one zero on the wheel (avg £109m)" },
+  { key: "normal", label: "NORMAL", hint: "Tighter purse strings — every spin matters (avg £80m)" },
+  { key: "hard",   label: "HARD",   hint: "Shoestring — bargain bins and frequent zeros (avg £48m)" },
+  { key: "expert", label: "EXPERT", hint: "Ruthless economy — mostly scraps, many zeros (avg £38m)" },
+  { key: "brutal", label: "BRUTAL", hint: "Scrap heap — half the wheel is zero, fight for free transfers (avg £23m)" },
+];
+
+const FORMAT_OPTIONS_2 = [
+  { key: "bo3", label: "BEST OF 3", hint: "First to 2 wins" },
+  { key: "bo5", label: "BEST OF 5", hint: "First to 3 wins" },
+  { key: "bo7", label: "BEST OF 7", hint: "First to 4 wins — NBA Finals style" },
+];
+
+const FORMAT_OPTIONS_4 = [
+  { key: "tournament", label: "TOURNAMENT", hint: "2-legged semi-finals (aggregate), then a 1-leg Grand Final" },
+];
+
+export default function LobbyScreen({ onContinue }) {
+  const [numClubs, setNumClubs] = useState(2);
+  const [numHumans, setNumHumans] = useState(1);
+  const [difficulty, setDifficulty] = useState("normal");
+  const [positionMode, setPositionMode] = useState("fixed");
+  const [format, setFormat] = useState("bo7");
+  const [hideRatings, setHideRatings] = useState(true);
+  const [dynamicValues, setDynamicValues] = useState(true);
+  const [dynamicForm, setDynamicForm] = useState(true);
+  const [managerTiming, setManagerTiming] = useState("before");
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showRules, setShowRules] = useState(false);
+
+  const formatOptions = numClubs === 2 ? FORMAT_OPTIONS_2 : FORMAT_OPTIONS_4;
+  const validFormats = formatOptions.map(f => f.key);
+  const activeFormat = validFormats.includes(format) ? format : formatOptions[0].key;
+
+  function handleNumClubs(n) {
+    setNumClubs(n);
+    if (numHumans > n) setNumHumans(n);
+  }
+
+  function handleContinue() {
+    onContinue({
+      numClubs,
+      numHumans,
+      difficulty,
+      positionMode,
+      format: activeFormat,
+      hideRatings,
+      dynamicValues,
+      dynamicForm,
+      managerTiming,
+    });
+  }
+
+  return (
+    <div className="setup-screen">
+      <div className="setup-card setup-card-wide">
+        <div className="setup-header">
+          <h1 className="setup-title">The Football Director</h1>
+          <p className="setup-sub">Build a squad. Spin the wheel. Become a legend.</p>
+        </div>
+
+        <div className="game-options">
+          <div className="options-title">GAME SETUP</div>
+
+          <div className="difficulty-section">
+            <span className="field-label-sm">NUMBER OF CLUBS</span>
+            <div className="difficulty-row">
+              {[2, 4].map(n => (
+                <button
+                  key={n}
+                  className={`difficulty-btn ${numClubs === n ? "active" : ""}`}
+                  onClick={() => handleNumClubs(n)}
+                >
+                  {n} CLUBS
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="difficulty-section">
+            <span className="field-label-sm">HUMAN PLAYERS</span>
+            <div className="difficulty-row">
+              {Array.from({ length: numClubs }, (_, i) => i + 1).map(n => (
+                <button
+                  key={n}
+                  className={`difficulty-btn ${numHumans === n ? "active" : ""}`}
+                  onClick={() => setNumHumans(n)}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+            <div className="difficulty-hint">
+              {numHumans === numClubs
+                ? "All clubs are human-controlled"
+                : `${numClubs - numHumans} CPU club${numClubs - numHumans > 1 ? "s" : ""} will be auto-generated`}
+            </div>
+          </div>
+
+          <div className="difficulty-section">
+            <span className="field-label-sm">TRANSFER MARKET DIFFICULTY</span>
+            <select
+              className="difficulty-select"
+              value={difficulty}
+              onChange={e => setDifficulty(e.target.value)}
+            >
+              {DIFFICULTY_INFO.map(d => (
+                <option key={d.key} value={d.key}>{d.label}</option>
+              ))}
+            </select>
+            <div className="difficulty-hint">
+              {DIFFICULTY_INFO.find(d => d.key === difficulty)?.hint}
+            </div>
+          </div>
+
+          <div className="difficulty-section">
+            <span className="field-label-sm">DRAFT ORDER MODE</span>
+            <div className="difficulty-row">
+              <button
+                className={`difficulty-btn ${positionMode === "fixed" ? "active" : ""}`}
+                onClick={() => setPositionMode("fixed")}
+              >
+                FIXED
+              </button>
+              <button
+                className={`difficulty-btn ${positionMode === "random" ? "active" : ""}`}
+                onClick={() => setPositionMode("random")}
+              >
+                RANDOM
+              </button>
+            </div>
+            <div className="difficulty-hint">
+              {positionMode === "fixed"
+                ? "Classic order — GK first, subs last. Predictable and competitive"
+                : "Spin to reveal your position each round — chaos, carnage, and competition"}
+            </div>
+          </div>
+
+          <div className="difficulty-section">
+            <span className="field-label-sm">COMPETITION FORMAT</span>
+            <div className="difficulty-row">
+              {formatOptions.map(f => (
+                <button
+                  key={f.key}
+                  className={`difficulty-btn ${activeFormat === f.key ? "active" : ""}`}
+                  onClick={() => setFormat(f.key)}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            <div className="difficulty-hint">
+              {formatOptions.find(f => f.key === activeFormat)?.hint}
+            </div>
+          </div>
+
+          <button
+            className="advanced-toggle"
+            onClick={() => setShowAdvanced(v => !v)}
+          >
+            {showAdvanced ? "▲" : "▼"} ADVANCED OPTIONS
+          </button>
+
+          {showAdvanced && (
+            <div className="advanced-options">
+              <label className="option-row">
+                <input
+                  type="checkbox"
+                  className="option-checkbox"
+                  checked={managerTiming === "before"}
+                  onChange={e => setManagerTiming(e.target.checked ? "before" : "after")}
+                />
+                <span className="option-label">Manager draft before squad draft</span>
+                <span className="option-hint">Spin the Merry-Go-Round first, then build your squad</span>
+              </label>
+              <label className="option-row">
+                <input
+                  type="checkbox"
+                  className="option-checkbox"
+                  checked={hideRatings}
+                  onChange={e => setHideRatings(e.target.checked)}
+                />
+                <span className="option-label">Hide player ratings during draft</span>
+                <span className="option-hint">Adds mystery — pick on reputation alone</span>
+              </label>
+              <label className="option-row">
+                <input
+                  type="checkbox"
+                  className="option-checkbox"
+                  checked={dynamicValues}
+                  onChange={e => setDynamicValues(e.target.checked)}
+                />
+                <span className="option-label">Randomize player values each game</span>
+                <span className="option-hint">Prices vary by tier — no two games are alike</span>
+              </label>
+              <label className="option-row">
+                <input
+                  type="checkbox"
+                  className="option-checkbox"
+                  checked={dynamicForm}
+                  onChange={e => setDynamicForm(e.target.checked)}
+                />
+                <span className="option-label">Apply player form variance</span>
+                <span className="option-hint">Hot form +2, poor form -2 — bargains and traps daily</span>
+              </label>
+            </div>
+          )}
+        </div>
+
+        <div className="setup-rules">
+          <div className="rules-title">HOW IT WORKS</div>
+          <p className="rules-intro">
+            You are a Director of Football tasked with building a new team from the ground up.
+            Jump on the Managerial Merry-Go-Round, try your luck on the transfer wheel and
+            build a squad of 16 players to become the ultimate football director.
+          </p>
+          <button className="rules-toggle" onClick={() => setShowRules(v => !v)}>
+            {showRules ? "▲ hide rules" : "▼ see rules"}
+          </button>
+          {showRules && (
+            <div className="rules-detail">
+              <ul className="rules-bullets">
+                <li>Spin the Managerial Merry-Go-Round to assign a manager to your squad</li>
+                <li>Spin the budget wheel each turn — £0 to £200m, unspent carries over</li>
+                <li>Draft one player per position until your squad of 16 is complete</li>
+                <li>Draft order rotates each round — no one picks last forever</li>
+                <li>A squad that suits your manager's style will perform better on match day</li>
+                <li>Simulate the match and see who built the best team</li>
+                <li>Each position is drafted in sequence: GK, DEF ×4, MID ×4, ATT ×3, then 4 subs</li>
+                <li>Player values vary each game if randomised prices is on — no two drafts alike</li>
+                <li>Form variance can add or subtract up to 2 rating points on match day</li>
+                <li>Manager quality affects your team's overall match rating — choose wisely</li>
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <button className="start-btn active" onClick={handleContinue}>
+          CONTINUE →
+        </button>
+      </div>
+    </div>
+  );
+}

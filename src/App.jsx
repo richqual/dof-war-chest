@@ -1,6 +1,7 @@
 import { useState, useEffect, Component } from "react";
 import { useDraftState } from "./hooks/useDraftState";
-import SetupScreen from "./components/SetupScreen";
+import LobbyScreen from "./components/LobbyScreen";
+import ClubCreatorScreen from "./components/ClubCreatorScreen";
 import OrderDrawScreen from "./components/OrderDrawScreen";
 import DraftScreen from "./components/DraftScreen";
 import SquadScreen from "./components/SquadScreen";
@@ -117,6 +118,9 @@ function AppInner() {
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
   } = useDraftState();
 
+  const [preScreen, setPreScreen] = useState("lobby"); // "lobby" | "club-creator"
+  const [lobbyConfig, setLobbyConfig] = useState(null);
+
   const [matchConfig, setMatchConfig] = useState({ homeIdx: 0, awayIdx: 1 });
   const [lightMode, setLightMode] = useState(() => localStorage.getItem("tg-theme") === "light");
 
@@ -131,19 +135,41 @@ function AppInner() {
     setScreen(s);
   }
 
+  function handleAbandon() {
+    restartGame();
+    setPreScreen("lobby");
+  }
+
   const hasGame = !!draft;
   const globalMenu = (
     <GlobalMenu
       light={lightMode}
       onToggle={() => setLightMode(l => !l)}
       hasGame={hasGame}
-      onAbandon={restartGame}
+      onAbandon={handleAbandon}
       screen={screen}
     />
   );
 
   if (screen === "setup" || !draft) {
-    return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
+    if (preScreen === "lobby") {
+      return (
+        <>
+          {globalMenu}
+          <LobbyScreen onContinue={config => { setLobbyConfig(config); setPreScreen("club-creator"); }} />
+        </>
+      );
+    }
+    return (
+      <>
+        {globalMenu}
+        <ClubCreatorScreen
+          config={lobbyConfig}
+          onStart={(clubs, opts) => { startGame(clubs, opts); setPreScreen("lobby"); }}
+          onBack={() => setPreScreen("lobby")}
+        />
+      </>
+    );
   }
 
   if (screen === "order-draw" && draft) {
@@ -269,7 +295,7 @@ function AppInner() {
   return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
 }
 
-const APP_VERSION = "1.8.0";
+const APP_VERSION = "1.9.0";
 
 function AppFooter() {
   return (
