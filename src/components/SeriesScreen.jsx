@@ -715,7 +715,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
           {nextMatchup && (
             <div className="series-actions">
               <button className="sim-btn" onClick={playNextMatch}>
-                ▶ PLAY{nextMatchup.matchNum > 1 ? ` MATCH ${nextMatchup.matchNum}` : " FIRST MATCH"}
+                ▶ {nextMatchup.label === "GRAND FINAL" ? "PLAY GRAND FINAL" : nextMatchup.matchNum > 1 ? `PLAY MATCH ${nextMatchup.matchNum}` : "PLAY FIRST MATCH"}
               </button>
               <button className="sim-btn secondary" onClick={() => setScreen("squads")}>TEAM MANAGEMENT</button>
             </div>
