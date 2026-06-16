@@ -2974,10 +2974,10 @@ input, select { font-family: var(--font); }
 .order-draw-box {
   background: var(--bg2);
   border: 2px solid var(--amber);
-  padding: 2.5rem 3rem;
+  padding: 2rem 2rem;
   min-width: 320px;
-  max-width: 480px;
-  width: 90vw;
+  max-width: 560px;
+  width: 94vw;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3069,95 +3069,90 @@ input, select { font-family: var(--font); }
 
 /* Bowl */
 .draw-bowl {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.75rem;
-  padding: 1rem 0.5rem;
-  margin-bottom: 0.25rem;
-}
-.draw-ball {
-  width: 60px;
-  height: 60px;
-  min-width: 60px;
-  min-height: 60px;
-  border-radius: 50% !important;
+  position: relative;
   background: var(--bg3);
   border: 2px solid var(--border);
+  border-radius: 12px;
+  margin: 0.5rem 0 0.75rem;
+  /* width/height set inline per game size */
+}
+.draw-ball {
+  position: absolute;
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  border: 2.5px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
+  font-family: var(--font-head);
   font-size: 0.65rem;
   font-weight: 700;
   color: var(--text2);
   letter-spacing: 0.04em;
   user-select: none;
-  flex-shrink: 0;
-  transition: border-color 0.2s, transform 0.2s, background 0.2s;
+  /* sphere illusion */
+  background: radial-gradient(circle at 38% 32%, #2a3a2a 0%, var(--bg3) 60%, #0a150a 100%);
+  box-shadow: inset -3px -3px 8px rgba(0,0,0,0.5), inset 2px 2px 6px rgba(255,255,255,0.04);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 .draw-ball-available {
   border-color: var(--amber);
   color: var(--amber);
   cursor: pointer;
-  animation: ball-pulse 1.2s ease-in-out infinite;
+  background: radial-gradient(circle at 38% 32%, #3a3010 0%, #1a2010 55%, #0a1008 100%);
+  box-shadow:
+    inset -3px -3px 8px rgba(0,0,0,0.5),
+    inset 2px 2px 6px rgba(255,215,0,0.06),
+    0 0 0 0 rgba(255,200,50,0);
+  animation: ball-float 2.4s ease-in-out infinite;
 }
 .draw-ball-available:hover {
-  background: var(--bg2);
-  transform: scale(1.08);
+  border-color: #ffe566;
+  box-shadow:
+    inset -3px -3px 8px rgba(0,0,0,0.5),
+    inset 2px 2px 6px rgba(255,215,0,0.1),
+    0 0 14px 4px rgba(255,200,50,0.35);
+  transform: scale(1.12) !important;
+  z-index: 2;
 }
 .draw-ball-spinning {
   border-color: var(--amber);
-  animation: ball-spin 0.4s linear infinite;
+  animation: ball-spin 0.35s linear infinite;
+  z-index: 3;
 }
 .draw-ball-flipped {
   border-color: var(--amber);
-  background: var(--amber);
+  background: radial-gradient(circle at 38% 32%, #ffe566 0%, var(--amber) 60%, #b8860b 100%);
   color: var(--bg);
-  font-size: 0.7rem;
-  font-weight: 700;
-  animation: ball-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  font-size: 0.75rem;
+  box-shadow:
+    inset -3px -3px 8px rgba(0,0,0,0.3),
+    inset 2px 2px 6px rgba(255,255,255,0.25),
+    0 0 20px 6px rgba(255,200,50,0.5);
+  animation: ball-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  z-index: 3;
 }
 .draw-ball-done {
-  border-color: var(--border);
+  border-color: transparent;
   color: var(--text3);
-  opacity: 0.45;
+  opacity: 0.3;
   font-size: 0.6rem;
+  background: radial-gradient(circle at 38% 32%, #1a2a1a 0%, var(--bg3) 60%, #0a150a 100%);
+  box-shadow: none;
 }
 
-@keyframes ball-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.0); transform: translateY(0); }
-  50% { box-shadow: 0 0 0 6px rgba(255,215,0,0.18); transform: translateY(-4px); }
+@keyframes ball-float {
+  0%, 100% { box-shadow: inset -3px -3px 8px rgba(0,0,0,0.5), inset 2px 2px 6px rgba(255,215,0,0.06), 0 0 0 0 rgba(255,200,50,0); }
+  50%       { box-shadow: inset -3px -3px 8px rgba(0,0,0,0.5), inset 2px 2px 6px rgba(255,215,0,0.06), 0 0 10px 3px rgba(255,200,50,0.2); transform: translateY(-3px) rotate(var(--rot, 0deg)); }
 }
 @keyframes ball-spin {
-  0% { transform: rotate(0deg) scale(1.1); }
-  100% { transform: rotate(360deg) scale(1.1); }
+  0%   { transform: rotate(0deg) scale(1.12); }
+  100% { transform: rotate(360deg) scale(1.12); }
 }
 @keyframes ball-pop {
-  0% { transform: scale(0.7); }
-  100% { transform: scale(1.25); }
-}
-
-/* Pick button */
-.draw-pick-btn {
-  background: var(--amber);
-  color: var(--bg);
-  border: none;
-  padding: 0.6rem 1.5rem;
-  font-family: var(--font-head);
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  cursor: pointer;
-  box-shadow: var(--pixel-shadow);
-  margin-bottom: 0.5rem;
-}
-.draw-pick-btn:hover {
-  background: var(--amber-d);
-  transform: translateY(-1px);
-}
-.draw-pick-btn:active {
-  transform: translateY(1px);
-  box-shadow: none;
+  0%   { transform: scale(0.6); }
+  100% { transform: scale(1.2); }
 }
 
 /* Results so far */
