@@ -54,7 +54,7 @@ export default function DrawScreen({ draft, onComplete }) {
       <div className="draw-header">
         <div className="setup-badge">🎩 THE DRAW</div>
         <h2 className="draw-title">TOURNAMENT DRAW</h2>
-        <p className="draw-sub">Semi-finals: Best of 3 &nbsp;·&nbsp; Grand Final: Best of 5</p>
+        <p className="draw-sub">Semi-finals: 2 legs (aggregate) &nbsp;·&nbsp; Grand Final: 1 leg</p>
       </div>
 
       <div className="draw-bracket">
