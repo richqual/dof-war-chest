@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { POSITIONS, getRatingBg, getRatingColor, formatValue, ERA_LABELS, ERA_COLORS, ERA_BG } from "../data/players";
 import { FORMATIONS, FORMATION_LIST } from "../data/formations";
+
+function posGroupColor(pos) {
+  if (pos === "GK") return { bg: "#f97316", fg: "#fff" };
+  if (["RB","LB","CB","WB"].includes(pos)) return { bg: "#3b82f6", fg: "#fff" };
+  if (["ST","RW","LW"].includes(pos)) return { bg: "#ef4444", fg: "#fff" };
+  return { bg: "#16a34a", fg: "#fff" }; // DM, CM, RM, LM, CAM
+}
 import { TIER_LABELS, TIER_COLORS, TIER_BG } from "../data/managers";
 import { ARCHETYPE_COLOR } from "./PlayerCard";
 import { getFormArrow } from "../hooks/useDraftState";
@@ -51,7 +58,7 @@ function FormationDiagram({ squad, formation, swapSlot, onSlotClick }) {
               <div className="pitch-dot-inner">
                 {player ? (
                   <>
-                    <div className="dot-rating" style={{ background: getRatingBg(player.rating), color: getRatingColor(player.rating) }}>
+                    <div className="dot-rating" style={(() => { const c = posGroupColor(player.pos); return { background: c.bg, color: c.fg }; })()}>
                       {player.pos}
                     </div>
                     <div className="dot-name">{player.name.split(" ").pop()}</div>
@@ -376,24 +383,6 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
                 <option key={f} value={f}>{f}</option>
               ))}
             </select>
-            <span className="tactics-divider" />
-            <button className={`sort-btn${hideBadges ? " active" : ""}`} onClick={() => setHideBadges(h => !h)}>
-              {hideBadges ? "BADGES OFF" : "BADGES ON"}
-            </button>
-            <button className={`sort-btn${showValues ? " active" : ""}`} onClick={() => setShowValues(v => !v)}>
-              {showValues ? "VALUES ON" : "VALUES OFF"}
-            </button>
-            <span className="tactics-divider" />
-            <button
-              className={`sort-btn${selectingCaptain ? " active" : ""}`}
-              onClick={() => setSelectingCaptain(s => !s)}
-            >
-              {selectingCaptain
-                ? "TAP A PLAYER..."
-                : captainId
-                  ? `(C) ${starters.find(p => p?.id === captainId)?.name || "Captain"}`
-                  : "SET CAPTAIN"}
-            </button>
           </div>
 
           {showPitch && (
@@ -416,6 +405,24 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
           <div className="starting-xi-section">
             <div className="section-title-row">
               <span className="section-title">STARTING XI</span>
+              <div className="xi-controls">
+                <button className={`sort-btn${hideBadges ? " active" : ""}`} onClick={() => setHideBadges(h => !h)}>
+                  {hideBadges ? "BADGES OFF" : "BADGES ON"}
+                </button>
+                <button className={`sort-btn${showValues ? " active" : ""}`} onClick={() => setShowValues(v => !v)}>
+                  {showValues ? "VALUES ON" : "VALUES OFF"}
+                </button>
+                <button
+                  className={`sort-btn${selectingCaptain ? " active" : ""}`}
+                  onClick={() => setSelectingCaptain(s => !s)}
+                >
+                  {selectingCaptain
+                    ? "TAP A PLAYER..."
+                    : captainId
+                      ? `(C) ${starters.find(p => p?.id === captainId)?.name || "Captain"}`
+                      : "SET CAPTAIN"}
+                </button>
+              </div>
             </div>
             <div className="starting-xi-list">
               {starters.map((p, i) => p ? (
@@ -427,7 +434,7 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
                     else handleSlotClick(i);
                   }}
                 >
-                  <span className="xi-pos">{POSITIONS[i].key}</span>
+                  <span className="xi-pos">{FORMATIONS[formation][i]?.pos ?? POSITIONS[i].key}</span>
                   <span className="xi-nation">{p.nation}</span>
                   <span className={`xi-name${captainId === p.id ? " xi-captain" : ""}`}>
                     {p.name}

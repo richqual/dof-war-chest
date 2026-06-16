@@ -1498,24 +1498,25 @@ input, select { font-family: var(--font); }
 .pitch-dot { position: absolute; transform: translate(-50%, -50%); cursor: pointer; z-index: 2; }
 .pitch-dot-inner { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .dot-rating {
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 9px;
+  font-size: 7.5px;
   font-weight: bold;
-  border: 2.5px solid rgba(255,255,255,0.5);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-  transition: border-color 0.15s;
+  border: none;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.7), 0 1px 2px rgba(0,0,0,0.5);
+  outline: 2px solid transparent;
+  transition: outline-color 0.15s;
   font-family: var(--font-head);
   letter-spacing: 0.2px;
   flex-shrink: 0;
 }
-.pitch-dot.swapping .dot-rating { border-color: var(--amber) !important; }
-.pitch-dot:hover .dot-rating { border-color: rgba(255,255,255,0.5); }
+.pitch-dot.swapping .dot-rating { outline-color: var(--amber); }
+.pitch-dot:hover .dot-rating { outline-color: rgba(255,255,255,0.6); }
 .dot-name {
   font-size: 11px;
   font-weight: 600;
@@ -1528,8 +1529,8 @@ input, select { font-family: var(--font); }
   text-overflow: ellipsis;
 }
 .dot-empty {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   overflow: hidden;
   background: rgba(255,255,255,0.05);
@@ -1538,7 +1539,7 @@ input, select { font-family: var(--font); }
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  font-size: 9px;
+  font-size: 8px;
   color: rgba(255,255,255,0.3);
   letter-spacing: 0.5px;
   font-family: var(--font-head);
@@ -3631,8 +3632,9 @@ input, select { font-family: var(--font); }
 .xi-captain { color: var(--amber); }
 .captain-badge { font-size: 10px; margin-right: 5px; color: var(--amber); font-family: var(--font-head); letter-spacing: 0.5px; }
 
-.section-title-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 4px; }
+.section-title-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 4px; flex-wrap: wrap; gap: 6px; }
 .section-title-row .section-title { padding: 0; }
+.xi-controls { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
 .xi-row.captain-selectable { cursor: pointer; }
 .xi-row.captain-selectable:hover { background: rgba(255,196,0,0.08); outline: 1px dashed var(--amber); outline-offset: -2px; }
@@ -3872,6 +3874,28 @@ input, select { font-family: var(--font); }
   border-radius: 2px;
   transition: width 0.4s ease;
 }
+
+/* ── Mid-tournament Stats Panel ────────────────────────── */
+.mid-tourn-stats {
+  width: 100%;
+  max-width: 480px;
+  margin: 14px auto 0;
+}
+.mid-tourn-toggle {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 8px 14px;
+  cursor: pointer;
+  text-align: left;
+  letter-spacing: 0.05em;
+}
+.mid-tourn-toggle:hover { background: rgba(255,255,255,0.07); color: var(--text-primary); }
+.mid-tourn-stats .tourn-tables { margin-top: 10px; }
 
 /* ── Tournament Results ─────────────────────────────────── */
 .tourn-results {

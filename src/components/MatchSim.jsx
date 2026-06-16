@@ -1458,7 +1458,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
             const legCtx = seriesContext?.legContext;
             const isDraw = !result.penWinner && result.score.home === result.score.away && isRegularSeriesMatch;
             if (isDraw) {
-              onMatchResult(null, result.score, null, result.events);
+              onMatchResult(null, result.score, result.ratings, result.events, result.matchInjuries);
             } else {
               let side;
               if (result.penWinner) {

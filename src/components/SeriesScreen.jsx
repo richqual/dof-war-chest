@@ -49,30 +49,35 @@ function getNextMatchup(series) {
     };
   }
 
-  // Tournament semis (aggregate 2-leg format — ET/pens in leg 2 if level)
+  // Tournament semis — UCL format: all leg 1s first, then all leg 2s
   if (series.stage === "semis" && series.semis) {
+    const totalLegsPlayed = series.semis.reduce((sum, sm) => sum + sm.legsPlayed, 0);
+    const matchNum = totalLegsPlayed + 1;
+    // First pass: leg 1s
     for (let si = 0; si < series.semis.length; si++) {
       const sm = series.semis[si];
-      if (sm.winner !== null) continue;
-      const played = sm.legsPlayed;
-      return {
-        homeIdx: played % 2 === 0 ? sm.p[0] : sm.p[1],
-        awayIdx: played % 2 === 0 ? sm.p[1] : sm.p[0],
-        matchNum: played + 1,
-        label: `SEMI ${si + 1} · LEG ${played + 1}`,
-        semiIdx: si,
-      };
+      if (sm.winner === null && sm.legsPlayed === 0) {
+        return { homeIdx: sm.p[0], awayIdx: sm.p[1], matchNum, label: `SEMI ${si + 1} · LEG 1`, semiIdx: si };
+      }
+    }
+    // Second pass: leg 2s
+    for (let si = 0; si < series.semis.length; si++) {
+      const sm = series.semis[si];
+      if (sm.winner === null && sm.legsPlayed === 1) {
+        return { homeIdx: sm.p[1], awayIdx: sm.p[0], matchNum, label: `SEMI ${si + 1} · LEG 2`, semiIdx: si };
+      }
     }
   }
 
   // Tournament final
   if ((series.stage === "final" || series.stage === "semis") && series.final) {
     const f = series.final;
-    const played = f.wins[0] + f.wins[1];
+    const totalLegsPlayed = (series.semis || []).reduce((sum, sm) => sum + sm.legsPlayed, 0);
+    const finalPlayed = f.wins[0] + f.wins[1];
     return {
-      homeIdx: played % 2 === 0 ? f.p[0] : f.p[1],
-      awayIdx: played % 2 === 0 ? f.p[1] : f.p[0],
-      matchNum: played + 1,
+      homeIdx: finalPlayed % 2 === 0 ? f.p[0] : f.p[1],
+      awayIdx: finalPlayed % 2 === 0 ? f.p[1] : f.p[0],
+      matchNum: totalLegsPlayed + finalPlayed + 1,
       label: "GRAND FINAL",
     };
   }
@@ -485,6 +490,60 @@ function ChampionSquad({ manager }) {
   );
 }
 
+function TournamentStats({ tournamentStats, managers }) {
+  const [open, setOpen] = useState(false);
+  if (!tournamentStats || Object.keys(tournamentStats).length === 0) return null;
+
+  const allStats = Object.entries(tournamentStats);
+  const topScorers = allStats.filter(([, s]) => s.goals > 0)
+    .sort((a, b) => b[1].goals - a[1].goals || b[1].assists - a[1].assists)
+    .slice(0, 5);
+  const topAssisters = allStats.filter(([, s]) => s.assists > 0)
+    .sort((a, b) => b[1].assists - a[1].assists || b[1].goals - a[1].goals)
+    .slice(0, 5);
+
+  function teamName(mgrIdx) {
+    const m = managers[mgrIdx];
+    return m ? (m.teamName || m.clubName || m.name) : "–";
+  }
+
+  return (
+    <div className="mid-tourn-stats">
+      <button className="mid-tourn-toggle" onClick={() => setOpen(o => !o)}>
+        📊 TOURNAMENT STATS {open ? "▲" : "▼"}
+      </button>
+      {open && (
+        <div className="tourn-tables">
+          {topScorers.length > 0 && (
+            <div className="tourn-table">
+              <div className="tourn-table-title">TOP SCORERS</div>
+              {topScorers.map(([name, s]) => (
+                <div className="tourn-table-row" key={name}>
+                  <span className="tourn-row-name">{name}</span>
+                  <span className="tourn-row-team">{teamName(s.managerIdx)}</span>
+                  <span className="tourn-row-val">⚽ {s.goals}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {topAssisters.length > 0 && (
+            <div className="tourn-table">
+              <div className="tourn-table-title">TOP ASSISTS</div>
+              {topAssisters.map(([name, s]) => (
+                <div className="tourn-table-row" key={name}>
+                  <span className="tourn-row-name">{name}</span>
+                  <span className="tourn-row-team">{teamName(s.managerIdx)}</span>
+                  <span className="tourn-row-val">🅰️ {s.assists}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TournamentResults({ tournamentStats, managers }) {
   if (!tournamentStats || Object.keys(tournamentStats).length === 0) return null;
 
@@ -648,6 +707,10 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
             ? <TwoPlayerStandings series={series} managers={managers} />
             : <TournamentBracket series={series} managers={managers} />
           }
+
+          {series.format === "tournament" && (
+            <TournamentStats tournamentStats={draft.tournamentStats} managers={managers} />
+          )}
 
           {nextMatchup && (
             <div className="series-actions">

@@ -928,7 +928,7 @@ export const PLAYERS = [
   { id: 4510, name: "Mario Gotze",            club: "Dortmund",       years: "2009–2013", pos: "CAM", pos2: "CM", rating: 89, valueMin: 23, valueMax: 53,  nation: "🇩🇪", era: "golden",  league: "bundesliga", tier: "T2",   nationality_code: "GER", archetype: "Maverick" },
   { id: 4511, name: "Thomas Muller",          club: "Bayern",         years: "2008–",     pos: "CAM", pos2: "CM", rating: 91, valueMin: 48, valueMax: 78,  nation: "🇩🇪", era: "golden",  league: "bundesliga", tier: "T2",   nationality_code: "GER", archetype: "Leader" },
   { id: 4512, name: "Kevin De Bruyne",        club: "Wolfsburg",      years: "2012–2015", pos: "CAM", pos2: "CM", rating: 88, valueMin: 19, valueMax: 39,  nation: "🇧🇪", era: "golden",  league: "bundesliga", tier: "T3", nationality_code: "BEL", archetype: "Maverick" },
-  { id: 4513, name: "Mesut Ozil",             club: "Werder Bremen",  years: "2008–2010", pos: "CAM", pos2: "CM", rating: 88, valueMin: 19, valueMax: 39,  nation: "🇩🇪", era: "golden",  league: "bundesliga", tier: "T3", nationality_code: "GER", archetype: "Maverick" },
+  { id: 4513, name: "Mesut Özil",             club: "Werder Bremen",  years: "2008–2010", pos: "CAM", pos2: "CM", rating: 88, valueMin: 19, valueMax: 39,  nation: "🇩🇪", era: "golden",  league: "bundesliga", tier: "T3", nationality_code: "GER", archetype: "Maverick" },
   { id: 4514, name: "Mario Gotze",            club: "Bayern",         years: "2013–2016", pos: "CAM", pos2: "CM", rating: 87, valueMin: 12, valueMax: 32,  nation: "🇩🇪", era: "golden",  league: "bundesliga", tier: "T3", nationality_code: "GER", archetype: "Maverick" },
   { id: 4515, name: "Mario Gotze",            club: "Dortmund",       years: "2016–2020", pos: "CAM", pos2: "CM", rating: 84, valueMin: 1, valueMax: 13,   nation: "🇩🇪", era: "modern",  league: "bundesliga", tier: "T4", nationality_code: "GER", archetype: "Maverick" },
   { id: 4516, name: "Kai Havertz",            club: "Leverkusen",     years: "2016–2021", pos: "CAM", pos2: "CM", rating: 89, valueMin: 23, valueMax: 53,  nation: "🇩🇪", era: "modern",  league: "bundesliga", tier: "T2",   nationality_code: "GER", archetype: "Maverick" },
@@ -1270,8 +1270,7 @@ export const PLAYERS = [
 
   // Real Betis
   { id: 2849, name: "Denílson",               club: "Real Betis",     years: "2006–2013", pos: "DM", rating: 86, valueMin: 6, valueMax: 26,  nation: "🇧🇷", era: "golden",  league: "la_liga", tier: "T3", nationality_code: "BRA", archetype: "Grinder" },
-  { id: 2850, name: "Joaquín",                club: "Real Betis",     years: "2000–2008", pos: "RW", rating: 86, valueMin: 6, valueMax: 26,  nation: "🇪🇸", era: "classic", league: "la_liga", tier: "T3", nationality_code: "ESP", archetype: "Athlete" },
-  { id: 2851, name: "Joaquín Return",         club: "Real Betis",     years: "2015–",     pos: "RW", rating: 85, valueMin: 1, valueMax: 21,  nation: "🇪🇸", era: "modern",  league: "la_liga", tier: "T3", nationality_code: "ESP", archetype: "Athlete" },
+  { id: 2851, name: "Joaquín",                club: "Real Betis",     years: "2015–",     pos: "RW", rating: 85, valueMin: 1, valueMax: 21,  nation: "🇪🇸", era: "modern",  league: "la_liga", tier: "T3", nationality_code: "ESP", archetype: "Athlete" },
   { id: 2852, name: "Sergio Canales",         club: "Real Betis",     years: "2018–",     pos: "CAM", pos2: "CM", rating: 87, valueMin: 12, valueMax: 32,  nation: "🇪🇸", era: "modern",  league: "la_liga", tier: "T3", nationality_code: "ESP", archetype: "Technician" },
   { id: 2853, name: "Nabil Fekir",            club: "Real Betis",     years: "2019–",     pos: "CAM", pos2: "CM", rating: 89, valueMin: 23, valueMax: 53,  nation: "🇫🇷", era: "modern",  league: "la_liga", tier: "T2",   nationality_code: "FRA", archetype: "Technician" },
 
@@ -1315,14 +1314,15 @@ export const POSITIONS = [
   { key: "GKSUB",  label: "Sub Goalkeeper", slot: 11 },
   { key: "DEFSUB", label: "Sub Defender",   slot: 12 },
   { key: "MIDSUB", label: "Sub Midfielder", slot: 13 },
-  { key: "MIDSUB", label: "Sub Midfielder", slot: 14 },
+  { key: "WIDSUB", label: "Sub Wide Mid",   slot: 14 },
   { key: "ATTSUB", label: "Sub Attacker",   slot: 15 },
 ];
 
 export const SUB_POSITIONS = {
-  DEFSUB: ["RB", "LB", "CB", "DM"],
-  MIDSUB: ["DM", "CM", "CAM", "RM", "LM", "RW", "LW"],
-  ATTSUB: ["CAM", "RM", "LM", "RW", "LW", "ST"],
+  DEFSUB: ["RB", "LB", "CB"],
+  MIDSUB: ["DM", "CM", "CAM"],
+  WIDSUB: ["RM", "LM", "RW", "LW"],
+  ATTSUB: ["ST"],
 };
 
 export const ERA_LABELS = { classic: "Classic 98-08", golden: "Golden 08-16", modern: "Modern 16-" };

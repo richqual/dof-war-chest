@@ -21,7 +21,7 @@ export default function DraftScreen({
   const OUTFIELD_ARCHETYPES = ["Warrior", "Technician", "Maverick", "Grinder", "Leader", "Athlete"];
   const OUTFIELD_POS = ["RB", "LB", "CB", "DM", "CM", "CAM", "RM", "LM", "RW", "LW", "ST"];
   const isGkPos = currentPos.key === "GK" || currentPos.key === "GKSUB";
-  const isSubPos = ["DEFSUB", "MIDSUB", "ATTSUB"].includes(currentPos.key);
+  const isSubPos = ["DEFSUB", "MIDSUB", "WIDSUB", "ATTSUB"].includes(currentPos.key);
   const showPosChips = !isGkPos && !isSubPos;
   const relevantArchetypes = isGkPos ? GK_ARCHETYPES : OUTFIELD_ARCHETYPES;
 

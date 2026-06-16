@@ -79,9 +79,10 @@ const CPU_POS_ACCEPTABLE = {
   LW:  ["LW", "LM", "RW", "RM", "CAM", "CM"],
   RW:  ["RW", "RM", "LW", "LM", "CAM", "CM"],
   ST:  ["ST", "LW", "RW", "CAM"],
-  DEFSUB: ["RB", "LB", "CB", "DM"],
-  MIDSUB: ["DM", "CM", "CAM", "RM", "LM", "RW", "LW"],
-  ATTSUB: ["CAM", "RM", "LM", "RW", "LW", "ST"],
+  DEFSUB: ["RB", "LB", "CB"],
+  MIDSUB: ["DM", "CM", "CAM"],
+  WIDSUB: ["RM", "LM", "RW", "LW"],
+  ATTSUB: ["ST"],
 };
 
 function availablePlayersFor(posKey, takenIds) {

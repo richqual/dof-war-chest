@@ -295,7 +295,7 @@ function AppInner() {
   return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
 }
 
-const APP_VERSION = "1.9.0";
+const APP_VERSION = "1.11.0";
 
 function AppFooter() {
   return (
