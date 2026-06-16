@@ -3720,7 +3720,7 @@ input, select { font-family: var(--font); }
 
 .app-footer {
   text-align: center;
-  font-size: 0.65rem;
+  font-size: 0.78rem;
   color: var(--text2);
   padding: 1.5rem 1rem 1rem;
   opacity: 0.6;
