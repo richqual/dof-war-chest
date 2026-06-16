@@ -300,7 +300,7 @@ const APP_VERSION = "1.11.0";
 function AppFooter() {
   return (
     <div className="app-footer">
-      v{APP_VERSION} · created by <a href="https://x.com/richqual" target="_blank" rel="noreferrer">@richqual</a> with Claude
+      v{APP_VERSION} · created by <a href="https://www.instagram.com/richqual" target="_blank" rel="noreferrer">@richqual</a> with Claude
     </div>
   );
 }
