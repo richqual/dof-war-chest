@@ -52,13 +52,32 @@ function randomCpuFormation() {
   return "4-3-3";
 }
 
-function randomCpuIdentity(existingNames = []) {
+function hexToRgb(hex) {
+  const h = hex.replace("#", "");
+  return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+}
+
+function colourDistance(a, b) {
+  const [r1, g1, b1] = hexToRgb(a);
+  const [r2, g2, b2] = hexToRgb(b);
+  return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
+}
+
+// Returns kits from the pool whose primary is sufficiently distinct from all takenColors.
+// Falls back to the full pool if everything is too close.
+function filterDistinctKits(pool, takenColors, threshold = 80) {
+  const distinct = pool.filter(k => takenColors.every(c => colourDistance(k.primary, c) >= threshold));
+  return distinct.length > 0 ? distinct : pool;
+}
+
+function randomCpuIdentity(existingNames = [], takenColors = []) {
   const formation = randomCpuFormation();
   if (Math.random() < 0.25) {
     const egg = EASTER_EGG_TEAMS[Math.floor(Math.random() * EASTER_EGG_TEAMS.length)];
     return { clubName: egg.clubName, dofName: egg.dofName, primaryColor: egg.primary, secondaryColor: egg.secondary, pattern: egg.pattern, formation };
   }
-  const kit = CPU_KITS[Math.floor(Math.random() * CPU_KITS.length)];
+  const available = filterDistinctKits(CPU_KITS, takenColors);
+  const kit = available[Math.floor(Math.random() * available.length)];
   let name;
   do { name = randomClubName(); } while (existingNames.includes(name));
   const r = Math.random();
@@ -94,8 +113,8 @@ function makeHumanClub(index) {
   return { dofName: "", clubName: "", primaryColor: d.primary, secondaryColor: d.secondary, pattern: "plain", isComputer: false, formation: "4-3-3" };
 }
 
-function makeCpuClub(existingNames) {
-  const identity = randomCpuIdentity(existingNames);
+function makeCpuClub(existingNames, takenColors = []) {
+  const identity = randomCpuIdentity(existingNames, takenColors);
   return { ...identity, isComputer: true };
 }
 
@@ -244,7 +263,7 @@ function CpuSummaryCard({ index, club, onEdit }) {
 
 // ── CPU editor step ────────────────────────────────────────────────────────────
 
-function CpuEditorStep({ index, club, onChange, onDone }) {
+function CpuEditorStep({ index, club, onChange, onDone, otherColors = [] }) {
   const valid = club.dofName.trim() && club.clubName.trim();
   return (
     <div className="setup-card setup-card-wide">
@@ -256,7 +275,7 @@ function CpuEditorStep({ index, club, onChange, onDone }) {
           <button
             className="randomise-all-btn"
             onClick={() => {
-              const identity = randomCpuIdentity();
+              const identity = randomCpuIdentity([], otherColors);
               onChange({ ...club, ...identity, isComputer: true });
             }}
             title="Randomise everything"
@@ -291,9 +310,12 @@ export default function ClubCreatorScreen({ config, onStart, onBack }) {
       result.push(makeHumanClub(i));
     }
     const takenNames = [];
+    // Seed taken colours with human defaults so CPUs avoid clashing with them too
+    const takenColors = result.map(c => c.primaryColor);
     for (let i = numHumans; i < numClubs; i++) {
-      const cpu = makeCpuClub(takenNames);
+      const cpu = makeCpuClub(takenNames, takenColors);
       takenNames.push(cpu.clubName);
+      takenColors.push(cpu.primaryColor);
       result.push(cpu);
     }
     return result;
@@ -317,6 +339,7 @@ export default function ClubCreatorScreen({ config, onStart, onBack }) {
           club={clubs[editingCpuIdx]}
           onChange={updated => updateClub(editingCpuIdx, updated)}
           onDone={() => setEditingCpuIdx(null)}
+          otherColors={clubs.filter((_, i) => i !== editingCpuIdx).map(c => c.primaryColor)}
         />
       </div>
     );
