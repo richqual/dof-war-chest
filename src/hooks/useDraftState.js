@@ -18,7 +18,7 @@ function formationPos(formation, slotIndex) {
 }
 
 const STORAGE_KEY = "transfer-game-state";
-const STORAGE_VERSION = 6; // bump when serialization format changes
+const STORAGE_VERSION = 7; // bump when serialization format changes
 
 function serializeDraft(draft) {
   if (!draft) return draft;
@@ -167,7 +167,18 @@ function buildSeries(n, format) {
     return {
       format: "tournament",
       stage: "draw",   // DrawScreen will advance this to "semis"
+      quarters: null,
       semis: null,     // set after draw
+      final: null,
+      champion: null,
+    };
+  }
+  if (n === 8 && format === "tournament8") {
+    return {
+      format: "tournament8",
+      stage: "draw",   // DrawScreen will advance this to "quarters"
+      quarters: null,  // 4 QF matchups, set after draw
+      semis: null,     // 2 SF matchups, set after QFs complete
       final: null,
       champion: null,
     };
@@ -342,17 +353,37 @@ export function useDraftState() {
 
   // Called by DrawScreen once the animated draw is complete.
   function completeDraw(drawOrder) {
-    setDraft(prev => ({
-      ...prev,
-      series: {
-        ...prev.series,
-        stage: "semis",
-        semis: [
-          { p: [drawOrder[0], drawOrder[1]], goals: [0, 0], legsPlayed: 0, winner: null },
-          { p: [drawOrder[2], drawOrder[3]], goals: [0, 0], legsPlayed: 0, winner: null },
-        ],
-      },
-    }));
+    setDraft(prev => {
+      const fmt = prev.series?.format;
+      if (fmt === "tournament8") {
+        // 8 teams → 4 single-leg quarter-finals
+        return {
+          ...prev,
+          series: {
+            ...prev.series,
+            stage: "quarters",
+            quarters: [
+              { p: [drawOrder[0], drawOrder[1]], winner: null },
+              { p: [drawOrder[2], drawOrder[3]], winner: null },
+              { p: [drawOrder[4], drawOrder[5]], winner: null },
+              { p: [drawOrder[6], drawOrder[7]], winner: null },
+            ],
+          },
+        };
+      }
+      // 4 teams → 2 two-legged semi-finals (original behaviour)
+      return {
+        ...prev,
+        series: {
+          ...prev.series,
+          stage: "semis",
+          semis: [
+            { p: [drawOrder[0], drawOrder[1]], goals: [0, 0], legsPlayed: 0, winner: null },
+            { p: [drawOrder[2], drawOrder[3]], goals: [0, 0], legsPlayed: 0, winner: null },
+          ],
+        },
+      };
+    });
     setScreen("series");
   }
 
@@ -385,8 +416,70 @@ export function useDraftState() {
             : null;
           next = { ...prev, series: { ...s, wins, played: newPlayed, champion, stage: champion !== null ? "champion" : "playing" } };
         }
+      } else if (s.format === "tournament8") {
+        // 8-team tournament: quarters (single-leg) → semis (2-legged) → final (single-leg)
+
+        // Quarter-final?
+        const qIdx = (s.quarters || []).findIndex(q =>
+          (q.p[0] === homeIdx && q.p[1] === awayIdx) ||
+          (q.p[1] === homeIdx && q.p[0] === awayIdx)
+        );
+        if (qIdx >= 0) {
+          const q = s.quarters[qIdx];
+          // Single-leg: winner is whoever scored more; penaltyWinner on draw
+          const qWinner = winnerIdx !== null ? winnerIdx : (q.p[0] === homeIdx ? q.p[0] : q.p[1]);
+          const wonOnPens = winnerIdx === null;
+          const newQuarters = s.quarters.map((qq, i) =>
+            i === qIdx ? { ...qq, winner: qWinner, wonOnPens, score: { home: score?.home ?? 0, away: score?.away ?? 0 }, homeIdx, awayIdx } : qq
+          );
+          const allQsDone = newQuarters.every(q => q.winner !== null);
+          // Once all QFs done, build the semi-final pairings: QF1w vs QF2w, QF3w vs QF4w
+          const newSemis = allQsDone && !s.semis
+            ? [
+                { p: [newQuarters[0].winner, newQuarters[1].winner], goals: [0, 0], legsPlayed: 0, winner: null },
+                { p: [newQuarters[2].winner, newQuarters[3].winner], goals: [0, 0], legsPlayed: 0, winner: null },
+              ]
+            : s.semis;
+          next = { ...prev, series: { ...s, quarters: newQuarters, semis: newSemis, stage: allQsDone ? "semis" : "quarters" } };
+        } else {
+          // Semi-final (2-legged)?
+          const semiIdx = (s.semis || []).findIndex(sm =>
+            (sm.p[0] === homeIdx && sm.p[1] === awayIdx) ||
+            (sm.p[1] === homeIdx && sm.p[0] === awayIdx)
+          );
+          if (semiIdx >= 0) {
+            const semi = s.semis[semiIdx];
+            const isP0Home = semi.p[0] === homeIdx;
+            const p0Goals = isP0Home ? (score?.home ?? 0) : (score?.away ?? 0);
+            const p1Goals = isP0Home ? (score?.away ?? 0) : (score?.home ?? 0);
+            const newGoals = [semi.goals[0] + p0Goals, semi.goals[1] + p1Goals];
+            const newLegsPlayed = semi.legsPlayed + 1;
+            let semiWinner = null;
+            let wonOnPens = false;
+            if (newLegsPlayed >= 2) {
+              if (newGoals[0] > newGoals[1]) semiWinner = semi.p[0];
+              else if (newGoals[1] > newGoals[0]) semiWinner = semi.p[1];
+              else { semiWinner = winnerIdx; wonOnPens = true; }
+            }
+            const newSemis = s.semis.map((sm, i) =>
+              i === semiIdx ? { ...sm, goals: newGoals, legsPlayed: newLegsPlayed, winner: semiWinner, wonOnPens } : sm
+            );
+            const bothDone = newSemis.every(sm => sm.winner !== null);
+            const newFinal = bothDone && !s.final
+              ? { p: newSemis.map(sm => sm.winner), wins: [0, 0], target: 1, winner: null }
+              : s.final;
+            next = { ...prev, series: { ...s, semis: newSemis, final: newFinal, stage: bothDone ? "final" : "semis" } };
+          } else if (s.final) {
+            const f = s.final;
+            const pos = f.p.indexOf(winnerIdx);
+            if (pos < 0) return prev;
+            const wins = f.wins.map((w, i) => i === pos ? w + 1 : w);
+            const champion = wins.some(w => w >= f.target) ? winnerIdx : null;
+            next = { ...prev, series: { ...s, final: { ...f, wins, winner: champion }, champion, stage: champion !== null ? "champion" : "final" } };
+          }
+        }
       } else {
-        // Tournament — find which semi this result belongs to
+        // 4-team tournament: semis (2-legged) → final (single-leg)
         const semiIdx = (s.semis || []).findIndex(sm =>
           (sm.p[0] === homeIdx && sm.p[1] === awayIdx) ||
           (sm.p[1] === homeIdx && sm.p[0] === awayIdx)

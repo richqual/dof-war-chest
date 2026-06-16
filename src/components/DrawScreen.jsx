@@ -21,6 +21,9 @@ function DrawSlot({ mgr, uid, revealed }) {
 
 export default function DrawScreen({ draft, onComplete }) {
   const { managers } = draft;
+  const n = managers.length; // 4 or 8
+  const numPairings = n / 2; // 2 or 4
+  const is8 = n === 8;
 
   // Generate the shuffled draw order once on mount
   const [drawOrder] = useState(() => {
@@ -34,47 +37,47 @@ export default function DrawScreen({ draft, onComplete }) {
 
   // phase: "intro" → "drawing" → "done"
   const [phase, setPhase] = useState("intro");
-  const [revealed, setRevealed] = useState(0); // 0–4
+  const [revealed, setRevealed] = useState(0); // 0–n
 
   useEffect(() => {
     if (phase !== "drawing") return;
-    if (revealed >= 4) { setPhase("done"); return; }
+    if (revealed >= n) { setPhase("done"); return; }
     const delay = revealed === 0 ? 600 : 1400;
     const t = setTimeout(() => setRevealed(r => r + 1), delay);
     return () => clearTimeout(t);
-  }, [phase, revealed]);
+  }, [phase, revealed, n]);
 
   function startDraw() {
     setRevealed(0);
     setPhase("drawing");
   }
 
+  const roundLabel = is8 ? "QUARTER-FINAL" : "SEMI-FINAL";
+  const subText = is8
+    ? "Single-leg quarter-finals · 2-legged semi-finals · 1-leg Grand Final"
+    : "Semi-finals: 2 legs (aggregate) · Grand Final: 1 leg";
+
   return (
     <div className="draw-screen">
       <div className="draw-header">
         <div className="setup-badge">🎩 THE DRAW</div>
         <h2 className="draw-title">TOURNAMENT DRAW</h2>
-        <p className="draw-sub">Semi-finals: 2 legs (aggregate) &nbsp;·&nbsp; Grand Final: 1 leg</p>
+        <p className="draw-sub">{subText}</p>
       </div>
 
-      <div className="draw-bracket">
-        {/* Semi-Final 1 */}
-        <div className="draw-semi">
-          <div className="draw-semi-label">SEMI-FINAL 1</div>
-          <DrawSlot mgr={managers[drawOrder[0]]} uid="d0" revealed={revealed >= 1} />
-          <div className="draw-vs">VS</div>
-          <DrawSlot mgr={managers[drawOrder[1]]} uid="d1" revealed={revealed >= 2} />
-        </div>
-
-        <div className="draw-divider">⚔</div>
-
-        {/* Semi-Final 2 */}
-        <div className="draw-semi">
-          <div className="draw-semi-label">SEMI-FINAL 2</div>
-          <DrawSlot mgr={managers[drawOrder[2]]} uid="d2" revealed={revealed >= 3} />
-          <div className="draw-vs">VS</div>
-          <DrawSlot mgr={managers[drawOrder[3]]} uid="d3" revealed={revealed >= 4} />
-        </div>
+      <div className={`draw-bracket ${is8 ? "draw-bracket-8" : ""}`}>
+        {Array.from({ length: numPairings }, (_, pi) => {
+          const slotA = pi * 2;
+          const slotB = pi * 2 + 1;
+          return (
+            <div key={pi} className="draw-semi">
+              <div className="draw-semi-label">{roundLabel} {pi + 1}</div>
+              <DrawSlot mgr={managers[drawOrder[slotA]]} uid={`d${slotA}`} revealed={revealed > slotA} />
+              <div className="draw-vs">VS</div>
+              <DrawSlot mgr={managers[drawOrder[slotB]]} uid={`d${slotB}`} revealed={revealed > slotB} />
+            </div>
+          );
+        })}
       </div>
 
       {phase === "intro" && (

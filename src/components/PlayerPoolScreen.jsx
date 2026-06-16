@@ -23,7 +23,7 @@ const TIER_CONFIG = [
   { key: "T5", label: "T5 — Journeymen",  sub: "Below 78 — grafters" },
 ];
 
-export default function PlayerPoolScreen({ onConfirm }) {
+export default function PlayerPoolScreen({ onConfirm, numClubs = 4 }) {
   const [eras,    setEras]    = useState(ERA_CONFIG.map(e => e.key));
   const [leagues, setLeagues] = useState(LEAGUE_CONFIG.map(l => l.key));
   const [tiers,   setTiers]   = useState(TIER_CONFIG.map(t => t.key));
@@ -38,7 +38,8 @@ export default function PlayerPoolScreen({ onConfirm }) {
       .map(p => p.name)
   ).size;
 
-  const tooSmall = poolSize < 20;
+  const minPool = numClubs * 16;
+  const tooSmall = poolSize < minPool;
 
   function handleConfirm() {
     onConfirm({ eras, leagues, tiers });
@@ -114,7 +115,7 @@ export default function PlayerPoolScreen({ onConfirm }) {
 
       <div className={`mgr-pool-total${tooSmall ? " too-small" : ""}`}>
         {tooSmall
-          ? `Only ~${poolSize} unique players — select more options to continue`
+          ? `Only ~${poolSize} unique players — need ~${minPool} for ${numClubs} teams. Select more options.`
           : `~${poolSize} unique players in pool`}
       </div>
 

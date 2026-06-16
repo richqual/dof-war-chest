@@ -2673,6 +2673,13 @@ input, select { font-family: var(--font); }
 .draw-vs { font-family: var(--font-head); font-size: 12px; color: var(--text3); letter-spacing: 2px; }
 .draw-divider { font-size: 24px; color: var(--text3); align-self: center; margin: 0 8px; padding-top: 40px; }
 
+.draw-bracket-8 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px 32px;
+  align-items: start;
+}
+
 .draw-slot {
   width: 180px;
   min-height: 64px;
@@ -2821,6 +2828,26 @@ input, select { font-family: var(--font); }
 .bracket-winner .bracket-wins { color: var(--amber); }
 .bracket-out { opacity: 0.4; }
 .bracket-adv { font-family: var(--font-head); font-size: 11px; color: var(--green-l); letter-spacing: 1px; margin-top: 4px; }
+
+.bracket-section {
+  width: 100%;
+}
+.bracket-section-title {
+  font-family: var(--font-head);
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 3px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+.bracket-quarters-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 480px) {
+  .bracket-quarters-grid { grid-template-columns: 1fr; }
+}
 
 /* ── Champion screen ────────────────────────────────── */
 .champion-screen {

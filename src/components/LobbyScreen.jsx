@@ -18,6 +18,10 @@ const FORMAT_OPTIONS_4 = [
   { key: "tournament", label: "TOURNAMENT", short: "CUP", hint: "2-legged semi-finals (aggregate), then a 1-leg Grand Final" },
 ];
 
+const FORMAT_OPTIONS_8 = [
+  { key: "tournament8", label: "TOURNAMENT", short: "CUP", hint: "Single-leg quarter-finals, 2-legged semi-finals (aggregate), then a 1-leg Grand Final" },
+];
+
 export default function LobbyScreen({ onContinue }) {
   const [numClubs, setNumClubs] = useState(2);
   const [numHumans, setNumHumans] = useState(1);
@@ -31,7 +35,7 @@ export default function LobbyScreen({ onContinue }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showRules, setShowRules] = useState(false);
 
-  const formatOptions = numClubs === 2 ? FORMAT_OPTIONS_2 : FORMAT_OPTIONS_4;
+  const formatOptions = numClubs === 2 ? FORMAT_OPTIONS_2 : numClubs === 8 ? FORMAT_OPTIONS_8 : FORMAT_OPTIONS_4;
   const validFormats = formatOptions.map(f => f.key);
   const activeFormat = validFormats.includes(format) ? format : formatOptions[0].key;
 
@@ -72,13 +76,13 @@ export default function LobbyScreen({ onContinue }) {
               value={numClubs}
               onChange={e => handleNumClubs(Number(e.target.value))}
             >
-              {[2, 4].map(n => (
+              {[2, 4, 8].map(n => (
                 <option key={n} value={n}>{n}</option>
               ))}
             </select>
           </div>
           <div className="difficulty-hint setup-row-hint">
-            {numClubs === 2 ? "Head-to-head — two clubs, one draft, one winner" : "Four-way draft — more chaos, more competition"}
+            {numClubs === 2 ? "Head-to-head — two clubs, one draft, one winner" : numClubs === 8 ? "Eight-way draft — maximum chaos, maximum competition" : "Four-way draft — more chaos, more competition"}
           </div>
 
           <div className="setup-row">

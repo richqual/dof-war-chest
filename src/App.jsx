@@ -180,7 +180,7 @@ function AppInner() {
     return (
       <>
         {globalMenu}
-        <PlayerPoolScreen onConfirm={filter => {
+        <PlayerPoolScreen numClubs={draft.managers.length} onConfirm={filter => {
           setPlayerPool(filter);
           setScreen(draft.managerTiming === "before" ? "manager-draft" : "draft");
         }} />
@@ -295,7 +295,7 @@ function AppInner() {
   return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
 }
 
-const APP_VERSION = "1.11.7";
+const APP_VERSION = "1.12.0";
 
 function AppFooter() {
   return (

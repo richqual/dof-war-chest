@@ -34,7 +34,7 @@ function ManagerStrip({ mgr, wins, target, isChampion }) {
 function getNextMatchup(series) {
   if (!series || series.stage === "champion") return null;
 
-  if (series.format !== "tournament") {
+  if (series.format !== "tournament" && series.format !== "tournament8") {
     const played = series.played ?? (series.wins[0] + series.wins[1]);
     const [p0, p1] = series.participants;
     const isTiebreaker = series.stage === "tiebreaker";
@@ -49,10 +49,25 @@ function getNextMatchup(series) {
     };
   }
 
-  // Tournament semis — UCL format: all leg 1s first, then all leg 2s
+  // 8-team tournament: quarter-finals (single-leg)
+  if (series.stage === "quarters" && series.quarters) {
+    const qsBefore = series.quarters.filter(q => q.winner !== null).length;
+    const matchNum = qsBefore + 1;
+    for (let qi = 0; qi < series.quarters.length; qi++) {
+      const q = series.quarters[qi];
+      if (q.winner === null) {
+        return { homeIdx: q.p[0], awayIdx: q.p[1], matchNum, label: `QUARTER-FINAL ${qi + 1}`, quarterIdx: qi };
+      }
+    }
+  }
+
+  // Semi-finals (2-legged) — used by both 4-team and 8-team tournaments
   if (series.stage === "semis" && series.semis) {
-    const totalLegsPlayed = series.semis.reduce((sum, sm) => sum + sm.legsPlayed, 0);
-    const matchNum = totalLegsPlayed + 1;
+    const qLegsTotal = series.quarters
+      ? series.quarters.length  // each QF is 1 leg
+      : 0;
+    const sfLegsPlayed = series.semis.reduce((sum, sm) => sum + sm.legsPlayed, 0);
+    const matchNum = qLegsTotal + sfLegsPlayed + 1;
     // First pass: leg 1s
     for (let si = 0; si < series.semis.length; si++) {
       const sm = series.semis[si];
@@ -69,15 +84,16 @@ function getNextMatchup(series) {
     }
   }
 
-  // Tournament final
+  // Grand Final
   if ((series.stage === "final" || series.stage === "semis") && series.final) {
     const f = series.final;
-    const totalLegsPlayed = (series.semis || []).reduce((sum, sm) => sum + sm.legsPlayed, 0);
+    const qLegsTotal = series.quarters ? series.quarters.length : 0;
+    const sfLegsTotal = (series.semis || []).reduce((sum, sm) => sum + sm.legsPlayed, 0);
     const finalPlayed = f.wins[0] + f.wins[1];
     return {
       homeIdx: finalPlayed % 2 === 0 ? f.p[0] : f.p[1],
       awayIdx: finalPlayed % 2 === 0 ? f.p[1] : f.p[0],
-      matchNum: totalLegsPlayed + finalPlayed + 1,
+      matchNum: qLegsTotal + sfLegsTotal + finalPlayed + 1,
       label: "GRAND FINAL",
     };
   }
@@ -94,7 +110,7 @@ export function getSeriesContext(series, managers) {
   const awayName = am.teamName || am.clubName || am.name;
 
   let standing = "";
-  if (series.format !== "tournament") {
+  if (series.format !== "tournament" && series.format !== "tournament8") {
     const [w0, w1] = series.wins;
     const [p0, p1] = series.participants;
     const hWins = next.homeIdx === p0 ? w0 : w1;
@@ -106,8 +122,8 @@ export function getSeriesContext(series, managers) {
     else if (hWins > aWins) standing = `${homeName} lead ${hWins}–${aWins}${drawSuffix}`;
     else standing = `${awayName} lead ${aWins}–${hWins}${drawSuffix}`;
   } else {
-    // Show aggregate standing for semi-final legs
-    const sm = next.semiIdx != null ? series.semis[next.semiIdx] : null;
+    // Show aggregate standing for semi-final leg 2
+    const sm = next.semiIdx != null ? series.semis?.[next.semiIdx] : null;
     if (sm && sm.legsPlayed > 0) {
       const m0 = managers[sm.p[0]], m1 = managers[sm.p[1]];
       const n0 = m0.teamName || m0.name, n1 = m1.teamName || m1.name;
@@ -118,12 +134,10 @@ export function getSeriesContext(series, managers) {
       else
         standing = `Level ${sm.goals[0]}–${sm.goals[1]} on aggregate`;
     }
-    // Leg 1: no standing to show yet — leave it empty
+    // Quarter-finals or SF Leg 1: no standing to show yet
   }
 
-  // For leg 2 only, pass the leg 1 aggregate so generateEvents can trigger ET on agg level.
-  // homeIdx for leg 2 = sm.p[1], so homeAgg = sm.goals[1], awayAgg = sm.goals[0].
-  // For leg 1: legContext stays null AND we pass isLeg1=true so ET is never triggered.
+  // For SF leg 2 only, pass the leg 1 aggregate so generateEvents can trigger ET on agg level.
   let legContext = null;
   let isLeg1 = false;
   if (next.semiIdx != null && series.semis) {
@@ -134,24 +148,23 @@ export function getSeriesContext(series, managers) {
       isLeg1 = true;
     }
   }
+  // Quarter-finals are single-leg — treat like leg 1 (no ET from aggregate, allow pens on draw)
+  if (next.quarterIdx != null) {
+    isLeg1 = false; // single-leg: ET/pens can happen
+  }
 
   const isGrandFinal = next.label === "GRAND FINAL";
 
-  // Momentum context: who won the previous match?
-  // For 2-legged ties only — leg 2 knows who won leg 1.
-  // In leg 2: homeIdx = sm.p[1], awayIdx = sm.p[0]
+  // Momentum context: leg 2 semi-finals only
   let homePrevResult = null, awayPrevResult = null;
   if (next.semiIdx != null && series.semis) {
     const sm = series.semis[next.semiIdx];
     if (sm && sm.legsPlayed === 1) {
       if (sm.goals[0] > sm.goals[1]) {
-        // p[0] won leg 1 → p[0] is away team in leg 2
         awayPrevResult = "win"; homePrevResult = "loss";
       } else if (sm.goals[1] > sm.goals[0]) {
-        // p[1] won leg 1 → p[1] is home team in leg 2
         homePrevResult = "win"; awayPrevResult = "loss";
       }
-      // Tied on agg going into leg 2 → no momentum
     }
   }
 
@@ -174,40 +187,83 @@ function TwoPlayerStandings({ series, managers }) {
   );
 }
 
-// Tournament bracket panel
+// Tournament bracket panel — handles 4-team (semis+final) and 8-team (quarters+semis+final)
 function TournamentBracket({ series, managers }) {
+  const quarters = series.quarters || [];
+  const semis = series.semis || [];
+
   return (
     <div className="tournament-bracket">
-      {(series.semis || []).map((sm, i) => {
-        const m0 = managers[sm.p[0]], m1 = managers[sm.p[1]];
-        const accent0 = kitAccent(m0.primaryColor, m0.secondaryColor);
-        const accent1 = kitAccent(m1.primaryColor, m1.secondaryColor);
-        return (
-          <div key={i} className="bracket-semi">
-            <div className="bracket-semi-label">SEMI-FINAL {i + 1}</div>
-            <div className={`bracket-team ${sm.winner === sm.p[0] ? "bracket-winner" : sm.winner !== null ? "bracket-out" : ""}`}>
-              <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bs${i}a`} size={22} />
-              <span style={{ color: accent0 }}>{m0.teamName || m0.clubName || m0.name}</span>
-              <span className="bracket-wins">{sm.goals?.[0] ?? 0}</span>
-            </div>
-            <div className={`bracket-team ${sm.winner === sm.p[1] ? "bracket-winner" : sm.winner !== null ? "bracket-out" : ""}`}>
-              <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bs${i}b`} size={22} />
-              <span style={{ color: accent1 }}>{m1.teamName || m1.clubName || m1.name}</span>
-              <span className="bracket-wins">{sm.goals?.[1] ?? 0}</span>
-            </div>
-            {sm.legsPlayed === 1 && sm.winner === null && (
-              <div className="bracket-adv">Agg: {sm.goals[0]}–{sm.goals[1]} · Leg 2 to come</div>
-            )}
-            {sm.winner !== null && (
-              <div className="bracket-adv">
-                → {managers[sm.winner].teamName || managers[sm.winner].name} advance
-                {sm.wonOnPens ? " (pens)" : ""}
-              </div>
-            )}
+      {/* Quarter-finals (8-team only) */}
+      {quarters.length > 0 && (
+        <div className="bracket-section">
+          <div className="bracket-section-title">QUARTER-FINALS</div>
+          <div className="bracket-quarters-grid">
+            {quarters.map((q, i) => {
+              const m0 = managers[q.p[0]], m1 = managers[q.p[1]];
+              const accent0 = kitAccent(m0.primaryColor, m0.secondaryColor);
+              const accent1 = kitAccent(m1.primaryColor, m1.secondaryColor);
+              return (
+                <div key={i} className="bracket-semi">
+                  <div className="bracket-semi-label">QF {i + 1}</div>
+                  <div className={`bracket-team ${q.winner === q.p[0] ? "bracket-winner" : q.winner !== null ? "bracket-out" : ""}`}>
+                    <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bq${i}a`} size={22} />
+                    <span style={{ color: accent0 }}>{m0.teamName || m0.clubName || m0.name}</span>
+                  </div>
+                  <div className={`bracket-team ${q.winner === q.p[1] ? "bracket-winner" : q.winner !== null ? "bracket-out" : ""}`}>
+                    <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bq${i}b`} size={22} />
+                    <span style={{ color: accent1 }}>{m1.teamName || m1.clubName || m1.name}</span>
+                  </div>
+                  {q.winner !== null && (
+                    <div className="bracket-adv">
+                      → {(managers[q.winner].teamName || managers[q.winner].name)} advance
+                      {q.wonOnPens ? " (pens)" : ""}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
-        );
-      })}
+        </div>
+      )}
 
+      {/* Semi-finals */}
+      {semis.length > 0 && (
+        <div className="bracket-section">
+          {quarters.length > 0 && <div className="bracket-section-title">SEMI-FINALS</div>}
+          {semis.map((sm, i) => {
+            const m0 = managers[sm.p[0]], m1 = managers[sm.p[1]];
+            const accent0 = kitAccent(m0.primaryColor, m0.secondaryColor);
+            const accent1 = kitAccent(m1.primaryColor, m1.secondaryColor);
+            return (
+              <div key={i} className="bracket-semi">
+                <div className="bracket-semi-label">SEMI-FINAL {i + 1}</div>
+                <div className={`bracket-team ${sm.winner === sm.p[0] ? "bracket-winner" : sm.winner !== null ? "bracket-out" : ""}`}>
+                  <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bs${i}a`} size={22} />
+                  <span style={{ color: accent0 }}>{m0.teamName || m0.clubName || m0.name}</span>
+                  <span className="bracket-wins">{sm.goals?.[0] ?? 0}</span>
+                </div>
+                <div className={`bracket-team ${sm.winner === sm.p[1] ? "bracket-winner" : sm.winner !== null ? "bracket-out" : ""}`}>
+                  <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bs${i}b`} size={22} />
+                  <span style={{ color: accent1 }}>{m1.teamName || m1.clubName || m1.name}</span>
+                  <span className="bracket-wins">{sm.goals?.[1] ?? 0}</span>
+                </div>
+                {sm.legsPlayed === 1 && sm.winner === null && (
+                  <div className="bracket-adv">Agg: {sm.goals[0]}–{sm.goals[1]} · Leg 2 to come</div>
+                )}
+                {sm.winner !== null && (
+                  <div className="bracket-adv">
+                    → {managers[sm.winner].teamName || managers[sm.winner].name} advance
+                    {sm.wonOnPens ? " (pens)" : ""}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Grand Final */}
       {series.final && (
         <div className="bracket-final">
           <div className="bracket-final-label">⭐ GRAND FINAL</div>
@@ -631,7 +687,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
     setScreen("match", { homeIdx: nextMatchup.homeIdx, awayIdx: nextMatchup.awayIdx });
   }
 
-  const formatLabel = series.format === "tournament"
+  const formatLabel = (series.format === "tournament" || series.format === "tournament8")
     ? "TOURNAMENT"
     : series.format.toUpperCase().replace("BO", "BEST OF ") + " SERIES";
 
@@ -652,7 +708,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
               Director of Football: {champion.dofName || champion.name}
             </div>
             <div className="champion-sub">
-              {series.format === "tournament"
+              {(series.format === "tournament" || series.format === "tournament8")
                 ? "Wins the tournament!"
                 : (() => {
                     const [p0, p1] = series.participants;
@@ -703,19 +759,19 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
             )}
           </div>
 
-          {series.format !== "tournament"
+          {(series.format !== "tournament" && series.format !== "tournament8")
             ? <TwoPlayerStandings series={series} managers={managers} />
             : <TournamentBracket series={series} managers={managers} />
           }
 
-          {series.format === "tournament" && (
+          {(series.format === "tournament" || series.format === "tournament8") && (
             <TournamentStats tournamentStats={draft.tournamentStats} managers={managers} />
           )}
 
           {nextMatchup && (
             <div className="series-actions">
               <button className="sim-btn" onClick={playNextMatch}>
-                ▶ {nextMatchup.label === "GRAND FINAL" ? "PLAY GRAND FINAL" : nextMatchup.matchNum > 1 ? `PLAY MATCH ${nextMatchup.matchNum}` : "PLAY FIRST MATCH"}
+                ▶ {nextMatchup.label === "GRAND FINAL" ? "PLAY GRAND FINAL" : nextMatchup.matchNum > 1 ? `PLAY MATCH ${nextMatchup.matchNum} — ${nextMatchup.label}` : `PLAY MATCH 1 — ${nextMatchup.label}`}
               </button>
               <button className="sim-btn secondary" onClick={() => setScreen("squads")}>TEAM MANAGEMENT</button>
             </div>

@@ -289,7 +289,7 @@ export default function SetupScreen({ onStart }) {
 
         <div className="setup-rules setup-rules-getstarted">
           <div className="rules-title">GET STARTED</div>
-          <p className="rules-intro">Enter your name and create your club to begin. Supports 1–4 human players, with 2 or 4 teams per game — CPU sides fill any empty slots.</p>
+          <p className="rules-intro">Enter your name and create your club to begin. Supports 1–8 human players, with 2, 4, or 8 teams per game — CPU sides fill any empty slots.</p>
         </div>
 
         <div className="clubs-grid">
