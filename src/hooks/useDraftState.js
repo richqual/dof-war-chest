@@ -397,7 +397,7 @@ export function useDraftState() {
 
       let next = prev;
 
-      if (s.format !== "tournament") {
+      if (s.format !== "tournament" && s.format !== "tournament8") {
         const newPlayed = (s.played ?? s.wins[0] + s.wins[1]) + 1;
         const maxGames = s.target * 2 - 1;
 
