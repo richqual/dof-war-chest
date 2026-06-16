@@ -45,6 +45,7 @@ export default function DraftScreen({
   const [sortDir, setSortDir] = useState("asc");
   const [transition, setTransition] = useState(null);
   const [showMySquad, setShowMySquad] = useState(false);
+  const [showOrder, setShowOrder] = useState(false);
   const [pendingPlayer, setPendingPlayer] = useState(null);
   const [showPosDropdown, setShowPosDropdown] = useState(false);
   const [showEraDropdown, setShowEraDropdown] = useState(false);
@@ -325,22 +326,28 @@ export default function DraftScreen({
       {/* Header */}
       <div className="draft-header">
         <div className="manager-tabs">
-          {managers.map((m, i) => (
+          {/* Active club only */}
+          {activeManager && (
             <span
-              key={i}
-              className={`manager-tab ${i === activeManagerIdx ? "active" : ""}`}
-              style={i === activeManagerIdx
-                ? { background: m.primaryColor, color: readableTextOn(m.primaryColor), borderColor: m.secondaryColor }
-                : undefined}
-              onClick={i === activeManagerIdx ? () => setShowMySquad(s => !s) : undefined}
-              title={i === activeManagerIdx ? "View my squad" : undefined}
+              className="manager-tab active"
+              style={{ background: activeManager.primaryColor, color: readableTextOn(activeManager.primaryColor), borderColor: activeManager.secondaryColor }}
+              onClick={() => setShowMySquad(s => !s)}
+              title="View my squad"
             >
-              <span className="tab-kit-dot" style={{ background: m.primaryColor, boxShadow: `inset 0 0 0 1px ${m.secondaryColor}` }} />
-              {m.clubName || m.name}
-              {m.isComputer && <span className="cpu-tag">CPU</span>}
-              {i === activeManagerIdx && <span className="tab-squad-hint">▤</span>}
+              <span className="tab-kit-dot" style={{ background: activeManager.primaryColor, boxShadow: `inset 0 0 0 1px ${activeManager.secondaryColor}` }} />
+              {activeManager.clubName || activeManager.name}
+              {activeManager.isComputer && <span className="cpu-tag">CPU</span>}
+              <span className="tab-squad-hint">▤</span>
             </span>
-          ))}
+          )}
+          {/* Mini kit swatches for other clubs */}
+          <div className="manager-tabs-others">
+            {managers.map((m, i) => i === activeManagerIdx ? null : (
+              <span key={i} className="manager-tab-mini" title={`${m.clubName || m.name}${m.isComputer ? " (CPU)" : ""}`}>
+                <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern || "plain"} uid={`tab-${i}`} size={16} />
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -426,14 +433,20 @@ export default function DraftScreen({
         )}
       </div>
 
-      {/* Draft order strip */}
-      <div className="order-strip">
-        <span className="order-label">Order:</span>
-        {currentOrder.map((pi, i) => (
-          <span key={i} className={`order-chip ${i === turnIndex ? "now" : i < turnIndex ? "done" : "waiting"}`}>
-            {managers[pi].clubName || managers[pi].name}
-          </span>
-        ))}
+      {/* Draft order strip — collapsible */}
+      <div className="order-strip-wrap">
+        <button className="order-strip-toggle" onClick={() => setShowOrder(s => !s)}>
+          DRAFT ORDER {showOrder ? "▲" : "▼"}
+        </button>
+        {showOrder && (
+          <div className="order-strip">
+            {currentOrder.map((pi, i) => (
+              <span key={i} className={`order-chip ${i === turnIndex ? "now" : i < turnIndex ? "done" : "waiting"}`}>
+                {managers[pi].clubName || managers[pi].name}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Main area */}
