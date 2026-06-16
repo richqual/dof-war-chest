@@ -528,7 +528,22 @@ function generatePreMatchNarrative(draft, homeIdx, awayIdx, seriesContext) {
 
   const sentences = [];
 
-  if (series.format === "tournament") {
+  if (series.format === "tournament" || series.format === "tournament8") {
+    // Quarter-final (tournament8 only — single leg)
+    const qIdx = (series.quarters || []).findIndex(q =>
+      q.p.includes(homeIdx) && q.p.includes(awayIdx)
+    );
+    if (qIdx >= 0) {
+      sentences.push(`Quarter-final time — ${homeName} take on ${awayName}. One match, winner goes through.`);
+      if (hmFmName && amFmName) {
+        sentences.push(`${hmFmName} against ${amFmName} — two managers who know what's at stake.`);
+      } else if (hmFmName) {
+        sentences.push(`${mgrTeamRef(hmFmName, homeName, hmFm.style)} welcome the challenge of a knockout tie.`);
+      } else if (amFmName) {
+        sentences.push(`${amFmName} brings his side here desperate to reach the last four.`);
+      }
+    }
+
     const semiIdx = (series.semis || []).findIndex(sm =>
       sm.p.includes(homeIdx) && sm.p.includes(awayIdx)
     );
