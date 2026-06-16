@@ -102,7 +102,7 @@ export default function LobbyScreen({ onContinue }) {
           <div className="setup-row">
             <span className="setup-row-label">DIFFICULTY</span>
             <select
-              className="setup-row-select"
+              className="setup-row-select setup-row-select-wide"
               value={difficulty}
               onChange={e => setDifficulty(e.target.value)}
             >
