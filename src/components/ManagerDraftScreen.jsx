@@ -304,6 +304,44 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
     if (cpuPick) handlePick(cpuPick);
   }
 
+  function skipAllCpu() {
+    clearTimers();
+    let newAssignments = { ...assignments };
+    let remaining = [...pool];
+    let nextHumanIdx = null;
+
+    for (let i = turnIdx; i < pickOrder.length; i++) {
+      const mgr = draft.managers[pickOrder[i]];
+      if (mgr.isComputer) {
+        const sorted = [...remaining].sort((a, b) => {
+          const order = { elite: 0, established: 1, journeyman: 2 };
+          return order[a.tier] - order[b.tier];
+        });
+        const pick = sorted[0];
+        if (!pick) break;
+        newAssignments[pickOrder[i]] = pick;
+        remaining = remaining.filter(m => m.id !== pick.id);
+      } else {
+        nextHumanIdx = i;
+        break;
+      }
+    }
+
+    setAssignments(newAssignments);
+    setPool(shuffle(remaining));
+    setSpinning(false);
+    setOffered(null);
+    setRevealed(0);
+    setCpuPick(null);
+
+    if (nextHumanIdx !== null) {
+      setTurnIdx(nextHumanIdx);
+      setWaitingForGo(true);
+    } else {
+      onAssignManager(newAssignments);
+    }
+  }
+
   if (allDone) return null;
   if (phase === "league-select") return <PoolSelector onConfirm={startWithLeague} />;
 
@@ -355,6 +393,11 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
               SKIP ⏩
             </button>
           )}
+          {spinning && !isHuman && (
+            <button className="mgr-skip-cpu-btn" onClick={skipAllCpu}>
+              ⏭ SKIP CPU
+            </button>
+          )}
 
           {!spinning && offered && (
             <>
@@ -379,13 +422,18 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
                 ))}
               </div>
               {!isHuman && (
-                <button
-                  className={`mgr-next-btn ${cpuReady ? "ready" : "waiting"}`}
-                  onClick={confirmCpuPick}
-                  disabled={!cpuReady}
-                >
-                  {cpuReady ? "CONFIRM & NEXT →" : "DELIBERATING..."}
-                </button>
+                <div className="mgr-cpu-actions">
+                  <button
+                    className={`mgr-next-btn ${cpuReady ? "ready" : "waiting"}`}
+                    onClick={confirmCpuPick}
+                    disabled={!cpuReady}
+                  >
+                    {cpuReady ? "CONFIRM & NEXT →" : "DELIBERATING..."}
+                  </button>
+                  <button className="mgr-skip-cpu-btn" onClick={skipAllCpu}>
+                    ⏭ SKIP CPU
+                  </button>
+                </div>
               )}
             </>
           )}

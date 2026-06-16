@@ -9,13 +9,13 @@ const DIFFICULTY_INFO = [
 ];
 
 const FORMAT_OPTIONS_2 = [
-  { key: "bo3", label: "BEST OF 3", hint: "First to 2 wins" },
-  { key: "bo5", label: "BEST OF 5", hint: "First to 3 wins" },
-  { key: "bo7", label: "BEST OF 7", hint: "First to 4 wins — NBA Finals style" },
+  { key: "bo3", label: "BEST OF 3", short: "BO3", hint: "First to 2 wins" },
+  { key: "bo5", label: "BEST OF 5", short: "BO5", hint: "First to 3 wins" },
+  { key: "bo7", label: "BEST OF 7", short: "BO7", hint: "First to 4 wins — NBA Finals style" },
 ];
 
 const FORMAT_OPTIONS_4 = [
-  { key: "tournament", label: "TOURNAMENT", hint: "2-legged semi-finals (aggregate), then a 1-leg Grand Final" },
+  { key: "tournament", label: "TOURNAMENT", short: "CUP", hint: "2-legged semi-finals (aggregate), then a 1-leg Grand Final" },
 ];
 
 export default function LobbyScreen({ onContinue }) {
@@ -65,45 +65,44 @@ export default function LobbyScreen({ onContinue }) {
         <div className="game-options">
           <div className="options-title">GAME SETUP</div>
 
-          <div className="difficulty-section">
-            <span className="field-label-sm">NUMBER OF CLUBS</span>
-            <div className="difficulty-row">
-              {[2, 4].map(n => (
-                <button
-                  key={n}
-                  className={`difficulty-btn ${numClubs === n ? "active" : ""}`}
-                  onClick={() => handleNumClubs(n)}
-                >
-                  {n} CLUBS
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="difficulty-section">
-            <span className="field-label-sm">HUMAN PLAYERS</span>
-            <div className="difficulty-row">
-              {Array.from({ length: numClubs }, (_, i) => i + 1).map(n => (
-                <button
-                  key={n}
-                  className={`difficulty-btn ${numHumans === n ? "active" : ""}`}
-                  onClick={() => setNumHumans(n)}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-            <div className="difficulty-hint">
-              {numHumans === numClubs
-                ? "All clubs are human-controlled"
-                : `${numClubs - numHumans} CPU club${numClubs - numHumans > 1 ? "s" : ""} will be auto-generated`}
-            </div>
-          </div>
-
-          <div className="difficulty-section">
-            <span className="field-label-sm">TRANSFER MARKET DIFFICULTY</span>
+          <div className="setup-row">
+            <span className="setup-row-label">CLUBS</span>
             <select
-              className="difficulty-select"
+              className="setup-row-select"
+              value={numClubs}
+              onChange={e => handleNumClubs(Number(e.target.value))}
+            >
+              {[2, 4].map(n => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </div>
+          <div className="difficulty-hint setup-row-hint">
+            {numClubs === 2 ? "Head-to-head — two clubs, one draft, one winner" : "Four-way draft — more chaos, more competition"}
+          </div>
+
+          <div className="setup-row">
+            <span className="setup-row-label">PLAYERS</span>
+            <select
+              className="setup-row-select"
+              value={numHumans}
+              onChange={e => setNumHumans(Number(e.target.value))}
+            >
+              {Array.from({ length: numClubs }, (_, i) => i + 1).map(n => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </div>
+          <div className="difficulty-hint setup-row-hint">
+            {numHumans === numClubs
+              ? "All clubs are human-controlled"
+              : `${numClubs - numHumans} CPU club${numClubs - numHumans > 1 ? "s" : ""} will be auto-generated`}
+          </div>
+
+          <div className="setup-row">
+            <span className="setup-row-label">DIFFICULTY</span>
+            <select
+              className="setup-row-select"
               value={difficulty}
               onChange={e => setDifficulty(e.target.value)}
             >
@@ -111,51 +110,55 @@ export default function LobbyScreen({ onContinue }) {
                 <option key={d.key} value={d.key}>{d.label}</option>
               ))}
             </select>
-            <div className="difficulty-hint">
-              {DIFFICULTY_INFO.find(d => d.key === difficulty)?.hint}
-            </div>
+          </div>
+          <div className="difficulty-hint setup-row-hint">
+            {DIFFICULTY_INFO.find(d => d.key === difficulty)?.hint}
           </div>
 
-          <div className="difficulty-section">
-            <span className="field-label-sm">DRAFT ORDER MODE</span>
-            <div className="difficulty-row">
+          <div className="setup-row">
+            <span className="setup-row-label">DRAFT ORDER</span>
+            <div className="setup-row-btns">
               <button
-                className={`difficulty-btn ${positionMode === "fixed" ? "active" : ""}`}
+                className={`setup-row-btn ${positionMode === "fixed" ? "active" : ""}`}
                 onClick={() => setPositionMode("fixed")}
               >
                 FIXED
               </button>
               <button
-                className={`difficulty-btn ${positionMode === "random" ? "active" : ""}`}
+                className={`setup-row-btn ${positionMode === "random" ? "active" : ""}`}
                 onClick={() => setPositionMode("random")}
               >
                 RANDOM
               </button>
             </div>
-            <div className="difficulty-hint">
-              {positionMode === "fixed"
-                ? "Classic order — GK first, subs last. Predictable and competitive"
-                : "Spin to reveal your position each round — chaos, carnage, and competition"}
-            </div>
+          </div>
+          <div className="difficulty-hint setup-row-hint">
+            {positionMode === "fixed"
+              ? "Classic order — GK first, subs last. Predictable and competitive"
+              : "Spin to reveal your position each round — chaos, carnage, and competition"}
           </div>
 
-          <div className="difficulty-section">
-            <span className="field-label-sm">COMPETITION FORMAT</span>
-            <div className="difficulty-row">
-              {formatOptions.map(f => (
-                <button
-                  key={f.key}
-                  className={`difficulty-btn ${activeFormat === f.key ? "active" : ""}`}
-                  onClick={() => setFormat(f.key)}
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-            <div className="difficulty-hint">
-              {formatOptions.find(f => f.key === activeFormat)?.hint}
-            </div>
-          </div>
+          {numClubs === 2 && (
+            <>
+              <div className="setup-row">
+                <span className="setup-row-label">BEST OF</span>
+                <div className="setup-row-btns">
+                  {formatOptions.map(f => (
+                    <button
+                      key={f.key}
+                      className={`setup-row-btn ${activeFormat === f.key ? "active" : ""}`}
+                      onClick={() => setFormat(f.key)}
+                    >
+                      {f.key === "bo3" ? "3" : f.key === "bo5" ? "5" : "7"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="difficulty-hint setup-row-hint">
+                {formatOptions.find(f => f.key === activeFormat)?.hint}
+              </div>
+            </>
+          )}
 
           <button
             className="advanced-toggle"

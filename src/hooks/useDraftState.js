@@ -18,7 +18,7 @@ function formationPos(formation, slotIndex) {
 }
 
 const STORAGE_KEY = "transfer-game-state";
-const STORAGE_VERSION = 5; // bump when serialization format changes
+const STORAGE_VERSION = 6; // bump when serialization format changes
 
 function serializeDraft(draft) {
   if (!draft) return draft;
@@ -298,6 +298,7 @@ function buildInitialDraft(clubs, options = {}) {
     phase: "draft",
     hideRatings: options.hideRatings || false,
     difficulty: options.difficulty || "normal",
+    dynamicForm: options.dynamicForm !== false,
     series: buildSeries(n, options.format),
     managerTiming: options.managerTiming || "before",
     positionMode: options.positionMode || "fixed",
@@ -471,6 +472,11 @@ export function useDraftState() {
           }
         }
         next = { ...next, playerAbsences: absences };
+      }
+
+      // Regenerate form between games if dynamic form is enabled
+      if (next.dynamicForm && next.availablePlayerIds) {
+        next = { ...next, playerForm: generatePlayerForm(next.availablePlayerIds) };
       }
 
       return next;

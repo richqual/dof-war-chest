@@ -456,7 +456,13 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
                     );
                   })()}
                   {showValues && <span className="xi-value">{formatValue(p.value)}</span>}
-                  <span className="xi-rating" style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}>{p.rating}</span>
+                  {(() => {
+                    const formBonus = draft?.playerForm?.get(p.id) ?? 0;
+                    const effRating = formBonus !== 0 ? Math.max(0, p.rating + formBonus) : p.rating;
+                    const bg = formBonus > 0 ? "#16a34a" : formBonus < 0 ? "#dc2626" : getRatingBg(p.rating);
+                    const fg = formBonus !== 0 ? "#fff" : getRatingColor(p.rating);
+                    return <span className="xi-rating" style={{ background: bg, color: fg }}>{effRating}</span>;
+                  })()}
                 </div>
               ) : null)}
             </div>
@@ -487,7 +493,13 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
                           </span>
                         );
                       })()}
-                      <span className="bench-rating" style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}>{p.rating}</span>
+                      {(() => {
+                        const formBonus = draft?.playerForm?.get(p.id) ?? 0;
+                        const effRating = formBonus !== 0 ? Math.max(0, p.rating + formBonus) : p.rating;
+                        const bg = formBonus > 0 ? "#16a34a" : formBonus < 0 ? "#dc2626" : getRatingBg(p.rating);
+                        const fg = formBonus !== 0 ? "#fff" : getRatingColor(p.rating);
+                        return <span className="bench-rating" style={{ background: bg, color: fg }}>{effRating}</span>;
+                      })()}
                       {showValues && <span className="bench-value">{formatValue(p.value)}</span>}
                     </>
                   ) : (

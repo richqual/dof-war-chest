@@ -2008,11 +2008,14 @@ input, select { font-family: var(--font); }
 }
 
 .options-title {
-  font-size: 11px;
-  letter-spacing: 2px;
+  font-size: 14px;
+  letter-spacing: 3px;
   color: var(--amber);
-  margin-bottom: 10px;
+  margin-bottom: 14px;
   font-family: var(--font-head);
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 10px;
 }
 
 .option-row {
@@ -2080,6 +2083,56 @@ input, select { font-family: var(--font); }
   font-style: italic;
   margin-top: 6px;
 }
+
+.setup-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.setup-row-label {
+  flex: 1;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--amber-d);
+  font-family: var(--font-head);
+}
+.setup-row-btns { display: flex; gap: 4px; }
+.setup-row-select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--amber);
+  padding: 4px 24px 4px 8px;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  border-radius: 2px;
+  font-family: var(--font-head);
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5' viewBox='0 0 8 5'%3E%3Cpath fill='%23f59e0b' d='M0 0l4 5 4-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 7px center;
+}
+.setup-row-select:focus { outline: none; border-color: var(--amber); }
+.setup-row-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  padding: 4px 12px;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  border-radius: 2px;
+  font-family: var(--font-head);
+  min-width: 36px;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.setup-row-btn:hover { border-color: var(--amber-d); color: var(--text); }
+.setup-row-btn.active { background: var(--amber); border-color: var(--amber); color: #111; }
+.setup-row-hint { margin-bottom: 12px; }
 
 .option-label { font-size: 14px; color: var(--text); flex: 1; }
 
@@ -3332,6 +3385,27 @@ input, select { font-family: var(--font); }
   cursor: not-allowed;
   animation: mgr-spin-pulse 1s infinite;
 }
+
+.mgr-cpu-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0.25rem;
+}
+.mgr-cpu-actions .mgr-next-btn { margin-top: 0; }
+.mgr-skip-cpu-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text3);
+  font-family: var(--font-head);
+  font-size: 8px;
+  letter-spacing: 1px;
+  padding: 6px 16px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.mgr-skip-cpu-btn:hover { color: var(--text2); border-color: var(--text2); }
 
 /* CPU-chosen card highlight */
 .mgr-card-highlighted {
