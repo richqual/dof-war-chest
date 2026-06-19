@@ -122,6 +122,7 @@ function MultiplayerApp({ onBack }) {
     gameDoc,
     mySlotIdx,
     writeGameState,
+    setPhase,
     isHost,
   });
 

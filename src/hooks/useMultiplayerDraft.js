@@ -15,7 +15,7 @@ export { getFormArrow };
 // mySlotIdx — which manager slot this device controls
 // writeGameState(serializedDraft, screen) — writes to Firestore
 // isHost    — whether this device can run setup screens and CPU turns
-export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, isHost }) {
+export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPhase, isHost }) {
   const draft = gameDoc?.draft ? deserializeDraft(gameDoc.draft) : null;
   const screen = gameDoc?.screen ?? "setup";
 
@@ -33,6 +33,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, isHost
     if (!isHost) return;
     const d = buildInitialDraft(clubs, options);
     await setDraftAndScreen(d, "order-draw");
+    await setPhase("playing");
   }
 
   async function setPlayerPool(filter) {
