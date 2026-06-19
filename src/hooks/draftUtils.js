@@ -40,6 +40,25 @@ export function formationPos(formation, slotIndex) {
   return formationEntry(formation, slotIndex).pos;
 }
 
+// Firestore doesn't support nested arrays, so Maps are serialized as plain objects
+// with string keys. Sets are serialized as flat arrays (fine for Firestore).
+function mapToObj(map) {
+  if (!(map instanceof Map)) return map;
+  const obj = {};
+  for (const [k, v] of map) obj[String(k)] = v;
+  return obj;
+}
+
+function objToMap(val) {
+  if (val instanceof Map) return val;
+  // Array format: legacy localStorage saves use [[k,v], ...] — keep working
+  if (Array.isArray(val)) return new Map(val.map(([k, v]) => [Number(k), v]));
+  if (val && typeof val === "object") {
+    return new Map(Object.entries(val).map(([k, v]) => [Number(k), v]));
+  }
+  return new Map();
+}
+
 export function serializeDraft(draft) {
   if (!draft) return draft;
   return {
@@ -47,15 +66,9 @@ export function serializeDraft(draft) {
     availablePlayerIds: draft.availablePlayerIds instanceof Set
       ? [...draft.availablePlayerIds]
       : draft.availablePlayerIds,
-    playerValues: draft.playerValues instanceof Map
-      ? [...draft.playerValues]
-      : draft.playerValues,
-    playerForm: draft.playerForm instanceof Map
-      ? [...draft.playerForm]
-      : draft.playerForm,
-    playerOrder: draft.playerOrder instanceof Map
-      ? [...draft.playerOrder]
-      : draft.playerOrder,
+    playerValues: mapToObj(draft.playerValues),
+    playerForm:   mapToObj(draft.playerForm),
+    playerOrder:  mapToObj(draft.playerOrder),
   };
 }
 
@@ -68,21 +81,9 @@ export function deserializeDraft(draft) {
       : draft.availablePlayerIds instanceof Set
         ? draft.availablePlayerIds
         : new Set(),
-    playerValues: Array.isArray(draft.playerValues)
-      ? new Map(draft.playerValues)
-      : draft.playerValues instanceof Map
-        ? draft.playerValues
-        : new Map(),
-    playerForm: Array.isArray(draft.playerForm)
-      ? new Map(draft.playerForm)
-      : draft.playerForm instanceof Map
-        ? draft.playerForm
-        : new Map(),
-    playerOrder: Array.isArray(draft.playerOrder)
-      ? new Map(draft.playerOrder)
-      : draft.playerOrder instanceof Map
-        ? draft.playerOrder
-        : new Map(),
+    playerValues: objToMap(draft.playerValues),
+    playerForm:   objToMap(draft.playerForm),
+    playerOrder:  objToMap(draft.playerOrder),
   };
 }
 
