@@ -571,7 +571,7 @@ function AppInner({ onMultiplayer }) {
   return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
 }
 
-const APP_VERSION = "2.0.7";
+const APP_VERSION = "2.0.8";
 
 function AppFooter() {
   return (

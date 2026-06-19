@@ -97,10 +97,21 @@ function pickWeightedPlayer(players, scoreFn) {
   return scored[scored.length - 1].p;
 }
 
+// Positional goal-scoring likelihood — forwards score most, defenders rarely
+const POS_GOAL_WEIGHT = {
+  ST: 3.2, LW: 2.4, RW: 2.4, CAM: 1.8, RM: 1.5, LM: 1.5,
+  CM: 0.7, DM: 0.3, RB: 0.2, LB: 0.2, CB: 0.15,
+};
+const POS_AERIAL_WEIGHT = {
+  ST: 3.0, CB: 1.8, LW: 1.0, RW: 1.0, CAM: 0.9, CM: 0.8,
+  DM: 0.7, RB: 0.6, LB: 0.6, LM: 0.5, RM: 0.5,
+};
+
 function pickAttacker(players) {
   return pickWeightedPlayer(players, p => {
     const a = deriveAttributes(p);
-    return a.att * 0.6 + a.pac * 0.2 + a.tec * 0.2;
+    const posW = POS_GOAL_WEIGHT[p.pos] ?? 1.0;
+    return (a.att * 0.6 + a.pac * 0.2 + a.tec * 0.2) * posW;
   });
 }
 
@@ -116,7 +127,8 @@ function pickAssister(players, excludeName) {
 function pickAerialScorer(players) {
   return pickWeightedPlayer(players, p => {
     const a = deriveAttributes(p);
-    return a.aer * 0.70 + a.att * 0.30;
+    const posW = POS_AERIAL_WEIGHT[p.pos] ?? 1.0;
+    return (a.aer * 0.70 + a.att * 0.30) * posW;
   });
 }
 

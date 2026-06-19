@@ -925,9 +925,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
             : <TournamentBracket series={series} managers={managers} />
           }
 
-          {(series.format === "tournament" || series.format === "tournament8") && (
-            <TournamentStats tournamentStats={draft.tournamentStats} managers={managers} />
-          )}
+          <TournamentStats tournamentStats={draft.tournamentStats} managers={managers} />
 
           {nextMatchup && (
             <div className="series-actions">
