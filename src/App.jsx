@@ -116,7 +116,7 @@ function GlobalMenu({ light, onToggle, hasGame, onAbandon, extraOptions }) {
 
 function MultiplayerApp({ onBack }) {
   const session = useMultiplayerSession();
-  const { gameDoc, mySlotIdx, isHost, error, loading, createGame, joinGame, updateMySlot, writeGameState, submitManagerPick, setManagerDraftConfig, setMatchData, clearMatchData, setPhase, leaveGame, clearError } = session;
+  const { gameDoc, mySlotIdx, isHost, error, loading, createGame, joinGame, updateMySlot, writeGameState, submitManagerPick, setManagerDraftConfig, setMatchConfig: setMatchConfigRemote, setMatchData, clearMatchData, setPhase, leaveGame, clearError } = session;
 
   const mpDraft = useMultiplayerDraft({
     gameDoc,
@@ -127,7 +127,8 @@ function MultiplayerApp({ onBack }) {
   });
 
   const [lightMode, setLightMode] = useState(() => localStorage.getItem("tg-theme") === "light");
-  const [matchConfig, setMatchConfig] = useState({ homeIdx: 0, awayIdx: 1 });
+  // matchConfig is synced to Firestore so all devices see the same home/away indices
+  const matchConfig = gameDoc?.matchConfig ?? { homeIdx: 0, awayIdx: 1 };
 
   useEffect(() => {
     document.documentElement.classList.toggle("light-mode", lightMode);
@@ -137,8 +138,10 @@ function MultiplayerApp({ onBack }) {
   const { screen, draft, activeManager, activeManagerIdx, currentPos, isMyTurn, ...actions } = mpDraft;
 
   function handleSetScreen(s, extra) {
-    if (s === "match" && extra) setMatchConfig(extra);
-    else if (s === "match") setMatchConfig({ homeIdx: 0, awayIdx: 1 });
+    if (s === "match") {
+      const cfg = extra ?? { homeIdx: 0, awayIdx: 1 };
+      setMatchConfigRemote(cfg.homeIdx, cfg.awayIdx);
+    }
     mpDraft.setScreen(s);
   }
 
@@ -568,7 +571,7 @@ function AppInner({ onMultiplayer }) {
   return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
 }
 
-const APP_VERSION = "2.0.6";
+const APP_VERSION = "2.0.7";
 
 function AppFooter() {
   return (

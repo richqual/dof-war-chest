@@ -170,6 +170,11 @@ export function useMultiplayerSession() {
     await updateDoc(doc(db, "games", gameId), { managerDraftConfig: { leagues, tiers } });
   }
 
+  async function setMatchConfig(homeIdx, awayIdx) {
+    if (!gameId) return;
+    await updateDoc(doc(db, "games", gameId), { matchConfig: { homeIdx, awayIdx } });
+  }
+
   async function setMatchData(data) {
     if (!gameId) return;
     await updateDoc(doc(db, "games", gameId), { matchData: data });
@@ -210,6 +215,7 @@ export function useMultiplayerSession() {
     submitManagerPick,
     clearManagerPicks,
     setManagerDraftConfig,
+    setMatchConfig,
     setMatchData,
     clearMatchData,
     setPhase,

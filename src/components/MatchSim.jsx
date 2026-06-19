@@ -890,9 +890,11 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       const teamName = isHome ? homeName : awayName;
       const side = isHome ? "home" : "away";
       const pitchPlayers = onPitch(team, isHome ? hSentOff : aSentOff);
+      const pitchOutfield = pitchPlayers.filter(p => p.pos !== "GK");
       // ~15% of goals are aerial (headed) — scored by players with high aer attribute
       const isAerial = Math.random() < 0.15;
-      const attacker = isAerial ? pickAerialScorer(pitchPlayers) : pickAttacker(pitchPlayers);
+      const scorerPool = pitchOutfield.length > 0 ? pitchOutfield : pitchPlayers;
+      const attacker = isAerial ? pickAerialScorer(scorerPool) : pickAttacker(scorerPool);
       const name = attacker ? attacker.name : "The striker";
 
       // Being a man (or more) down makes scoring harder
@@ -989,7 +991,8 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
         const teamName = isHome ? homeName : awayName;
         const side = isHome ? "home" : "away";
         const etPitch = onPitch(team, isHome ? hSentOff : aSentOff);
-        const etAttacker = pickAttacker(etPitch);
+        const etOutfield = etPitch.filter(p => p.pos !== "GK");
+        const etAttacker = pickAttacker(etOutfield.length > 0 ? etOutfield : etPitch);
         const name = etAttacker ? etAttacker.name : "The striker";
         if (Math.random() < 0.45) {
           const ctx = isHome ? goalContext(finalHome, finalAway) : goalContext(finalAway, finalHome);
