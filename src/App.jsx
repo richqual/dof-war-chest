@@ -116,7 +116,7 @@ function GlobalMenu({ light, onToggle, hasGame, onAbandon, extraOptions }) {
 
 function MultiplayerApp({ onBack }) {
   const session = useMultiplayerSession();
-  const { gameDoc, mySlotIdx, isHost, error, loading, createGame, joinGame, updateMySlot, writeGameState, leaveGame, clearError } = session;
+  const { gameDoc, mySlotIdx, isHost, error, loading, createGame, joinGame, updateMySlot, writeGameState, setPhase, leaveGame, clearError } = session;
 
   const mpDraft = useMultiplayerDraft({
     gameDoc,
