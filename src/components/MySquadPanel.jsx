@@ -40,8 +40,12 @@ export default function MySquadPanel({ manager, onClose, hideRatings = false }) 
                     const arc = ARCHETYPE_COLOR[player.archetype] || { bg: "#222", fg: "#aaa" };
                     const preferred = fm?.preferredArchetypes?.includes(player.archetype);
                     return (
-                      <span className="msp-archetype" style={{ background: arc.bg, color: arc.fg, border: `1px solid ${preferred ? arc.fg : arc.fg + "44"}`, opacity: preferred ? 1 : 0.55 }}>
-                        {player.archetype}
+                      <span
+                        className="msp-archetype"
+                        title={player.archetype}
+                        style={{ background: arc.bg, color: arc.fg, border: `1px solid ${preferred ? arc.fg : arc.fg + "44"}`, opacity: preferred ? 1 : 0.55 }}
+                      >
+                        {player.archetype[0]}
                       </span>
                     );
                   })()}
