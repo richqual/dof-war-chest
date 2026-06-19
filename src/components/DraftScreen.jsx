@@ -16,6 +16,7 @@ export default function DraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
   confirmBudget, confirmSlot, pickPlayer, getAvailablePlayers, getTakenPlayers,
   skipTurn, respin, autoCompleteDraft, skipCpuTurns,
+  myTurn = true, // false in multiplayer when it's someone else's go
 }) {
   const GK_ARCHETYPES = ["Sweeper Keeper", "Shot Stopper", "Organiser"];
   const OUTFIELD_ARCHETYPES = ["Warrior", "Technician", "Maverick", "Grinder", "Leader", "Athlete"];
@@ -451,7 +452,20 @@ export default function DraftScreen({
 
       {/* Main area */}
       <div className="draft-main">
-        {isCpuTurn ? (
+        {!myTurn && !isCpuTurn ? (
+          <div className="cpu-turn-area">
+            <div className="cpu-turn-badge" style={{ background: "rgba(255,255,255,0.08)", color: "var(--text2)" }}>THEIR TURN</div>
+            <div className="cpu-turn-name">{activeManager?.clubName || activeManager?.name}</div>
+            <div className="cpu-turn-status">
+              {needsSlotDraw
+                ? "Drawing their position..."
+                : currentBudget === null
+                  ? "Spinning their transfer budget..."
+                  : `Budget £${currentBudget}m — picking their ${currentPos.label}...`}
+            </div>
+            <div className="cpu-turn-dots"><span>●</span><span>●</span><span>●</span></div>
+          </div>
+        ) : isCpuTurn ? (
           <div className="cpu-turn-area">
             <div className="cpu-turn-badge">CPU TURN</div>
             <div className="cpu-turn-name">{activeManager?.clubName || activeManager?.name}</div>

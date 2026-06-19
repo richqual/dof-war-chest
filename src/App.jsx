@@ -184,10 +184,8 @@ function MultiplayerApp({ onBack }) {
     );
   }
 
-  // Game in progress — non-host on a setup-only screen sees a waiting message
-  const setupScreens = ["order-draw", "player-pool", "manager-draft"];
-  if (!isHost && setupScreens.includes(screen)) {
-    const activeClub = draft?.managers?.[draft?.currentOrder?.[draft?.turnIndex]]?.clubName ?? "";
+  // Only the player pool config screen is host-only
+  if (!isHost && screen === "player-pool") {
     return (
       <>
         {globalMenu}
@@ -209,8 +207,6 @@ function MultiplayerApp({ onBack }) {
       ? [{ label: "⏩ AUTO-PICK REST & SKIP TO END-GAME", action: actions.autoCompleteDraft, warn: "CPU picks every remaining player instantly." }]
       : [];
 
-    const isActiveTurn = isMyTurn;
-
     return (
       <>
         <GlobalMenu
@@ -220,26 +216,21 @@ function MultiplayerApp({ onBack }) {
           onAbandon={actions.restartGame}
           extraOptions={draftMenuOptions}
         />
-        {!isActiveTurn && (
-          <div className="mp-turn-banner">
-            Waiting for <strong>{activeManager?.clubName}</strong> to pick...
-          </div>
-        )}
         <DraftScreen
           draft={draft}
           activeManager={activeManager}
           activeManagerIdx={activeManagerIdx}
           currentPos={currentPos}
-          confirmBudget={isActiveTurn ? actions.confirmBudget : () => {}}
-          confirmSlot={isActiveTurn ? actions.confirmSlot : () => {}}
-          pickPlayer={isActiveTurn ? actions.pickPlayer : () => {}}
+          confirmBudget={isMyTurn ? actions.confirmBudget : () => {}}
+          confirmSlot={isMyTurn ? actions.confirmSlot : () => {}}
+          pickPlayer={isMyTurn ? actions.pickPlayer : () => {}}
           getAvailablePlayers={actions.getAvailablePlayers}
           getTakenPlayers={actions.getTakenPlayers}
-          skipTurn={isActiveTurn ? actions.skipTurn : () => {}}
-          respin={isActiveTurn ? actions.respin : () => {}}
+          skipTurn={isMyTurn ? actions.skipTurn : () => {}}
+          respin={isMyTurn ? actions.respin : () => {}}
           autoCompleteDraft={isHost ? actions.autoCompleteDraft : null}
           skipCpuTurns={isHost ? actions.skipCpuTurns : () => {}}
-          locked={!isActiveTurn}
+          myTurn={isMyTurn}
         />
       </>
     );
@@ -260,7 +251,7 @@ function MultiplayerApp({ onBack }) {
   }
 
   if (screen === "order-draw" && draft) {
-    return <>{globalMenu}<OrderDrawScreen draft={draft} onStart={() => mpDraft.setScreen("player-pool")} /></>;
+    return <>{globalMenu}<OrderDrawScreen draft={draft} onStart={isHost ? () => mpDraft.setScreen("player-pool") : () => {}} /></>;
   }
 
   if (screen === "player-pool" && draft) {
@@ -279,7 +270,7 @@ function MultiplayerApp({ onBack }) {
     return (
       <>
         {globalMenu}
-        <ManagerDraftScreen draft={draft} onAssignManager={actions.assignManagers} />
+        <ManagerDraftScreen draft={draft} onAssignManager={isHost ? actions.assignManagers : () => {}} />
       </>
     );
   }
