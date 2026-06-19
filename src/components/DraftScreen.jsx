@@ -27,7 +27,7 @@ export default function DraftScreen({
   const relevantArchetypes = isGkPos ? GK_ARCHETYPES : OUTFIELD_ARCHETYPES;
 
   const [filterEra, setFilterEra] = useState(new Set(["classic", "golden", "modern"]));
-  const [filterLeague, setFilterLeague] = useState(new Set(["premier_league", "la_liga", "serie_a", "bundesliga", "ligue_1"]));
+  const [filterLeague, setFilterLeague] = useState(new Set(["premier_league", "la_liga", "serie_a", "bundesliga", "ligue_1", "legends"]));
   const [filterTiers, setFilterTiers] = useState(new Set(["T1", "T2", "T3", "T4", "T5"]));
   const [filterArchetypes, setFilterArchetypes] = useState(new Set(relevantArchetypes));
   const [filterPos, setFilterPos] = useState(() => new Set([currentPos.key]));
@@ -45,7 +45,7 @@ export default function DraftScreen({
   const [sortBy, setSortBy] = useState("tier");
   const [sortDir, setSortDir] = useState("asc");
   const [transition, setTransition] = useState(null);
-  const [showMySquad, setShowMySquad] = useState(false);
+  const [viewingSquadIdx, setViewingSquadIdx] = useState(null);
   const [showOrder, setShowOrder] = useState(false);
   const [pendingPlayer, setPendingPlayer] = useState(null);
   const [showPosDropdown, setShowPosDropdown] = useState(false);
@@ -107,7 +107,7 @@ export default function DraftScreen({
   if (showPosChips && filterPos.size < OUTFIELD_POS.length) {
     available = available.filter(p => filterPos.has(p.pos) || (p.pos2 && filterPos.has(p.pos2)));
   }
-  if (filterEra.size > 0) available = available.filter(p => filterEra.has(p.era));
+  if (filterEra.size > 0) available = available.filter(p => p.league === "legends" || filterEra.has(p.era));
   if (filterLeague.size > 0) available = available.filter(p => filterLeague.has(p.league));
 
   // When all leagues selected, consolidate duplicate players by name to their peak version
@@ -274,8 +274,12 @@ export default function DraftScreen({
         </div>
       )}
 
-      {showMySquad && (
-        <MySquadPanel manager={activeManager} onClose={() => setShowMySquad(false)} />
+      {viewingSquadIdx !== null && managers[viewingSquadIdx] && (
+        <MySquadPanel
+          manager={managers[viewingSquadIdx]}
+          onClose={() => setViewingSquadIdx(null)}
+          hideRatings={draft.hideRatings}
+        />
       )}
 
       {showArchetypeLegend && (
@@ -326,13 +330,13 @@ export default function DraftScreen({
       {/* Header */}
       <div className="draft-header">
         <div className="manager-tabs">
-          {/* Active club only */}
+          {/* Active club */}
           {activeManager && (
             <span
-              className="manager-tab active"
+              className={`manager-tab active${viewingSquadIdx === activeManagerIdx ? " squad-open" : ""}`}
               style={{ background: activeManager.primaryColor, color: readableTextOn(activeManager.primaryColor), borderColor: activeManager.secondaryColor }}
-              onClick={() => setShowMySquad(s => !s)}
-              title="View my squad"
+              onClick={() => setViewingSquadIdx(v => v === activeManagerIdx ? null : activeManagerIdx)}
+              title="View squad"
             >
               <span className="tab-kit-dot" style={{ background: activeManager.primaryColor, boxShadow: `inset 0 0 0 1px ${activeManager.secondaryColor}` }} />
               {activeManager.clubName || activeManager.name}
@@ -340,10 +344,15 @@ export default function DraftScreen({
               <span className="tab-squad-hint">▤</span>
             </span>
           )}
-          {/* Mini kit swatches for other clubs */}
+          {/* Clickable kit swatches for other clubs */}
           <div className="manager-tabs-others">
             {managers.map((m, i) => i === activeManagerIdx ? null : (
-              <span key={i} className="manager-tab-mini" title={`${m.clubName || m.name}${m.isComputer ? " (CPU)" : ""}`}>
+              <span
+                key={i}
+                className={`manager-tab-mini${viewingSquadIdx === i ? " squad-open" : ""}`}
+                title={`${m.clubName || m.name}${m.isComputer ? " (CPU)" : ""} — view squad`}
+                onClick={() => setViewingSquadIdx(v => v === i ? null : i)}
+              >
                 <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern || "plain"} uid={`tab-${i}`} size={16} />
               </span>
             ))}
@@ -538,7 +547,7 @@ export default function DraftScreen({
                   className={`filter-dropdown-btn${showLeagueDropdown ? " open" : filterLeague.size < 5 ? " partial" : ""}`}
                   onClick={() => { setShowLeagueDropdown(s => !s); setShowPosDropdown(false); setShowEraDropdown(false); setShowTierDropdown(false); setShowArchetypeDropdown(false); }}
                 >
-                  LEAGUES {filterLeague.size < 5 ? `(${filterLeague.size}/5)` : ""}
+                  LEAGUES {filterLeague.size < 6 ? `(${filterLeague.size}/6)` : ""}
                 </button>
                 {showLeagueDropdown && (
                   <div className="filter-dropdown-menu">
@@ -547,7 +556,8 @@ export default function DraftScreen({
                       { value: "la_liga", label: "La Liga" },
                       { value: "serie_a", label: "Serie A" },
                       { value: "bundesliga", label: "Bundesliga" },
-                      { value: "ligue_1", label: "Ligue 1" }
+                      { value: "ligue_1", label: "Ligue 1" },
+                      { value: "legends", label: "⚜️ Legends" }
                     ].map(league => (
                       <label key={league.value} className="filter-checkbox">
                         <input

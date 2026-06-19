@@ -310,7 +310,11 @@ input, select { font-family: var(--font); }
   align-items: center;
   opacity: 0.55;
   flex-shrink: 0;
+  cursor: pointer;
+  transition: opacity 0.1s, transform 0.08s;
 }
+.manager-tab-mini:hover { opacity: 0.9; transform: scale(1.15); }
+.manager-tab-mini.squad-open { opacity: 1; transform: scale(1.15); outline: 2px solid var(--amber); outline-offset: 2px; }
 
 .manager-tab {
   font-size: 7px;
@@ -333,6 +337,7 @@ input, select { font-family: var(--font); }
   cursor: pointer;
 }
 .manager-tab.active:hover { opacity: 0.88; }
+.manager-tab.active.squad-open { outline: 2px solid var(--amber); outline-offset: 2px; }
 .manager-tab.active .tab-kit-dot { display: none; }
 .tab-squad-hint {
   font-size: 9px;

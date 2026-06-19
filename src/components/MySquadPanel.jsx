@@ -2,7 +2,7 @@ import { POSITIONS, getRatingBg, getRatingColor, formatValue } from "../data/pla
 import { FORMATIONS } from "../data/formations";
 import { ARCHETYPE_COLOR } from "./PlayerCard";
 
-export default function MySquadPanel({ manager, onClose }) {
+export default function MySquadPanel({ manager, onClose, hideRatings = false }) {
   const { squad, name, teamName, formation, footballManager: fm } = manager;
   const filled = squad.filter(Boolean);
   const totalValue = filled.reduce((sum, p) => sum + (p.value || 0), 0);
@@ -45,12 +45,14 @@ export default function MySquadPanel({ manager, onClose }) {
                       </span>
                     );
                   })()}
-                  <span
-                    className="msp-rating"
-                    style={{ background: getRatingBg(player.rating), color: getRatingColor(player.rating) }}
-                  >
-                    {player.rating}
-                  </span>
+                  {!hideRatings && (
+                    <span
+                      className="msp-rating"
+                      style={{ background: getRatingBg(player.rating), color: getRatingColor(player.rating) }}
+                    >
+                      {player.rating}
+                    </span>
+                  )}
                 </>
               ) : (
                 <span className="msp-empty">—</span>
