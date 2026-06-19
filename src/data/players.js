@@ -1393,16 +1393,19 @@ export const RANDOM_MANAGER_NAMES = [
 export function chooseCpuPick(candidates, budget) {
   const affordable = candidates.filter(p => p.value <= budget);
   if (affordable.length === 0) return null;
-  const sorted = [...affordable].sort((a, b) => b.rating - a.rating || a.value - b.value);
+  // CPU acts on value (perceived market reputation), not actual ratings it can't see.
+  // Since values are randomised per game, this naturally creates squad variety.
+  const sorted = [...affordable].sort((a, b) => b.value - a.value || b.rating - a.rating);
   if (sorted.length === 1) return sorted[0];
   const r = Math.random();
-  if (r < 0.6) return sorted[0];
-  if (r < 0.9) {
-    const best = sorted[0];
-    const nearBest = sorted.filter(p => p.rating >= best.rating - 2);
-    return [...nearBest].sort((a, b) => a.value - b.value)[0];
+  if (r < 0.55) return sorted[0];  // 55%: buy the most expensive they can afford
+  if (r < 0.85) {
+    // 30%: pick randomly from players within 80% of the top value
+    const topVal = sorted[0].value;
+    const nearBest = sorted.filter(p => p.value >= topVal * 0.8);
+    return nearBest[Math.floor(Math.random() * nearBest.length)];
   }
-  return sorted[Math.min(1 + Math.floor(Math.random() * 2), sorted.length - 1)];
+  return sorted[Math.min(1 + Math.floor(Math.random() * 2), sorted.length - 1)];  // 15%: 2nd or 3rd
 }
 
 export const RANDOM_CLUB_NAMES = [

@@ -35,13 +35,20 @@ function shuffle(arr) {
   return a;
 }
 
-// CSS marquee carousel — scrolls through manager name pills
-// Shuffles the order whenever pool size changes (new turn) for variety
+function dedupByName(arr) {
+  const seen = new Set();
+  return arr.filter(m => {
+    if (seen.has(m.name)) return false;
+    seen.add(m.name);
+    return true;
+  });
+}
+
 function Carousel({ pool, spinning, allRevealed }) {
   const shuffledPills = useMemo(() => {
     const s = shuffle([...pool]);
-    return [...s, ...s]; // doubled for seamless loop
-  }, [pool.length]); // re-shuffle each new turn
+    return [...s, ...s];
+  }, [pool.length]);
 
   const trackClass = `mgr-slot-track${spinning ? " spinning" : allRevealed ? " paused" : ""}`;
   return (
@@ -113,8 +120,6 @@ function PicksLog({ assignments, draft }) {
       <div className="mgr-picks-log-title">PICKS SO FAR</div>
       {entries.map(([idx, mgr]) => {
         const club = draft.managers[idx];
-        const tierColor = TIER_COLORS[mgr.tier];
-        const tierBg = TIER_BG[mgr.tier];
         return (
           <div key={idx} className="mgr-picks-row">
             <span className="mgr-picks-club">{club.dofName || club.name}</span>
@@ -200,7 +205,19 @@ function PoolSelector({ onConfirm }) {
   );
 }
 
-export default function ManagerDraftScreen({ draft, onAssignManager }) {
+export default function ManagerDraftScreen({
+  draft,
+  onAssignManager,
+  // multiplayer props (omit for single-player)
+  mySlotIdx = null,
+  externalPicks = {},
+  onManagerPick = null,
+  isHost = true,
+  managerDraftConfig = null,
+  onSetManagerDraftConfig = null,
+}) {
+  const isMultiplayer = !!onManagerPick;
+
   const [phase, setPhase] = useState("league-select");
   const [pickOrder] = useState(() => shuffle(draft.managers.map((_, i) => i)));
   const [pool, setPool] = useState([]);
@@ -214,20 +231,45 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
   const timers = useRef([]);
   const pendingOffer = useRef(null);
 
+  // Refs for stale-closure-safe external pick handling
+  const poolRef = useRef(pool);
+  const assignmentsRef = useRef(assignments);
+  const turnIdxRef = useRef(turnIdx);
+  const handledExternalTurns = useRef(new Set());
+  useEffect(() => { poolRef.current = pool; }, [pool]);
+  useEffect(() => { assignmentsRef.current = assignments; }, [assignments]);
+  useEffect(() => { turnIdxRef.current = turnIdx; }, [turnIdx]);
+
   const currentManagerIdx = pickOrder[turnIdx];
   const currentManager = draft.managers[currentManagerIdx];
   const allDone = turnIdx >= pickOrder.length;
   const isHuman = !currentManager?.isComputer;
 
-  function startWithLeague(leagues, tiers) {
+  // In multiplayer: only spin/pick when it's your slot or you're host handling a CPU slot
+  const isMyTurn = !isMultiplayer
+    || (isHuman && currentManagerIdx === mySlotIdx)
+    || (!isHuman && isHost);
+
+  // Auto-start from Firestore config when host has chosen the pool
+  useEffect(() => {
+    if (!isMultiplayer || !managerDraftConfig) return;
+    if (phase !== "league-select") return;
+    const { leagues, tiers } = managerDraftConfig;
     setPool(shuffle([...getFilteredPool(leagues, tiers)]));
     setPhase("playing");
     setWaitingForGo(true);
-  }
+  }, [managerDraftConfig, phase, isMultiplayer]);
 
   function clearTimers() {
     timers.current.forEach(t => clearTimeout(t));
     timers.current = [];
+  }
+
+  function startWithLeague(leagues, tiers) {
+    if (onSetManagerDraftConfig) onSetManagerDraftConfig(leagues, tiers);
+    setPool(shuffle([...getFilteredPool(leagues, tiers)]));
+    setPhase("playing");
+    setWaitingForGo(true);
   }
 
   function spinAndReveal() {
@@ -238,11 +280,9 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
     setRevealed(0);
     setOffered(null);
 
-    // Pre-pick 3 from a fresh shuffle so carousel order ≠ card order
-    pendingOffer.current = shuffle([...pool]).slice(0, 3);
+    pendingOffer.current = dedupByName(shuffle([...pool])).slice(0, 3);
 
     const t0 = setTimeout(() => {
-      // Carousel stops — then cards reveal one by one
       setSpinning(false);
       setOffered(pendingOffer.current);
       const t1 = setTimeout(() => setRevealed(1), 1800);
@@ -255,34 +295,77 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
 
   function skipReveal() {
     clearTimers();
-    // Use same pre-picked managers; fall back to fresh pick if spin hadn't started
-    setOffered(pendingOffer.current || shuffle([...pool]).slice(0, 3));
+    setOffered(pendingOffer.current || dedupByName(shuffle([...pool])).slice(0, 3));
     setSpinning(false);
     setRevealed(3);
   }
 
   // CPU highlights its top pick after all cards are revealed
   useEffect(() => {
-    if (!offered || isHuman) return;
+    if (!offered || isHuman || !isMyTurn) return;
     const sorted = [...offered].sort((a, b) => {
       const order = { elite: 0, established: 1, journeyman: 2 };
       return order[a.tier] - order[b.tier];
     });
     const t = setTimeout(() => setCpuPick(sorted[0]), 9500);
     return () => clearTimeout(t);
-  }, [offered, currentManagerIdx]);
+  }, [offered, currentManagerIdx, isMyTurn]);
 
-  // Auto-spin for CPU turns when it's their go
+  // Auto-spin for CPU turns — only for the device that handles CPU (host in multiplayer)
   useEffect(() => {
     if (phase !== "playing") return;
     if (!waitingForGo) return;
     if (isHuman) return;
+    if (!isMyTurn) return;
     const t = setTimeout(() => spinAndReveal(), 800);
     return () => clearTimeout(t);
-  }, [phase, waitingForGo, turnIdx]);
+  }, [phase, waitingForGo, turnIdx, isMyTurn]);
+
+  // Watch for external picks from other devices (multiplayer only)
+  useEffect(() => {
+    if (!isMultiplayer) return;
+    const pick = externalPicks[String(currentManagerIdx)];
+    if (!pick) return;
+    if (handledExternalTurns.current.has(currentManagerIdx)) return;
+    if (assignmentsRef.current[currentManagerIdx]) return;
+
+    // A pick arrived from another device — mark handled and advance
+    handledExternalTurns.current.add(currentManagerIdx);
+    clearTimers();
+    setOffered([pick]);
+    setSpinning(false);
+    setRevealed(1);
+    setWaitingForGo(false);
+
+    const t = setTimeout(() => {
+      const newPool = poolRef.current.filter(m => m.id !== pick.id && m.name !== pick.name);
+      setPool(shuffle(newPool));
+      setCpuPick(null);
+      setRevealed(0);
+      setOffered(null);
+
+      const newAssignments = { ...assignmentsRef.current, [currentManagerIdx]: pick };
+      setAssignments(newAssignments);
+
+      const nextTurn = turnIdxRef.current + 1;
+      if (nextTurn >= pickOrder.length) {
+        if (isHost) onAssignManager(newAssignments);
+      } else {
+        setTurnIdx(nextTurn);
+        setWaitingForGo(true);
+      }
+    }, 1000);
+    timers.current = [t];
+  }, [externalPicks, currentManagerIdx]);
 
   function handlePick(manager) {
-    const newPool = pool.filter(m => m.id !== manager.id);
+    // Mark as handled locally so external pick effect doesn't double-advance
+    if (isMultiplayer) {
+      handledExternalTurns.current.add(currentManagerIdx);
+      onManagerPick(currentManagerIdx, manager);
+    }
+
+    const newPool = pool.filter(m => m.id !== manager.id && m.name !== manager.name);
     setPool(shuffle(newPool));
     setCpuPick(null);
     setRevealed(0);
@@ -320,7 +403,11 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
         const pick = sorted[0];
         if (!pick) break;
         newAssignments[pickOrder[i]] = pick;
-        remaining = remaining.filter(m => m.id !== pick.id);
+        if (isMultiplayer) {
+          handledExternalTurns.current.add(pickOrder[i]);
+          onManagerPick(pickOrder[i], pick);
+        }
+        remaining = remaining.filter(m => m.id !== pick.id && m.name !== pick.name);
       } else {
         nextHumanIdx = i;
         break;
@@ -343,10 +430,31 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
   }
 
   if (allDone) return null;
-  if (phase === "league-select") return <PoolSelector onConfirm={startWithLeague} />;
+
+  // Non-host in multiplayer waits for host to choose the pool
+  if (phase === "league-select") {
+    if (isMultiplayer && !isHost) {
+      return (
+        <div className="mgr-draft-screen">
+          <div className="mgr-draft-header">
+            <div className="mgr-draft-title">THE MERRY-GO-ROUND</div>
+            <div className="mgr-draft-sub">Manager Draft</div>
+          </div>
+          <div className="mp-waiting-screen">
+            <div className="mp-waiting-spinner" />
+            <p className="mp-waiting-text">Waiting for host to build the manager pool...</p>
+          </div>
+        </div>
+      );
+    }
+    return <PoolSelector onConfirm={startWithLeague} />;
+  }
 
   const playerName = currentManager.dofName || currentManager.name;
   const cpuReady = !isHuman && !!cpuPick && revealed >= 3;
+
+  // Non-active human turn in multiplayer: show waiting state
+  const theirTurn = isMultiplayer && isHuman && !isMyTurn;
 
   return (
     <div className="mgr-draft-screen">
@@ -357,15 +465,17 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
 
       <div className="mgr-turn-banner">
         <span className="mgr-turn-label">
-          {spinning
-            ? `Spinning the Merry-Go-Round...`
-            : waitingForGo && isHuman
-              ? `${playerName} — spin to see your options`
-              : isHuman && offered
-                ? `${playerName}, choose your manager`
-                : cpuReady
-                  ? `${playerName} has chosen — confirm to continue`
-                  : `${playerName} is deliberating...`}
+          {theirTurn
+            ? `${playerName} is choosing their manager...`
+            : spinning
+              ? `Spinning the Merry-Go-Round...`
+              : waitingForGo && isHuman
+                ? `${playerName} — spin to see your options`
+                : isHuman && offered
+                  ? `${playerName}, choose your manager`
+                  : cpuReady
+                    ? `${playerName} has chosen — confirm to continue`
+                    : `${playerName} is deliberating...`}
         </span>
         <div className="mgr-turn-dots">
           {pickOrder.map((idx, i) => (
@@ -380,60 +490,72 @@ export default function ManagerDraftScreen({ draft, onAssignManager }) {
 
       <div className="mgr-main-area">
         <div className="mgr-left-col">
-          <Carousel pool={pool} spinning={spinning} allRevealed={revealed >= 3} />
-
-          {waitingForGo && !spinning && isHuman && (
-            <button className="mgr-spin-btn" onClick={spinAndReveal}>
-              ⚙ SPIN THE MERRY-GO-ROUND
-            </button>
-          )}
-
-          {(spinning || (!!offered && revealed < 3)) && (
-            <button className="mgr-skip-btn" onClick={skipReveal}>
-              SKIP ⏩
-            </button>
-          )}
-          {spinning && !isHuman && (
-            <button className="mgr-skip-cpu-btn" onClick={skipAllCpu}>
-              ⏭ SKIP CPU
-            </button>
-          )}
-
-          {!spinning && offered && (
+          {theirTurn ? (
+            // Another player's human turn — show waiting state
+            <div className="mp-waiting-screen" style={{ minHeight: "200px" }}>
+              <div className="mp-waiting-spinner" />
+              <p className="mp-waiting-text">{playerName} is spinning the Merry-Go-Round...</p>
+            </div>
+          ) : (
             <>
-              <div className="mgr-instruction">
-                {isHuman
-                  ? revealed < 3
-                    ? "The Merry-Go-Round is revealing your options..."
-                    : "Three managers offered — pick one, the rest return to the pool."
-                  : cpuReady
-                    ? `${playerName} picks ${cpuPick.name}.`
-                    : "Deliberating..."}
-              </div>
-              <div className="mgr-cards-row">
-                {offered.slice(0, revealed).map(mgr => (
-                  <ManagerCard
-                    key={mgr.id}
-                    manager={mgr}
-                    onPick={isHuman ? handlePick : () => {}}
-                    disabled={!isHuman || revealed < 3}
-                    highlighted={cpuPick?.id === mgr.id}
-                  />
-                ))}
-              </div>
-              {!isHuman && (
-                <div className="mgr-cpu-actions">
-                  <button
-                    className={`mgr-next-btn ${cpuReady ? "ready" : "waiting"}`}
-                    onClick={confirmCpuPick}
-                    disabled={!cpuReady}
-                  >
-                    {cpuReady ? "CONFIRM & NEXT →" : "DELIBERATING..."}
-                  </button>
-                  <button className="mgr-skip-cpu-btn" onClick={skipAllCpu}>
-                    ⏭ SKIP CPU
-                  </button>
-                </div>
+              <Carousel pool={pool} spinning={spinning} allRevealed={revealed >= 3} />
+
+              {waitingForGo && !spinning && isHuman && isMyTurn && (
+                <button className="mgr-spin-btn" onClick={spinAndReveal}>
+                  ⚙ SPIN THE MERRY-GO-ROUND
+                </button>
+              )}
+
+              {(spinning || (!!offered && revealed < 3)) && (
+                <button className="mgr-skip-btn" onClick={skipReveal}>
+                  SKIP ⏩
+                </button>
+              )}
+              {spinning && !isHuman && isHost && (
+                <button className="mgr-skip-cpu-btn" onClick={skipAllCpu}>
+                  ⏭ SKIP CPU
+                </button>
+              )}
+
+              {!spinning && offered && (
+                <>
+                  <div className="mgr-instruction">
+                    {isHuman
+                      ? revealed < 3
+                        ? "The Merry-Go-Round is revealing your options..."
+                        : "Three managers offered — pick one, the rest return to the pool."
+                      : cpuReady
+                        ? `${playerName} picks ${cpuPick.name}.`
+                        : "Deliberating..."}
+                  </div>
+                  <div className="mgr-cards-row">
+                    {offered.slice(0, revealed).map(mgr => (
+                      <ManagerCard
+                        key={mgr.id}
+                        manager={mgr}
+                        onPick={isHuman && isMyTurn ? handlePick : () => {}}
+                        disabled={!isHuman || revealed < 3 || !isMyTurn}
+                        highlighted={cpuPick?.id === mgr.id}
+                      />
+                    ))}
+                  </div>
+                  {!isHuman && (
+                    <div className="mgr-cpu-actions">
+                      <button
+                        className={`mgr-next-btn ${cpuReady ? "ready" : "waiting"}`}
+                        onClick={confirmCpuPick}
+                        disabled={!cpuReady}
+                      >
+                        {cpuReady ? "CONFIRM & NEXT →" : "DELIBERATING..."}
+                      </button>
+                      {isHost && (
+                        <button className="mgr-skip-cpu-btn" onClick={skipAllCpu}>
+                          ⏭ SKIP CPU
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}

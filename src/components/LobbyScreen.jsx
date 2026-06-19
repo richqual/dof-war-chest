@@ -22,7 +22,38 @@ const FORMAT_OPTIONS_8 = [
   { key: "tournament8", label: "TOURNAMENT", short: "CUP", hint: "Single-leg quarter-finals, 2-legged semi-finals (aggregate), then a 1-leg Grand Final" },
 ];
 
-export default function LobbyScreen({ onContinue, onMultiplayer }) {
+export function ModeSelectScreen({ onSameDevice, onOnline }) {
+  return (
+    <div className="setup-screen">
+      <div className="setup-card mode-select-card">
+        <div className="setup-header">
+          <h1 className="setup-title">The Football Director</h1>
+          <p className="setup-sub">Build a squad. Spin the wheel. Become a legend.</p>
+        </div>
+
+        <div className="mode-options">
+          <button className="mode-card" onClick={onSameDevice}>
+            <div className="mode-card-label">ONE DEVICE</div>
+            <div className="mode-card-desc">
+              Solo or local — 1–8 players on one screen. Play alone against the CPU or pass it around between picks.
+            </div>
+            <div className="mode-card-cta">PLAY →</div>
+          </button>
+
+          <button className="mode-card mode-card-online" onClick={onOnline}>
+            <div className="mode-card-label">ONLINE</div>
+            <div className="mode-card-desc">
+              Each player joins from their own phone or laptop — draft together from anywhere.
+            </div>
+            <div className="mode-card-cta">PLAY →</div>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function LobbyScreen({ onContinue, onBack }) {
   const [numClubs, setNumClubs] = useState(2);
   const [numHumans, setNumHumans] = useState(1);
   const [difficulty, setDifficulty] = useState("normal");
@@ -246,12 +277,12 @@ export default function LobbyScreen({ onContinue, onMultiplayer }) {
         </div>
 
         <button className="start-btn active" onClick={handleContinue}>
-          SINGLE PLAYER →
+          CONTINUE →
         </button>
 
-        {onMultiplayer && (
-          <button className="start-btn mp-lobby-btn" onClick={onMultiplayer}>
-            MULTIPLAYER →
+        {onBack && (
+          <button className="mode-back-link" onClick={onBack}>
+            ← change mode
           </button>
         )}
       </div>

@@ -2,7 +2,7 @@ import { useState, useEffect, Component } from "react";
 import { useDraftState } from "./hooks/useDraftState";
 import { useMultiplayerSession } from "./hooks/useMultiplayerSession";
 import { useMultiplayerDraft } from "./hooks/useMultiplayerDraft";
-import LobbyScreen from "./components/LobbyScreen";
+import LobbyScreen, { ModeSelectScreen } from "./components/LobbyScreen";
 import ClubCreatorScreen from "./components/ClubCreatorScreen";
 import OrderDrawScreen from "./components/OrderDrawScreen";
 import DraftScreen from "./components/DraftScreen";
@@ -116,7 +116,7 @@ function GlobalMenu({ light, onToggle, hasGame, onAbandon, extraOptions }) {
 
 function MultiplayerApp({ onBack }) {
   const session = useMultiplayerSession();
-  const { gameDoc, mySlotIdx, isHost, error, loading, createGame, joinGame, updateMySlot, writeGameState, setPhase, leaveGame, clearError } = session;
+  const { gameDoc, mySlotIdx, isHost, error, loading, createGame, joinGame, updateMySlot, writeGameState, submitManagerPick, setManagerDraftConfig, setMatchData, clearMatchData, setPhase, leaveGame, clearError } = session;
 
   const mpDraft = useMultiplayerDraft({
     gameDoc,
@@ -244,6 +244,9 @@ function MultiplayerApp({ onBack }) {
           <div className="mp-waiting-screen">
             <div className="mp-waiting-spinner" />
             <p className="mp-waiting-text">Waiting for host to set up the game...</p>
+            <button className="mp-back-link" style={{ marginTop: "1.5rem" }} onClick={handleLeave}>
+              ← Leave game
+            </button>
           </div>
         </div>
       </div>
@@ -270,7 +273,16 @@ function MultiplayerApp({ onBack }) {
     return (
       <>
         {globalMenu}
-        <ManagerDraftScreen draft={draft} onAssignManager={isHost ? actions.assignManagers : () => {}} />
+        <ManagerDraftScreen
+          draft={draft}
+          onAssignManager={isHost ? actions.assignManagers : () => {}}
+          mySlotIdx={mySlotIdx}
+          externalPicks={gameDoc?.managerPicks || {}}
+          onManagerPick={submitManagerPick}
+          isHost={isHost}
+          managerDraftConfig={gameDoc?.managerDraftConfig || null}
+          onSetManagerDraftConfig={isHost ? setManagerDraftConfig : null}
+        />
       </>
     );
   }
@@ -280,6 +292,11 @@ function MultiplayerApp({ onBack }) {
     const onManagerDraft = (draft.managerTiming === "after" && !managersAssigned)
       ? () => mpDraft.setScreen("manager-draft")
       : undefined;
+    // Non-host can view squads and manage their own, but only host can start a match
+    function mpSquadSetScreen(s, extra) {
+      if (s === "match" && !isHost) return;
+      handleSetScreen(s, extra);
+    }
     return (
       <>
         {globalMenu}
@@ -288,8 +305,8 @@ function MultiplayerApp({ onBack }) {
           setTeamName={actions.setTeamName}
           swapSquadPlayers={(idx, a, b) => idx === mySlotIdx && actions.swapSquadPlayers(idx, a, b)}
           setTactics={(idx, t) => idx === mySlotIdx && actions.setTactics(idx, t)}
-          restartGame={actions.restartGame}
-          setScreen={handleSetScreen}
+          restartGame={isHost ? actions.restartGame : () => {}}
+          setScreen={mpSquadSetScreen}
           onBackToSeries={draft.series ? () => mpDraft.setScreen(draft.series.stage === "draw" ? "draw" : "series") : undefined}
           onManagerDraft={onManagerDraft}
           mySlotIdx={mySlotIdx}
@@ -308,9 +325,9 @@ function MultiplayerApp({ onBack }) {
         {globalMenu}
         <SeriesScreen
           draft={draft}
-          setScreen={handleSetScreen}
-          recordMatchResult={actions.recordMatchResult}
-          restartGame={actions.restartGame}
+          setScreen={isHost ? handleSetScreen : () => {}}
+          recordMatchResult={isHost ? actions.recordMatchResult : () => {}}
+          restartGame={isHost ? actions.restartGame : () => {}}
         />
       </>
     );
@@ -331,9 +348,15 @@ function MultiplayerApp({ onBack }) {
           draft={draft}
           homeIdx={homeIdx}
           awayIdx={awayIdx}
-          onBack={() => mpDraft.setScreen(inSeries ? "series" : "squads")}
-          onMatchResult={inSeries ? (winnerIdx, score, ratings, events, injuries) => actions.recordMatchResult(homeIdx, awayIdx, winnerIdx, score, ratings, events, injuries) : undefined}
+          onBack={isHost ? () => mpDraft.setScreen(inSeries ? "series" : "squads") : null}
+          onMatchResult={inSeries && isHost ? (winnerIdx, score, ratings, events, injuries) => {
+            clearMatchData();
+            actions.recordMatchResult(homeIdx, awayIdx, winnerIdx, score, ratings, events, injuries);
+          } : undefined}
           seriesContext={seriesCtx}
+          isHost={isHost}
+          externalMatchData={gameDoc?.matchData || null}
+          onMatchGenerated={isHost ? setMatchData : null}
         />
       </>
     );
@@ -354,7 +377,7 @@ function AppInner({ onMultiplayer }) {
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
   } = useDraftState();
 
-  const [preScreen, setPreScreen] = useState("lobby"); // "lobby" | "club-creator"
+  const [preScreen, setPreScreen] = useState("mode-select"); // "mode-select" | "lobby" | "club-creator"
   const [lobbyConfig, setLobbyConfig] = useState(null);
 
   const [matchConfig, setMatchConfig] = useState({ homeIdx: 0, awayIdx: 1 });
@@ -373,7 +396,7 @@ function AppInner({ onMultiplayer }) {
 
   function handleAbandon() {
     restartGame();
-    setPreScreen("lobby");
+    setPreScreen("mode-select");
   }
 
   const hasGame = !!draft;
@@ -388,13 +411,24 @@ function AppInner({ onMultiplayer }) {
   );
 
   if (screen === "setup" || !draft) {
+    if (preScreen === "mode-select") {
+      return (
+        <>
+          {globalMenu}
+          <ModeSelectScreen
+            onSameDevice={() => setPreScreen("lobby")}
+            onOnline={onMultiplayer}
+          />
+        </>
+      );
+    }
     if (preScreen === "lobby") {
       return (
         <>
           {globalMenu}
           <LobbyScreen
             onContinue={config => { setLobbyConfig(config); setPreScreen("club-creator"); }}
-            onMultiplayer={onMultiplayer}
+            onBack={() => setPreScreen("mode-select")}
           />
         </>
       );
@@ -404,7 +438,7 @@ function AppInner({ onMultiplayer }) {
         {globalMenu}
         <ClubCreatorScreen
           config={lobbyConfig}
-          onStart={(clubs, opts) => { startGame(clubs, opts); setPreScreen("lobby"); }}
+          onStart={(clubs, opts) => { startGame(clubs, opts); setPreScreen("mode-select"); }}
           onBack={() => setPreScreen("lobby")}
         />
       </>
@@ -534,7 +568,7 @@ function AppInner({ onMultiplayer }) {
   return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
 }
 
-const APP_VERSION = "2.0.0";
+const APP_VERSION = "2.0.6";
 
 function AppFooter() {
   return (

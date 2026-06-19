@@ -11,18 +11,18 @@ export const POS_LABELS = {
 };
 
 export const CPU_POS_ACCEPTABLE = {
-  GK:  ["GK"],
-  CB:  ["CB", "LB", "RB", "DM", "CM"],
-  LB:  ["LB", "RB", "CB", "DM", "CM"],
-  RB:  ["RB", "LB", "CB", "DM", "CM"],
-  DM:  ["DM", "CM", "CB"],
-  CM:  ["CM", "CAM", "DM", "LM", "RM", "LW", "RW"],
-  CAM: ["CAM", "CM", "RM", "LM", "LW", "RW"],
-  RM:  ["RM", "RW", "CM", "CAM"],
-  LM:  ["LM", "LW", "CM", "CAM"],
-  LW:  ["LW", "LM", "RW", "RM", "CAM", "CM"],
-  RW:  ["RW", "RM", "LW", "LM", "CAM", "CM"],
-  ST:  ["ST", "LW", "RW", "CAM"],
+  GK:     ["GK"],
+  CB:     ["CB"],                           // strict — no fullbacks at CB
+  LB:     ["LB", "RB"],                     // fullbacks only — no CBs
+  RB:     ["RB", "LB"],                     // fullbacks only — no CBs
+  DM:     ["DM", "CM"],
+  CM:     ["CM", "CAM", "DM", "LM", "RM"],
+  CAM:    ["CAM", "CM", "RM", "LM", "LW", "RW"],
+  RM:     ["RM", "RW", "CM", "CAM"],
+  LM:     ["LM", "LW", "CM", "CAM"],
+  LW:     ["LW", "LM", "RW", "RM", "CAM"],
+  RW:     ["RW", "RM", "LW", "LM", "CAM"],
+  ST:     ["ST", "LW", "RW", "CAM"],
   DEFSUB: ["RB", "LB", "CB"],
   MIDSUB: ["DM", "CM", "CAM"],
   WIDSUB: ["RM", "LM", "RW", "LW"],
@@ -316,7 +316,7 @@ export function getPlayersFromState(d, posKey) {
   const acceptable = CPU_POS_ACCEPTABLE[posKey];
   if (acceptable) {
     const posFiltered = players.filter(p => acceptable.includes(p.pos));
-    if (posFiltered.length >= 3) players = posFiltered;
+    if (posFiltered.length >= 1) players = posFiltered;
   }
   return players;
 }

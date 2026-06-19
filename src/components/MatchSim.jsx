@@ -308,7 +308,7 @@ const POS_PRIORITY = {
   ST:  ["ST", "LW", "RW", "CAM"],
 };
 
-function buildEffectiveSquad(manager, playerAbsences) {
+export function buildEffectiveSquad(manager, playerAbsences) {
   if (!playerAbsences || Object.keys(playerAbsences).length === 0) return manager.squad;
   const starters = manager.squad.slice(0, 11).map(p => p || null);
   const bench = manager.squad.slice(11, 16).filter(p => p);
@@ -534,7 +534,20 @@ function generatePreMatchNarrative(draft, homeIdx, awayIdx, seriesContext) {
       q.p.includes(homeIdx) && q.p.includes(awayIdx)
     );
     if (qIdx >= 0) {
-      sentences.push(`Quarter-final time — ${homeName} take on ${awayName}. One match, winner goes through.`);
+      if (seriesContext?.isLeg1) {
+        sentences.push(`Quarter-final first leg — ${homeName} host ${awayName}. The second leg awaits on their travels.`);
+      } else {
+        const agg = series.quarters[qIdx];
+        const homeAgg = seriesContext?.legContext?.homeAgg ?? 0;
+        const awayAgg = seriesContext?.legContext?.awayAgg ?? 0;
+        if (homeAgg > awayAgg) {
+          sentences.push(`Quarter-final second leg — ${awayName} trail ${awayAgg}–${homeAgg} from the first leg. They need a comeback tonight.`);
+        } else if (awayAgg > homeAgg) {
+          sentences.push(`Quarter-final second leg — ${homeName} trail ${homeAgg}–${awayAgg} from the first leg. They must turn it around at home.`);
+        } else {
+          sentences.push(`Quarter-final second leg — level ${homeAgg}–${awayAgg} on aggregate. Everything to play for tonight.`);
+        }
+      }
       if (hmFmName && amFmName) {
         sentences.push(`${hmFmName} against ${amFmName} — two managers who know what's at stake.`);
       } else if (hmFmName) {
@@ -1246,7 +1259,7 @@ function LineupPanel({ homeManager, awayManager, homeName, awayName, onClose }) 
   );
 }
 
-export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResult, seriesContext }) {
+export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResult, seriesContext, isHost = true, externalMatchData = null, onMatchGenerated = null }) {
   const isRegularSeriesMatch = !!seriesContext && !seriesContext.isSeriesTiebreaker && !seriesContext.legContext;
   const homeManager = draft.managers[homeIdx];
   const awayManager = draft.managers[awayIdx];
@@ -1268,6 +1281,21 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
   const speedRef = useRef(SPEEDS[2].ms);
   const eventsRef = useRef([]);
   const nextIdxRef = useRef(0);
+  const externalStartedRef = useRef(false);
+
+  // Non-host: auto-start animation when host's match data arrives from Firestore
+  useEffect(() => {
+    if (!externalMatchData || isHost || externalStartedRef.current) return;
+    externalStartedRef.current = true;
+    eventsRef.current = externalMatchData.events;
+    nextIdxRef.current = 0;
+    setResult(externalMatchData);
+    setVisibleEvents([]);
+    setSimulating(true);
+    setDone(false);
+    setPaused(false);
+    runFeed(speedRef.current);
+  }, [externalMatchData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function finishFeed() {
     clearTimeout(timerRef.current);
@@ -1314,6 +1342,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
       awayManager.tactics ?? "balanced",
       seriesContext ? { homePrevResult: seriesContext.homePrevResult ?? null, awayPrevResult: seriesContext.awayPrevResult ?? null } : null,
     );
+    if (onMatchGenerated) onMatchGenerated(r); // broadcast to all players via Firestore
     eventsRef.current = r.events;
     nextIdxRef.current = 0;
     setResult(r);
@@ -1408,7 +1437,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
   return (
     <div className="match-screen">
       <div className="match-header">
-        {!simulating && !seriesContext && <button className="back-btn" onClick={onBack}>← BACK</button>}
+        {!simulating && !seriesContext && isHost && <button className="back-btn" onClick={onBack}>← BACK</button>}
         <span className="match-title">LIVE MATCH</span>
         <button className="lineup-btn" onClick={() => setShowLineups(true)}>LINE-UPS</button>
         <div className="speed-controls">
@@ -1468,7 +1497,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
             <span className="poss-pct away" style={{ color: awayAccent }}>{currentPoss.a}%</span>
           </div>
         )}
-        {done && onMatchResult && (
+        {done && onMatchResult && isHost && (
           <button className="sim-btn continue-btn sb-continue-btn" onClick={() => {
             const legCtx = seriesContext?.legContext;
             const isDraw = !result.penWinner && result.score.home === result.score.away && isRegularSeriesMatch;
@@ -1489,6 +1518,11 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
             {seriesContext?.isGrandFinal ? "SEE THE RESULT →" : seriesContext ? "CONTINUE TOURNAMENT →" : "CONTINUE SERIES →"}
           </button>
         )}
+        {done && !isHost && (
+          <p className="mp-waiting-text" style={{ textAlign: "center", padding: "0.5rem 0", margin: 0 }}>
+            Waiting for host to continue...
+          </p>
+        )}
       </div>
 
       <div className="match-body">
@@ -1507,7 +1541,14 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
 
           {/* Kick Off button above formations */}
           <div className="pre-kickoff-top">
-            <button className="sim-btn pre-kickoff-btn" onClick={startSim}>▶ KICK OFF</button>
+            {isHost ? (
+              <button className="sim-btn pre-kickoff-btn" onClick={startSim}>▶ KICK OFF</button>
+            ) : (
+              <div className="mp-waiting-screen" style={{ minHeight: "60px", padding: "0.75rem" }}>
+                <div className="mp-waiting-spinner" />
+                <p className="mp-waiting-text">Waiting for host to kick off...</p>
+              </div>
+            )}
           </div>
 
           {/* Formations side-by-side */}

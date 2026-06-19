@@ -129,10 +129,9 @@ export default function DraftScreen({
         }
       }
     }
-    available = Object.values(byName).map(p => ({
+    available = Object.values(byName).map(({ clubs, ...p }) => ({
       ...p,
-      club: p.clubs.length > 1 ? p.clubs.join(", ") : p.clubs[0],
-      clubs: undefined, // clean up helper field
+      club: clubs.length > 1 ? clubs.join(", ") : clubs[0],
     }));
   }
 

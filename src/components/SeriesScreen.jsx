@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import KitSwatch, { kitAccent } from "./KitSwatch";
 import { POSITIONS, getRatingBg, getRatingColor, formatValue } from "../data/players";
 import { squadRating } from "./SquadScreen";
+import { generateEvents, buildEffectiveSquad } from "./MatchSim";
 
 function WinDots({ wins, target, accent }) {
   return (
@@ -49,14 +50,22 @@ function getNextMatchup(series) {
     };
   }
 
-  // 8-team tournament: quarter-finals (single-leg)
+  // 8-team tournament: quarter-finals (2-legged — all leg 1s first, then all leg 2s)
   if (series.stage === "quarters" && series.quarters) {
-    const qsBefore = series.quarters.filter(q => q.winner !== null).length;
-    const matchNum = qsBefore + 1;
+    const qLegsPlayed = series.quarters.reduce((sum, q) => sum + (q.legsPlayed || 0), 0);
+    const matchNum = qLegsPlayed + 1;
+    // First pass: any QF that hasn't started leg 1
     for (let qi = 0; qi < series.quarters.length; qi++) {
       const q = series.quarters[qi];
-      if (q.winner === null) {
-        return { homeIdx: q.p[0], awayIdx: q.p[1], matchNum, label: `QUARTER-FINAL ${qi + 1}`, quarterIdx: qi };
+      if (q.winner === null && (q.legsPlayed || 0) === 0) {
+        return { homeIdx: q.p[0], awayIdx: q.p[1], matchNum, label: `QF ${qi + 1} · LEG 1`, quarterIdx: qi, qLeg: 1 };
+      }
+    }
+    // Second pass: any QF that has played leg 1 but not leg 2
+    for (let qi = 0; qi < series.quarters.length; qi++) {
+      const q = series.quarters[qi];
+      if (q.winner === null && (q.legsPlayed || 0) === 1) {
+        return { homeIdx: q.p[1], awayIdx: q.p[0], matchNum, label: `QF ${qi + 1} · LEG 2`, quarterIdx: qi, qLeg: 2 };
       }
     }
   }
@@ -64,7 +73,7 @@ function getNextMatchup(series) {
   // Semi-finals (2-legged) — used by both 4-team and 8-team tournaments
   if (series.stage === "semis" && series.semis) {
     const qLegsTotal = series.quarters
-      ? series.quarters.length  // each QF is 1 leg
+      ? series.quarters.length * 2  // each QF is 2 legs
       : 0;
     const sfLegsPlayed = series.semis.reduce((sum, sm) => sum + sm.legsPlayed, 0);
     const matchNum = qLegsTotal + sfLegsPlayed + 1;
@@ -87,7 +96,7 @@ function getNextMatchup(series) {
   // Grand Final
   if ((series.stage === "final" || series.stage === "semis") && series.final) {
     const f = series.final;
-    const qLegsTotal = series.quarters ? series.quarters.length : 0;
+    const qLegsTotal = series.quarters ? series.quarters.length * 2 : 0;
     const sfLegsTotal = (series.semis || []).reduce((sum, sm) => sum + sm.legsPlayed, 0);
     const finalPlayed = f.wins[0] + f.wins[1];
     return {
@@ -122,19 +131,21 @@ export function getSeriesContext(series, managers) {
     else if (hWins > aWins) standing = `${homeName} lead ${hWins}–${aWins}${drawSuffix}`;
     else standing = `${awayName} lead ${aWins}–${hWins}${drawSuffix}`;
   } else {
-    // Show aggregate standing for semi-final leg 2
+    // Show aggregate standing for QF/SF leg 2
+    const q = next.quarterIdx != null ? series.quarters?.[next.quarterIdx] : null;
     const sm = next.semiIdx != null ? series.semis?.[next.semiIdx] : null;
-    if (sm && sm.legsPlayed > 0) {
-      const m0 = managers[sm.p[0]], m1 = managers[sm.p[1]];
+    const aggSlot = q || sm;
+    if (aggSlot && aggSlot.legsPlayed > 0) {
+      const m0 = managers[aggSlot.p[0]], m1 = managers[aggSlot.p[1]];
       const n0 = m0.teamName || m0.name, n1 = m1.teamName || m1.name;
-      if (sm.goals[0] > sm.goals[1])
-        standing = `${n0} lead ${sm.goals[0]}–${sm.goals[1]} on agg`;
-      else if (sm.goals[1] > sm.goals[0])
-        standing = `${n1} lead ${sm.goals[1]}–${sm.goals[0]} on agg`;
+      if (aggSlot.goals[0] > aggSlot.goals[1])
+        standing = `${n0} lead ${aggSlot.goals[0]}–${aggSlot.goals[1]} on agg`;
+      else if (aggSlot.goals[1] > aggSlot.goals[0])
+        standing = `${n1} lead ${aggSlot.goals[1]}–${aggSlot.goals[0]} on agg`;
       else
-        standing = `Level ${sm.goals[0]}–${sm.goals[1]} on aggregate`;
+        standing = `Level ${aggSlot.goals[0]}–${aggSlot.goals[1]} on aggregate`;
     }
-    // Quarter-finals or SF Leg 1: no standing to show yet
+    // Leg 1 matches: no standing to show yet
   }
 
   // For SF leg 2 only, pass the leg 1 aggregate so generateEvents can trigger ET on agg level.
@@ -148,23 +159,32 @@ export function getSeriesContext(series, managers) {
       isLeg1 = true;
     }
   }
-  // Quarter-finals are single-leg — treat like leg 1 (no ET from aggregate, allow pens on draw)
-  if (next.quarterIdx != null) {
-    isLeg1 = false; // single-leg: ET/pens can happen
+  // Quarter-finals are now 2-legged like semis
+  if (next.quarterIdx != null && series.quarters) {
+    const q = series.quarters[next.quarterIdx];
+    if (next.qLeg === 1) {
+      isLeg1 = true; // no ET/pens in leg 1
+    } else {
+      // Leg 2: pass aggregate from leg 1 (teams swapped, so p0 was home in leg 1 → now away)
+      legContext = { homeAgg: q.goals[1], awayAgg: q.goals[0] };
+      isLeg1 = false;
+    }
   }
 
   const isGrandFinal = next.label === "GRAND FINAL";
 
-  // Momentum context: leg 2 semi-finals only
+  // Momentum context: leg 2 QFs and semi-finals
   let homePrevResult = null, awayPrevResult = null;
-  if (next.semiIdx != null && series.semis) {
-    const sm = series.semis[next.semiIdx];
-    if (sm && sm.legsPlayed === 1) {
-      if (sm.goals[0] > sm.goals[1]) {
-        awayPrevResult = "win"; homePrevResult = "loss";
-      } else if (sm.goals[1] > sm.goals[0]) {
-        homePrevResult = "win"; awayPrevResult = "loss";
-      }
+  const prevLegSlot = next.quarterIdx != null ? series.quarters?.[next.quarterIdx]
+    : next.semiIdx != null ? series.semis?.[next.semiIdx]
+    : null;
+  if (prevLegSlot && prevLegSlot.legsPlayed === 1) {
+    // In leg 2, home/away are swapped relative to p0/p1
+    // p0 won leg 1 if goals[0] > goals[1], but they're now the AWAY team
+    if (prevLegSlot.goals[0] > prevLegSlot.goals[1]) {
+      awayPrevResult = "win"; homePrevResult = "loss";
+    } else if (prevLegSlot.goals[1] > prevLegSlot.goals[0]) {
+      homePrevResult = "win"; awayPrevResult = "loss";
     }
   }
 
@@ -209,11 +229,16 @@ function TournamentBracket({ series, managers }) {
                   <div className={`bracket-team ${q.winner === q.p[0] ? "bracket-winner" : q.winner !== null ? "bracket-out" : ""}`}>
                     <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bq${i}a`} size={22} />
                     <span style={{ color: accent0 }}>{m0.teamName || m0.clubName || m0.name}</span>
+                    <span className="bracket-wins">{q.goals?.[0] ?? 0}</span>
                   </div>
                   <div className={`bracket-team ${q.winner === q.p[1] ? "bracket-winner" : q.winner !== null ? "bracket-out" : ""}`}>
                     <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bq${i}b`} size={22} />
                     <span style={{ color: accent1 }}>{m1.teamName || m1.clubName || m1.name}</span>
+                    <span className="bracket-wins">{q.goals?.[1] ?? 0}</span>
                   </div>
+                  {q.legsPlayed === 1 && q.winner === null && (
+                    <div className="bracket-adv">Agg: {q.goals[0]}–{q.goals[1]} · Leg 2 to come</div>
+                  )}
                   {q.winner !== null && (
                     <div className="bracket-adv">
                       → {(managers[q.winner].teamName || managers[q.winner].name)} advance
@@ -673,8 +698,133 @@ function TournamentResults({ tournamentStats, managers }) {
   );
 }
 
+function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone }) {
+  const { managers, series } = draft;
+  const [phase, setPhase] = useState("spinning");
+  const [simResult, setSimResult] = useState(null);
+
+  useEffect(() => {
+    const hm = managers[homeIdx];
+    const am = managers[awayIdx];
+    const homeName = hm.teamName || hm.clubName || hm.name;
+    const awayName = am.teamName || am.clubName || am.name;
+
+    const homeSquad = buildEffectiveSquad(hm, draft.playerAbsences || {});
+    const awaySquad = buildEffectiveSquad(am, draft.playerAbsences || {});
+
+    const res = generateEvents(
+      homeSquad, awaySquad,
+      homeName, awayName,
+      seriesCtx?.legContext ?? null,
+      hm, am,
+      seriesCtx?.isLeg1 ?? false,
+      hm.tactics ?? null,
+      am.tactics ?? null,
+      seriesCtx
+    );
+
+    const isLeg1 = seriesCtx?.isLeg1 ?? false;
+    const legCtx = seriesCtx?.legContext ?? null;
+    const isTournament = series.format === "tournament" || series.format === "tournament8";
+
+    let winnerIdx = null;
+    if (!isLeg1) {
+      if (res.penWinner) {
+        winnerIdx = res.penWinner === "home" ? homeIdx : awayIdx;
+      } else if (legCtx) {
+        const homeTotal = res.score.home + legCtx.homeAgg;
+        const awayTotal = res.score.away + legCtx.awayAgg;
+        if (homeTotal !== awayTotal) winnerIdx = homeTotal > awayTotal ? homeIdx : awayIdx;
+      } else if (res.score.home !== res.score.away) {
+        winnerIdx = res.score.home > res.score.away ? homeIdx : awayIdx;
+      } else if (isTournament) {
+        // shouldn't happen (pens trigger in single-leg tournament matches), but safe default
+        winnerIdx = homeIdx;
+      }
+    }
+
+    setSimResult({ ...res, winnerIdx });
+    const t = setTimeout(() => setPhase("result"), 1600);
+    return () => clearTimeout(t);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function confirm() {
+    if (!simResult) return;
+    onDone(simResult.winnerIdx, simResult.score, simResult.ratings, simResult.events, simResult.matchInjuries);
+  }
+
+  useEffect(() => {
+    if (phase !== "result" || !simResult) return;
+    const t = setTimeout(confirm, 3000);
+    return () => clearTimeout(t);
+  }, [phase, simResult]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const hm = managers[homeIdx];
+  const am = managers[awayIdx];
+  const homeName = hm.teamName || hm.clubName || hm.name;
+  const awayName = am.teamName || am.clubName || am.name;
+  const homeAccent = kitAccent(hm.primaryColor, hm.secondaryColor);
+  const awayAccent = kitAccent(am.primaryColor, am.secondaryColor);
+
+  const goals = simResult ? simResult.events.filter(e => e.type === "goal") : [];
+  const homeGoals = goals.filter(e => e.team === "home");
+  const awayGoals = goals.filter(e => e.team === "away");
+
+  return (
+    <div className="cpu-sim-overlay" onClick={phase === "result" ? confirm : undefined}>
+      <div className="cpu-sim-card" onClick={e => e.stopPropagation()}>
+        <div className="cpu-sim-label">{seriesCtx?.label || "CPU vs CPU"}</div>
+
+        <div className="cpu-sim-teams">
+          <div className="cpu-sim-team">
+            <KitSwatch primary={hm.primaryColor} secondary={hm.secondaryColor} pattern={hm.pattern} uid="csH" size={36} />
+            <span className="cpu-sim-team-name" style={{ color: homeAccent }}>{homeName}</span>
+          </div>
+          <div className="cpu-sim-score">
+            {phase === "spinning"
+              ? <span className="cpu-sim-ball">⚽</span>
+              : simResult
+                ? <span>{simResult.score.home}–{simResult.score.away}</span>
+                : <span>–</span>
+            }
+          </div>
+          <div className="cpu-sim-team cpu-sim-team-right">
+            <KitSwatch primary={am.primaryColor} secondary={am.secondaryColor} pattern={am.pattern} uid="csA" size={36} />
+            <span className="cpu-sim-team-name" style={{ color: awayAccent }}>{awayName}</span>
+          </div>
+        </div>
+
+        {phase === "spinning" && <div className="cpu-sim-status">Simulating…</div>}
+
+        {phase === "result" && simResult && (
+          <div className="cpu-sim-result">
+            {simResult.penWinner && <div className="cpu-sim-pens">⚡ Won on penalties</div>}
+            {(homeGoals.length > 0 || awayGoals.length > 0) && (
+              <div className="cpu-sim-scorers">
+                <div className="cpu-sim-scorer-col">
+                  {homeGoals.map((g, i) => (
+                    <span key={i} className="cpu-sim-scorer-name">{g.scorer} {g.min}'</span>
+                  ))}
+                </div>
+                <div className="cpu-sim-scorer-col cpu-sim-scorer-col-right">
+                  {awayGoals.map((g, i) => (
+                    <span key={i} className="cpu-sim-scorer-name">{g.scorer} {g.min}'</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            <button className="sim-btn cpu-sim-continue" onClick={confirm}>CONTINUE ▶</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function SeriesScreen({ draft, setScreen, recordMatchResult, restartGame }) {
   const { managers, series } = draft;
+  const [cpuSimActive, setCpuSimActive] = useState(false);
+
   if (!series) return null;
 
   const nextMatchup = getNextMatchup(series);
@@ -682,9 +832,20 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
   const champion = series.champion !== null ? managers[series.champion] : null;
   const championAccent = champion ? kitAccent(champion.primaryColor, champion.secondaryColor) : null;
 
+  const isCpuVsCpu = nextMatchup
+    ? !!(managers[nextMatchup.homeIdx]?.isComputer && managers[nextMatchup.awayIdx]?.isComputer)
+    : false;
+  const seriesCtxForSim = nextMatchup ? getSeriesContext(series, managers) : null;
+
   function playNextMatch() {
     if (!nextMatchup) return;
     setScreen("match", { homeIdx: nextMatchup.homeIdx, awayIdx: nextMatchup.awayIdx });
+  }
+
+  function handleSimDone(winnerIdx, score, ratings, events, injuries) {
+    const { homeIdx, awayIdx } = nextMatchup;
+    setCpuSimActive(false);
+    recordMatchResult(homeIdx, awayIdx, winnerIdx, score, ratings, events, injuries);
   }
 
   const formatLabel = (series.format === "tournament" || series.format === "tournament8")
@@ -750,7 +911,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
             <div className="setup-badge">{formatLabel}</div>
             {nextMatchup && (
               <div className="series-next-label">
-                {series.format === "tournament"
+                {(series.format === "tournament" || series.format === "tournament8")
                   ? nextMatchup.label
                   : nextMatchup.isSeriesTiebreaker
                     ? `MATCH ${nextMatchup.matchNum} · TIEBREAKER`
@@ -773,8 +934,23 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
               <button className="sim-btn" onClick={playNextMatch}>
                 ▶ {nextMatchup.label === "GRAND FINAL" ? "PLAY GRAND FINAL" : nextMatchup.matchNum > 1 ? `PLAY MATCH ${nextMatchup.matchNum} — ${nextMatchup.label}` : `PLAY MATCH 1 — ${nextMatchup.label}`}
               </button>
+              {isCpuVsCpu && (
+                <button className="sim-btn cpu-auto-btn" onClick={() => setCpuSimActive(true)}>
+                  ⚡ AUTO-SIMULATE
+                </button>
+              )}
               <button className="sim-btn secondary" onClick={() => setScreen("squads")}>TEAM MANAGEMENT</button>
             </div>
+          )}
+
+          {cpuSimActive && nextMatchup && (
+            <CpuSimOverlay
+              draft={draft}
+              homeIdx={nextMatchup.homeIdx}
+              awayIdx={nextMatchup.awayIdx}
+              seriesCtx={seriesCtxForSim}
+              onDone={handleSimDone}
+            />
           )}
 
           <div className="series-footer" />

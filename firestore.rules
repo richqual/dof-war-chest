@@ -1,0 +1,31 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /games/{gameId} {
+
+      // Anyone can read — needed for room-code lookup queries
+      allow read: if true;
+
+      // Create: must have the required shape and a valid waiting phase
+      allow create: if
+        request.resource.data.keys().hasAll(['roomCode', 'hostDeviceId', 'phase', 'slots', 'createdAt']) &&
+        request.resource.data.roomCode is string &&
+        request.resource.data.roomCode.size() == 6 &&
+        request.resource.data.hostDeviceId is string &&
+        request.resource.data.hostDeviceId.size() > 0 &&
+        request.resource.data.phase == 'waiting' &&
+        request.resource.data.slots is list &&
+        request.resource.data.slots.size() >= 2 &&
+        request.resource.data.slots.size() <= 8;
+
+      // Update: room code and host identity must never change; phase must be valid
+      allow update: if
+        request.resource.data.roomCode == resource.data.roomCode &&
+        request.resource.data.hostDeviceId == resource.data.hostDeviceId &&
+        request.resource.data.phase in ['waiting', 'playing', 'done'];
+
+      // No deletes (abandoned games just sit until Firestore TTL or manual cleanup)
+      allow delete: if false;
+    }
+  }
+}

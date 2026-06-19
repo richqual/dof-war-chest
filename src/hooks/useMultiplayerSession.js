@@ -154,6 +154,32 @@ export function useMultiplayerSession() {
     });
   }
 
+  async function submitManagerPick(slotIdx, manager) {
+    if (!gameId) return;
+    const picks = { ...(gameDoc?.managerPicks || {}), [String(slotIdx)]: manager };
+    await updateDoc(doc(db, "games", gameId), { managerPicks: picks });
+  }
+
+  async function clearManagerPicks() {
+    if (!gameId) return;
+    await updateDoc(doc(db, "games", gameId), { managerPicks: null });
+  }
+
+  async function setManagerDraftConfig(leagues, tiers) {
+    if (!gameId) return;
+    await updateDoc(doc(db, "games", gameId), { managerDraftConfig: { leagues, tiers } });
+  }
+
+  async function setMatchData(data) {
+    if (!gameId) return;
+    await updateDoc(doc(db, "games", gameId), { matchData: data });
+  }
+
+  async function clearMatchData() {
+    if (!gameId) return;
+    await updateDoc(doc(db, "games", gameId), { matchData: null });
+  }
+
   async function setPhase(phase) {
     if (!gameId) return;
     await updateDoc(doc(db, "games", gameId), { phase });
@@ -181,6 +207,11 @@ export function useMultiplayerSession() {
     joinGame,
     updateMySlot,
     writeGameState,
+    submitManagerPick,
+    clearManagerPicks,
+    setManagerDraftConfig,
+    setMatchData,
+    clearMatchData,
     setPhase,
     leaveGame,
     clearError: () => setError(null),
