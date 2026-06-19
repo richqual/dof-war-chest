@@ -1,5 +1,7 @@
 import { useState, useEffect, Component } from "react";
 import { useDraftState } from "./hooks/useDraftState";
+import { useMultiplayerSession } from "./hooks/useMultiplayerSession";
+import { useMultiplayerDraft } from "./hooks/useMultiplayerDraft";
 import LobbyScreen from "./components/LobbyScreen";
 import ClubCreatorScreen from "./components/ClubCreatorScreen";
 import OrderDrawScreen from "./components/OrderDrawScreen";
@@ -11,6 +13,8 @@ import SeriesScreen from "./components/SeriesScreen";
 import { getSeriesContext } from "./components/SeriesScreen";
 import ManagerDraftScreen from "./components/ManagerDraftScreen";
 import PlayerPoolScreen from "./components/PlayerPoolScreen";
+import MultiplayerEntryScreen from "./components/MultiplayerEntryScreen";
+import MultiplayerWaitingRoom from "./components/MultiplayerWaitingRoom";
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -108,7 +112,247 @@ function GlobalMenu({ light, onToggle, hasGame, onAbandon, extraOptions }) {
   );
 }
 
-function AppInner() {
+// ── Multiplayer ────────────────────────────────────────────────────────────
+
+function MultiplayerApp({ onBack }) {
+  const session = useMultiplayerSession();
+  const { gameDoc, mySlotIdx, isHost, error, loading, createGame, joinGame, updateMySlot, writeGameState, leaveGame, clearError } = session;
+
+  const mpDraft = useMultiplayerDraft({
+    gameDoc,
+    mySlotIdx,
+    writeGameState,
+    isHost,
+  });
+
+  const [lightMode, setLightMode] = useState(() => localStorage.getItem("tg-theme") === "light");
+  const [matchConfig, setMatchConfig] = useState({ homeIdx: 0, awayIdx: 1 });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("light-mode", lightMode);
+    localStorage.setItem("tg-theme", lightMode ? "light" : "dark");
+  }, [lightMode]);
+
+  const { screen, draft, activeManager, activeManagerIdx, currentPos, isMyTurn, ...actions } = mpDraft;
+
+  function handleSetScreen(s, extra) {
+    if (s === "match" && extra) setMatchConfig(extra);
+    else if (s === "match") setMatchConfig({ homeIdx: 0, awayIdx: 1 });
+    mpDraft.setScreen(s);
+  }
+
+  async function handleLeave() {
+    await leaveGame();
+    onBack();
+  }
+
+  const globalMenu = (
+    <GlobalMenu
+      light={lightMode}
+      onToggle={() => setLightMode(l => !l)}
+      hasGame={!!draft}
+      onAbandon={() => { actions.restartGame(); }}
+    />
+  );
+
+  // Not yet in a game session — show entry or waiting room
+  if (!gameDoc) {
+    return (
+      <MultiplayerEntryScreen
+        onCreateGame={createGame}
+        onJoinGame={joinGame}
+        onBack={onBack}
+        loading={loading}
+        error={error}
+        clearError={clearError}
+      />
+    );
+  }
+
+  // In a game session but not yet started
+  if (gameDoc.phase === "waiting") {
+    return (
+      <MultiplayerWaitingRoom
+        gameDoc={gameDoc}
+        mySlotIdx={mySlotIdx}
+        isHost={isHost}
+        onUpdateSlot={updateMySlot}
+        onStartGame={(clubs, options) => actions.startGame(clubs, options)}
+        onLeave={handleLeave}
+      />
+    );
+  }
+
+  // Game in progress — non-host on a setup-only screen sees a waiting message
+  const setupScreens = ["order-draw", "player-pool", "manager-draft"];
+  if (!isHost && setupScreens.includes(screen)) {
+    const activeClub = draft?.managers?.[draft?.currentOrder?.[draft?.turnIndex]]?.clubName ?? "";
+    return (
+      <>
+        {globalMenu}
+        <div className="setup-screen">
+          <div className="setup-card">
+            <div className="mp-waiting-screen">
+              <div className="mp-waiting-spinner" />
+              <p className="mp-waiting-text">Waiting for host to finish setup...</p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // During draft: show DraftScreen with turn-lock for non-active players
+  if (screen === "draft" && draft && currentPos) {
+    const draftMenuOptions = isHost
+      ? [{ label: "⏩ AUTO-PICK REST & SKIP TO END-GAME", action: actions.autoCompleteDraft, warn: "CPU picks every remaining player instantly." }]
+      : [];
+
+    const isActiveTurn = isMyTurn;
+
+    return (
+      <>
+        <GlobalMenu
+          light={lightMode}
+          onToggle={() => setLightMode(l => !l)}
+          hasGame={true}
+          onAbandon={actions.restartGame}
+          extraOptions={draftMenuOptions}
+        />
+        {!isActiveTurn && (
+          <div className="mp-turn-banner">
+            Waiting for <strong>{activeManager?.clubName}</strong> to pick...
+          </div>
+        )}
+        <DraftScreen
+          draft={draft}
+          activeManager={activeManager}
+          activeManagerIdx={activeManagerIdx}
+          currentPos={currentPos}
+          confirmBudget={isActiveTurn ? actions.confirmBudget : () => {}}
+          confirmSlot={isActiveTurn ? actions.confirmSlot : () => {}}
+          pickPlayer={isActiveTurn ? actions.pickPlayer : () => {}}
+          getAvailablePlayers={actions.getAvailablePlayers}
+          getTakenPlayers={actions.getTakenPlayers}
+          skipTurn={isActiveTurn ? actions.skipTurn : () => {}}
+          respin={isActiveTurn ? actions.respin : () => {}}
+          autoCompleteDraft={isHost ? actions.autoCompleteDraft : null}
+          skipCpuTurns={isHost ? actions.skipCpuTurns : () => {}}
+          locked={!isActiveTurn}
+        />
+      </>
+    );
+  }
+
+  // All other screens — render normally (same as single player)
+  if (screen === "setup" || !draft) {
+    return (
+      <div className="setup-screen">
+        <div className="setup-card">
+          <div className="mp-waiting-screen">
+            <div className="mp-waiting-spinner" />
+            <p className="mp-waiting-text">Waiting for host to set up the game...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (screen === "order-draw" && draft) {
+    return <>{globalMenu}<OrderDrawScreen draft={draft} onStart={() => mpDraft.setScreen("player-pool")} /></>;
+  }
+
+  if (screen === "player-pool" && draft) {
+    return (
+      <>
+        {globalMenu}
+        <PlayerPoolScreen numClubs={draft.managers.length} onConfirm={filter => {
+          actions.setPlayerPool(filter);
+          mpDraft.setScreen(draft.managerTiming === "before" ? "manager-draft" : "draft");
+        }} />
+      </>
+    );
+  }
+
+  if (screen === "manager-draft" && draft) {
+    return (
+      <>
+        {globalMenu}
+        <ManagerDraftScreen draft={draft} onAssignManager={actions.assignManagers} />
+      </>
+    );
+  }
+
+  if (screen === "squads" && draft) {
+    const managersAssigned = draft.managers.some(m => m.footballManager);
+    const onManagerDraft = (draft.managerTiming === "after" && !managersAssigned)
+      ? () => mpDraft.setScreen("manager-draft")
+      : undefined;
+    return (
+      <>
+        {globalMenu}
+        <SquadScreen
+          draft={draft}
+          setTeamName={actions.setTeamName}
+          swapSquadPlayers={(idx, a, b) => idx === mySlotIdx && actions.swapSquadPlayers(idx, a, b)}
+          setTactics={(idx, t) => idx === mySlotIdx && actions.setTactics(idx, t)}
+          restartGame={actions.restartGame}
+          setScreen={handleSetScreen}
+          onBackToSeries={draft.series ? () => mpDraft.setScreen(draft.series.stage === "draw" ? "draw" : "series") : undefined}
+          onManagerDraft={onManagerDraft}
+          mySlotIdx={mySlotIdx}
+        />
+      </>
+    );
+  }
+
+  if (screen === "draw" && draft?.series?.stage === "draw") {
+    return <>{globalMenu}<DrawScreen draft={draft} onComplete={actions.completeDraw} /></>;
+  }
+
+  if (screen === "series" && draft?.series) {
+    return (
+      <>
+        {globalMenu}
+        <SeriesScreen
+          draft={draft}
+          setScreen={handleSetScreen}
+          recordMatchResult={actions.recordMatchResult}
+          restartGame={actions.restartGame}
+        />
+      </>
+    );
+  }
+
+  if (screen === "match" && draft) {
+    const homeIdx = matchConfig.homeIdx ?? 0;
+    const awayIdx = matchConfig.awayIdx ?? 1;
+    if (!draft.managers[homeIdx] || !draft.managers[awayIdx]) {
+      return <>{globalMenu}<SquadScreen draft={draft} setTeamName={actions.setTeamName} swapSquadPlayers={actions.swapSquadPlayers} setTactics={actions.setTactics} restartGame={actions.restartGame} setScreen={handleSetScreen} onBackToSeries={draft.series ? () => mpDraft.setScreen("series") : undefined} mySlotIdx={mySlotIdx} /></>;
+    }
+    const inSeries = !!draft.series;
+    const seriesCtx = inSeries ? getSeriesContext(draft.series, draft.managers) : null;
+    return (
+      <>
+        {globalMenu}
+        <MatchSim
+          draft={draft}
+          homeIdx={homeIdx}
+          awayIdx={awayIdx}
+          onBack={() => mpDraft.setScreen(inSeries ? "series" : "squads")}
+          onMatchResult={inSeries ? (winnerIdx, score, ratings, events, injuries) => actions.recordMatchResult(homeIdx, awayIdx, winnerIdx, score, ratings, events, injuries) : undefined}
+          seriesContext={seriesCtx}
+        />
+      </>
+    );
+  }
+
+  return <>{globalMenu}</>;
+}
+
+// ── Single player ──────────────────────────────────────────────────────────
+
+function AppInner({ onMultiplayer }) {
   const {
     screen, setScreen,
     draft, activeManager, activeManagerIdx, currentPos,
@@ -156,7 +400,10 @@ function AppInner() {
       return (
         <>
           {globalMenu}
-          <LobbyScreen onContinue={config => { setLobbyConfig(config); setPreScreen("club-creator"); }} />
+          <LobbyScreen
+            onContinue={config => { setLobbyConfig(config); setPreScreen("club-creator"); }}
+            onMultiplayer={onMultiplayer}
+          />
         </>
       );
     }
@@ -295,7 +542,7 @@ function AppInner() {
   return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
 }
 
-const APP_VERSION = "1.12.0";
+const APP_VERSION = "1.15.0";
 
 function AppFooter() {
   return (
@@ -306,9 +553,13 @@ function AppFooter() {
 }
 
 export default function App() {
+  const [mode, setMode] = useState("single"); // "single" | "multiplayer"
   return (
     <ErrorBoundary>
-      <AppInner />
+      {mode === "multiplayer"
+        ? <MultiplayerApp onBack={() => setMode("single")} />
+        : <AppInner onMultiplayer={() => setMode("multiplayer")} />
+      }
       <AppFooter />
     </ErrorBoundary>
   );

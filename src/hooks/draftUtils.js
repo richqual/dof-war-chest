@@ -1,0 +1,359 @@
+import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick } from "../data/players";
+import { GROUP_SLOT_INDICES, FORMATIONS } from "../data/formations";
+
+export { generateBudget, chooseCpuPick };
+
+export const POS_LABELS = {
+  GK: "Goalkeeper", RB: "Right Back", LB: "Left Back", CB: "Centre Back",
+  DM: "Def. Mid", CM: "Midfielder", MF: "Midfielder", CAM: "Att. Mid", AM: "Att. Mid",
+  RW: "Right Winger", LW: "Left Winger", ST: "Striker",
+  RM: "Right Mid", LM: "Left Mid",
+};
+
+export const CPU_POS_ACCEPTABLE = {
+  GK:  ["GK"],
+  CB:  ["CB", "LB", "RB", "DM", "CM"],
+  LB:  ["LB", "RB", "CB", "DM", "CM"],
+  RB:  ["RB", "LB", "CB", "DM", "CM"],
+  DM:  ["DM", "CM", "CB"],
+  CM:  ["CM", "CAM", "DM", "LM", "RM", "LW", "RW"],
+  CAM: ["CAM", "CM", "RM", "LM", "LW", "RW"],
+  RM:  ["RM", "RW", "CM", "CAM"],
+  LM:  ["LM", "LW", "CM", "CAM"],
+  LW:  ["LW", "LM", "RW", "RM", "CAM", "CM"],
+  RW:  ["RW", "RM", "LW", "LM", "CAM", "CM"],
+  ST:  ["ST", "LW", "RW", "CAM"],
+  DEFSUB: ["RB", "LB", "CB"],
+  MIDSUB: ["DM", "CM", "CAM"],
+  WIDSUB: ["RM", "LM", "RW", "LW"],
+  ATTSUB: ["ST"],
+};
+
+export const STORAGE_KEY = "transfer-game-state";
+export const STORAGE_VERSION = 8;
+
+export function formationEntry(formation, slotIndex) {
+  return FORMATIONS[formation]?.[slotIndex] ?? { pos: POSITIONS[slotIndex]?.key ?? "MF" };
+}
+
+export function formationPos(formation, slotIndex) {
+  return formationEntry(formation, slotIndex).pos;
+}
+
+export function serializeDraft(draft) {
+  if (!draft) return draft;
+  return {
+    ...draft,
+    availablePlayerIds: draft.availablePlayerIds instanceof Set
+      ? [...draft.availablePlayerIds]
+      : draft.availablePlayerIds,
+    playerValues: draft.playerValues instanceof Map
+      ? [...draft.playerValues]
+      : draft.playerValues,
+    playerForm: draft.playerForm instanceof Map
+      ? [...draft.playerForm]
+      : draft.playerForm,
+    playerOrder: draft.playerOrder instanceof Map
+      ? [...draft.playerOrder]
+      : draft.playerOrder,
+  };
+}
+
+export function deserializeDraft(draft) {
+  if (!draft) return draft;
+  return {
+    ...draft,
+    availablePlayerIds: Array.isArray(draft.availablePlayerIds)
+      ? new Set(draft.availablePlayerIds)
+      : draft.availablePlayerIds instanceof Set
+        ? draft.availablePlayerIds
+        : new Set(),
+    playerValues: Array.isArray(draft.playerValues)
+      ? new Map(draft.playerValues)
+      : draft.playerValues instanceof Map
+        ? draft.playerValues
+        : new Map(),
+    playerForm: Array.isArray(draft.playerForm)
+      ? new Map(draft.playerForm)
+      : draft.playerForm instanceof Map
+        ? draft.playerForm
+        : new Map(),
+    playerOrder: Array.isArray(draft.playerOrder)
+      ? new Map(draft.playerOrder)
+      : draft.playerOrder instanceof Map
+        ? draft.playerOrder
+        : new Map(),
+  };
+}
+
+export function availablePlayersFor(posKey, takenIds) {
+  const taken = new Set(takenIds);
+  if (posKey === "GKSUB") {
+    return PLAYERS.filter(p => p.pos === "GK" && !taken.has(p.id));
+  }
+  if (SUB_POSITIONS[posKey]) {
+    return PLAYERS.filter(p => SUB_POSITIONS[posKey].includes(p.pos) && !taken.has(p.id));
+  }
+  if (posKey === "GK") {
+    return PLAYERS.filter(p => p.pos === "GK" && !taken.has(p.id));
+  }
+  return PLAYERS.filter(p => p.pos !== "GK" && !taken.has(p.id));
+}
+
+export function applyPick(d, player) {
+  const activeIdx = d.currentOrder[d.turnIndex];
+  const budget = d.currentBudget ?? 0;
+  const isRandomStarter = d.positionMode === "random" && d.positionIndex < 11;
+
+  const managers = d.managers.map((m, i) => {
+    if (i !== activeIdx) return m;
+    if (!player) return { ...m, carryover: budget };
+    const squad = [...m.squad];
+    const squadSlot = (isRandomStarter && d.currentSlot !== null && d.currentSlot !== undefined)
+      ? d.currentSlot
+      : d.positionIndex;
+    squad[squadSlot] = { ...player };
+    return { ...m, squad, carryover: d.noCarryoverNext ? 0 : budget - player.value };
+  });
+
+  const takenIds = player ? [...d.takenIds, player.id] : d.takenIds;
+  const n = d.currentOrder.length;
+  const newTurnIndex = d.turnIndex + 1;
+
+  if (newTurnIndex >= n) {
+    const newPositionIndex = d.positionIndex + 1;
+    if (newPositionIndex >= POSITIONS.length) {
+      return { ...d, managers, takenIds, positionIndex: newPositionIndex, phase: "complete", currentSlot: null };
+    }
+    const newRound = d.round + 1;
+    return {
+      ...d,
+      managers,
+      takenIds,
+      positionIndex: newPositionIndex,
+      turnIndex: 0,
+      round: newRound,
+      currentBudget: null,
+      noCarryoverNext: false,
+      currentSlot: null,
+      currentOrder: Array.from({ length: n }, (_, i) => (i + newRound) % n),
+      phase: "draft",
+    };
+  }
+  return { ...d, managers, takenIds, turnIndex: newTurnIndex, currentBudget: null, noCarryoverNext: false, currentSlot: null };
+}
+
+const FORMAT_TARGETS = { bo3: 2, bo5: 3, bo7: 4, single: 1 };
+
+export function buildSeries(n, format) {
+  if (!format || format === "single") return null;
+  if (n === 2) {
+    return {
+      format,
+      participants: [0, 1],
+      wins: [0, 0],
+      draws: 0,
+      played: 0,
+      target: FORMAT_TARGETS[format] || 4,
+      stage: "playing",
+      champion: null,
+    };
+  }
+  if (n === 4 && format === "tournament") {
+    return {
+      format: "tournament",
+      stage: "draw",
+      quarters: null,
+      semis: null,
+      final: null,
+      champion: null,
+    };
+  }
+  if (n === 8 && format === "tournament8") {
+    return {
+      format: "tournament8",
+      stage: "draw",
+      quarters: null,
+      semis: null,
+      final: null,
+      champion: null,
+    };
+  }
+  return null;
+}
+
+export function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+export function selectGamePlayers(filter = {}) {
+  const { eras, leagues, tiers } = filter;
+  const pool = PLAYERS.filter(p =>
+    (!eras   || eras.includes(p.era)) &&
+    (!leagues || leagues.includes(p.league)) &&
+    (!tiers  || tiers.includes(p.tier))
+  );
+  const byName = {};
+  for (const player of pool) {
+    if (!byName[player.name]) byName[player.name] = [player];
+    else byName[player.name].push(player);
+  }
+  const availableIds = new Set();
+  for (const versions of Object.values(byName)) {
+    const selected = versions[Math.floor(Math.random() * versions.length)];
+    availableIds.add(selected.id);
+  }
+  return availableIds;
+}
+
+export function randomizePlayerValues(availablePlayerIds) {
+  const playerValues = new Map();
+  for (const player of PLAYERS) {
+    if (availablePlayerIds.has(player.id)) {
+      const min = player.valueMin || 0;
+      const max = player.valueMax || 0;
+      const randomValue = min === max ? min : Math.floor(Math.random() * (max - min + 1)) + min;
+      playerValues.set(player.id, randomValue);
+    }
+  }
+  return playerValues;
+}
+
+export function generatePlayerForm(availablePlayerIds) {
+  const playerForm = new Map();
+  for (const playerId of availablePlayerIds) {
+    const rand = Math.random();
+    let form;
+    if (rand < 0.1) form = -2;
+    else if (rand < 0.3) form = -1;
+    else if (rand < 0.7) form = 0;
+    else if (rand < 0.9) form = 1;
+    else form = 2;
+    playerForm.set(playerId, form);
+  }
+  return playerForm;
+}
+
+export function generatePlayerOrder(availablePlayerIds) {
+  const playerOrder = new Map();
+  for (const playerId of availablePlayerIds) {
+    playerOrder.set(playerId, Math.random());
+  }
+  return playerOrder;
+}
+
+export function getFormArrow(formValue) {
+  switch (formValue) {
+    case 2: return "↑";
+    case 1: return "↗";
+    case 0: return "→";
+    case -1: return "↘";
+    case -2: return "↓";
+    default: return "→";
+  }
+}
+
+export function buildInitialDraft(clubs, options = {}) {
+  const n = clubs.length;
+  const initialOrder = shuffle(Array.from({ length: n }, (_, i) => i));
+  const availablePlayerIds = selectGamePlayers(options.playerFilter);
+  const playerValues = options.dynamicValues !== false ? randomizePlayerValues(availablePlayerIds) : new Map();
+  const playerForm = options.dynamicForm !== false ? generatePlayerForm(availablePlayerIds) : new Map();
+  const playerOrder = generatePlayerOrder(availablePlayerIds);
+  return {
+    managers: clubs.map((c, i) => ({
+      id: i,
+      name: c.dofName,
+      dofName: c.dofName,
+      clubName: c.clubName,
+      teamName: c.clubName,
+      primaryColor: c.primaryColor || "#1a3a6b",
+      secondaryColor: c.secondaryColor || "#ffffff",
+      pattern: c.pattern || "plain",
+      isComputer: !!c.isComputer,
+      squad: Array(16).fill(null),
+      carryover: 0,
+      tactics: "balanced",
+      formation: c.formation || "4-3-3",
+    })),
+    positionIndex: 0,
+    turnIndex: 0,
+    round: 0,
+    currentBudget: null,
+    currentOrder: initialOrder,
+    takenIds: [],
+    availablePlayerIds,
+    playerValues,
+    playerForm,
+    playerOrder,
+    phase: "draft",
+    hideRatings: options.hideRatings || false,
+    difficulty: options.difficulty || "normal",
+    dynamicForm: options.dynamicForm !== false,
+    series: buildSeries(n, options.format),
+    managerTiming: options.managerTiming || "before",
+    positionMode: options.positionMode || "fixed",
+    currentSlot: null,
+  };
+}
+
+export function getPlayersFromState(d, posKey) {
+  let players = availablePlayersFor(posKey, d.takenIds);
+  if (d.availablePlayerIds instanceof Set) {
+    players = players.filter(p => d.availablePlayerIds.has(p.id));
+  }
+  players = players.map(p => {
+    const player = { ...p };
+    if (d.playerValues instanceof Map) player.value = d.playerValues.get(p.id) ?? p.value;
+    return player;
+  });
+  const acceptable = CPU_POS_ACCEPTABLE[posKey];
+  if (acceptable) {
+    const posFiltered = players.filter(p => acceptable.includes(p.pos));
+    if (posFiltered.length >= 3) players = posFiltered;
+  }
+  return players;
+}
+
+export function autoDrawSlot(d) {
+  if (d.positionMode !== "random" || d.positionIndex >= 11 || d.currentSlot !== null) return d;
+  const activeIdx = d.currentOrder[d.turnIndex];
+  const m = d.managers[activeIdx];
+  const avail = [];
+  for (let i = 0; i < 11; i++) {
+    if (!m.squad[i]) avail.push(i);
+  }
+  if (!avail.length) return d;
+  const slot = avail[Math.floor(Math.random() * avail.length)];
+  return { ...d, currentSlot: slot };
+}
+
+export function activeFormation(d) {
+  const idx = d.currentOrder[d.turnIndex];
+  return d.managers[idx]?.formation || "4-3-3";
+}
+
+export function resolveCurrentPosKey(d) {
+  const formation = activeFormation(d);
+  if (d.positionMode === "random" && d.positionIndex < 11 && d.currentSlot !== null) {
+    return formationPos(formation, d.currentSlot);
+  }
+  return formationPos(formation, d.positionIndex);
+}
+
+export function resolveCurrentPos(d) {
+  if (!d) return null;
+  const slotIndex = (d.positionMode === "random" && d.positionIndex < 11 && d.currentSlot !== null && d.currentSlot !== undefined)
+    ? d.currentSlot
+    : d.positionIndex;
+  const formation = activeFormation(d);
+  const entry = formationEntry(formation, slotIndex);
+  const key = entry.pos;
+  const displayKey = entry.label ?? key;
+  return { key, label: POS_LABELS[displayKey] ?? displayKey, slot: slotIndex };
+}
