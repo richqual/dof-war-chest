@@ -8,6 +8,7 @@ const LEAGUE_CONFIG = [
   { label: "Serie A",        flag: "🇮🇹", key: "serie_a" },
   { label: "Bundesliga",     flag: "🇩🇪", key: "bundesliga" },
   { label: "Ligue 1",        flag: "🇫🇷", key: "ligue_1" },
+  { label: "Legends",        flag: "⚜️", key: "legends" },
 ];
 
 const TIER_CONFIG = [
@@ -133,7 +134,7 @@ function PicksLog({ assignments, draft }) {
 }
 
 function PoolSelector({ onConfirm }) {
-  const allLeagues = LEAGUE_CONFIG.map(l => l.key);
+  const allLeagues = LEAGUE_CONFIG.map(l => l.key).filter(k => k !== "legends");
   const allTiers = TIER_CONFIG.map(t => t.key);
   const [leagues, setLeagues] = useState(allLeagues);
   const [tiers, setTiers] = useState(allTiers);

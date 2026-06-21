@@ -215,11 +215,11 @@ function makeClub(index) {
 }
 
 const DIFFICULTY_INFO = [
-  { key: "easy",   label: "EASY",   hint: "War chest — big budgets, one zero on the wheel (avg £109m)" },
-  { key: "normal", label: "NORMAL", hint: "Tighter purse strings — every spin matters (avg £80m)" },
-  { key: "hard",   label: "HARD",   hint: "Shoestring — bargain bins and frequent zeros (avg £48m)" },
-  { key: "expert", label: "EXPERT", hint: "Ruthless economy — mostly scraps, many zeros (avg £38m)" },
-  { key: "brutal", label: "BRUTAL", hint: "Scrap heap — half the wheel is zero, fight for free transfers (avg £23m)" },
+  { key: "easy",   label: "GENEROUS", hint: "War chest — big budgets, one zero on the wheel (avg £109m)" },
+  { key: "normal", label: "EASY",     hint: "Comfortable budgets — room to breathe on most spins (avg £80m)" },
+  { key: "hard",   label: "NORMAL",   hint: "Balanced budgets with the occasional dry spell (avg £48m)" },
+  { key: "expert", label: "HARD",     hint: "Shoestring — bargain bins and frequent zeros (avg £38m)" },
+  { key: "brutal", label: "BRUTAL",   hint: "Scrap heap — half the wheel is zero, fight for free transfers (avg £23m)" },
 ];
 
 const FORMAT_OPTIONS_2 = [
@@ -236,10 +236,10 @@ export default function SetupScreen({ onStart }) {
   const [hideRatings, setHideRatings] = useState(true);
   const [dynamicValues, setDynamicValues] = useState(true);
   const [dynamicForm, setDynamicForm] = useState(true);
-  const [difficulty, setDifficulty] = useState("normal");
+  const [difficulty, setDifficulty] = useState("hard");
   const [format, setFormat] = useState("bo7");
   const [managerTiming, setManagerTiming] = useState("before");
-  const [positionMode, setPositionMode] = useState("fixed");
+  const [positionMode, setPositionMode] = useState("random");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showRules, setShowRules] = useState(false);
 
@@ -283,7 +283,7 @@ export default function SetupScreen({ onStart }) {
     <div className="setup-screen">
       <div className="setup-card setup-card-wide">
         <div className="setup-header">
-          <h1 className="setup-title">The Football Director</h1>
+          <h1 className="setup-title">The Transfer Wheel</h1>
           <p className="setup-sub">Build a squad. Spin the wheel. Become a legend.</p>
         </div>
 

@@ -1,0 +1,123 @@
+import { useState } from "react";
+
+const DIFFICULTY_INFO = [
+  { key: "easy",   label: "GENEROUS", hint: "5 chests: £800m / £650m / £500m / £375m / £250m — legends await" },
+  { key: "normal", label: "EASY",     hint: "5 chests: £500m / £400m / £300m / £220m / £150m" },
+  { key: "hard",   label: "NORMAL",   hint: "5 chests: £350m / £275m / £200m / £140m / £100m" },
+  { key: "expert", label: "HARD",     hint: "5 chests: £175m / £130m / £100m / £75m / £50m — bargain bins beckon" },
+  { key: "brutal", label: "BRUTAL",   hint: "5 chests: £75m / £50m / £30m / £15m / £0m — zero is possible" },
+];
+
+export default function WarChestLobbyScreen({ onContinue, onBack }) {
+  const [numClubs, setNumClubs] = useState(2);
+  const [numHumans, setNumHumans] = useState(1);
+  const [difficulty, setDifficulty] = useState("hard");
+  const [hideRatings, setHideRatings] = useState(false);
+  const [dynamicValues, setDynamicValues] = useState(true);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  function handleNumClubs(n) {
+    setNumClubs(n);
+    if (numHumans > n) setNumHumans(n);
+  }
+
+  function handleContinue() {
+    onContinue({ numClubs, numHumans, difficulty, hideRatings, dynamicValues, dynamicForm: true });
+  }
+
+  return (
+    <div className="setup-screen">
+      <div className="setup-card setup-card-wide">
+        <div className="setup-header">
+          <div className="wc-mode-badge">WAR CHEST</div>
+          <h1 className="setup-title">5-a-Side</h1>
+          <p className="setup-sub">Pick a mystery chest. Build a 5-player squad. Winner takes all.</p>
+        </div>
+
+        <div className="game-options">
+          <div className="options-title">GAME SETUP</div>
+
+          <div className="setup-row">
+            <span className="setup-row-label">CLUBS</span>
+            <select className="setup-row-select" value={numClubs} onChange={e => handleNumClubs(Number(e.target.value))}>
+              {[2, 4, 8].map(n => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </div>
+          <div className="difficulty-hint setup-row-hint">
+            {numClubs === 2 ? "Head-to-head — two squads, one match" : `${numClubs}-way — everyone builds a squad, then play off`}
+          </div>
+
+          <div className="setup-row">
+            <span className="setup-row-label">PLAYERS</span>
+            <select className="setup-row-select" value={numHumans} onChange={e => setNumHumans(Number(e.target.value))}>
+              {Array.from({ length: numClubs }, (_, i) => i + 1).map(n => (
+                <option key={n} value={n}>{n}</option>
+              ))}
+            </select>
+          </div>
+          <div className="difficulty-hint setup-row-hint">
+            {numHumans === numClubs
+              ? "All clubs are human-controlled"
+              : `${numClubs - numHumans} CPU club${numClubs - numHumans > 1 ? "s" : ""} will be auto-generated`}
+          </div>
+
+          <div className="setup-row">
+            <span className="setup-row-label">DIFFICULTY</span>
+            <select
+              className="setup-row-select setup-row-select-wide"
+              value={difficulty}
+              onChange={e => setDifficulty(e.target.value)}
+            >
+              {DIFFICULTY_INFO.map(d => (
+                <option key={d.key} value={d.key}>{d.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="difficulty-hint setup-row-hint">
+            {DIFFICULTY_INFO.find(d => d.key === difficulty)?.hint}
+          </div>
+
+          <button className="advanced-toggle" onClick={() => setShowAdvanced(v => !v)}>
+            {showAdvanced ? "▲" : "▼"} ADVANCED OPTIONS
+          </button>
+
+          {showAdvanced && (
+            <div className="advanced-options">
+              <label className="option-row">
+                <input type="checkbox" className="option-checkbox" checked={hideRatings} onChange={e => setHideRatings(e.target.checked)} />
+                <span className="option-label">Hide player ratings during draft</span>
+                <span className="option-hint">Adds mystery — pick on reputation alone</span>
+              </label>
+              <label className="option-row">
+                <input type="checkbox" className="option-checkbox" checked={dynamicValues} onChange={e => setDynamicValues(e.target.checked)} />
+                <span className="option-label">Randomize player values each game</span>
+                <span className="option-hint">Prices vary by tier — no two games are alike</span>
+              </label>
+            </div>
+          )}
+        </div>
+
+        <div className="setup-rules">
+          <div className="rules-title">HOW IT WORKS</div>
+          <ul className="rules-bullets" style={{ margin: 0 }}>
+            <li>Each player picks one mystery War Chest from a row of 5 — you don't know the value until you open it</li>
+            <li>Your chest is your entire transfer budget for the squad — spend wisely</li>
+            <li>Build a 5-player squad: Goalkeeper · Defender · Midfielder · + 2 free slots</li>
+            <li>You must fill GK, DEF and MID — the rest are up to you</li>
+            <li>Match is 60 minutes — no manager, just pure squad quality</li>
+          </ul>
+        </div>
+
+        <button className="start-btn active" onClick={handleContinue}>
+          CONTINUE →
+        </button>
+
+        {onBack && (
+          <button className="mode-back-link" onClick={onBack}>
+            ← change mode
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -414,7 +414,6 @@ export const PLAYERS = [
   { id: 2414, name: "Manuel Iturra",          club: "Granada",        years: "2011–2016", pos: "DM", rating: 77, valueMin: 0, valueMax: 2,   nation: "🇨🇱", era: "golden",  league: "la_liga", tier: "T5",   nationality_code: "CHI", archetype: "Grinder" },
   { id: 2415, name: "Sergio Busquets",        club: "Barcelona",      years: "2016–2023", pos: "DM", rating: 90, valueMin: 34, valueMax: 64,  nation: "🇪🇸", era: "modern",  league: "la_liga", tier: "T2",   nationality_code: "ESP", archetype: "Grinder" },
   { id: 2416, name: "Casemiro",               club: "Real Madrid",    years: "2016–2022", pos: "DM", rating: 92, valueMin: 65, valueMax: 95,  nation: "🇧🇷", era: "modern",  league: "la_liga", tier: "T2",   nationality_code: "BRA", archetype: "Grinder" },
-  { id: 2417, name: "Thomas Partey",          club: "Atlético",       years: "2012–2020", pos: "DM", rating: 88, valueMin: 19, valueMax: 39,  nation: "🇬🇭", era: "modern",  league: "la_liga", tier: "T3", nationality_code: "GHA", archetype: "Grinder" },
   { id: 2418, name: "Marcos Llorente",        club: "Atlético",       years: "2019–",     pos: "DM", rating: 86, valueMin: 6, valueMax: 26,  nation: "🇪🇸", era: "modern",  league: "la_liga", tier: "T3", nationality_code: "ESP", archetype: "Grinder" },
   { id: 2419, name: "Frenkie de Jong",        club: "Barcelona",      years: "2019–",     pos: "DM", rating: 88, valueMin: 19, valueMax: 39,  nation: "🇳🇱", era: "modern",  league: "la_liga", tier: "T3", nationality_code: "NED", archetype: "Grinder" },
   { id: 2420, name: "Dani Ceballos",          club: "Real Madrid",    years: "2017–2022", pos: "DM", rating: 83, valueMin: 0, valueMax: 10,   nation: "🇪🇸", era: "modern",  league: "la_liga", tier: "T4", nationality_code: "ESP", archetype: "Grinder" },
@@ -690,7 +689,7 @@ export const PLAYERS = [
   { id: 3501, name: "Pavel Nedved",           club: "Juventus",       years: "2001–2009", pos: "LM", pos2: "LW", rating: 93, valueMin: 80, valueMax: 120, nation: "🇨🇿", era: "classic", league: "serie_a", tier: "T1",   nationality_code: "CZE", archetype: "Warrior" },
   { id: 3502, name: "Kaka",                   club: "AC Milan",       years: "2003–2009", pos: "CAM", pos2: "CM", rating: 96, valueMin: 170, valueMax: 210, nation: "🇧🇷", era: "classic", league: "serie_a", tier: "T1",   nationality_code: "BRA", archetype: "Technician" },
   { id: 3503, name: "Francesco Totti",        club: "Roma",           years: "1999–2007", pos: "CAM", pos2: "CM", rating: 93, valueMin: 80, valueMax: 120, nation: "🇮🇹", era: "classic", league: "serie_a", tier: "T1",   nationality_code: "ITA", archetype: "Maverick" },
-  { id: 3504, name: "Roberto Baggio",         club: "Brescia",        years: "2000–2004", pos: "CAM", pos2: "CM", rating: 88, valueMin: 19, valueMax: 39,  nation: "🇮🇹", era: "classic", league: "serie_a", tier: "T3", nationality_code: "ITA", archetype: "Maverick" },
+  // Roberto Baggio (Brescia 2000–04) moved to LEGENDS as a prime Juventus version
   { id: 3505, name: "Rui Costa",              club: "AC Milan",       years: "2001–2006", pos: "CAM", pos2: "CM", rating: 89, valueMin: 23, valueMax: 53,  nation: "🇵🇹", era: "classic", league: "serie_a", tier: "T2",   nationality_code: "POR", archetype: "Technician" },
   { id: 3506, name: "Juan Sebastian Veron",   club: "Lazio",          years: "1999–2001", pos: "CM", rating: 88, valueMin: 19, valueMax: 39,  nation: "🇦🇷", era: "classic", league: "serie_a", tier: "T3", nationality_code: "ARG", archetype: "Technician" },
   { id: 3507, name: "Dejan Stankovic",        club: "Inter",          years: "2004–2013", pos: "CM", rating: 87, valueMin: 12, valueMax: 32,  nation: "🇷🇸", era: "classic", league: "serie_a", tier: "T3", nationality_code: "SRB", archetype: "Technician" },
@@ -825,7 +824,7 @@ export const PLAYERS = [
   { id: 4102, name: "Christian Worns",        club: "Dortmund",       years: "1999–2008", pos: "RB", rating: 83, valueMin: 0, valueMax: 10,   nation: "🇩🇪", era: "classic", league: "bundesliga", tier: "T4", nationality_code: "GER", archetype: "Warrior" },
   { id: 4103, name: "Bernd Schneider",        club: "Leverkusen",     years: "1999–2009", pos: "RB", rating: 85, valueMin: 1, valueMax: 21,  nation: "🇩🇪", era: "classic", league: "bundesliga", tier: "T3", nationality_code: "GER", archetype: "Grinder" },
   { id: 4104, name: "Piotr Trochowski",       club: "Hamburg",        years: "2005–2010", pos: "RB", rating: 79, valueMin: 0, valueMax: 2,   nation: "🇩🇪", era: "classic", league: "bundesliga", tier: "T5",   nationality_code: "GER", archetype: "Grinder" },
-  { id: 4105, name: "Lothar Matthaus",        club: "Bayern",         years: "1999–2000", pos: "RB", rating: 84, valueMin: 1, valueMax: 13,   nation: "🇩🇪", era: "classic", league: "bundesliga", tier: "T4", nationality_code: "GER", archetype: "Leader" },
+  // Lothar Matthaus (Bayern 1999–2000 RB) moved to LEGENDS as a prime CM version
   { id: 4106, name: "Philipp Lahm",           club: "Bayern",         years: "2009–2017", pos: "RB", rating: 93, valueMin: 80, valueMax: 120, nation: "🇩🇪", era: "golden",  league: "bundesliga", tier: "T1",   nationality_code: "GER", archetype: "Technician" },
   { id: 4107, name: "Lukasz Piszczek",        club: "Dortmund",       years: "2010–2021", pos: "RB", rating: 87, valueMin: 12, valueMax: 32,  nation: "🇵🇱", era: "golden",  league: "bundesliga", tier: "T3", nationality_code: "POL", archetype: "Athlete" },
   { id: 4108, name: "Kevin Grosskreutz",      club: "Dortmund",       years: "2009–2015", pos: "RB", rating: 81, valueMin: 0, valueMax: 7,   nation: "🇩🇪", era: "golden",  league: "bundesliga", tier: "T4",   nationality_code: "GER", archetype: "Grinder" },
@@ -1178,7 +1177,6 @@ export const PLAYERS = [
   { id: 5611, name: "Ousmane Dembele",        club: "Rennes",         years: "2015–2016", pos: "RW", rating: 84, valueMin: 1, valueMax: 13,   nation: "🇫🇷", era: "golden",  league: "ligue_1", tier: "T4", nationality_code: "FRA", archetype: "Athlete" },
   { id: 5612, name: "Lucas Moura",            club: "Sao Paulo",      years: "2011–2012", pos: "RW", rating: 84, valueMin: 1, valueMax: 13,   nation: "🇧🇷", era: "golden",  league: "ligue_1", tier: "T4", nationality_code: "BRA", archetype: "Athlete" },
   { id: 5613, name: "Kylian Mbappé",          club: "AS Monaco",      years: "2015–2017", pos: "RW", rating: 87, valueMin: 12, valueMax: 32,  nation: "🇫🇷", era: "modern",  league: "ligue_1", tier: "T3", nationality_code: "FRA", archetype: "Athlete" },
-  { id: 5618, name: "Mason Greenwood",        club: "Getafe",         years: "2023–",     pos: "RW", rating: 81, valueMin: 0, valueMax: 7,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "modern",  league: "la_liga",  tier: "T4",   nationality_code: "ENG", archetype: "Athlete" },
   { id: 5619, name: "Ismaila Sarr",           club: "Watford",        years: "2018–2020", pos: "RW", rating: 81, valueMin: 0, valueMax: 7,   nation: "🇸🇳", era: "modern",  league: "ligue_1", tier: "T4",   nationality_code: "SEN", archetype: "Athlete" },
 
   // ── LEFT WINGERS (Ligue 1) ────────────────────────────────────────────
@@ -1297,6 +1295,53 @@ export const PLAYERS = [
   { id: 2867, name: "Aritz Elustondo",        club: "Real Sociedad",  years: "2011–",     pos: "CB", rating: 84, valueMin: 1, valueMax: 13,   nation: "🇪🇸", era: "golden",  league: "la_liga", tier: "T4", nationality_code: "ESP", archetype: "Warrior" },
   { id: 2868, name: "Asier Illarramendi",     club: "Real Sociedad",  years: "2009–2013", pos: "DM", rating: 85, valueMin: 1, valueMax: 21,  nation: "🇪🇸", era: "golden",  league: "la_liga", tier: "T3", nationality_code: "ESP", archetype: "Grinder" },
   { id: 2869, name: "David Silva",            club: "Real Sociedad",  years: "2018–2023", pos: "CAM", pos2: "CM", rating: 87, valueMin: 12, valueMax: 32,  nation: "🇪🇸", era: "modern",  league: "la_liga", tier: "T3", nationality_code: "ESP", archetype: "Technician" },
+
+  // ── LEGENDS ───────────────────────────────────────────────────────────────
+  // All-time greats from eras predating the main database (pre-1998).
+  // Use league: "legends" to keep them as a separate pool in the setup screen.
+
+  // ── GOALKEEPERS ──────────────────────────────────────────────────────
+  { id: 6001, name: "Lev Yashin",            club: "Dynamo Moscow",  years: "1949–71", pos: "GK", rating: 92, tier: "T2", valueMin: 55,  valueMax: 95,  nation: "🇷🇺", era: "legend", league: "legends", nationality_code: "RUS", archetype: "Shot Stopper" },
+  { id: 6002, name: "Gordon Banks",          club: "Stoke City",     years: "1958–77", pos: "GK", rating: 91, tier: "T2", valueMin: 40,  valueMax: 78,  nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "legend", league: "legends", nationality_code: "ENG", archetype: "Shot Stopper" },
+  { id: 6003, name: "Ken Mulhearn",          club: "Shrewsbury Town",years: "1971–78", pos: "GK", rating: 68, tier: "T5", valueMin: 0,   valueMax: 2,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "legend", league: "legends", nationality_code: "ENG", archetype: "Organiser" },
+
+  // ── DEFENDERS ────────────────────────────────────────────────────────
+  { id: 6004, name: "Franz Beckenbauer",     club: "Bayern Munich",  years: "1964–83", pos: "CB", rating: 93, tier: "T1", valueMin: 75,  valueMax: 115, nation: "🇩🇪", era: "legend", league: "legends", nationality_code: "GER", archetype: "Leader" },
+  { id: 6005, name: "Franco Baresi",         club: "AC Milan",       years: "1977–97", pos: "CB", rating: 92, tier: "T2", valueMin: 55,  valueMax: 95,  nation: "🇮🇹", era: "legend", league: "legends", nationality_code: "ITA", archetype: "Leader" },
+  { id: 6006, name: "Bobby Moore",           club: "West Ham",       years: "1958–77", pos: "CB", rating: 90, tier: "T2", valueMin: 28,  valueMax: 65,  nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "legend", league: "legends", nationality_code: "ENG", archetype: "Leader" },
+  { id: 6007, name: "Ronald Koeman",         club: "Barcelona",      years: "1980–97", pos: "CB", rating: 90, tier: "T2", valueMin: 28,  valueMax: 65,  nation: "🇳🇱", era: "legend", league: "legends", nationality_code: "NED", archetype: "Technician" },
+
+  // ── MIDFIELDERS ──────────────────────────────────────────────────────
+  { id: 6008, name: "Michel Platini",        club: "Juventus",       years: "1972–87", pos: "CAM", rating: 93, tier: "T1", valueMin: 75,  valueMax: 115, nation: "🇫🇷", era: "legend", league: "legends", nationality_code: "FRA", archetype: "Technician" },
+  { id: 6009, name: "Ruud Gullit",           club: "AC Milan",       years: "1979–98", pos: "CAM", rating: 92, tier: "T2", valueMin: 55,  valueMax: 95,  nation: "🇳🇱", era: "legend", league: "legends", nationality_code: "NED", archetype: "Maverick" },
+  { id: 6010, name: "Lothar Matthaus",       club: "Bayern Munich",  years: "1984–92", pos: "CM",  rating: 92, tier: "T2", valueMin: 55,  valueMax: 95,  nation: "🇩🇪", era: "legend", league: "legends", nationality_code: "GER", archetype: "Leader" },
+  { id: 6011, name: "Bobby Charlton",        club: "Man Utd",        years: "1956–73", pos: "CM",  rating: 91, tier: "T2", valueMin: 40,  valueMax: 78,  nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "legend", league: "legends", nationality_code: "ENG", archetype: "Technician" },
+  { id: 6012, name: "Bryan Robson",          club: "Man Utd",        years: "1974–97", pos: "CM",  rating: 89, tier: "T3", valueMin: 18,  valueMax: 53,  nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "legend", league: "legends", nationality_code: "ENG", archetype: "Warrior" },
+  { id: 6013, name: "Socrates",             club: "Corinthians",    years: "1974–89", pos: "CM",  rating: 88, tier: "T3", valueMin: 12,  valueMax: 44,  nation: "🇧🇷", era: "legend", league: "legends", nationality_code: "BRA", archetype: "Technician" },
+  { id: 6014, name: "Gheorghe Hagi",         club: "Real Madrid",    years: "1982–2001",pos: "CAM", rating: 89, tier: "T3", valueMin: 18,  valueMax: 53,  nation: "🇷🇴", era: "legend", league: "legends", nationality_code: "ROU", archetype: "Maverick" },
+
+  // ── WINGERS ──────────────────────────────────────────────────────────
+  { id: 6015, name: "George Best",           club: "Man Utd",        years: "1963–83", pos: "RW",  rating: 92, tier: "T2", valueMin: 55,  valueMax: 95,  nation: "🏴󠁧󠁢󠁮󠁩󠁲󠁿", era: "legend", league: "legends", nationality_code: "NIR", archetype: "Maverick" },
+  { id: 6016, name: "Stanley Matthews",      club: "Blackpool",      years: "1930–65", pos: "RW",  rating: 90, tier: "T2", valueMin: 28,  valueMax: 65,  nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "legend", league: "legends", nationality_code: "ENG", archetype: "Technician" },
+  { id: 6017, name: "Hristo Stoichkov",      club: "Barcelona",      years: "1984–2003",pos: "LW", rating: 90, tier: "T2", valueMin: 28,  valueMax: 65,  nation: "🇧🇬", era: "legend", league: "legends", nationality_code: "BUL", archetype: "Maverick" },
+
+  // ── FORWARDS / STRIKERS ──────────────────────────────────────────────
+  { id: 6018, name: "Pelé",                  club: "Santos",         years: "1956–77", pos: "ST",  rating: 96, tier: "T1", valueMin: 165, valueMax: 205, nation: "🇧🇷", era: "legend", league: "legends", nationality_code: "BRA", archetype: "Maverick" },
+  { id: 6019, name: "Diego Maradona",        club: "Napoli",         years: "1976–97", pos: "CAM", rating: 96, tier: "T1", valueMin: 165, valueMax: 205, nation: "🇦🇷", era: "legend", league: "legends", nationality_code: "ARG", archetype: "Maverick" },
+  { id: 6020, name: "Johan Cruyff",          club: "Barcelona",      years: "1964–84", pos: "ST",  rating: 95, tier: "T1", valueMin: 130, valueMax: 170, nation: "🇳🇱", era: "legend", league: "legends", nationality_code: "NED", archetype: "Maverick" },
+  { id: 6021, name: "Alfredo Di Stéfano",   club: "Real Madrid",    years: "1943–66", pos: "ST",  rating: 94, tier: "T1", valueMin: 100, valueMax: 140, nation: "🇦🇷", era: "legend", league: "legends", nationality_code: "ARG", archetype: "Leader" },
+  { id: 6022, name: "Marco van Basten",      club: "AC Milan",       years: "1982–95", pos: "ST",  rating: 94, tier: "T1", valueMin: 100, valueMax: 140, nation: "🇳🇱", era: "legend", league: "legends", nationality_code: "NED", archetype: "Athlete" },
+  { id: 6023, name: "Gerd Müller",           club: "Bayern Munich",  years: "1964–81", pos: "ST",  rating: 93, tier: "T1", valueMin: 75,  valueMax: 115, nation: "🇩🇪", era: "legend", league: "legends", nationality_code: "GER", archetype: "Athlete" },
+  { id: 6024, name: "Roberto Baggio",        club: "Juventus",       years: "1990–95", pos: "CAM", rating: 92, tier: "T2", valueMin: 55,  valueMax: 95,  nation: "🇮🇹", era: "legend", league: "legends", nationality_code: "ITA", archetype: "Maverick" },
+  { id: 6025, name: "Eusébio",              club: "Benfica",        years: "1961–78", pos: "ST",  rating: 91, tier: "T2", valueMin: 40,  valueMax: 78,  nation: "🇵🇹", era: "legend", league: "legends", nationality_code: "POR", archetype: "Athlete" },
+  { id: 6026, name: "Eric Cantona",          club: "Man Utd",        years: "1988–97", pos: "ST",  rating: 91, tier: "T2", valueMin: 40,  valueMax: 78,  nation: "🇫🇷", era: "legend", league: "legends", nationality_code: "FRA", archetype: "Leader" },
+  { id: 6027, name: "Denis Law",             club: "Man Utd",        years: "1962–73", pos: "ST",  rating: 91, tier: "T2", valueMin: 40,  valueMax: 78,  nation: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", era: "legend", league: "legends", nationality_code: "SCO", archetype: "Athlete" },
+  { id: 6028, name: "Kenny Dalglish",        club: "Liverpool",      years: "1967–90", pos: "ST",  rating: 90, tier: "T2", valueMin: 28,  valueMax: 65,  nation: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", era: "legend", league: "legends", nationality_code: "SCO", archetype: "Technician" },
+  { id: 6029, name: "Gary Lineker",          club: "Barcelona",      years: "1978–94", pos: "ST",  rating: 90, tier: "T2", valueMin: 28,  valueMax: 65,  nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "legend", league: "legends", nationality_code: "ENG", archetype: "Grinder" },
+  { id: 6030, name: "Karl-Heinz Rummenigge", club: "Bayern Munich",  years: "1974–89", pos: "ST",  rating: 89, tier: "T3", valueMin: 18,  valueMax: 53,  nation: "🇩🇪", era: "legend", league: "legends", nationality_code: "GER", archetype: "Athlete" },
+  { id: 6031, name: "Kevin Keegan",          club: "Hamburg",        years: "1968–84", pos: "ST",  rating: 89, tier: "T3", valueMin: 18,  valueMax: 53,  nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "legend", league: "legends", nationality_code: "ENG", archetype: "Athlete" },
+  { id: 6032, name: "Ian Rush",              club: "Liverpool",      years: "1979–2000",pos: "ST", rating: 88, tier: "T3", valueMin: 12,  valueMax: 44,  nation: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", era: "legend", league: "legends", nationality_code: "WAL", archetype: "Grinder" },
+  { id: 6033, name: "Mark Hughes",           club: "Man Utd",        years: "1983–2002",pos: "ST", rating: 87, tier: "T3", valueMin: 7,   valueMax: 35,  nation: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", era: "legend", league: "legends", nationality_code: "WAL", archetype: "Warrior" },
 ];
 
 export const POSITIONS = [
@@ -1325,9 +1370,9 @@ export const SUB_POSITIONS = {
   ATTSUB: ["ST"],
 };
 
-export const ERA_LABELS = { classic: "Classic 98-08", golden: "Golden 08-16", modern: "Modern 16-" };
-export const ERA_COLORS = { classic: "#8B5E3C", golden: "#1A6B4A", modern: "#1A4580" };
-export const ERA_BG    = { classic: "#F5E6D0", golden: "#D4EDE2", modern: "#D0E4F5" };
+export const ERA_LABELS = { classic: "Classic 98-08", golden: "Golden 08-16", modern: "Modern 16-", legend: "Legend" };
+export const ERA_COLORS = { classic: "#8B5E3C", golden: "#1A6B4A", modern: "#1A4580", legend: "#6B2D8B" };
+export const ERA_BG    = { classic: "#F5E6D0", golden: "#D4EDE2", modern: "#D0E4F5", legend: "#F0D8FF" };
 
 export function formatValue(v) {
   if (v === 0) return "FREE";
@@ -1367,6 +1412,27 @@ export function generateBudget(difficulty = "normal") {
   const slots = DIFFICULTY_SLOTS[difficulty] || DIFFICULTY_SLOTS.normal;
   return slots[Math.floor(Math.random() * slots.length)];
 }
+
+// War Chest mode: 5 mystery chest values per difficulty.
+// Keys match DIFFICULTY_SLOTS keys (easy=Generous, normal=Easy, hard=Normal, expert=Hard, brutal=Brutal).
+// In Brutal the zero chest is possible (1-in-5 chance) — the only difficulty where this occurs.
+export const WAR_CHEST_VALUES = {
+  easy:   [800, 650, 500, 375, 250],
+  normal: [500, 400, 300, 220, 150],
+  hard:   [350, 275, 200, 140, 100],
+  expert: [175, 130, 100,  75,  50],
+  brutal: [ 75,  50,  30,  15,   0],
+};
+
+// 5-a-side squad slots. Slots 3 & 4 are "any outfield" (no GK).
+// posFilter is the allowed player positions for each slot.
+export const WAR_CHEST_SLOTS = [
+  { key: "GK",  label: "Goalkeeper",   posFilter: ["GK"] },
+  { key: "DEF", label: "Defender",     posFilter: ["CB", "LB", "RB"] },
+  { key: "MID", label: "Midfielder",   posFilter: ["DM", "CM", "CAM", "RM", "LM"] },
+  { key: "ATT", label: "Any Outfield", posFilter: ["DM", "CM", "CAM", "RM", "LM", "RW", "LW", "ST"] },
+  { key: "ATT", label: "Any Outfield", posFilter: ["DM", "CM", "CAM", "RM", "LM", "RW", "LW", "ST"] },
+];
 
 export const RANDOM_MANAGER_NAMES = [
   // English

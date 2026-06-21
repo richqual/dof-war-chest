@@ -2,17 +2,17 @@ import { useState } from "react";
 import KitSwatch from "./KitSwatch";
 
 const DIFFICULTY_INFO = [
-  { key: "easy",   label: "EASY",   hint: "Big budgets (avg £109m)" },
-  { key: "normal", label: "NORMAL", hint: "Balanced (avg £80m)" },
-  { key: "hard",   label: "HARD",   hint: "Tight budgets (avg £48m)" },
-  { key: "expert", label: "EXPERT", hint: "Very tight (avg £38m)" },
-  { key: "brutal", label: "BRUTAL", hint: "Scrap heap (avg £23m)" },
+  { key: "easy",   label: "GENEROUS", hint: "Big budgets (avg £109m)" },
+  { key: "normal", label: "EASY",     hint: "Comfortable budgets (avg £80m)" },
+  { key: "hard",   label: "NORMAL",   hint: "Balanced, occasional dry spell (avg £48m)" },
+  { key: "expert", label: "HARD",     hint: "Shoestring budgets (avg £38m)" },
+  { key: "brutal", label: "BRUTAL",   hint: "Scrap heap (avg £23m)" },
 ];
 
 function HostGameConfig({ onStart, slots }) {
   const numClubs = slots.length;
-  const [difficulty, setDifficulty] = useState("normal");
-  const [positionMode, setPositionMode] = useState("fixed");
+  const [difficulty, setDifficulty] = useState("hard");
+  const [positionMode, setPositionMode] = useState("random");
   const [hideRatings, setHideRatings] = useState(true);
   const [dynamicValues, setDynamicValues] = useState(true);
   const [dynamicForm, setDynamicForm] = useState(true);

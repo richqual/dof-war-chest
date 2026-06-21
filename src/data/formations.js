@@ -6,6 +6,13 @@ export const FORMATION_LIST = [
 // Slot order: GK=0, RB=1, LB=2, CB=3, CB=4, slot5=6, slot6, slot7, slot8, slot9, slot10=10.
 // pos labels reflect the actual position in that formation (used for display + player filtering).
 export const FORMATIONS = {
+  "1-2-1": [
+    { pos: "GK",  x: 50, y: 86 },
+    { pos: "DEF", x: 50, y: 65 },
+    { pos: "MID", x: 27, y: 42 },
+    { pos: "MID", x: 73, y: 42 },
+    { pos: "ATT", x: 50, y: 16 },
+  ],
   "4-3-3": [
     { pos: "GK",  x: 50, y: 88 },
     { pos: "RB",  x: 82, y: 70 },

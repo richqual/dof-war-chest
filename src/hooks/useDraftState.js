@@ -8,6 +8,7 @@ import {
   autoDrawSlot, activeFormation, resolveCurrentPosKey, resolveCurrentPos,
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder,
   POS_LABELS, getFormArrow,
+  buildInitialWarChestDraft, getWarChestPlayersForSlot, autoBuildWarChestSquad,
 } from "./draftUtils";
 
 export { getFormArrow };
@@ -119,7 +120,7 @@ export function useDraftState() {
           const newLegsPlayed = q.legsPlayed + 1;
           let qWinner = null;
           let wonOnPens = false;
-          if (newLegsPlayed >= 2) {
+          if (newLegsPlayed >= (s.singleLeg ? 1 : 2)) {
             if (newGoals[0] > newGoals[1]) qWinner = q.p[0];
             else if (newGoals[1] > newGoals[0]) qWinner = q.p[1];
             else { qWinner = winnerIdx; wonOnPens = true; }
@@ -149,7 +150,7 @@ export function useDraftState() {
             const newLegsPlayed = semi.legsPlayed + 1;
             let semiWinner = null;
             let wonOnPens = false;
-            if (newLegsPlayed >= 2) {
+            if (newLegsPlayed >= (s.singleLeg ? 1 : 2)) {
               if (newGoals[0] > newGoals[1]) semiWinner = semi.p[0];
               else if (newGoals[1] > newGoals[0]) semiWinner = semi.p[1];
               else { semiWinner = winnerIdx; wonOnPens = true; }
@@ -185,7 +186,7 @@ export function useDraftState() {
           const newLegsPlayed = semi.legsPlayed + 1;
           let semiWinner = null;
           let wonOnPens = false;
-          if (newLegsPlayed >= 2) {
+          if (newLegsPlayed >= (s.singleLeg ? 1 : 2)) {
             if (newGoals[0] > newGoals[1]) semiWinner = semi.p[0];
             else if (newGoals[1] > newGoals[0]) semiWinner = semi.p[1];
             else { semiWinner = winnerIdx; wonOnPens = true; }
@@ -447,7 +448,79 @@ export function useDraftState() {
     setDraft(prev => ({ ...prev, availablePlayerIds, playerValues, playerForm, playerOrder }));
   }
 
-  const activeManagerIdx = draft ? draft.currentOrder[draft.turnIndex] : 0;
+  // ── War Chest actions ────────────────────────────────────────────────────
+
+  function startWarChestGame(clubs, options) {
+    let d = buildInitialWarChestDraft(clubs, options);
+    // Auto-build any leading CPU managers before the first human
+    let idx = 0;
+    while (idx < d.managers.length && d.managers[idx].isComputer) {
+      d = autoBuildWarChestSquad(d, idx);
+      idx++;
+    }
+    if (idx >= d.managers.length) {
+      d = { ...d, wcCurrentManagerIdx: d.managers.length, wcPhase: "complete", phase: "complete" };
+      setDraft(d);
+      setScreen("squads");
+    } else {
+      setDraft({ ...d, wcCurrentManagerIdx: idx });
+      setScreen("war-chest-select");
+    }
+  }
+
+  function selectWarChest(value) {
+    setDraft(prev => ({
+      ...prev,
+      wcPhase: "building",
+      managers: prev.managers.map((m, i) =>
+        i === prev.wcCurrentManagerIdx
+          ? { ...m, chestBudget: value, wcBudgetRemaining: value }
+          : m
+      ),
+    }));
+    setScreen("war-chest-draft");
+  }
+
+  function pickWarChestPlayer(slot, player) {
+    setDraft(prev => {
+      const idx = prev.wcCurrentManagerIdx;
+      const managers = prev.managers.map((m, i) => {
+        if (i !== idx) return m;
+        const squad = [...m.squad];
+        squad[slot] = { ...player };
+        return { ...m, squad, wcBudgetRemaining: m.wcBudgetRemaining - player.value };
+      });
+      return { ...prev, managers, takenIds: [...prev.takenIds, player.id] };
+    });
+  }
+
+  function completeWarChestSquad() {
+    // Compute next state directly from the current draft snapshot (not inside
+    // the setDraft updater) so setScreen gets the correct value in the same batch.
+    let d = { ...draft };
+    let nextIdx = draft.wcCurrentManagerIdx + 1;
+    while (nextIdx < d.managers.length && d.managers[nextIdx].isComputer) {
+      d = autoBuildWarChestSquad(d, nextIdx);
+      nextIdx++;
+    }
+    const done = nextIdx >= d.managers.length;
+    setDraft({
+      ...d,
+      wcCurrentManagerIdx: done ? d.managers.length : nextIdx,
+      wcPhase: done ? "complete" : "selecting",
+      phase: done ? "complete" : "draft",
+    });
+    setScreen(done ? "squads" : "war-chest-select");
+  }
+
+  function getWarChestPlayers(slotIdx) {
+    if (!draft) return [];
+    return getWarChestPlayersForSlot(
+      slotIdx, draft.takenIds, draft.availablePlayerIds, draft.playerValues, draft.playerForm
+    );
+  }
+
+  const activeManagerIdx = draft ? draft.currentOrder?.[draft.turnIndex] ?? 0 : 0;
   const activeManager = draft ? draft.managers[activeManagerIdx] : null;
   const currentPos = resolveCurrentPos(draft);
 
@@ -458,5 +531,6 @@ export function useDraftState() {
     swapSquadPlayers, setTactics, restartGame, getAvailablePlayers, getTakenPlayers,
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
+    startWarChestGame, selectWarChest, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
   };
 }

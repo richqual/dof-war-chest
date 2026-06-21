@@ -15,6 +15,11 @@ import ManagerDraftScreen from "./components/ManagerDraftScreen";
 import PlayerPoolScreen from "./components/PlayerPoolScreen";
 import MultiplayerEntryScreen from "./components/MultiplayerEntryScreen";
 import MultiplayerWaitingRoom from "./components/MultiplayerWaitingRoom";
+import AboutScreen from "./components/AboutScreen";
+import WarChestLobbyScreen from "./components/WarChestLobbyScreen";
+import WarChestSelectionScreen from "./components/WarChestSelectionScreen";
+import WarChestDraftScreen from "./components/WarChestDraftScreen";
+import WarChestSquadScreen from "./components/WarChestSquadScreen";
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -43,7 +48,7 @@ class ErrorBoundary extends Component {
   }
 }
 
-function GlobalMenu({ light, onToggle, hasGame, onAbandon, extraOptions }) {
+function GlobalMenu({ light, onToggle, largeText, onToggleLargeText, hasGame, onAbandon, onAbout, extraOptions }) {
   const [open, setOpen] = useState(false);
 
   function abandon() {
@@ -64,7 +69,7 @@ function GlobalMenu({ light, onToggle, hasGame, onAbandon, extraOptions }) {
       {open && (
         <div className="global-menu-overlay" onClick={() => setOpen(false)}>
           <div className="global-menu-box" onClick={e => e.stopPropagation()}>
-            <div className="global-menu-title">THE FOOTBALL DIRECTOR</div>
+            <div className="global-menu-title">THE TRANSFER WHEEL</div>
 
             <button className="global-menu-item" onClick={() => setOpen(false)}>
               ▶ CONTINUE
@@ -86,6 +91,12 @@ function GlobalMenu({ light, onToggle, hasGame, onAbandon, extraOptions }) {
 
             <div className="global-menu-divider" />
 
+            <button className="global-menu-item" onClick={() => { setOpen(false); onAbout(); }}>
+              ℹ ABOUT THIS GAME
+            </button>
+
+            <div className="global-menu-divider" />
+
             <button className="global-menu-item" onClick={() => window.location.reload()}>
               ↺ RESTART APP
             </button>
@@ -94,6 +105,12 @@ function GlobalMenu({ light, onToggle, hasGame, onAbandon, extraOptions }) {
 
             <button className="global-menu-item" onClick={() => { setOpen(false); onToggle(); }}>
               {light ? "🌙 DARK MODE" : "☀️ LIGHT MODE"}
+            </button>
+
+            <div className="global-menu-divider" />
+
+            <button className="global-menu-item" onClick={() => { setOpen(false); onToggleLargeText(); }}>
+              {largeText ? "𝐀 NORMAL TEXT" : "𝐀 LARGE TEXT"}
             </button>
 
             {hasGame && (
@@ -127,6 +144,7 @@ function MultiplayerApp({ onBack }) {
   });
 
   const [lightMode, setLightMode] = useState(() => localStorage.getItem("tg-theme") === "light");
+  const [largeText, setLargeText] = useState(() => localStorage.getItem("tg-text-size") === "large");
   // matchConfig is synced to Firestore so all devices see the same home/away indices
   const matchConfig = gameDoc?.matchConfig ?? { homeIdx: 0, awayIdx: 1 };
 
@@ -134,6 +152,11 @@ function MultiplayerApp({ onBack }) {
     document.documentElement.classList.toggle("light-mode", lightMode);
     localStorage.setItem("tg-theme", lightMode ? "light" : "dark");
   }, [lightMode]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("large-text", largeText);
+    localStorage.setItem("tg-text-size", largeText ? "large" : "normal");
+  }, [largeText]);
 
   const { screen, draft, activeManager, activeManagerIdx, currentPos, isMyTurn, ...actions } = mpDraft;
 
@@ -154,6 +177,8 @@ function MultiplayerApp({ onBack }) {
     <GlobalMenu
       light={lightMode}
       onToggle={() => setLightMode(l => !l)}
+      largeText={largeText}
+      onToggleLargeText={() => setLargeText(t => !t)}
       hasGame={!!draft}
       onAbandon={() => { actions.restartGame(); }}
     />
@@ -215,6 +240,8 @@ function MultiplayerApp({ onBack }) {
         <GlobalMenu
           light={lightMode}
           onToggle={() => setLightMode(l => !l)}
+          largeText={largeText}
+          onToggleLargeText={() => setLargeText(t => !t)}
           hasGame={true}
           onAbandon={actions.restartGame}
           extraOptions={draftMenuOptions}
@@ -378,18 +405,32 @@ function AppInner({ onMultiplayer }) {
     swapSquadPlayers, setTactics, restartGame, getAvailablePlayers, getTakenPlayers,
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
+    startWarChestGame, selectWarChest, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
   } = useDraftState();
 
-  const [preScreen, setPreScreen] = useState("mode-select"); // "mode-select" | "lobby" | "club-creator"
+  const [preScreen, setPreScreen] = useState("mode-select"); // "mode-select" | "lobby" | "club-creator" | "wc-lobby" | "wc-club-creator"
+  const [showAbout, setShowAbout] = useState(false);
   const [lobbyConfig, setLobbyConfig] = useState(null);
 
   const [matchConfig, setMatchConfig] = useState({ homeIdx: 0, awayIdx: 1 });
   const [lightMode, setLightMode] = useState(() => localStorage.getItem("tg-theme") === "light");
+  const [largeText, setLargeText] = useState(() => localStorage.getItem("tg-text-size") === "large");
 
   useEffect(() => {
     document.documentElement.classList.toggle("light-mode", lightMode);
     localStorage.setItem("tg-theme", lightMode ? "light" : "dark");
   }, [lightMode]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("large-text", largeText);
+    localStorage.setItem("tg-text-size", largeText ? "large" : "normal");
+  }, [largeText]);
+
+  useEffect(() => {
+    const isWC = !!draft?.warChest || preScreen === "wc-lobby" || preScreen === "wc-club-creator";
+    document.documentElement.classList.toggle("wc-theme", isWC);
+    return () => document.documentElement.classList.remove("wc-theme");
+  }, [draft?.warChest, preScreen]);
 
   function handleSetScreen(s, extra) {
     if (s === "match" && extra) setMatchConfig(extra);
@@ -407,11 +448,23 @@ function AppInner({ onMultiplayer }) {
     <GlobalMenu
       light={lightMode}
       onToggle={() => setLightMode(l => !l)}
+      largeText={largeText}
+      onToggleLargeText={() => setLargeText(t => !t)}
       hasGame={hasGame}
       onAbandon={handleAbandon}
+      onAbout={() => setShowAbout(true)}
       screen={screen}
     />
   );
+
+  if (showAbout) {
+    return (
+      <>
+        {globalMenu}
+        <AboutScreen onBack={() => setShowAbout(false)} />
+      </>
+    );
+  }
 
   if (screen === "setup" || !draft) {
     if (preScreen === "mode-select") {
@@ -421,6 +474,34 @@ function AppInner({ onMultiplayer }) {
           <ModeSelectScreen
             onSameDevice={() => setPreScreen("lobby")}
             onOnline={onMultiplayer}
+            onWarChest={() => setPreScreen("wc-lobby")}
+            onAbout={() => setShowAbout(true)}
+          />
+        </>
+      );
+    }
+    if (preScreen === "wc-lobby") {
+      return (
+        <>
+          {globalMenu}
+          <WarChestLobbyScreen
+            onContinue={config => { setLobbyConfig({ ...config, warChest: true }); setPreScreen("wc-club-creator"); }}
+            onBack={() => setPreScreen("mode-select")}
+          />
+        </>
+      );
+    }
+    if (preScreen === "wc-club-creator") {
+      return (
+        <>
+          {globalMenu}
+          <ClubCreatorScreen
+            config={lobbyConfig}
+            onStart={(clubs, opts) => {
+              startWarChestGame(clubs, { ...opts, ...lobbyConfig });
+              setPreScreen("mode-select");
+            }}
+            onBack={() => setPreScreen("wc-lobby")}
           />
         </>
       );
@@ -446,6 +527,81 @@ function AppInner({ onMultiplayer }) {
         />
       </>
     );
+  }
+
+  // ── War Chest screens ────────────────────────────────────────────────────
+  if (draft?.warChest) {
+    if (screen === "war-chest-select") {
+      return (
+        <>
+          {globalMenu}
+          <WarChestSelectionScreen draft={draft} onSelect={selectWarChest} />
+        </>
+      );
+    }
+    if (screen === "war-chest-draft") {
+      return (
+        <>
+          {globalMenu}
+          <WarChestDraftScreen
+            draft={draft}
+            pickPlayer={pickWarChestPlayer}
+            onDone={completeWarChestSquad}
+            getPlayers={getWarChestPlayers}
+          />
+        </>
+      );
+    }
+    if (screen === "squads") {
+      return (
+        <>
+          {globalMenu}
+          <WarChestSquadScreen draft={draft} setScreen={handleSetScreen} />
+        </>
+      );
+    }
+    if (screen === "draw" && draft?.series?.stage === "draw") {
+      return <>{globalMenu}<DrawScreen draft={draft} onComplete={completeDraw} /></>;
+    }
+    if (screen === "series" && draft?.series) {
+      return (
+        <>
+          {globalMenu}
+          <SeriesScreen
+            draft={draft}
+            setScreen={handleSetScreen}
+            recordMatchResult={recordMatchResult}
+            restartGame={restartGame}
+          />
+        </>
+      );
+    }
+    if (screen === "match") {
+      const homeIdx = matchConfig.homeIdx ?? 0;
+      const awayIdx = matchConfig.awayIdx ?? 1;
+      const inSeries = !!draft.series;
+      const seriesCtx = inSeries ? getSeriesContext(draft.series, draft.managers) : null;
+      return (
+        <>
+          {globalMenu}
+          <MatchSim
+            draft={draft}
+            homeIdx={homeIdx}
+            awayIdx={awayIdx}
+            matchMinutes={60}
+            onBack={() => handleSetScreen(inSeries ? "series" : "squads")}
+            onMatchResult={(winnerIdx, score, ratings, events, injuries) => {
+              if (inSeries) {
+                recordMatchResult(homeIdx, awayIdx, winnerIdx, score, ratings, events, injuries);
+              } else {
+                handleSetScreen("squads");
+              }
+            }}
+            seriesContext={seriesCtx}
+          />
+        </>
+      );
+    }
   }
 
   if (screen === "order-draw" && draft) {
@@ -571,12 +727,12 @@ function AppInner({ onMultiplayer }) {
   return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
 }
 
-const APP_VERSION = "2.1.0";
+const APP_VERSION = "2.5.1";
 
 function AppFooter() {
   return (
     <div className="app-footer">
-      v{APP_VERSION} · created by <a href="https://www.instagram.com/richqual" target="_blank" rel="noreferrer">@richqual</a> with Claude
+      v{APP_VERSION} · created by <a href="https://www.instagram.com/richqual" target="_blank" rel="noreferrer">@richqual</a> with Claude · <a href="https://buymeacoffee.com/thetransfergame" target="_blank" rel="noreferrer">buy me a coffee</a>
     </div>
   );
 }

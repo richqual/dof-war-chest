@@ -13,6 +13,7 @@ const LEAGUE_CONFIG = [
   { key: "serie_a",        label: "Serie A",        flag: "🇮🇹" },
   { key: "bundesliga",     label: "Bundesliga",     flag: "🇩🇪" },
   { key: "ligue_1",        label: "Ligue 1",        flag: "🇫🇷" },
+  { key: "legends",        label: "Legends",        flag: "⚜️" },
 ];
 
 const TIER_CONFIG = [
@@ -25,7 +26,7 @@ const TIER_CONFIG = [
 
 export default function PlayerPoolScreen({ onConfirm, numClubs = 4 }) {
   const [eras,    setEras]    = useState(ERA_CONFIG.map(e => e.key));
-  const [leagues, setLeagues] = useState(LEAGUE_CONFIG.map(l => l.key));
+  const [leagues, setLeagues] = useState(LEAGUE_CONFIG.map(l => l.key).filter(k => k !== "legends"));
   const [tiers,   setTiers]   = useState(TIER_CONFIG.map(t => t.key));
 
   function toggle(arr, setArr, key) {
@@ -34,7 +35,11 @@ export default function PlayerPoolScreen({ onConfirm, numClubs = 4 }) {
 
   const poolSize = new Set(
     PLAYERS
-      .filter(p => eras.includes(p.era) && leagues.includes(p.league) && tiers.includes(p.tier))
+      .filter(p =>
+        leagues.includes(p.league) &&
+        tiers.includes(p.tier) &&
+        (p.league === "legends" || eras.includes(p.era))
+      )
       .map(p => p.name)
   ).size;
 

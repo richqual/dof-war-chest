@@ -50,45 +50,47 @@ function getNextMatchup(series) {
     };
   }
 
-  // 8-team tournament: quarter-finals (2-legged — all leg 1s first, then all leg 2s)
+  const sl = !!series.singleLeg;
+
+  // 8-team tournament: quarter-finals
   if (series.stage === "quarters" && series.quarters) {
     const qLegsPlayed = series.quarters.reduce((sum, q) => sum + (q.legsPlayed || 0), 0);
     const matchNum = qLegsPlayed + 1;
-    // First pass: any QF that hasn't started leg 1
     for (let qi = 0; qi < series.quarters.length; qi++) {
       const q = series.quarters[qi];
       if (q.winner === null && (q.legsPlayed || 0) === 0) {
-        return { homeIdx: q.p[0], awayIdx: q.p[1], matchNum, label: `QF ${qi + 1} · LEG 1`, quarterIdx: qi, qLeg: 1 };
+        return { homeIdx: q.p[0], awayIdx: q.p[1], matchNum, label: sl ? `QF ${qi + 1}` : `QF ${qi + 1} · LEG 1`, quarterIdx: qi, qLeg: 1 };
       }
     }
-    // Second pass: any QF that has played leg 1 but not leg 2
-    for (let qi = 0; qi < series.quarters.length; qi++) {
-      const q = series.quarters[qi];
-      if (q.winner === null && (q.legsPlayed || 0) === 1) {
-        return { homeIdx: q.p[1], awayIdx: q.p[0], matchNum, label: `QF ${qi + 1} · LEG 2`, quarterIdx: qi, qLeg: 2 };
+    if (!sl) {
+      for (let qi = 0; qi < series.quarters.length; qi++) {
+        const q = series.quarters[qi];
+        if (q.winner === null && (q.legsPlayed || 0) === 1) {
+          return { homeIdx: q.p[1], awayIdx: q.p[0], matchNum, label: `QF ${qi + 1} · LEG 2`, quarterIdx: qi, qLeg: 2 };
+        }
       }
     }
   }
 
-  // Semi-finals (2-legged) — used by both 4-team and 8-team tournaments
+  // Semi-finals — used by both 4-team and 8-team tournaments
   if (series.stage === "semis" && series.semis) {
     const qLegsTotal = series.quarters
-      ? series.quarters.length * 2  // each QF is 2 legs
+      ? series.quarters.length * (sl ? 1 : 2)
       : 0;
     const sfLegsPlayed = series.semis.reduce((sum, sm) => sum + sm.legsPlayed, 0);
     const matchNum = qLegsTotal + sfLegsPlayed + 1;
-    // First pass: leg 1s
     for (let si = 0; si < series.semis.length; si++) {
       const sm = series.semis[si];
       if (sm.winner === null && sm.legsPlayed === 0) {
-        return { homeIdx: sm.p[0], awayIdx: sm.p[1], matchNum, label: `SEMI ${si + 1} · LEG 1`, semiIdx: si };
+        return { homeIdx: sm.p[0], awayIdx: sm.p[1], matchNum, label: sl ? `SEMI ${si + 1}` : `SEMI ${si + 1} · LEG 1`, semiIdx: si };
       }
     }
-    // Second pass: leg 2s
-    for (let si = 0; si < series.semis.length; si++) {
-      const sm = series.semis[si];
-      if (sm.winner === null && sm.legsPlayed === 1) {
-        return { homeIdx: sm.p[1], awayIdx: sm.p[0], matchNum, label: `SEMI ${si + 1} · LEG 2`, semiIdx: si };
+    if (!sl) {
+      for (let si = 0; si < series.semis.length; si++) {
+        const sm = series.semis[si];
+        if (sm.winner === null && sm.legsPlayed === 1) {
+          return { homeIdx: sm.p[1], awayIdx: sm.p[0], matchNum, label: `SEMI ${si + 1} · LEG 2`, semiIdx: si };
+        }
       }
     }
   }
@@ -96,7 +98,8 @@ function getNextMatchup(series) {
   // Grand Final
   if ((series.stage === "final" || series.stage === "semis") && series.final) {
     const f = series.final;
-    const qLegsTotal = series.quarters ? series.quarters.length * 2 : 0;
+    const legsPerRound = sl ? 1 : 2;
+    const qLegsTotal = series.quarters ? series.quarters.length * legsPerRound : 0;
     const sfLegsTotal = (series.semis || []).reduce((sum, sm) => sum + sm.legsPlayed, 0);
     const finalPlayed = f.wins[0] + f.wins[1];
     return {
@@ -148,26 +151,27 @@ export function getSeriesContext(series, managers) {
     // Leg 1 matches: no standing to show yet
   }
 
-  // For SF leg 2 only, pass the leg 1 aggregate so generateEvents can trigger ET on agg level.
+  // For SF/QF leg 2 only, pass aggregate so generateEvents can trigger ET on agg level.
+  // Single-leg tournaments never have a leg 2, so skip all of this.
   let legContext = null;
   let isLeg1 = false;
-  if (next.semiIdx != null && series.semis) {
-    const sm = series.semis[next.semiIdx];
-    if (sm && sm.legsPlayed === 1) {
-      legContext = { homeAgg: sm.goals[1], awayAgg: sm.goals[0] };
-    } else if (sm && sm.legsPlayed === 0) {
-      isLeg1 = true;
+  if (!series.singleLeg) {
+    if (next.semiIdx != null && series.semis) {
+      const sm = series.semis[next.semiIdx];
+      if (sm && sm.legsPlayed === 1) {
+        legContext = { homeAgg: sm.goals[1], awayAgg: sm.goals[0] };
+      } else if (sm && sm.legsPlayed === 0) {
+        isLeg1 = true;
+      }
     }
-  }
-  // Quarter-finals are now 2-legged like semis
-  if (next.quarterIdx != null && series.quarters) {
-    const q = series.quarters[next.quarterIdx];
-    if (next.qLeg === 1) {
-      isLeg1 = true; // no ET/pens in leg 1
-    } else {
-      // Leg 2: pass aggregate from leg 1 (teams swapped, so p0 was home in leg 1 → now away)
-      legContext = { homeAgg: q.goals[1], awayAgg: q.goals[0] };
-      isLeg1 = false;
+    if (next.quarterIdx != null && series.quarters) {
+      const q = series.quarters[next.quarterIdx];
+      if (next.qLeg === 1) {
+        isLeg1 = true;
+      } else {
+        legContext = { homeAgg: q.goals[1], awayAgg: q.goals[0] };
+        isLeg1 = false;
+      }
     }
   }
 
@@ -484,7 +488,7 @@ async function drawSquadCard(manager) {
   ctx.font = `13px 'VT323', monospace`;
   ctx.fillStyle = text3;
   ctx.textAlign = "center";
-  ctx.fillText("THE FOOTBALL DIRECTOR  ·  transfer-game.vercel.app", W / 2, y + 10);
+  ctx.fillText("THE TRANSFER WHEEL  ·  transfer-game.vercel.app", W / 2, y + 10);
 
   // Bottom bar
   ctx.fillStyle = primary;

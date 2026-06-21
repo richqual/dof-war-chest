@@ -1,7 +1,7 @@
-import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick } from "../data/players";
+import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS } from "../data/players";
 import { GROUP_SLOT_INDICES, FORMATIONS } from "../data/formations";
 
-export { generateBudget, chooseCpuPick };
+export { generateBudget, chooseCpuPick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS };
 
 export const POS_LABELS = {
   GK: "Goalkeeper", RB: "Right Back", LB: "Left Back", CB: "Centre Back",
@@ -195,9 +195,10 @@ export function shuffle(arr) {
 export function selectGamePlayers(filter = {}) {
   const { eras, leagues, tiers } = filter;
   const pool = PLAYERS.filter(p =>
-    (!eras   || eras.includes(p.era)) &&
     (!leagues || leagues.includes(p.league)) &&
-    (!tiers  || tiers.includes(p.tier))
+    (!tiers   || tiers.includes(p.tier)) &&
+    // Legends bypass the era filter — they're gated by their own league toggle
+    (p.league === "legends" || !eras || eras.includes(p.era))
   );
   const byName = {};
   for (const player of pool) {
@@ -335,6 +336,7 @@ export function autoDrawSlot(d) {
 }
 
 export function activeFormation(d) {
+  if (!d?.currentOrder) return "4-3-3";
   const idx = d.currentOrder[d.turnIndex];
   return d.managers[idx]?.formation || "4-3-3";
 }
@@ -348,7 +350,7 @@ export function resolveCurrentPosKey(d) {
 }
 
 export function resolveCurrentPos(d) {
-  if (!d) return null;
+  if (!d || d.warChest) return null;
   const slotIndex = (d.positionMode === "random" && d.positionIndex < 11 && d.currentSlot !== null && d.currentSlot !== undefined)
     ? d.currentSlot
     : d.positionIndex;
@@ -357,4 +359,117 @@ export function resolveCurrentPos(d) {
   const key = entry.pos;
   const displayKey = entry.label ?? key;
   return { key, label: POS_LABELS[displayKey] ?? displayKey, slot: slotIndex };
+}
+
+// ── War Chest mode ──────────────────────────────────────────────────────────
+
+function buildWCSeries(n) {
+  if (n === 4) return { format: "tournament", singleLeg: true, stage: "draw", semis: null, final: null, champion: null };
+  if (n === 8) return { format: "tournament8", singleLeg: true, stage: "draw", quarters: null, semis: null, final: null, champion: null };
+  return null;
+}
+
+export function buildInitialWarChestDraft(clubs, options = {}) {
+  const availablePlayerIds = selectGamePlayers(options.playerFilter);
+  const playerValues = options.dynamicValues !== false ? randomizePlayerValues(availablePlayerIds) : new Map();
+  const playerForm = options.dynamicForm !== false ? generatePlayerForm(availablePlayerIds) : new Map();
+  const playerOrder = generatePlayerOrder(availablePlayerIds);
+  return {
+    warChest: true,
+    managers: clubs.map(c => ({
+      name: c.dofName,
+      dofName: c.dofName,
+      clubName: c.clubName,
+      teamName: c.clubName,
+      primaryColor: c.primaryColor || "#1a3a6b",
+      secondaryColor: c.secondaryColor || "#ffffff",
+      pattern: c.pattern || "plain",
+      isComputer: !!c.isComputer,
+      squad: Array(16).fill(null),
+      chestBudget: null,
+      wcBudgetRemaining: null,
+      tactics: "balanced",
+    })),
+    wcCurrentManagerIdx: 0,
+    wcPhase: "selecting",
+    takenIds: [],
+    availablePlayerIds,
+    playerValues,
+    playerForm,
+    playerOrder,
+    hideRatings: options.hideRatings || false,
+    difficulty: options.difficulty || "hard",
+    dynamicForm: options.dynamicForm !== false,
+    dynamicValues: options.dynamicValues !== false,
+    phase: "draft",
+    series: buildWCSeries(clubs.length),
+  };
+}
+
+export function getWarChestPlayersForSlot(slotIdx, takenIds, availablePlayerIds, playerValues, playerForm) {
+  const slotDef = WAR_CHEST_SLOTS[slotIdx];
+  if (!slotDef) return [];
+  const taken = new Set(takenIds);
+  return PLAYERS
+    .filter(p =>
+      slotDef.posFilter.includes(p.pos) &&
+      !taken.has(p.id) &&
+      (!availablePlayerIds || availablePlayerIds.has(p.id))
+    )
+    .map(p => {
+      const player = { ...p };
+      if (playerValues instanceof Map) player.value = playerValues.get(p.id) ?? p.value;
+      if (playerForm instanceof Map) player.form = playerForm.get(p.id) ?? 0;
+      return player;
+    });
+}
+
+export function autoBuildWarChestSquad(d, managerIdx) {
+  const values = WAR_CHEST_VALUES[d.difficulty] || WAR_CHEST_VALUES.hard;
+  const budget = values[Math.floor(Math.random() * values.length)];
+  let takenIds = [...d.takenIds];
+  let budgetRemaining = budget;
+  const squad = Array(16).fill(null);
+
+  // Pick ATT slots first so they get the biggest share of budget.
+  // Slot indices: 0=GK, 1=DEF, 2=MID, 3=ATT, 4=ATT
+  const PICK_ORDER = [3, 4, 0, 2, 1];
+  // Budget fraction ceiling per slot (sums to 1.0)
+  const MAX_FRACTION = { 3: 0.30, 4: 0.26, 0: 0.22, 2: 0.14, 1: 0.08 };
+  // ATT slots: exclude purely defensive positions even if posFilter allows them
+  const ATT_EXCLUDE_POS = ["CB", "LB", "RB", "DM"];
+
+  for (const slot of PICK_ORDER) {
+    const slotDef = WAR_CHEST_SLOTS[slot];
+    const maxForSlot = Math.floor(budget * MAX_FRACTION[slot]);
+    const isAttSlot = slot === 3 || slot === 4;
+    const affordable = PLAYERS
+      .filter(p =>
+        slotDef.posFilter.includes(p.pos) &&
+        !takenIds.includes(p.id) &&
+        d.availablePlayerIds.has(p.id) &&
+        !(isAttSlot && ATT_EXCLUDE_POS.includes(p.pos))
+      )
+      .map(p => {
+        const value = d.playerValues instanceof Map ? (d.playerValues.get(p.id) ?? p.value) : p.value;
+        return { ...p, value };
+      })
+      .filter(p => p.value <= Math.min(budgetRemaining, maxForSlot))
+      .sort((a, b) => b.rating - a.rating);
+
+    if (affordable.length > 0) {
+      const topN = affordable.slice(0, Math.min(3, affordable.length));
+      const pick = topN[Math.floor(Math.random() * topN.length)];
+      squad[slot] = pick;
+      takenIds.push(pick.id);
+      budgetRemaining -= pick.value;
+    }
+  }
+
+  const managers = d.managers.map((m, i) =>
+    i === managerIdx
+      ? { ...m, chestBudget: budget, wcBudgetRemaining: budgetRemaining, squad }
+      : m
+  );
+  return { ...d, managers, takenIds };
 }

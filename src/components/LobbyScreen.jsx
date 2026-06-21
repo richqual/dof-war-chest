@@ -1,11 +1,11 @@
 import { useState } from "react";
 
 const DIFFICULTY_INFO = [
-  { key: "easy",   label: "EASY",   hint: "War chest — big budgets, one zero on the wheel (avg £109m)" },
-  { key: "normal", label: "NORMAL", hint: "Tighter purse strings — every spin matters (avg £80m)" },
-  { key: "hard",   label: "HARD",   hint: "Shoestring — bargain bins and frequent zeros (avg £48m)" },
-  { key: "expert", label: "EXPERT", hint: "Ruthless economy — mostly scraps, many zeros (avg £38m)" },
-  { key: "brutal", label: "BRUTAL", hint: "Scrap heap — half the wheel is zero, fight for free transfers (avg £23m)" },
+  { key: "easy",   label: "GENEROUS", hint: "War chest — big budgets, one zero on the wheel (avg £109m)" },
+  { key: "normal", label: "EASY",     hint: "Comfortable budgets — room to breathe on most spins (avg £80m)" },
+  { key: "hard",   label: "NORMAL",   hint: "Balanced budgets with the occasional dry spell (avg £48m)" },
+  { key: "expert", label: "HARD",     hint: "Shoestring — bargain bins and frequent zeros (avg £38m)" },
+  { key: "brutal", label: "BRUTAL",   hint: "Scrap heap — half the wheel is zero, fight for free transfers (avg £23m)" },
 ];
 
 const FORMAT_OPTIONS_2 = [
@@ -22,20 +22,20 @@ const FORMAT_OPTIONS_8 = [
   { key: "tournament8", label: "TOURNAMENT", short: "CUP", hint: "Single-leg quarter-finals, 2-legged semi-finals (aggregate), then a 1-leg Grand Final" },
 ];
 
-export function ModeSelectScreen({ onSameDevice, onOnline }) {
+export function ModeSelectScreen({ onSameDevice, onOnline, onWarChest, onAbout }) {
   return (
     <div className="setup-screen">
       <div className="setup-card mode-select-card">
         <div className="setup-header">
-          <h1 className="setup-title">The Football Director</h1>
+          <h1 className="setup-title">The Transfer Wheel</h1>
           <p className="setup-sub">Build a squad. Spin the wheel. Become a legend.</p>
         </div>
 
         <div className="mode-options">
           <button className="mode-card" onClick={onSameDevice}>
-            <div className="mode-card-label">ONE DEVICE</div>
+            <div className="mode-card-label">CLASSIC</div>
             <div className="mode-card-desc">
-              Solo or local — 1–8 players on one screen. Play alone against the CPU or pass it around between picks.
+              Solo or local — 1–8 players on one screen. Spin the Transfer Wheel, build your squad, then play.
             </div>
             <div className="mode-card-cta">PLAY →</div>
           </button>
@@ -43,11 +43,21 @@ export function ModeSelectScreen({ onSameDevice, onOnline }) {
           <button className="mode-card mode-card-online" onClick={onOnline}>
             <div className="mode-card-label">ONLINE</div>
             <div className="mode-card-desc">
-              Each player joins from their own phone or laptop — draft together from anywhere.
+              Classic mode, online — each player joins from their own phone or laptop and drafts together from anywhere.
+            </div>
+            <div className="mode-card-cta">PLAY →</div>
+          </button>
+
+          <button className="mode-card mode-card-warchest" onClick={onWarChest}>
+            <div className="mode-card-label">WAR CHEST</div>
+            <div className="mode-card-desc">
+              5-a-side. Pick a mystery chest to reveal your budget, then race to build the best squad you can afford.
             </div>
             <div className="mode-card-cta">PLAY →</div>
           </button>
         </div>
+
+        <button className="mode-back-link" onClick={onAbout}>About this game</button>
       </div>
     </div>
   );
@@ -56,8 +66,8 @@ export function ModeSelectScreen({ onSameDevice, onOnline }) {
 export default function LobbyScreen({ onContinue, onBack }) {
   const [numClubs, setNumClubs] = useState(2);
   const [numHumans, setNumHumans] = useState(1);
-  const [difficulty, setDifficulty] = useState("normal");
-  const [positionMode, setPositionMode] = useState("fixed");
+  const [difficulty, setDifficulty] = useState("hard");
+  const [positionMode, setPositionMode] = useState("random");
   const [format, setFormat] = useState("bo7");
   const [hideRatings, setHideRatings] = useState(true);
   const [dynamicValues, setDynamicValues] = useState(true);
@@ -93,7 +103,7 @@ export default function LobbyScreen({ onContinue, onBack }) {
     <div className="setup-screen">
       <div className="setup-card setup-card-wide">
         <div className="setup-header">
-          <h1 className="setup-title">The Football Director</h1>
+          <h1 className="setup-title">The Transfer Wheel</h1>
           <p className="setup-sub">Build a squad. Spin the wheel. Become a legend.</p>
         </div>
 

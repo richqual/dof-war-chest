@@ -295,6 +295,34 @@ const COMMENTARY_NEUTRAL = [
   (a, b) => `${a}'s substitutes are warming up along the touchline. Whether anyone wants them on is another matter.`,
 ];
 
+const COMMENTARY_PEN_SCORED = [
+  (name) => `${name} steps up and buries it. Ice cold.`,
+  (name) => `${name} sends the keeper the wrong way — SCORED!`,
+  (name) => `${name} places it perfectly into the corner. No chance for the keeper.`,
+  (name) => `Calm as you like from ${name}. Penalty converted.`,
+  (name) => `${name} smashes it into the top corner! Unstoppable.`,
+  (name) => `${name} with a stuttering run-up — buries it to the keeper's right!`,
+  (name) => `Keeper dives left, ${name} goes right. Clinical finish.`,
+  (name) => `${name} scores from the spot. Icy composure under enormous pressure.`,
+];
+
+const COMMENTARY_PEN_MISSED = [
+  (name) => `${name} fires wide! The pressure has got to him!`,
+  (name) => `SAVED! The keeper dives low and pushes it away. ${name} can't believe it.`,
+  (name) => `${name} hits the post! Agonising.`,
+  (name) => `${name} blazes it over the bar! The nerves have shown.`,
+  (name) => `The keeper guesses right and makes the save! ${name} sinks to his knees.`,
+  (name) => `Weak penalty from ${name} — easy save for the keeper!`,
+  (name) => `${name} slips in his run-up — straight at the keeper. What a miss.`,
+  (name) => `${name} sends it way over! He'll be having nightmares about that.`,
+];
+
+const COMMENTARY_PEN_SD = [
+  `SUDDEN DEATH! Next to miss goes out!`,
+  `Into sudden death. One miss and it's all over.`,
+  `The tension is unbearable. Sudden death penalties now.`,
+];
+
 const COMMENTARY_INJURY = [
   (p, t) => `${p} goes down and stays down — ${t} will be worried. He looks to be struggling with his hamstring.`,
   (p, t) => `${p} is receiving treatment on the pitch. This doesn't look good for ${t}.`,
@@ -728,7 +756,7 @@ function generatePreMatchNarrative(draft, homeIdx, awayIdx, seriesContext) {
 // isLeg1 = true suppresses ET entirely (leg 1 of a 2-legged tie is always 90 min).
 // homeTactics / awayTactics: "defensive" | "balanced" | "attacking"
 // seriesContext = { homePrevResult: "win"|"loss"|null, awayPrevResult: "win"|"loss"|null } for momentum
-export function generateEvents(homeSquad, awaySquad, homeName, awayName, legContext = null, homeFootballMgr = null, awayFootballMgr = null, isLeg1 = false, homeTactics = "balanced", awayTactics = "balanced", seriesContext = null) {
+export function generateEvents(homeSquad, awaySquad, homeName, awayName, legContext = null, homeFootballMgr = null, awayFootballMgr = null, isLeg1 = false, homeTactics = "balanced", awayTactics = "balanced", seriesContext = null, matchMinutes = 90) {
   // Resolve wildcard: pick a random style for the match
   function resolveStyle(fm) {
     if (!fm) return null;
@@ -858,7 +886,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
 
   const onPitch = (squad, sentOff) => squad.slice(0, 11).filter(p => p && !sentOff.has(p.name));
 
-  const minutes = [...new Set(Array.from({ length: rand(18, 28) }, () => rand(1, 90)))].sort((a, b) => a - b);
+  const minutes = [...new Set(Array.from({ length: rand(18, 28) }, () => rand(1, matchMinutes)))].sort((a, b) => a - b);
 
   // Style-influenced goal frequency modifiers
   function goalChanceBonus(isHome) {
@@ -994,8 +1022,15 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     const ftNote = legContext
       ? `FULL TIME — ${hGoals}–${aGoals} on the night. ${aggHome()}–${aggAway()} on aggregate. EXTRA TIME!`
       : `FULL TIME — ${hGoals}–${aGoals}. Extra time!`;
-    etEvents.push({ min: 90, type: "commentary", text: ftNote });
-    const etMinutes = [rand(92, 98), rand(99, 105), rand(106, 112), rand(113, 120)];
+    etEvents.push({ min: matchMinutes, type: "commentary", text: ftNote });
+    const etEnd = matchMinutes + 15;
+    const etQ = Math.floor((etEnd - matchMinutes) / 4);
+    const etMinutes = [
+      rand(matchMinutes + 1, matchMinutes + etQ),
+      rand(matchMinutes + etQ + 1, matchMinutes + etQ * 2),
+      rand(matchMinutes + etQ * 2 + 1, matchMinutes + etQ * 3),
+      rand(matchMinutes + etQ * 3 + 1, etEnd),
+    ];
     for (const min of etMinutes) {
       if (Math.random() < 0.2) {
         const isHome = Math.random() < ratio;
@@ -1027,18 +1062,93 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
 
     const stillLevel = legContext ? aggHome() === aggAway() : finalHome === finalAway;
     if (stillLevel) {
-      etEvents.push({ min: 120, type: "commentary", text: `FULL TIME EXTRA TIME — ${finalHome}–${finalAway}. PENALTY SHOOTOUT!` });
+      etEvents.push({ min: matchMinutes + 15, type: "commentary", text: `FULL TIME EXTRA TIME — ${finalHome}–${finalAway}. PENALTY SHOOTOUT!`, penStartPause: true });
+
+      const PEN_SUCCESS = 0.76;
+      const NUM_KICKS = 5;
+      // Best attacking players take pens first
+      const byAtt = ps => [...ps].sort((a, b) => deriveAttributes(b).att - deriveAttributes(a).att);
+      const hOF = byAtt(homeSquad.slice(0, 11).filter(p => p && p.pos !== "GK"));
+      const aOF = byAtt(awaySquad.slice(0, 11).filter(p => p && p.pos !== "GK"));
+      const hFallback = homeSquad.slice(0, 11).filter(Boolean);
+      const aFallback = awaySquad.slice(0, 11).filter(Boolean);
+      const hOrder = hOF.length ? hOF : hFallback;
+      const aOrder = aOF.length ? aOF : aFallback;
+
       let hPens = 0, aPens = 0;
-      for (let i = 0; i < 5; i++) {
-        if (Math.random() < 0.76) hPens++;
-        if (Math.random() < 0.76) aPens++;
+      let penDone = false;
+
+      for (let round = 0; round < NUM_KICKS && !penDone; round++) {
+        // Home kick
+        const hTaker = hOrder[round % Math.max(1, hOrder.length)];
+        const hName = hTaker?.name || "The taker";
+        const hScored = Math.random() < PEN_SUCCESS;
+        if (hScored) hPens++;
+        etEvents.push({
+          min: matchMinutes + 15, type: hScored ? "pen_goal" : "pen_miss", team: "home",
+          scorer: hScored ? hName : null,
+          text: hScored ? pick(COMMENTARY_PEN_SCORED)(hName) : pick(COMMENTARY_PEN_MISSED)(hName),
+          penScore: `${hPens}–${aPens}`,
+        });
+        // Early clinch check: away can't catch up even scoring all remaining kicks
+        if (hPens > aPens + (NUM_KICKS - round)) { penDone = true; penWinner = "home"; break; }
+
+        // Away kick
+        const aTaker = aOrder[round % Math.max(1, aOrder.length)];
+        const aName = aTaker?.name || "The taker";
+        const aScored = Math.random() < PEN_SUCCESS;
+        if (aScored) aPens++;
+        etEvents.push({
+          min: matchMinutes + 15, type: aScored ? "pen_goal" : "pen_miss", team: "away",
+          scorer: aScored ? aName : null,
+          text: aScored ? pick(COMMENTARY_PEN_SCORED)(aName) : pick(COMMENTARY_PEN_MISSED)(aName),
+          penScore: `${hPens}–${aPens}`,
+        });
+        // Early clinch check: home can't catch up
+        if (aPens > hPens + (NUM_KICKS - round - 1)) { penDone = true; penWinner = "away"; break; }
       }
-      while (hPens === aPens) {
-        if (Math.random() < 0.76) hPens++;
-        if (Math.random() < 0.76) aPens++;
+
+      if (!penDone) {
+        if (hPens > aPens) { penWinner = "home"; penDone = true; }
+        else if (aPens > hPens) { penWinner = "away"; penDone = true; }
       }
-      penWinner = hPens > aPens ? "home" : "away";
-      etEvents.push({ min: 121, type: "pens", team: penWinner, text: `Penalties: ${homeName} ${hPens}–${aPens} ${awayName}. ${penWinner === "home" ? homeName : awayName} wins on pens!`, penWinner });
+
+      // Sudden death
+      if (!penDone) {
+        etEvents.push({ min: matchMinutes + 15, type: "commentary", text: pick(COMMENTARY_PEN_SD) });
+        let sdRound = 0;
+        while (!penDone && sdRound < 10) {
+          const hTaker = hOrder[(NUM_KICKS + sdRound) % Math.max(1, hOrder.length)];
+          const aTaker = aOrder[(NUM_KICKS + sdRound) % Math.max(1, aOrder.length)];
+          const hName = hTaker?.name || "The taker";
+          const aName = aTaker?.name || "The taker";
+          const hScored = Math.random() < PEN_SUCCESS;
+          if (hScored) hPens++;
+          etEvents.push({
+            min: matchMinutes + 15, type: hScored ? "pen_goal" : "pen_miss", team: "home",
+            scorer: hScored ? hName : null,
+            text: hScored ? pick(COMMENTARY_PEN_SCORED)(hName) : pick(COMMENTARY_PEN_MISSED)(hName),
+            penScore: `${hPens}–${aPens}`, suddenDeath: true,
+          });
+          const aScored = Math.random() < PEN_SUCCESS;
+          if (aScored) aPens++;
+          etEvents.push({
+            min: matchMinutes + 15, type: aScored ? "pen_goal" : "pen_miss", team: "away",
+            scorer: aScored ? aName : null,
+            text: aScored ? pick(COMMENTARY_PEN_SCORED)(aName) : pick(COMMENTARY_PEN_MISSED)(aName),
+            penScore: `${hPens}–${aPens}`, suddenDeath: true,
+          });
+          if (hPens !== aPens) { penWinner = hPens > aPens ? "home" : "away"; penDone = true; }
+          sdRound++;
+        }
+        if (!penDone) penWinner = Math.random() < 0.5 ? "home" : "away";
+      }
+
+      etEvents.push({
+        min: matchMinutes + 15, type: "pens", team: penWinner,
+        text: `${penWinner === "home" ? homeName : awayName} WIN ON PENALTIES! ${homeName} ${hPens}–${aPens} ${awayName}.`,
+        penWinner, penScore: `${hPens}–${aPens}`,
+      });
     }
   }
 
@@ -1191,19 +1301,36 @@ function PlayerRatingRow({ r }) {
   );
 }
 
-function PreMatchPitch({ manager, accent, formation }) {
+function PreMatchPitch({ manager, accent, formation, variant = "grass" }) {
   const coords = FORMATIONS[formation] || FORMATIONS["4-3-3"];
+  const lineColor = variant === "clay" ? "#ffffff33" : variant === "concrete" ? "#ffffff25" : "#ffffff22";
   return (
     <div className="pre-pitch-wrap">
-      <div className="formation-pitch pre-match-pitch">
+      <div className={`formation-pitch pre-match-pitch ${variant !== "grass" ? `pitch-${variant}` : ""}`}>
         <svg viewBox="0 0 100 100" className="pitch-svg">
-          <rect x="5" y="5" width="90" height="90" fill="none" stroke="#ffffff22" strokeWidth="0.5" />
-          <line x1="5" y1="50" x2="95" y2="50" stroke="#ffffff22" strokeWidth="0.4" />
-          <circle cx="50" cy="50" r="12" fill="none" stroke="#ffffff22" strokeWidth="0.4" />
-          <rect x="28" y="5" width="44" height="18" fill="none" stroke="#ffffff22" strokeWidth="0.4" />
-          <rect x="28" y="77" width="44" height="18" fill="none" stroke="#ffffff22" strokeWidth="0.4" />
-          <rect x="38" y="5" width="24" height="8" fill="none" stroke="#ffffff22" strokeWidth="0.4" />
-          <rect x="38" y="87" width="24" height="8" fill="none" stroke="#ffffff22" strokeWidth="0.4" />
+          {variant === "clay" ? (
+            <>
+              <rect x="5" y="5" width="90" height="90" fill="none" stroke={lineColor} strokeWidth="0.5" />
+              <line x1="5" y1="50" x2="95" y2="50" stroke={lineColor} strokeWidth="0.4" />
+              {/* Top goal D — semi-circle curving into pitch */}
+              <path d="M 28 5 A 24 24 0 0 0 72 5" fill="none" stroke={lineColor} strokeWidth="0.4" />
+              {/* Bottom goal D — semi-circle curving into pitch */}
+              <path d="M 28 95 A 24 24 0 0 1 72 95" fill="none" stroke={lineColor} strokeWidth="0.4" />
+              {/* Goal lines (small goal markers) */}
+              <line x1="42" y1="5" x2="58" y2="5" stroke={lineColor} strokeWidth="1.2" />
+              <line x1="42" y1="95" x2="58" y2="95" stroke={lineColor} strokeWidth="1.2" />
+            </>
+          ) : (
+            <>
+              <rect x="5" y="5" width="90" height="90" fill="none" stroke={lineColor} strokeWidth="0.5" />
+              <line x1="5" y1="50" x2="95" y2="50" stroke={lineColor} strokeWidth="0.4" />
+              <circle cx="50" cy="50" r="12" fill="none" stroke={lineColor} strokeWidth="0.4" />
+              <rect x="28" y="5" width="44" height="18" fill="none" stroke={lineColor} strokeWidth="0.4" />
+              <rect x="28" y="77" width="44" height="18" fill="none" stroke={lineColor} strokeWidth="0.4" />
+              <rect x="38" y="5" width="24" height="8" fill="none" stroke={lineColor} strokeWidth="0.4" />
+              <rect x="38" y="87" width="24" height="8" fill="none" stroke={lineColor} strokeWidth="0.4" />
+            </>
+          )}
         </svg>
         <div className="pitch-players">
           {coords.map((coord, i) => {
@@ -1227,7 +1354,7 @@ function PreMatchPitch({ manager, accent, formation }) {
           })}
         </div>
       </div>
-      <div className="pre-pitch-formation" style={{ color: accent }}>{formation}</div>
+      {formation !== "1-2-1" && <div className="pre-pitch-formation" style={{ color: accent }}>{formation}</div>}
     </div>
   );
 }
@@ -1274,7 +1401,7 @@ function LineupPanel({ homeManager, awayManager, homeName, awayName, onClose }) 
   );
 }
 
-export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResult, seriesContext, isHost = true, externalMatchData = null, onMatchGenerated = null }) {
+export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResult, seriesContext, isHost = true, externalMatchData = null, onMatchGenerated = null, matchMinutes = 90 }) {
   const isRegularSeriesMatch = !!seriesContext && !seriesContext.isSeriesTiebreaker && !seriesContext.legContext;
   const homeManager = draft.managers[homeIdx];
   const awayManager = draft.managers[awayIdx];
@@ -1290,6 +1417,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
   const [summaryCollapsed, setSummaryCollapsed] = useState(false);
   const [speedIdx, setSpeedIdx] = useState(2); // default NORMAL
   const [paused, setPaused] = useState(false);
+  const [penPaused, setPenPaused] = useState(false);
   const [showLineups, setShowLineups] = useState(false);
   const feedRef = useRef(null);
   const timerRef = useRef(null);
@@ -1327,6 +1455,11 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
     const ev = evs[nextIdxRef.current];
     nextIdxRef.current++;
     setVisibleEvents(prev => [...prev, ev]);
+    // Pause before penalties so the user can trigger the shootout
+    if (ev.penStartPause && speedRef.current > 0) {
+      setPenPaused(true);
+      return;
+    }
     const ms = speedRef.current;
     // Goals linger on screen — let the flash breathe, CM-style
     timerRef.current = setTimeout(stepFeed, ev.type === "goal" ? ms * 3 : ms);
@@ -1356,6 +1489,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
       homeManager.tactics ?? "balanced",
       awayManager.tactics ?? "balanced",
       seriesContext ? { homePrevResult: seriesContext.homePrevResult ?? null, awayPrevResult: seriesContext.awayPrevResult ?? null } : null,
+      matchMinutes,
     );
     if (onMatchGenerated) onMatchGenerated(r); // broadcast to all players via Firestore
     eventsRef.current = r.events;
@@ -1420,6 +1554,8 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
     if (e.type === "red") return "🟥";
     if (e.type === "miss") return "↗";
     if (e.type === "pens") return "🎯";
+    if (e.type === "pen_goal") return "⚽";
+    if (e.type === "pen_miss") return "✕";
     if (e.type === "injury") return "🚑";
     return "▸";
   }
@@ -1430,6 +1566,8 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
     if (e.type === "red") return "event-red";
     if (e.type === "miss") return "event-miss";
     if (e.type === "pens") return "event-pens";
+    if (e.type === "pen_goal") return "event-goal event-pen";
+    if (e.type === "pen_miss") return "event-miss event-pen";
     if (e.type === "injury") return "event-injury";
     return "event-commentary";
   }
@@ -1439,7 +1577,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
     if (e.team === "home" || e.team === "away") {
       style["--team-accent"] = e.team === "home" ? homeAccent : awayAccent;
     }
-    if (isLatest && e.type === "goal") {
+    if (isLatest && (e.type === "goal" || e.type === "pen_goal")) {
       const mgr = e.team === "home" ? homeManager : awayManager;
       style["--flash-a"] = mgr.primaryColor;
       style["--flash-b"] = mgr.secondaryColor;
@@ -1456,7 +1594,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
         <span className="match-title">LIVE MATCH</span>
         <button className="lineup-btn" onClick={() => setShowLineups(true)}>LINE-UPS</button>
         <div className="speed-controls">
-          {simulating && (
+          {simulating && !penPaused && (
             <button
               className={`speed-btn pause-toggle ${paused ? "active" : ""}`}
               onClick={togglePause}
@@ -1498,9 +1636,9 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
           </div>
         </div>
         <div className="sb-status">
-          {simulating ? (
-            paused ? <span className="sim-paused">PAUSED</span> : <span className="sim-live">LIVE</span>
-          ) : done ? "FT" : "VS"}
+          {penPaused ? <span className="sim-paused">PENS</span>
+            : simulating ? (paused ? <span className="sim-paused">PAUSED</span> : <span className="sim-live">LIVE</span>)
+            : done ? "FT" : "VS"}
         </div>
         {(simulating || done) && (
           <div className="poss-bar-row">
@@ -1511,6 +1649,14 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
             </div>
             <span className="poss-pct away" style={{ color: awayAccent }}>{currentPoss.a}%</span>
           </div>
+        )}
+        {penPaused && simulating && isHost && (
+          <button
+            className="sim-btn continue-btn sb-continue-btn pen-start-btn"
+            onClick={() => { setPenPaused(false); runFeed(speedRef.current); }}
+          >
+            ⚽ BEGIN PENALTY SHOOTOUT →
+          </button>
         )}
         {done && onMatchResult && isHost && (
           <button className="sim-btn continue-btn sb-continue-btn" onClick={() => {
@@ -1530,7 +1676,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
               onMatchResult(side === "home" ? homeIdx : awayIdx, result.score, result.ratings, result.events, result.matchInjuries);
             }
           }}>
-            {seriesContext?.isGrandFinal ? "SEE THE RESULT →" : seriesContext ? "CONTINUE TOURNAMENT →" : "CONTINUE SERIES →"}
+            {seriesContext?.isGrandFinal ? "SEE THE RESULT →" : seriesContext ? "CONTINUE TOURNAMENT →" : draft?.warChest ? "BACK TO SQUADS →" : "CONTINUE SERIES →"}
           </button>
         )}
         {done && !isHost && (
@@ -1581,7 +1727,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
                 <span className="pre-stat-val">{Math.round(teamStrength(homeManager.squad))}</span>
                 <span className="pre-stat-label">AVG</span>
               </div>
-              <PreMatchPitch manager={homeManager} accent={homeAccent} formation={homeManager.formation || "4-3-3"} />
+              <PreMatchPitch manager={homeManager} accent={homeAccent} formation={draft?.warChest ? "1-2-1" : (homeManager.formation || "4-3-3")} variant={draft?.warChest ? "clay" : "grass"} />
               {/* Home absences */}
               {draft.playerAbsences && (() => {
                 const absent = Object.entries(draft.playerAbsences).filter(([, a]) => a.mgrIdx === homeIdx);
@@ -1615,7 +1761,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
                 <span className="pre-stat-val">{Math.round(teamStrength(awayManager.squad))}</span>
                 <span className="pre-stat-label">AVG</span>
               </div>
-              <PreMatchPitch manager={awayManager} accent={awayAccent} formation={awayManager.formation || "4-3-3"} />
+              <PreMatchPitch manager={awayManager} accent={awayAccent} formation={draft?.warChest ? "1-2-1" : (awayManager.formation || "4-3-3")} variant={draft?.warChest ? "clay" : "grass"} />
               {draft.playerAbsences && (() => {
                 const absent = Object.entries(draft.playerAbsences).filter(([, a]) => a.mgrIdx === awayIdx);
                 return absent.length > 0 ? (
@@ -1643,10 +1789,13 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
               className={`event-row ${eventClass(e)} ${isLatest ? "latest" : ""}`}
               style={eventStyle(e, isLatest)}
             >
-              <span className="event-min">{e.min}&apos;</span>
+              <span className="event-min">
+                {(e.type === "pen_goal" || e.type === "pen_miss") ? "PEN" : `${e.min}′`}
+              </span>
               <span className="event-icon">{eventIcon(e)}</span>
               <span className="event-text">{e.text}</span>
-              {e.score && <span className="event-score">{e.score}</span>}
+              {e.penScore && <span className="event-score event-pen-score">{e.penScore}</span>}
+              {!e.penScore && e.score && <span className="event-score">{e.score}</span>}
             </div>
           );
         })}

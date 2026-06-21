@@ -176,7 +176,7 @@ function drawSquadCard(manager, captainId, starters, bench) {
   y += 10;
   ctx.strokeStyle = border; ctx.beginPath(); ctx.moveTo(PAD, y); ctx.lineTo(W - PAD, y); ctx.stroke(); y += 12;
   ctx.font = `12px 'VT323', monospace`; ctx.fillStyle = text3; ctx.textAlign = "center";
-  ctx.fillText("THE FOOTBALL DIRECTOR  ·  transfer-game.vercel.app", W / 2, y + 8);
+  ctx.fillText("THE TRANSFER WHEEL  ·  transfer-game.vercel.app", W / 2, y + 8);
 
   // Bottom bar
   ctx.fillStyle = topGrad; ctx.fillRect(0, H - BAR, W, BAR);

@@ -120,7 +120,7 @@ function makeCpuClub(existingNames, takenColors = []) {
 
 // ── Shared club editor form ───────────────────────────────────────────────────
 
-function ClubEditorForm({ club, onChange, index }) {
+function ClubEditorForm({ club, onChange, index, hideFormation = false }) {
   const defaults = HUMAN_KITS[index % HUMAN_KITS.length];
 
   return (
@@ -188,18 +188,20 @@ function ClubEditorForm({ club, onChange, index }) {
               </div>
             </div>
           </div>
-          <div className="kit-formation-col kit-formation-col--formation">
-            <label className="field-label-sm">FORMATION</label>
-            <select
-              className="formation-select"
-              value={club.formation || "4-3-3"}
-              onChange={e => onChange({ ...club, formation: e.target.value })}
-            >
-              {FORMATION_LIST.map(f => (
-                <option key={f} value={f}>{f}</option>
-              ))}
-            </select>
-          </div>
+          {!hideFormation && (
+            <div className="kit-formation-col kit-formation-col--formation">
+              <label className="field-label-sm">FORMATION</label>
+              <select
+                className="formation-select"
+                value={club.formation || "4-3-3"}
+                onChange={e => onChange({ ...club, formation: e.target.value })}
+              >
+                {FORMATION_LIST.map(f => (
+                  <option key={f} value={f}>{f}</option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
       </div>
     </>
@@ -208,7 +210,7 @@ function ClubEditorForm({ club, onChange, index }) {
 
 // ── Overview card: human (read-only summary) ──────────────────────────────────
 
-function HumanSummaryCard({ index, club }) {
+function HumanSummaryCard({ index, club, hideFormation = false }) {
   return (
     <div className="club-overview-card">
       <div className="club-setup-header">
@@ -225,7 +227,7 @@ function HumanSummaryCard({ index, club }) {
         <div className="overview-info">
           <div className="overview-club-name">{club.clubName || "—"}</div>
           <div className="overview-meta">{club.dofName || "—"}</div>
-          <div className="overview-meta">{club.formation || "4-3-3"}</div>
+          {!hideFormation && <div className="overview-meta">{club.formation || "4-3-3"}</div>}
         </div>
       </div>
     </div>
@@ -234,7 +236,7 @@ function HumanSummaryCard({ index, club }) {
 
 // ── Overview card: CPU (greyed, with edit button) ─────────────────────────────
 
-function CpuSummaryCard({ index, club, onEdit }) {
+function CpuSummaryCard({ index, club, onEdit, hideFormation = false }) {
   return (
     <div className="club-overview-card cpu-locked">
       <div className="club-setup-header">
@@ -254,7 +256,7 @@ function CpuSummaryCard({ index, club, onEdit }) {
         <div className="overview-info">
           <div className="overview-club-name">{club.clubName}</div>
           <div className="overview-meta">{club.dofName}</div>
-          <div className="overview-meta">{club.formation}</div>
+          {!hideFormation && <div className="overview-meta">{club.formation}</div>}
         </div>
       </div>
     </div>
@@ -263,7 +265,7 @@ function CpuSummaryCard({ index, club, onEdit }) {
 
 // ── CPU editor step ────────────────────────────────────────────────────────────
 
-function CpuEditorStep({ index, club, onChange, onDone, otherColors = [] }) {
+function CpuEditorStep({ index, club, onChange, onDone, otherColors = [], hideFormation = false }) {
   const valid = club.dofName.trim() && club.clubName.trim();
   return (
     <div className="setup-card setup-card-wide">
@@ -286,7 +288,7 @@ function CpuEditorStep({ index, club, onChange, onDone, otherColors = [] }) {
         </div>
       </div>
 
-      <ClubEditorForm club={club} onChange={onChange} index={index} />
+      <ClubEditorForm club={club} onChange={onChange} index={index} hideFormation={hideFormation} />
 
       <button
         className={`start-btn ${valid ? "active" : ""}`}
@@ -302,7 +304,8 @@ function CpuEditorStep({ index, club, onChange, onDone, otherColors = [] }) {
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function ClubCreatorScreen({ config, onStart, onBack }) {
-  const { numClubs, numHumans, ...gameOptions } = config;
+  const { numClubs, numHumans, warChest, ...gameOptions } = config;
+  const hideFormation = !!warChest;
 
   const [clubs, setClubs] = useState(() => {
     const result = [];
@@ -340,6 +343,7 @@ export default function ClubCreatorScreen({ config, onStart, onBack }) {
           onChange={updated => updateClub(editingCpuIdx, updated)}
           onDone={() => setEditingCpuIdx(null)}
           otherColors={clubs.filter((_, i) => i !== editingCpuIdx).map(c => c.primaryColor)}
+          hideFormation={hideFormation}
         />
       </div>
     );
@@ -392,7 +396,7 @@ export default function ClubCreatorScreen({ config, onStart, onBack }) {
             ))}
           </div>
 
-          <ClubEditorForm club={club} onChange={updated => updateClub(step, updated)} index={step} />
+          <ClubEditorForm club={club} onChange={updated => updateClub(step, updated)} index={step} hideFormation={hideFormation} />
 
           <button
             className={`start-btn ${valid ? "active" : ""}`}
@@ -433,8 +437,8 @@ export default function ClubCreatorScreen({ config, onStart, onBack }) {
         <div className="clubs-grid">
           {clubs.map((club, i) =>
             club.isComputer
-              ? <CpuSummaryCard key={i} index={i} club={club} onEdit={() => setEditingCpuIdx(i)} />
-              : <HumanSummaryCard key={i} index={i} club={club} />
+              ? <CpuSummaryCard key={i} index={i} club={club} onEdit={() => setEditingCpuIdx(i)} hideFormation={hideFormation} />
+              : <HumanSummaryCard key={i} index={i} club={club} hideFormation={hideFormation} />
           )}
         </div>
 
