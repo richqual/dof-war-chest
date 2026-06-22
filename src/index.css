@@ -5518,9 +5518,10 @@ html.large-text .match-report-title  { font-size: 14px; }
 .wc-draft-club { font-family: var(--font-head); font-size: 9px; color: var(--text); letter-spacing: 1px; }
 .wc-draft-turn-badge { font-family: var(--font); font-size: 12px; color: var(--text3); margin-top: 2px; }
 
-.wc-budget-block { text-align: right; }
 .wc-budget-remaining { font-family: var(--font-head); font-size: 14px; color: var(--amber); }
+.wc-budget-labels { text-align: right; }
 .wc-budget-label { font-family: var(--font); font-size: 12px; color: var(--text3); margin-top: 2px; }
+.wc-budget-avg  { font-family: var(--font); font-size: 11px; color: var(--text3); margin-top: 1px; opacity: 0.75; }
 
 .wc-budget-bar-track {
   height: 4px;

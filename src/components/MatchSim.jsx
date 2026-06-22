@@ -1385,14 +1385,16 @@ function LineupPanel({ homeManager, awayManager, homeName, awayName, onClose }) 
                   <span className="lineup-rating">{p ? p.rating : ""}</span>
                 </div>
               ))}
-              <div className="lineup-subs-label">SUBSTITUTES</div>
-              {mgr.squad.slice(11, 16).map((p, i) => (
-                <div className="lineup-row sub" key={i}>
-                  <span className="lineup-pos">{p ? p.pos : "–"}</span>
-                  <span className="lineup-name">{p ? p.name : "(empty)"}</span>
-                  <span className="lineup-rating">{p ? p.rating : ""}</span>
-                </div>
-              ))}
+              {mgr.squad.slice(11, 16).some(Boolean) && <>
+                <div className="lineup-subs-label">SUBSTITUTES</div>
+                {mgr.squad.slice(11, 16).map((p, i) => (
+                  <div className="lineup-row sub" key={i}>
+                    <span className="lineup-pos">{p ? p.pos : "–"}</span>
+                    <span className="lineup-name">{p ? p.name : "(empty)"}</span>
+                    <span className="lineup-rating">{p ? p.rating : ""}</span>
+                  </div>
+                ))}
+              </>}
             </div>
           ))}
         </div>

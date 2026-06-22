@@ -39,6 +39,8 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
   const allFilled = manager.squad.slice(0, WAR_CHEST_SLOTS.length).every(Boolean);
   // GK (0), DEF (1), MID (2) are required; slots 3 & 4 (ATT) must also be filled
   const requiredFilled = [0, 1, 2].every(i => manager.squad[i]);
+  const emptySlots = WAR_CHEST_SLOTS.filter((_, i) => !manager.squad[i]).length;
+  const avgPerSlot = emptySlots > 0 ? Math.floor(remaining / emptySlots) : 0;
   const canProceed = allFilled;
 
   function handleSlotClick(slotIdx) {
@@ -85,9 +87,12 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
               )}
             </div>
           </div>
-          <div className="wc-budget-block">
-            <div className="wc-budget-remaining">{formatChest(remaining)}</div>
+          <div className="wc-budget-remaining">{formatChest(remaining)}</div>
+          <div className="wc-budget-labels">
             <div className="wc-budget-label">remaining of {formatChest(budget)}</div>
+            {emptySlots > 0 && (
+              <div className="wc-budget-avg">{formatChest(avgPerSlot)} avg per slot</div>
+            )}
           </div>
         </div>
         <div className="wc-budget-bar-track">

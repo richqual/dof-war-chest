@@ -505,6 +505,7 @@ async function drawSquadCard(manager) {
 function ChampionSquad({ manager }) {
   const [collapsed, setCollapsed] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const isWC = manager.chestBudget !== undefined;
   const starters = manager.squad.slice(0, 11);
   const bench = manager.squad.slice(11, 16);
 
@@ -541,11 +542,11 @@ function ChampionSquad({ manager }) {
       </div>
 
       {!collapsed && <>
-        <div className="champ-squad-section-label">STARTING XI</div>
+        <div className="champ-squad-section-label">{isWC ? "SQUAD" : "STARTING XI"}</div>
         <div className="champ-squad-list">
           {starters.map((p, i) => p ? (
             <div key={i} className="champ-squad-row">
-              <span className="champ-squad-pos">{POSITIONS[i].key}</span>
+              {!isWC && <span className="champ-squad-pos">{POSITIONS[i].key}</span>}
               <span className="champ-squad-name">{p.name}</span>
               <span className="champ-squad-club">{p.club}</span>
               <span
@@ -556,20 +557,22 @@ function ChampionSquad({ manager }) {
           ) : null)}
         </div>
 
-        <div className="champ-squad-section-label">BENCH</div>
-        <div className="champ-squad-list">
-          {bench.map((p, i) => p ? (
-            <div key={i} className="champ-squad-row">
-              <span className="champ-squad-pos">SUB</span>
-              <span className="champ-squad-name">{p.name}</span>
-              <span className="champ-squad-club">{p.club}</span>
-              <span
-                className="champ-squad-rating"
-                style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}
-              >{p.rating}</span>
-            </div>
-          ) : null)}
-        </div>
+        {!isWC && <>
+          <div className="champ-squad-section-label">BENCH</div>
+          <div className="champ-squad-list">
+            {bench.map((p, i) => p ? (
+              <div key={i} className="champ-squad-row">
+                <span className="champ-squad-pos">SUB</span>
+                <span className="champ-squad-name">{p.name}</span>
+                <span className="champ-squad-club">{p.club}</span>
+                <span
+                  className="champ-squad-rating"
+                  style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}
+                >{p.rating}</span>
+              </div>
+            ) : null)}
+          </div>
+        </>}
       </>}
     </div>
   );
