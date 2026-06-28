@@ -1,5 +1,11 @@
 import { useState } from "react";
 
+const FORMAT_OPTIONS = [
+  { key: "bo3", label: "3", hint: "First to 2 wins" },
+  { key: "bo5", label: "5", hint: "First to 3 wins" },
+  { key: "bo7", label: "7", hint: "First to 4 wins" },
+];
+
 const DIFFICULTY_INFO = [
   { key: "easy",   label: "GENEROUS", hint: "5 chests: £800m / £650m / £500m / £375m / £250m — legends await" },
   { key: "normal", label: "EASY",     hint: "5 chests: £500m / £400m / £300m / £220m / £150m" },
@@ -49,19 +55,23 @@ export default function WarChestLobbyScreen({ onContinue, onBack }) {
           </div>
 
           {numClubs === 2 && (
-            <>
-              <div className="setup-row">
-                <span className="setup-row-label">FORMAT</span>
-                <select className="setup-row-select" value={format} onChange={e => setFormat(e.target.value)}>
-                  <option value="bo3">Best of 3</option>
-                  <option value="bo5">Best of 5</option>
-                  <option value="bo7">Best of 7</option>
-                </select>
+            <div className="difficulty-section">
+              <span className="field-label-sm">BEST OF</span>
+              <div className="difficulty-row">
+                {FORMAT_OPTIONS.map(f => (
+                  <button
+                    key={f.key}
+                    className={`difficulty-btn ${format === f.key ? "active" : ""}`}
+                    onClick={() => setFormat(f.key)}
+                  >
+                    {f.label}
+                  </button>
+                ))}
               </div>
-              <div className="difficulty-hint setup-row-hint">
-                {format === "bo3" ? "First to 2 wins" : format === "bo5" ? "First to 3 wins" : "First to 4 wins"}
+              <div className="difficulty-hint">
+                {FORMAT_OPTIONS.find(f => f.key === format)?.hint}
               </div>
-            </>
+            </div>
           )}
 
           <div className="setup-row">
