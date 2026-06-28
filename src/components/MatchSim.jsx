@@ -91,12 +91,18 @@ function pickAttacker(players) {
   });
 }
 
+const POS_ASSIST_WEIGHT = {
+  CAM: 2.2, CM: 1.8, LM: 1.5, RM: 1.5, LW: 1.4, RW: 1.4,
+  ST: 1.0, DM: 0.9, RB: 0.8, LB: 0.8, CB: 0.5, GK: 0.12,
+};
+
 function pickAssister(players, excludeName) {
   const cands = players.filter(p => p.name !== excludeName);
   if (!cands.length) return null;
   return pickWeightedPlayer(cands, p => {
     const a = deriveAttributes(p);
-    return a.tec * 0.55 + a.att * 0.20 + a.pac * 0.15 + a.aer * 0.10;
+    const posW = POS_ASSIST_WEIGHT[p.pos] ?? 1.0;
+    return (a.tec * 0.55 + a.att * 0.20 + a.pac * 0.15 + a.aer * 0.10) * posW;
   });
 }
 
@@ -189,6 +195,16 @@ const COMMENTARY_GOAL_ASSIST = [
   (a, s, t) => `Corner from ${a}. It's got pace on it. ${s} attacks the ball brilliantly and ${t} are ahead!`,
   (a, s, t) => `${a} with the long diagonal switch — sensational pass — found ${s} who made no mistake for ${t}!`,
   (a, s, t) => `${a} threads the needle in a packed penalty area. Only ${s} saw the run. Only ${s} could finish that.`,
+];
+
+// Used when the assister is a goalkeeper — distribution rather than a pass
+const COMMENTARY_GOAL_ASSIST_GK = [
+  (a, s, t) => `${a} rolls it out quickly and ${s} is in behind — clinical finish for ${t}!`,
+  (a, s, t) => `Quick hands from ${a} — the distribution is perfect and ${s} does the rest. ${t} score!`,
+  (a, s, t) => `${a} launches it long and ${s} brings it down beautifully before finishing. ${t} ahead!`,
+  (a, s, t) => `${a} spots the run early and bowls it out — ${s} is clean through and doesn't miss. ${t}!`,
+  (a, s, t) => `The goalkeeper, ${a}, with a stunning long throw — ${s} latches on and finishes. ${t} lead!`,
+  (a, s, t) => `${a} distributes quickly before the defence can set — ${s} is onto it in a flash. Goal for ${t}!`,
 ];
 
 const COMMENTARY_MISS = [
@@ -926,10 +942,13 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
         isHome ? hGoals++ : aGoals++;
         let assister = null;
         if (Math.random() < 0.72) {
-          assister = pickAssister(pitchPlayers, name)?.name || null;
+          const assisterPlayer = pickAssister(pitchPlayers, name);
+          assister = assisterPlayer?.name || null;
+          var assisterIsGK = assisterPlayer?.pos === "GK";
         }
+        const assistPool = assisterIsGK ? COMMENTARY_GOAL_ASSIST_GK : COMMENTARY_GOAL_ASSIST;
         const goalText = assister
-          ? pick(COMMENTARY_GOAL_ASSIST)(assister, name, teamName)
+          ? pick(assistPool)(assister, name, teamName)
           : pick(COMMENTARY_GOAL[ctx])(name, teamName);
         events.push({ min, type: "goal", team: side, scorer: name, assister, text: goalText, score: `${hGoals}–${aGoals}`, poss: Math.round(possH * 100) });
         if (isHome) { hShots++; hOnTarget++; } else { aShots++; aOnTarget++; }
@@ -1023,11 +1042,15 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
           const ctx = isHome ? goalContext(finalHome, finalAway) : goalContext(finalAway, finalHome);
           isHome ? finalHome++ : finalAway++;
           let etAssister = null;
+          let etAssisterIsGK = false;
           if (Math.random() < 0.72) {
-            etAssister = pickAssister(etPitch, name)?.name || null;
+            const etAssisterPlayer = pickAssister(etPitch, name);
+            etAssister = etAssisterPlayer?.name || null;
+            etAssisterIsGK = etAssisterPlayer?.pos === "GK";
           }
+          const etAssistPool = etAssisterIsGK ? COMMENTARY_GOAL_ASSIST_GK : COMMENTARY_GOAL_ASSIST;
           const etGoalText = etAssister
-            ? pick(COMMENTARY_GOAL_ASSIST)(etAssister, name, teamName)
+            ? pick(etAssistPool)(etAssister, name, teamName)
             : pick(COMMENTARY_GOAL[ctx])(name, teamName);
           etEvents.push({ min, type: "goal", team: side, scorer: name, assister: etAssister, text: etGoalText, score: `${finalHome}–${finalAway}` });
         } else {
