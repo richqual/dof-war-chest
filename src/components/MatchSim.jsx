@@ -853,6 +853,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   }
 
   let hGoals = 0, aGoals = 0;
+  let hShots = 0, aShots = 0;
   let hOnTarget = 0, aOnTarget = 0;
   let hFouls = 0, aFouls = 0;
   const hCards = [], aCards = [];
@@ -931,9 +932,10 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
           ? pick(COMMENTARY_GOAL_ASSIST)(assister, name, teamName)
           : pick(COMMENTARY_GOAL[ctx])(name, teamName);
         events.push({ min, type: "goal", team: side, scorer: name, assister, text: goalText, score: `${hGoals}–${aGoals}`, poss: Math.round(possH * 100) });
-        if (isHome) hOnTarget++; else aOnTarget++;
+        if (isHome) { hShots++; hOnTarget++; } else { aShots++; aOnTarget++; }
       } else {
         events.push({ min, type: "miss", team: side, text: pick(COMMENTARY_MISS)(name), poss: Math.round(possH * 100) });
+        if (isHome) hShots++; else aShots++;
         if (Math.random() < 0.5) { if (isHome) hOnTarget++; else aOnTarget++; }
       }
     } else if (r < 0.45) {
@@ -1224,10 +1226,10 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     events: allEvents,
     score,
     stats: {
-      hShots: Math.max(finalHome, rand(3, 8)),
-      aShots: Math.max(finalAway, rand(2, 7)),
-      hOnTarget: Math.min(hOnTarget + finalHome, Math.max(finalHome, hOnTarget)),
-      aOnTarget: Math.min(aOnTarget + finalAway, Math.max(finalAway, aOnTarget)),
+      hShots: Math.max(hShots, finalHome),
+      aShots: Math.max(aShots, finalAway),
+      hOnTarget: Math.min(Math.max(hOnTarget, finalHome), Math.max(hShots, finalHome)),
+      aOnTarget: Math.min(Math.max(aOnTarget, finalAway), Math.max(aShots, finalAway)),
       hPoss, aPoss,
       hCards: hCards.length, aCards: aCards.length,
       hReds: hSentOff.size, aReds: aSentOff.size,

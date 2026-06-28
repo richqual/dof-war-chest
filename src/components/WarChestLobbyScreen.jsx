@@ -12,6 +12,7 @@ export default function WarChestLobbyScreen({ onContinue, onBack }) {
   const [numClubs, setNumClubs] = useState(2);
   const [numHumans, setNumHumans] = useState(1);
   const [difficulty, setDifficulty] = useState("hard");
+  const [format, setFormat] = useState("bo3");
   const [hideRatings, setHideRatings] = useState(false);
   const [dynamicValues, setDynamicValues] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -22,7 +23,7 @@ export default function WarChestLobbyScreen({ onContinue, onBack }) {
   }
 
   function handleContinue() {
-    onContinue({ numClubs, numHumans, difficulty, hideRatings, dynamicValues, dynamicForm: true });
+    onContinue({ numClubs, numHumans, difficulty, format: numClubs === 2 ? format : undefined, hideRatings, dynamicValues, dynamicForm: true });
   }
 
   return (
@@ -44,8 +45,24 @@ export default function WarChestLobbyScreen({ onContinue, onBack }) {
             </select>
           </div>
           <div className="difficulty-hint setup-row-hint">
-            {numClubs === 2 ? "Head-to-head — two squads, one match" : `${numClubs}-way — everyone builds a squad, then play off`}
+            {numClubs === 2 ? "Head-to-head — build your squads then play a series" : `${numClubs}-way — everyone builds a squad, then play off`}
           </div>
+
+          {numClubs === 2 && (
+            <>
+              <div className="setup-row">
+                <span className="setup-row-label">FORMAT</span>
+                <select className="setup-row-select" value={format} onChange={e => setFormat(e.target.value)}>
+                  <option value="bo3">Best of 3</option>
+                  <option value="bo5">Best of 5</option>
+                  <option value="bo7">Best of 7</option>
+                </select>
+              </div>
+              <div className="difficulty-hint setup-row-hint">
+                {format === "bo3" ? "First to 2 wins" : format === "bo5" ? "First to 3 wins" : "First to 4 wins"}
+              </div>
+            </>
+          )}
 
           <div className="setup-row">
             <span className="setup-row-label">PLAYERS</span>
@@ -104,7 +121,7 @@ export default function WarChestLobbyScreen({ onContinue, onBack }) {
             <li>Your chest is your entire transfer budget for the squad — spend wisely</li>
             <li>Build a 5-player squad: Goalkeeper · Defender · Midfielder · + 2 free slots</li>
             <li>You must fill GK, DEF and MID — the rest are up to you</li>
-            <li>Match is 60 minutes — no manager, just pure squad quality</li>
+            <li>Matches are 60 minutes — no manager, just pure squad quality</li>
           </ul>
         </div>
 

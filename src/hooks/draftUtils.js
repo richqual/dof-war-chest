@@ -363,7 +363,17 @@ export function resolveCurrentPos(d) {
 
 // ── War Chest mode ──────────────────────────────────────────────────────────
 
-function buildWCSeries(n) {
+function buildWCSeries(n, format = "bo3") {
+  if (n === 2) return {
+    format,
+    participants: [0, 1],
+    wins: [0, 0],
+    draws: 0,
+    played: 0,
+    target: FORMAT_TARGETS[format] || 2,
+    stage: "playing",
+    champion: null,
+  };
   if (n === 4) return { format: "tournament", singleLeg: true, stage: "draw", semis: null, final: null, champion: null };
   if (n === 8) return { format: "tournament8", singleLeg: true, stage: "draw", quarters: null, semis: null, final: null, champion: null };
   return null;
@@ -402,7 +412,7 @@ export function buildInitialWarChestDraft(clubs, options = {}) {
     dynamicForm: options.dynamicForm !== false,
     dynamicValues: options.dynamicValues !== false,
     phase: "draft",
-    series: buildWCSeries(clubs.length),
+    series: buildWCSeries(clubs.length, options.format),
   };
 }
 
