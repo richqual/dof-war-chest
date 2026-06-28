@@ -38,48 +38,24 @@ function pick(arr) {
 }
 
 // ---------------------------------------------------------------------------
-// Player attributes derived from position + archetype + rating.
-// No manual data entry — everything is computed at runtime.
+// Player attributes — read directly from stored pac/sho/pas/dri/def/phy.
+// Maps to the old att/def/pac/tec/aer shape used by the engine internals.
 // ---------------------------------------------------------------------------
 
-const POS_ATTR_BASE = {
-  GK:  { att: 5,  def: 72, pac: 45, tec: 50, aer: 55 },
-  CB:  { att: 15, def: 72, pac: 50, tec: 45, aer: 68 },
-  RB:  { att: 28, def: 62, pac: 62, tec: 52, aer: 40 },
-  LB:  { att: 28, def: 62, pac: 62, tec: 52, aer: 40 },
-  DM:  { att: 30, def: 65, pac: 52, tec: 58, aer: 48 },
-  CM:  { att: 45, def: 45, pac: 55, tec: 65, aer: 45 },
-  CAM: { att: 60, def: 22, pac: 56, tec: 72, aer: 42 },
-  RM:  { att: 50, def: 38, pac: 62, tec: 60, aer: 38 },
-  LM:  { att: 50, def: 38, pac: 62, tec: 60, aer: 38 },
-  LW:  { att: 58, def: 25, pac: 68, tec: 62, aer: 38 },
-  RW:  { att: 58, def: 25, pac: 68, tec: 62, aer: 38 },
-  ST:  { att: 72, def: 18, pac: 62, tec: 52, aer: 60 },
-};
-
-const ARCHETYPE_MOD = {
-  "Athlete":        { pac: +8,  att: -2,  tec: -2,  def: -2,  aer: -2  },
-  "Technician":     { tec: +8,  att: +2,  pac: -5,  def: -3,  aer: -2  },
-  "Grinder":        { def: +8,  pac: +2,  att: -5,  tec: -3,  aer: -2  },
-  "Warrior":        { def: +5,  pac: +5,  aer: +2,  att: -6,  tec: -6  },
-  "Maverick":       { att: +5,  tec: +5,  pac: +2,  def: -8,  aer: -4  },
-  "Leader":         { def: +5,  aer: +8,  att: -5,  pac: -3,  tec: -5  },
-  "Shot Stopper":   { pac: +8,  tec: -5,  def: -3,  att: 0,   aer: 0   },
-  "Sweeper Keeper": { pac: +8,  tec: +8,  def: -12, aer: -4,  att: 0   },
-  "Organiser":      { tec: +10, aer: +5,  def: -8,  pac: -5,  att: -2  },
-};
-
 function deriveAttributes(player) {
-  const base = POS_ATTR_BASE[player.pos] || POS_ATTR_BASE.MF;
-  const mod = ARCHETYPE_MOD[player.archetype] || {};
-  const scale = (player.rating - 80) * 0.5;
   const clamp = v => Math.round(Math.min(99, Math.max(1, v)));
+  const pac = clamp(player.pac ?? 60);
+  const sho = clamp(player.sho ?? 50);
+  const pas = clamp(player.pas ?? 50);
+  const dri = clamp(player.dri ?? 50);
+  const def = clamp(player.def ?? 50);
+  const phy = clamp(player.phy ?? 60);
   return {
-    att: clamp(base.att + (mod.att || 0) + scale),
-    def: clamp(base.def + (mod.def || 0) + scale),
-    pac: clamp(base.pac + (mod.pac || 0) + scale * 0.5),
-    tec: clamp(base.tec + (mod.tec || 0) + scale * 0.7),
-    aer: clamp(base.aer + (mod.aer || 0) + scale * 0.6),
+    att: clamp(Math.round(sho * 0.6 + dri * 0.4)),
+    def: clamp(Math.round(def * 0.7 + phy * 0.3)),
+    pac,
+    tec: clamp(Math.round(pas * 0.55 + dri * 0.45)),
+    aer: clamp(Math.round(phy * 0.65 + def * 0.35)),
   };
 }
 

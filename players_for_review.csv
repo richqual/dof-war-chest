@@ -1,0 +1,1206 @@
+id,name,club,years,pos,pos2,nation,era,league,tier,archetype,rating,valueMin,valueMax
+1,Peter Schmeichel,Man Utd,1991–99,GK,,🇩🇰,classic,premier_league,T1,Shot Stopper,95,116,156
+2,Edwin van der Sar,Man Utd,2005–11,GK,,🇳🇱,classic,premier_league,T2,Organiser,91,38,68
+3,Pepe Reina,Liverpool,2005–14,GK,,🇪🇸,golden,premier_league,T3,Organiser,88,16,36
+4,David James,Man City,2004–06,GK,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Shot Stopper,83,0,10
+5,Joe Hart,Man City,2009–16,GK,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T3,Shot Stopper,87,10,30
+6,Shay Given,Newcastle,1997–09,GK,,🇮🇪,classic,premier_league,T3,Shot Stopper,86,4,24
+7,Mark Schwarzer,Fulham,1999–13,GK,,🇦🇺,classic,premier_league,T4,Organiser,84,1,13
+8,Brad Friedel,Blackburn,2000–08,GK,,🇺🇸,classic,premier_league,T3,Shot Stopper,85,0,20
+9,Nigel Martyn,Leeds,1996–03,GK,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Organiser,84,1,13
+10,Hugo Lloris,Spurs,2012–23,GK,,🇫🇷,golden,premier_league,T2,Organiser,90,26,56
+11,David de Gea,Man Utd,2011–23,GK,,🇪🇸,golden,premier_league,T2,Shot Stopper,91,38,68
+12,Alisson Becker,Liverpool,2018–,GK,,🇧🇷,modern,premier_league,T1,Sweeper Keeper,93,65,105
+13,Ederson,Man City,2017–,GK,,🇧🇷,modern,premier_league,T2,Sweeper Keeper,92,51,81
+14,Nick Pope,Newcastle,2022–,GK,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T3,Shot Stopper,86,4,24
+15,Jordan Pickford,Everton,2017–,GK,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T3,Shot Stopper,85,0,20
+16,Kasper Schmeichel,Leicester,2011–22,GK,,🇩🇰,golden,premier_league,T3,Organiser,87,10,30
+17,Tim Howard,Everton,2006–16,GK,,🇺🇸,golden,premier_league,T3,Shot Stopper,86,4,24
+18,Jens Lehmann,Arsenal,2003–08,GK,,🇩🇪,classic,premier_league,T3,Shot Stopper,87,10,30
+19,Carlo Cudicini,Chelsea,1999–09,GK,,🇮🇹,classic,premier_league,T4,Organiser,83,0,10
+20,Rui Patrício,Wolves,2018–21,GK,,🇵🇹,modern,premier_league,T3,Organiser,86,4,24
+21,Lukasz Fabianski,West Ham,2014–,GK,,🇵🇱,modern,premier_league,T4,Organiser,83,0,10
+22,Ben Foster,Watford,2018–21,GK,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T4,Organiser,82,0,9
+23,Wayne Hennessey,Crystal Palace,2014–22,GK,,🏴󠁧󠁢󠁷󠁬󠁳󠁿,golden,premier_league,T5,Organiser,79,0,2
+24,Scott Carson,Derby,2008–15,GK,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T5,Organiser,78,0,2
+25,Chris Kirkland,Wigan,2006–13,GK,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T5,Organiser,79,0,2
+26,Manuel Almunia,Arsenal,2004–11,GK,,🇪🇸,classic,premier_league,T5,Organiser,80,0,2
+27,Robert Green,West Ham,2006–12,GK,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T5,Organiser,80,0,2
+28,Paul Robinson,Blackburn,2008–15,GK,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T5,Organiser,77,0,2
+29,Heurelho Gomes,Watford,2014–20,GK,,🇧🇷,golden,premier_league,T5,Organiser,76,0,2
+30,Adrián,West Ham,2013–19,GK,,🇪🇸,golden,premier_league,T5,Organiser,75,0,2
+31,Steve Harper,Newcastle,1993–13,GK,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T5,Organiser,73,0,2
+100,Gary Neville,Man Utd,1992–11,RB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T3,Grinder,88,20,40
+101,Pablo Zabaleta,Man City,2008–17,RB,,🇦🇷,golden,premier_league,T3,Warrior,86,8,28
+102,Bacary Sagna,Arsenal,2007–14,RB,,🇫🇷,golden,premier_league,T3,Warrior,86,8,28
+103,Glen Johnson,Liverpool,2009–15,RB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T4,Athlete,84,2,14
+104,Trent Alexander-Arnold,Liverpool,2017–,RB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T2,Technician,90,30,60
+105,Kyle Walker,Man City,2017–,RB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T3,Athlete,88,20,40
+106,Kieran Trippier,Spurs,2015–19,RB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T3,Technician,86,8,28
+107,Cesar Azpilicueta,Chelsea,2012–23,RB,,🇪🇸,golden,premier_league,T3,Grinder,87,13,33
+108,Phil Neville,Man Utd,1995–05,RB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Grinder,82,0,9
+109,Wes Brown,Man Utd,1998–11,RB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Warrior,82,0,9
+110,Stephen Carr,Spurs,1993–04,RB,,🇮🇪,classic,premier_league,T4,Grinder,83,0,11
+111,Micah Richards,Man City,2005–15,RB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T4,Athlete,84,2,14
+112,Nathaniel Clyne,Liverpool,2015–19,RB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T4,Grinder,83,0,11
+113,Seamus Coleman,Everton,2009–,RB,,🇮🇪,golden,premier_league,T4,Warrior,84,2,14
+114,Aaron Wan-Bissaka,Man Utd,2019–23,RB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T4,Grinder,83,0,11
+115,Matt Doherty,Wolves,2010–20,RB,,🇮🇪,modern,premier_league,T4,Grinder,83,0,11
+116,Serge Aurier,Spurs,2017–21,RB,,🇨🇮,modern,premier_league,T4,Athlete,82,0,9
+117,Gary Kelly,Leeds,1991–07,RB,,🇮🇪,classic,premier_league,T4,Grinder,82,0,9
+118,Alan Hutton,Spurs,2008–11,RB,,🏴󠁧󠁢󠁳󠁣󠁴󠁿,golden,premier_league,T5,Grinder,79,0,2
+119,Phil Bardsley,Sunderland,2008–14,RB,,🏴󠁧󠁢󠁳󠁣󠁴󠁿,golden,premier_league,T5,Grinder,74,0,2
+120,Angel Rangel,Swansea,2011–18,RB,,🇪🇸,golden,premier_league,T5,Grinder,75,0,2
+121,Carl Jenkinson,Arsenal,2011–16,RB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T5,Grinder,72,0,2
+122,Simon Francis,Bournemouth,2015–20,RB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T5,Grinder,73,0,2
+200,Ashley Cole,Arsenal,1999–06,LB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T1,Athlete,93,75,115
+201,Denis Irwin,Man Utd,1990–02,LB,,🇮🇪,classic,premier_league,T3,Grinder,88,20,40
+202,Patrice Evra,Man Utd,2006–14,LB,,🇫🇷,golden,premier_league,T2,Warrior,91,48,78
+203,Andrew Robertson,Liverpool,2017–,LB,,🏴󠁧󠁢󠁳󠁣󠁴󠁿,modern,premier_league,T2,Warrior,91,47,77
+204,Leighton Baines,Everton,2007–20,LB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T3,Technician,86,8,28
+205,Wayne Bridge,Chelsea,2003–09,LB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Athlete,84,2,14
+206,Gael Clichy,Arsenal,2003–11,LB,,🇫🇷,golden,premier_league,T3,Athlete,85,1,21
+207,John Arne Riise,Liverpool,2001–08,LB,,🇳🇴,classic,premier_league,T3,Warrior,85,1,21
+208,Danny Rose,Spurs,2012–20,LB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T4,Warrior,84,2,14
+209,Graeme Le Saux,Chelsea,1997–03,LB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Technician,84,2,14
+210,Nigel Winterburn,Arsenal,1987–00,LB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Grinder,84,2,14
+211,Oleksandr Zinchenko,Arsenal,2022–,LB,,🇺🇦,modern,premier_league,T3,Technician,86,8,28
+212,Marcos Alonso,Chelsea,2016–22,LB,,🇪🇸,modern,premier_league,T4,Warrior,83,0,11
+213,Luke Shaw,Man Utd,2018–23,LB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T3,Athlete,85,1,21
+214,Ryan Bertrand,Southampton,2014–21,LB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T4,Grinder,83,0,11
+215,Stuart Pearce,Man City,2001–02,LB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Warrior,83,0,11
+216,Ian Harte,Leeds,1995–04,LB,,🇮🇪,classic,premier_league,T4,Technician,83,0,11
+217,Silvinho,Arsenal,1999–01,LB,,🇧🇷,classic,premier_league,T4,Athlete,83,0,11
+218,Ben Davies,Spurs,2014–,LB,,🏴󠁧󠁢󠁷󠁬󠁳󠁿,modern,premier_league,T4,Grinder,82,0,9
+219,Patrick van Aanholt,Crystal Palace,2017–21,LB,,🇳🇱,modern,premier_league,T4,Grinder,81,0,7
+220,Fabian Delph,Man City,2015–19,LB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T4,Grinder,81,0,7
+221,Benjamin Mendy,Man City,2017–21,LB,,🇫🇷,modern,premier_league,T3,Athlete,86,8,28
+222,Nuno Tavares,Arsenal,2021–22,LB,,🇵🇹,modern,premier_league,T5,Grinder,79,0,2
+223,Paul Konchesky,Fulham,2005–10,LB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T5,Grinder,75,0,2
+224,José Enrique,Liverpool,2011–16,LB,,🇪🇸,golden,premier_league,T5,Grinder,76,0,2
+225,Stephen Warnock,Aston Villa,2009–13,LB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T5,Grinder,74,0,2
+226,Charlie Daniels,Bournemouth,2015–20,LB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T5,Grinder,73,0,2
+300,John Terry,Chelsea,1998–17,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T1,Leader,94,95,135
+301,Rio Ferdinand,Man Utd,2002–14,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T1,Leader,93,70,110
+302,Virgil van Dijk,Liverpool,2018–,CB,,🇳🇱,modern,premier_league,T1,Leader,95,124,164
+303,Tony Adams,Arsenal,1983–02,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T2,Warrior,90,28,58
+304,Martin Keown,Arsenal,1993–04,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T3,Warrior,86,5,25
+305,Ruben Dias,Man City,2020–,CB,,🇵🇹,modern,premier_league,T1,Leader,93,70,110
+306,Sol Campbell,Arsenal,2001–06,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T2,Leader,90,28,58
+307,Jamie Carragher,Liverpool,1996–13,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T3,Warrior,88,17,37
+308,Sami Hyypiä,Liverpool,1999–09,CB,,🇫🇮,classic,premier_league,T3,Leader,87,11,31
+309,Nemanja Vidic,Man Utd,2006–14,CB,,🇷🇸,golden,premier_league,T2,Warrior,92,55,85
+310,Gary Pallister,Man Utd,1989–01,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T3,Leader,88,17,37
+311,Steve Bruce,Man Utd,1987–96,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T3,Warrior,87,11,31
+312,Ledley King,Spurs,1998–12,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T3,Technician,88,17,37
+313,William Gallas,Chelsea,2001–06,CB,,🇫🇷,classic,premier_league,T3,Warrior,86,5,25
+314,Jonathan Woodgate,Leeds,1997–03,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T3,Technician,85,1,21
+315,Laurent Blanc,Man Utd,2001–03,CB,,🇫🇷,classic,premier_league,T3,Leader,85,1,21
+316,Michael Dawson,Spurs,2004–14,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T4,Warrior,83,0,11
+317,Joleon Lescott,Man City,2009–14,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T4,Grinder,84,2,14
+318,Harry Maguire,Man Utd,2019–,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T4,Leader,83,0,11
+319,Aymeric Laporte,Man City,2018–23,CB,,🇪🇸,modern,premier_league,T3,Technician,87,11,31
+320,Toby Alderweireld,Spurs,2015–19,CB,,🇧🇪,golden,premier_league,T3,Technician,87,11,31
+321,Gary Cahill,Chelsea,2012–19,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T3,Warrior,85,1,21
+322,Chris Smalling,Man Utd,2010–19,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T4,Warrior,83,0,11
+323,Marc Guehi,Crystal Palace,2021–,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T4,Leader,84,2,14
+324,Nathan Aké,Man City,2020–,CB,,🇳🇱,modern,premier_league,T3,Technician,85,1,21
+325,Ben White,Arsenal,2021–,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T3,Technician,85,1,21
+326,Fikayo Tomori,Chelsea,2019–21,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T4,Athlete,83,0,11
+327,Jonny Evans,Man Utd,2007–15,CB,,🇬🇧,golden,premier_league,T4,Leader,84,2,14
+328,Wes Morgan,Leicester,2012–21,CB,,🇯🇲,golden,premier_league,T4,Warrior,83,0,11
+329,Tyrone Mings,Aston Villa,2019–,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T4,Warrior,82,0,9
+330,Dan Burn,Newcastle,2022–,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T5,Warrior,80,0,2
+331,Matthew Upson,West Ham,2007–11,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T4,Warrior,82,0,9
+332,Ugo Ehiogu,Aston Villa,1991–00,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Warrior,83,0,11
+333,Joël Matip,Liverpool,2016–24,CB,,🇨🇲,modern,premier_league,T3,Grinder,85,1,21
+334,Ryan Shawcross,Stoke,2008–21,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T5,Warrior,77,0,2
+335,Titus Bramble,Newcastle,2002–07,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T5,Warrior,72,0,2
+336,Zat Knight,Fulham,2000–07,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T5,Warrior,73,0,2
+337,Sebastien Bassong,Norwich,2012–17,CB,,🇨🇲,golden,premier_league,T5,Warrior,74,0,2
+400,Roy Keane,Man Utd,1993–05,DM,,🇮🇪,classic,premier_league,T1,Warrior,94,102,142
+401,Patrick Vieira,Arsenal,1996–05,DM,,🇫🇷,classic,premier_league,T1,Warrior,93,75,115
+402,Claude Makélélé,Chelsea,2003–08,DM,,🇫🇷,classic,premier_league,T2,Grinder,91,44,74
+403,Yaya Touré,Man City,2010–18,DM,,🇨🇮,golden,premier_league,T2,Warrior,92,59,89
+404,Steven Gerrard,Liverpool,1998–15,DM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T1,Warrior,94,102,142
+405,Fernandinho,Man City,2013–22,DM,,🇧🇷,golden,premier_league,T2,Grinder,89,21,51
+406,N'Golo Kanté,Chelsea,2016–23,DM,,🇫🇷,modern,premier_league,T2,Grinder,92,59,89
+407,Rodri,Man City,2019–,DM,,🇪🇸,modern,premier_league,T1,Grinder,94,102,142
+408,Declan Rice,Arsenal,2023–,DM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T2,Warrior,89,21,51
+409,Nemanja Matić,Chelsea,2014–17,DM,,🇷🇸,golden,premier_league,T3,Grinder,87,12,32
+410,Michael Carrick,Man Utd,2006–18,DM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T3,Technician,87,12,32
+411,Gareth Barry,Man City,2009–14,DM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T4,Grinder,84,2,14
+412,Jordan Henderson,Liverpool,2011–23,DM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T3,Leader,86,6,26
+413,Scott Parker,Chelsea,2004–13,DM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T3,Grinder,85,1,21
+414,Lucas Leiva,Liverpool,2007–17,DM,,🇧🇷,golden,premier_league,T4,Grinder,84,2,14
+415,Owen Hargreaves,Man Utd,2007–11,DM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T4,Grinder,83,0,11
+416,Nigel de Jong,Man City,2009–12,DM,,🇳🇱,golden,premier_league,T4,Warrior,84,2,14
+417,Barry Ferguson,Blackburn,2003–09,DM,,🏴󠁧󠁢󠁳󠁣󠁴󠁿,classic,premier_league,T4,Grinder,83,0,11
+418,Lee Bowyer,Leeds,1996–03,DM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Warrior,83,0,11
+419,Granit Xhaka,Arsenal,2016–23,DM,,🇨🇭,modern,premier_league,T4,Warrior,84,2,14
+420,Dennis Wise,Chelsea,1990–01,DM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Warrior,84,2,14
+421,Thomas Gravesen,Everton,2000–05,DM,,🇩🇰,classic,premier_league,T4,Warrior,83,0,11
+422,Cheikh Tioté,Newcastle,2010–17,DM,,🇨🇮,golden,premier_league,T4,Warrior,82,0,9
+423,James Milner,Liverpool,2015–23,DM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T4,Grinder,84,2,14
+424,Moussa Sissoko,Spurs,2016–21,DM,,🇫🇷,modern,premier_league,T4,Athlete,81,0,7
+425,Nicky Butt,Man Utd,1992–04,DM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Grinder,83,0,11
+426,Marc Albrighton,Leicester,2014–22,DM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T5,Grinder,80,0,2
+427,Kevin Nolan,Newcastle,2009–11,DM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T5,Grinder,78,0,2
+428,Oriol Romeu,Southampton,2015–22,DM,,🇪🇸,modern,premier_league,T5,Grinder,76,0,2
+429,Lee Cattermole,Sunderland,2009–19,DM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T5,Grinder,75,0,2
+430,Karl Henry,Wolves,2009–15,DM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T5,Grinder,73,0,2
+500,Paul Scholes,Man Utd,1993–13,CM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T2,Technician,92,63,93
+501,Frank Lampard,Chelsea,2001–14,CM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T1,Warrior,93,80,120
+502,Kevin De Bruyne,Man City,2015–,CAM,CM,🇧🇪,modern,premier_league,T1,Maverick,96,162,202
+503,David Beckham,Man Utd,1992–03,RM,RW,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T2,Technician,90,33,63
+504,Luka Modrić,Spurs,2008–12,CM,,🇭🇷,golden,premier_league,T2,Technician,90,33,63
+505,Cesc Fàbregas,Arsenal,2003–11,CAM,CM,🇪🇸,golden,premier_league,T2,Technician,91,47,77
+506,Mesut Özil,Arsenal,2013–21,CAM,CM,🇩🇪,golden,premier_league,T2,Maverick,89,25,55
+507,Juan Mata,Chelsea,2011–14,CAM,CM,🇪🇸,golden,premier_league,T3,Technician,87,17,37
+508,David Silva,Man City,2010–20,CAM,CM,🇪🇸,golden,premier_league,T1,Technician,93,80,120
+509,Phil Foden,Man City,2017–,CAM,CM,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T2,Maverick,92,63,93
+510,Bruno Fernandes,Man Utd,2020–,CAM,CM,🇵🇹,modern,premier_league,T2,Maverick,90,33,63
+511,Martin Ødegaard,Arsenal,2021–,CAM,CM,🇳🇴,modern,premier_league,T2,Technician,89,25,55
+512,Christian Eriksen,Spurs,2013–20,CAM,CM,🇩🇰,golden,premier_league,T3,Technician,88,23,43
+513,Joe Cole,Chelsea,2003–10,CAM,CM,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T3,Maverick,85,5,25
+514,Sandro Tonali,Newcastle,2023–,CM,,🇮🇹,modern,premier_league,T3,Warrior,86,10,30
+515,Dele Alli,Spurs,2015–21,CAM,CM,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T3,Maverick,85,5,25
+516,Mason Mount,Chelsea,2019–23,CM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T3,Grinder,85,5,25
+517,Conor Gallagher,Chelsea,2022–24,CM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T4,Warrior,82,0,9
+518,Jermaine Jenas,Spurs,2005–13,CM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Grinder,82,0,9
+519,Robbie Savage,Blackburn,2005–08,CM,,🏴󠁧󠁢󠁷󠁬󠁳󠁿,classic,premier_league,T5,Warrior,80,0,2
+520,Harvey Elliott,Liverpool,2020–,CM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T4,Maverick,82,0,9
+521,Charlie Adam,Liverpool,2011–12,CM,,🏴󠁧󠁢󠁳󠁣󠁴󠁿,golden,premier_league,T5,Technician,79,0,2
+522,Jonjo Shelvey,Newcastle,2016–23,CM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T5,Technician,77,0,2
+523,Glenn Whelan,Stoke,2008–17,CM,,🇮🇪,golden,premier_league,T5,Technician,74,0,2
+524,Jack Cork,Burnley,2017–23,CM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T5,Technician,74,0,2
+525,Tom Cleverley,Everton,2015–17,CM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T5,Technician,73,0,2
+600,Cristiano Ronaldo,Man Utd,2003–09,RW,,🇵🇹,classic,premier_league,T1,Athlete,95,148,188
+601,Mohamed Salah,Liverpool,2017–,RW,,🇪🇬,modern,premier_league,T1,Athlete,95,148,188
+602,Bukayo Saka,Arsenal,2019–,RW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T2,Athlete,91,50,80
+603,Eden Hazard,Chelsea,2012–19,LW,,🇧🇪,golden,premier_league,T1,Maverick,93,85,125
+604,Raheem Sterling,Man City,2015–22,RW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T2,Athlete,90,35,65
+605,Marc Overmars,Arsenal,1997–00,RW,,🇳🇱,classic,premier_league,T2,Athlete,90,35,65
+606,Arjen Robben,Chelsea,2004–07,RW,,🇳🇱,classic,premier_league,T2,Athlete,90,35,65
+607,Freddie Ljungberg,Arsenal,1998–07,RW,,🇸🇪,classic,premier_league,T3,Athlete,88,24,44
+608,David Ginola,Spurs,1997–00,RW,,🇫🇷,classic,premier_league,T3,Maverick,88,24,44
+609,Leroy Sané,Man City,2016–20,RW,,🇩🇪,modern,premier_league,T3,Athlete,88,24,44
+610,Damien Duff,Chelsea,2003–06,RW,,🇮🇪,classic,premier_league,T3,Athlete,87,17,37
+611,Matthew Le Tissier,Southampton,1986–02,RW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T3,Maverick,87,17,37
+612,Andrei Kanchelskis,Man Utd,1991–95,RW,,🇷🇺,classic,premier_league,T3,Athlete,87,17,37
+613,Antonio Valencia,Man Utd,2009–19,RW,,🇪🇨,golden,premier_league,T3,Athlete,87,17,37
+614,Marcus Rashford,Man Utd,2016–,RW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T3,Athlete,87,17,37
+615,Steve McManaman,Liverpool,1990–99,RW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T3,Athlete,86,10,30
+616,Willian,Chelsea,2013–20,RW,,🇧🇷,golden,premier_league,T3,Grinder,85,4,24
+617,Shaun Wright-Phillips,Chelsea,2005–08,RW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Athlete,84,3,15
+618,Jarrod Bowen,West Ham,2020–,RW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T4,Athlete,84,3,15
+619,Michail Antonio,West Ham,2015–,RW,,🇯🇲,modern,premier_league,T4,Warrior,83,0,12
+620,Pedro,Chelsea,2015–20,RW,,🇪🇸,golden,premier_league,T4,Technician,83,0,12
+621,Kevin Gallagher,Blackburn,1993–99,RW,,🏴󠁧󠁢󠁳󠁣󠁴󠁿,classic,premier_league,T4,Athlete,82,0,9
+622,Stewart Downing,Liverpool,2011–13,RW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T5,Athlete,80,0,2
+623,Trevor Sinclair,West Ham,1998–03,RW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T5,Athlete,78,0,2
+624,Andros Townsend,Crystal Palace,2016–21,RW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T5,Athlete,77,0,2
+625,Matt Ritchie,Newcastle,2016–23,RW,,🏴󠁧󠁢󠁳󠁣󠁴󠁿,modern,premier_league,T5,Athlete,76,0,2
+626,Jordon Ibe,Bournemouth,2016–20,RW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T5,Athlete,72,0,2
+700,Thierry Henry,Arsenal,1999–07,LW,,🇫🇷,classic,premier_league,T1,Athlete,96,170,210
+701,Ryan Giggs,Man Utd,1990–14,LW,,🏴󠁧󠁢󠁷󠁬󠁳󠁿,classic,premier_league,T1,Athlete,94,108,148
+702,Sadio Mané,Liverpool,2016–22,LW,,🇸🇳,modern,premier_league,T1,Athlete,93,85,125
+703,Heung-Min Son,Spurs,2015–,LW,,🇰🇷,modern,premier_league,T2,Athlete,92,67,97
+704,Robert Pires,Arsenal,2000–06,LW,,🇫🇷,classic,premier_league,T2,Technician,91,50,80
+705,Riyad Mahrez,Man City,2018–23,LW,,🇩🇿,modern,premier_league,T2,Maverick,89,27,57
+706,Jack Grealish,Man City,2021–,LW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T3,Maverick,87,17,37
+707,Diogo Jota,Liverpool,2020–,LW,,🇵🇹,modern,premier_league,T3,Athlete,87,17,37
+708,Wilfried Zaha,Crystal Palace,2015–23,LW,,🇨🇮,modern,premier_league,T3,Athlete,86,10,30
+709,Chris Waddle,Sheffield Wed,1992–97,LW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T3,Maverick,86,10,30
+710,Patrik Berger,Liverpool,1996–03,LW,,🇨🇿,classic,premier_league,T4,Technician,84,3,15
+711,Hakim Ziyech,Chelsea,2020–23,LW,,🇲🇦,modern,premier_league,T4,Maverick,84,3,15
+712,Allan Saint-Maximin,Newcastle,2019–23,LW,,🇫🇷,modern,premier_league,T4,Athlete,84,3,15
+713,Emile Smith Rowe,Arsenal,2021–,LW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T4,Maverick,83,0,12
+714,Leandro Trossard,Arsenal,2023–,LW,,🇧🇪,modern,premier_league,T3,Technician,85,4,24
+715,Laurent Robert,Newcastle,2001–05,LW,,🇫🇷,classic,premier_league,T4,Athlete,82,0,9
+716,Leon Bailey,Aston Villa,2021–,LW,,🇯🇲,modern,premier_league,T4,Athlete,83,0,12
+717,Adama Traoré,Wolves,2018–22,LW,,🇪🇸,modern,premier_league,T4,Athlete,83,0,12
+718,Nicolas Anelka,Arsenal,1997–99,LW,,🇫🇷,classic,premier_league,T3,Athlete,86,10,30
+719,Anthony Elanga,Man Utd,2021–23,LW,,🇸🇪,modern,premier_league,T5,Athlete,79,0,2
+720,Yannick Bolasie,Crystal Palace,2013–16,LW,,🇨🇩,golden,premier_league,T5,Athlete,76,0,2
+721,Matt Jarvis,Wolves,2009–12,LW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T5,Athlete,74,0,2
+722,Stephen Hunt,Reading,2006–09,LW,,🇮🇪,classic,premier_league,T5,Athlete,73,0,2
+723,James McClean,West Brom,2015–18,LW,,🇮🇪,modern,premier_league,T5,Athlete,73,0,2
+6034,Peter Odemwingie,West Brom,2010–14,RW,,🇳🇬,golden,premier_league,T3,Athlete,82,8,22
+6035,Zoltan Gera,West Brom,2004–08,CM,AM,🇭🇺,classic,premier_league,T4,Technician,80,3,13
+800,Erling Haaland,Man City,2022–,ST,,🇳🇴,modern,premier_league,T1,Warrior,96,178,218
+801,Alan Shearer,Newcastle,1996–06,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T1,Warrior,94,121,161
+802,Harry Kane,Spurs,2014–23,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T1,Leader,94,121,161
+803,Ruud van Nistelrooy,Man Utd,2001–06,ST,,🇳🇱,classic,premier_league,T1,Grinder,93,90,130
+804,Didier Drogba,Chelsea,2004–12,ST,,🇨🇮,golden,premier_league,T1,Warrior,93,90,130
+805,Wayne Rooney,Man Utd,2004–17,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T1,Warrior,93,90,130
+806,Robin van Persie,Arsenal,2004–12,ST,,🇳🇱,golden,premier_league,T2,Maverick,92,71,101
+807,Michael Owen,Liverpool,1996–04,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T2,Athlete,92,71,101
+808,Fernando Torres,Liverpool,2007–11,ST,,🇪🇸,golden,premier_league,T2,Athlete,92,71,101
+809,Andy Cole,Man Utd,1995–01,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T2,Grinder,90,38,68
+810,Robbie Fowler,Liverpool,1993–01,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T2,Grinder,89,27,57
+811,Les Ferdinand,Newcastle,1995–97,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T2,Warrior,89,27,57
+812,Alexander Isak,Newcastle,2022–,ST,,🇸🇪,modern,premier_league,T3,Athlete,87,20,40
+813,Andriy Shevchenko,Chelsea,2006–08,ST,,🇺🇦,classic,premier_league,T3,Athlete,88,27,47
+814,Teddy Sheringham,Man Utd,1997–01,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T3,Technician,87,20,40
+815,Romelu Lukaku,Chelsea,2021–22,ST,,🇧🇪,modern,premier_league,T3,Warrior,87,20,40
+816,Jermain Defoe,Spurs,2004–14,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T3,Grinder,86,12,32
+817,Olivier Giroud,Arsenal,2012–18,ST,,🇫🇷,golden,premier_league,T3,Warrior,86,12,32
+818,Ollie Watkins,Aston Villa,2020–,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T3,Athlete,85,7,27
+819,Gabriel Jesus,Arsenal,2022–,ST,,🇧🇷,modern,premier_league,T3,Athlete,85,7,27
+820,Darren Bent,Sunderland,2009–11,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T4,Grinder,84,5,17
+821,Dominic Calvert-Lewin,Everton,2016–,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T4,Warrior,83,1,13
+822,Callum Wilson,Newcastle,2020–,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T4,Athlete,83,1,13
+823,Emile Heskey,Liverpool,2000–04,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Warrior,83,1,13
+824,Danny Welbeck,Arsenal,2014–18,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T4,Grinder,81,0,7
+825,Peter Crouch,Liverpool,2005–08,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,T5,Grinder,80,0,2
+826,Dion Dublin,Man Utd,1992–94,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Warrior,82,0,9
+827,Kevin Campbell,Arsenal,1988–95,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T4,Warrior,82,0,9
+828,Kevin Davies,Bolton,2003–13,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T5,Grinder,76,0,2
+829,Glenn Murray,Brighton,2017–20,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T5,Grinder,75,0,2
+830,Shane Long,Southampton,2014–22,ST,,🇮🇪,golden,premier_league,T5,Grinder,74,0,2
+831,Marlon Harewood,West Ham,2003–07,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T5,Grinder,73,0,2
+2000,Iker Casillas,Real Madrid,1999–2006,GK,,🇪🇸,classic,la_liga,T1,Organiser,93,80,120
+2001,Santiago Cañizares,Valencia,1998–2008,GK,,🇪🇸,classic,la_liga,T3,Organiser,87,12,32
+2002,Pepe Reina,Villarreal,2002–2005,GK,,🇪🇸,classic,la_liga,T4,Organiser,84,1,13
+2003,César Sánchez,Real Madrid,1999–2004,GK,,🇪🇸,classic,la_liga,T5,Organiser,80,0,2
+2004,Rubén Marcos,Celta Vigo,2001–2006,GK,,🇵🇹,classic,la_liga,T5,Organiser,77,0,2
+2005,Iker Casillas,Real Madrid,2006–2015,GK,,🇪🇸,golden,la_liga,T1,Organiser,95,135,175
+2006,Víctor Valdés,Barcelona,2002–2014,GK,,🇪🇸,golden,la_liga,T2,Sweeper Keeper,91,48,78
+2007,Thibaut Courtois,Atlético,2011–2014,GK,,🇧🇪,golden,la_liga,T2,Shot Stopper,90,34,64
+2008,Claudio Bravo,Real Sociedad,2009–2014,GK,,🇨🇱,golden,la_liga,T3,Sweeper Keeper,88,19,39
+2009,Diego López,Villarreal,2009–2015,GK,,🇪🇸,golden,la_liga,T3,Organiser,86,6,26
+2010,Sergio Asenjo,Villarreal,2012–2021,GK,,🇪🇸,golden,la_liga,T4,Organiser,83,0,10
+2011,Gorka Iraizoz,Athletic Club,2006–2017,GK,,🇪🇸,golden,la_liga,T4,Organiser,83,0,10
+2012,Andrés Palop,Sevilla,2005–2012,GK,,🇪🇸,golden,la_liga,T4,Organiser,82,0,8
+2013,Kepa Arrizabalaga,Athletic Club,2016–2018,GK,,🇪🇸,golden,la_liga,T4,Organiser,83,0,10
+2014,Óscar Ustari,Getafe,2007–2012,GK,,🇦🇷,golden,la_liga,T5,Organiser,79,0,2
+2015,Jan Oblak,Atlético,2014–,GK,,🇸🇮,modern,la_liga,T1,Sweeper Keeper,95,135,175
+2016,Marc-André ter Stegen,Barcelona,2014–,GK,,🇩🇪,modern,la_liga,T1,Sweeper Keeper,93,80,120
+2017,Thibaut Courtois,Real Madrid,2018–,GK,,🇧🇪,modern,la_liga,T1,Shot Stopper,93,80,120
+2018,Unai Simón,Athletic Club,2018–,GK,,🇪🇸,modern,la_liga,T3,Organiser,86,6,26
+2019,Bono,Sevilla,2019–2022,GK,,🇲🇦,modern,la_liga,T3,Organiser,87,12,32
+2020,Andriy Lunin,Real Madrid,2021–,GK,,🇺🇦,modern,la_liga,T3,Organiser,85,1,21
+2021,Rui Silva,Real Betis,2020–,GK,,🇵🇹,modern,la_liga,T4,Organiser,83,0,10
+2022,David Soria,Getafe,2017–,GK,,🇪🇸,modern,la_liga,T4,Organiser,81,0,7
+2023,Kiko Casilla,Real Madrid,2015–2019,GK,,🇪🇸,modern,la_liga,T5,Organiser,79,0,2
+2024,Iñaki Peña,Barcelona,2022–,GK,,🇪🇸,modern,la_liga,T5,Organiser,78,0,2
+2025,Raúl Fernández,Rayo Vallecano,2021–2022,GK,,🇪🇸,modern,la_liga,T5,Organiser,79,0,2
+2100,Michel Salgado,Real Madrid,1998–2004,RB,,🇪🇸,classic,la_liga,T3,Warrior,86,6,26
+2101,Dani Alves,Sevilla,2003–2008,RB,,🇧🇷,classic,la_liga,T2,Athlete,89,23,53
+2102,Sergi Barjuán,Barcelona,1994–2002,RB,,🇪🇸,classic,la_liga,T4,Grinder,83,0,10
+2103,Belletti,Barcelona,2004–2007,RB,,🇧🇷,classic,la_liga,T4,Grinder,83,0,10
+2104,Curro Torres,Valencia,2001–2006,RB,,🇪🇸,classic,la_liga,T5,Grinder,80,0,2
+2105,Cosmin Contra,Atlético,2000–2004,RB,,🇷🇴,classic,la_liga,T5,Grinder,79,0,2
+2106,Dani Alves,Barcelona,2008–2016,RB,,🇧🇷,golden,la_liga,T1,Athlete,94,105,145
+2107,Juanfran,Atlético,2011–2018,RB,,🇪🇸,golden,la_liga,T3,Grinder,86,6,26
+2108,Álvaro Arbeloa,Real Madrid,2009–2015,RB,,🇪🇸,golden,la_liga,T4,Grinder,83,0,10
+2109,Martín Montoya,Barcelona,2012–2015,RB,,🇪🇸,golden,la_liga,T5,Grinder,79,0,2
+2110,Héctor Moreno,Espanyol,2009–2016,RB,,🇲🇽,golden,la_liga,T4,Grinder,82,0,8
+2111,Juanito Gutiérrez,Málaga,2010–2016,RB,,🇪🇸,golden,la_liga,T5,Grinder,78,0,2
+2112,Dani Carvajal,Real Madrid,2013–,RB,,🇪🇸,modern,la_liga,T2,Athlete,90,34,64
+2113,Jesús Navas,Sevilla,2017–,RB,,🇪🇸,modern,la_liga,T4,Grinder,84,1,13
+2114,Nahuel Molina,Atlético,2022–,RB,,🇦🇷,modern,la_liga,T3,Athlete,85,1,21
+2115,Sergi Roberto,Barcelona,2015–2022,RB,,🇪🇸,modern,la_liga,T4,Grinder,83,0,10
+2116,Pedro Porro,Celta Vigo,2021–2023,RB,,🇪🇸,modern,la_liga,T4,Grinder,84,1,13
+2117,Álvaro Odriozola,Real Madrid,2018–2022,RB,,🇪🇸,modern,la_liga,T4,Grinder,82,0,8
+2118,Mário Gaspar,Villarreal,2012–,RB,,🇵🇹,modern,la_liga,T4,Grinder,82,0,8
+2119,Iñigo Lekue,Athletic Club,2015–,RB,,🇪🇸,modern,la_liga,T5,Grinder,77,0,2
+2120,Nacho Vidal,Osasuna,2019–,RB,,🇪🇸,modern,la_liga,T5,Grinder,76,0,2
+2200,Roberto Carlos,Real Madrid,1996–2007,LB,,🇧🇷,classic,la_liga,T1,Athlete,93,80,120
+2201,Joan Capdevila,Deportivo,2003–2011,LB,,🇪🇸,classic,la_liga,T4,Grinder,84,1,13
+2202,Asier Del Horno,Athletic Club,2001–2005,LB,,🇪🇸,classic,la_liga,T4,Grinder,82,0,8
+2203,Sergi,Barcelona,1993–2002,LB,,🇪🇸,classic,la_liga,T4,Grinder,81,0,7
+2204,Alberto Rivera,Valencia,1998–2006,LB,,🇪🇸,classic,la_liga,T5,Grinder,78,0,2
+2205,Marcelo,Real Madrid,2007–2016,LB,,🇧🇷,golden,la_liga,T2,Athlete,90,34,64
+2206,Jordi Alba,Barcelona,2012–2016,LB,,🇪🇸,golden,la_liga,T2,Athlete,91,48,78
+2207,Filipe Luís,Atlético,2010–2014,LB,,🇧🇷,golden,la_liga,T3,Warrior,88,19,39
+2208,Adriano Correia,Barcelona,2010–2016,LB,,🇧🇷,golden,la_liga,T3,Grinder,85,1,21
+2209,Juan Bernat,Valencia,2010–2014,LB,,🇪🇸,golden,la_liga,T4,Grinder,82,0,8
+2210,Nacho Monreal,Málaga,2011–2013,LB,,🇪🇸,golden,la_liga,T4,Grinder,84,1,13
+2211,Mikel Balenziaga,Athletic Club,2009–2021,LB,,🇪🇸,golden,la_liga,T5,Grinder,80,0,2
+2212,Alberto Moreno,Sevilla,2013–2014,LB,,🇪🇸,golden,la_liga,T4,Grinder,81,0,7
+2213,Marcelo,Real Madrid,2016–2022,LB,,🇧🇷,modern,la_liga,T3,Athlete,88,19,39
+2214,Jordi Alba,Barcelona,2016–2023,LB,,🇪🇸,modern,la_liga,T2,Athlete,89,23,53
+2215,Ferland Mendy,Real Madrid,2019–,LB,,🇫🇷,modern,la_liga,T3,Athlete,87,12,32
+2216,José Luis Gayà,Valencia,2014–,LB,,🇪🇸,modern,la_liga,T3,Grinder,86,6,26
+2217,Alejandro Balde,Barcelona,2022–,LB,,🇪🇸,modern,la_liga,T4,Grinder,84,1,13
+2218,Sergio Reguilón,Sevilla,2018–2019,LB,,🇪🇸,modern,la_liga,T4,Grinder,83,0,10
+2219,Diego Rico,Leganés,2016–2018,LB,,🇪🇸,modern,la_liga,T5,Grinder,78,0,2
+2220,Guilherme Arana,Sevilla,2017–2018,LB,,🇧🇷,modern,la_liga,T5,Grinder,78,0,2
+2221,Javier Galán,Celta Vigo,2020–,LB,,🇪🇸,modern,la_liga,T5,Grinder,76,0,2
+2300,Fernando Hierro,Real Madrid,1989–2003,CB,,🇪🇸,classic,la_liga,T2,Leader,90,34,64
+2301,Carles Puyol,Barcelona,1999–2014,CB,,🇪🇸,classic,la_liga,T2,Warrior,91,48,78
+2302,Roberto Ayala,Valencia,2000–2007,CB,,🇦🇷,classic,la_liga,T2,Leader,89,23,53
+2303,Iván Helguera,Real Madrid,1999–2007,CB,,🇪🇸,classic,la_liga,T3,Warrior,86,6,26
+2304,Mauricio Pellegrino,Valencia,2002–2006,CB,,🇦🇷,classic,la_liga,T4,Warrior,83,0,10
+2305,Txiki Begiristain,Deportivo,1997–2002,CB,,🇪🇸,classic,la_liga,T5,Warrior,80,0,2
+2306,Javier Portillo,Osasuna,2003–2008,CB,,🇪🇸,classic,la_liga,T5,Warrior,77,0,2
+2307,Carlos Marchena,Valencia,2002–2012,CB,,🇪🇸,classic,la_liga,T3,Warrior,85,1,21
+2308,Carles Puyol,Barcelona,2006–2014,CB,,🇪🇸,golden,la_liga,T1,Warrior,93,80,120
+2309,Gerard Piqué,Barcelona,2008–2022,CB,,🇪🇸,golden,la_liga,T2,Leader,91,48,78
+2310,Sergio Ramos,Real Madrid,2005–2021,CB,,🇪🇸,golden,la_liga,T1,Warrior,93,80,120
+2311,Raphaël Varane,Real Madrid,2011–2021,CB,,🇫🇷,golden,la_liga,T2,Leader,91,48,78
+2312,Diego Godín,Atlético,2010–2019,CB,,🇺🇾,golden,la_liga,T2,Leader,91,48,78
+2313,Miranda,Atlético,2011–2016,CB,,🇧🇷,golden,la_liga,T3,Warrior,87,12,32
+2314,Nacho Fernández,Real Madrid,2011–2023,CB,,🇪🇸,golden,la_liga,T3,Warrior,85,1,21
+2315,Iñigo Martínez,Athletic Club,2012–2023,CB,,🇪🇸,golden,la_liga,T3,Warrior,86,6,26
+2316,Víctor Ruiz,Villarreal,2011–2016,CB,,🇪🇸,golden,la_liga,T4,Warrior,82,0,8
+2317,Gabriel Paulista,Villarreal,2010–2015,CB,,🇧🇷,golden,la_liga,T4,Warrior,83,0,10
+2318,Álvaro Domínguez,Atlético,2010–2014,CB,,🇪🇸,golden,la_liga,T5,Warrior,79,0,2
+2319,Aymeric Laporte,Athletic Club,2014–2018,CB,,🇫🇷,golden,la_liga,T3,Technician,87,12,32
+2321,Gerard Piqué,Barcelona,2016–2022,CB,,🇪🇸,modern,la_liga,T2,Leader,89,23,53
+2322,José María Giménez,Atlético,2013–,CB,,🇺🇾,modern,la_liga,T2,Warrior,89,23,53
+2323,David Alaba,Real Madrid,2021–,CB,,🇦🇹,modern,la_liga,T3,Technician,88,19,39
+2324,Ronald Araújo,Barcelona,2020–,CB,,🇺🇾,modern,la_liga,T3,Warrior,88,19,39
+2325,Jules Koundé,Sevilla,2019–2022,CB,,🇫🇷,modern,la_liga,T3,Athlete,88,19,39
+2326,Raphaël Varane,Real Madrid,2016–2021,CB,,🇫🇷,modern,la_liga,T2,Leader,90,34,64
+2327,Eric García,Barcelona,2021–,CB,,🇪🇸,modern,la_liga,T4,Warrior,82,0,8
+2328,Pau Torres,Villarreal,2019–2023,CB,,🇪🇸,modern,la_liga,T3,Warrior,86,6,26
+2329,Clement Lenglet,Barcelona,2018–2022,CB,,🇫🇷,modern,la_liga,T4,Warrior,83,0,10
+2330,Daley Blind,Ajax/Barcelona,2019–2022,CB,,🇳🇱,modern,la_liga,T4,Warrior,82,0,8
+2331,Mario Hermoso,Atlético,2019–2024,CB,,🇪🇸,modern,la_liga,T4,Warrior,83,0,10
+2332,Diego Carlos,Sevilla,2019–2022,CB,,🇧🇷,modern,la_liga,T3,Warrior,85,1,21
+2333,Íñigo Martínez,Barcelona,2023–,CB,,🇪🇸,modern,la_liga,T4,Warrior,84,1,13
+2334,Jorge Molina,Getafe,2014–2022,CB,,🇪🇸,modern,la_liga,T5,Warrior,76,0,2
+2335,Óscar Duarte,Levante,2015–2022,CB,,🇨🇷,modern,la_liga,T5,Warrior,76,0,2
+2400,Claude Makélélé,Real Madrid,1998–2003,DM,,🇫🇷,classic,la_liga,T2,Technician,91,48,78
+2401,Diego Simeone,Atlético,1994–2005,DM,,🇦🇷,classic,la_liga,T3,Grinder,88,19,39
+2402,Rúben Baraja,Valencia,1998–2008,DM,,🇪🇸,classic,la_liga,T3,Grinder,86,6,26
+2403,Mauro Silva,Deportivo,1993–2006,DM,,🇧🇷,classic,la_liga,T4,Warrior,84,1,13
+2404,Iván de la Peña,Espanyol,2003–2009,DM,,🇪🇸,classic,la_liga,T4,Warrior,82,0,8
+2405,Geremi,Real Madrid,2000–2003,DM,,🇨🇲,classic,la_liga,T4,Technician,81,0,7
+2406,Óscar López,Real Madrid,2003–2007,DM,,🇪🇸,classic,la_liga,T5,Technician,78,0,2
+2407,Sergio Busquets,Barcelona,2008–2023,DM,,🇪🇸,golden,la_liga,T2,Grinder,92,65,95
+2408,Xabi Alonso,Real Madrid,2009–2014,DM,,🇪🇸,golden,la_liga,T2,Grinder,91,48,78
+2409,Casemiro,Real Madrid,2013–2022,DM,,🇧🇷,golden,la_liga,T2,Warrior,91,48,78
+2410,Gabi,Atlético,2011–2018,DM,,🇪🇸,golden,la_liga,T3,Warrior,87,12,32
+2411,Tiago Mendes,Atlético,2010–2017,DM,,🇵🇹,golden,la_liga,T3,Grinder,86,6,26
+2412,Sofiane Feghouli,Valencia,2011–2016,DM,,🇩🇿,golden,la_liga,T4,Grinder,83,0,10
+2413,Sandro Ramírez,Málaga,2013–2016,DM,,🇪🇸,golden,la_liga,T5,Grinder,79,0,2
+2414,Manuel Iturra,Granada,2011–2016,DM,,🇨🇱,golden,la_liga,T5,Grinder,77,0,2
+2415,Sergio Busquets,Barcelona,2016–2023,DM,,🇪🇸,modern,la_liga,T2,Grinder,90,34,64
+2416,Casemiro,Real Madrid,2016–2022,DM,,🇧🇷,modern,la_liga,T2,Grinder,92,65,95
+2418,Marcos Llorente,Atlético,2019–,DM,,🇪🇸,modern,la_liga,T3,Grinder,86,6,26
+2419,Frenkie de Jong,Barcelona,2019–,DM,,🇳🇱,modern,la_liga,T3,Grinder,88,19,39
+2420,Dani Ceballos,Real Madrid,2017–2022,DM,,🇪🇸,modern,la_liga,T4,Grinder,83,0,10
+2421,Geoffrey Kondogbia,Atlético,2020–,DM,,🇫🇷,modern,la_liga,T4,Grinder,84,1,13
+2422,Oriol Busquets,Osasuna,2020–,DM,,🇪🇸,modern,la_liga,T5,Grinder,78,0,2
+2423,Mikel Merino,Real Sociedad,2018–2024,DM,,🇪🇸,modern,la_liga,T3,Grinder,85,1,21
+2424,David López,Espanyol,2017–2022,DM,,🇪🇸,modern,la_liga,T5,Grinder,79,0,2
+2425,Remo Freuler,Real Betis,2023–,DM,,🇨🇭,modern,la_liga,T4,Grinder,82,0,8
+2426,Óscar Mingueza,Celta Vigo,2022–,DM,,🇪🇸,modern,la_liga,T5,Grinder,78,0,2
+2500,Zinedine Zidane,Real Madrid,2001–2006,CM,,🇫🇷,classic,la_liga,T1,Maverick,95,135,175
+2501,Luis Figo,Real Madrid,2000–2005,RM,RW,🇵🇹,classic,la_liga,T2,Technician,92,65,95
+2502,Guti,Real Madrid,1995–2010,CAM,CM,🇪🇸,classic,la_liga,T3,Technician,87,12,32
+2503,Xavi Hernández,Barcelona,1998–2015,CM,,🇪🇸,classic,la_liga,T2,Maverick,92,65,95
+2504,Gaizka Mendieta,Valencia,1992–2001,RM,RW,🇪🇸,classic,la_liga,T3,Maverick,88,19,39
+2505,Vicente,Valencia,2000–2009,LW,,🇪🇸,classic,la_liga,T3,Maverick,86,6,26
+2506,David Beckham,Real Madrid,2003–2007,RM,RW,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,la_liga,T3,Technician,88,19,39
+2507,Fernando Redondo,Real Madrid,1994–2000,CM,,🇦🇷,classic,la_liga,T3,Maverick,88,19,39
+2508,Emerson,Real Betis,2000–2004,CM,,🇧🇷,classic,la_liga,T4,Warrior,84,1,13
+2509,Pablo Aimar,Valencia,2001–2006,CAM,CM,🇦🇷,classic,la_liga,T3,Technician,86,6,26
+2510,Xavi Hernández,Barcelona,2008–2015,CM,,🇪🇸,golden,la_liga,T1,Technician,95,135,175
+2511,Andrés Iniesta,Barcelona,2008–2018,CAM,CM,🇪🇸,golden,la_liga,T1,Maverick,94,105,145
+2512,Mesut Özil,Real Madrid,2010–2013,CAM,CM,🇩🇪,golden,la_liga,T2,Technician,90,34,64
+2513,James Rodríguez,Real Madrid,2014–2017,CAM,CM,🇨🇴,golden,la_liga,T3,Maverick,88,19,39
+2514,Luka Modrić,Real Madrid,2012–,CM,,🇭🇷,golden,la_liga,T1,Technician,93,80,120
+2515,Isco,Real Madrid,2013–2022,CAM,CM,🇪🇸,golden,la_liga,T3,Technician,87,12,32
+2516,David Villa,Atlético,2013–2014,ST,,🇪🇸,golden,la_liga,T3,Technician,87,12,32
+2517,Santi Cazorla,Málaga,2011–2012,CAM,CM,🇪🇸,golden,la_liga,T3,Technician,88,19,39
+2518,Juan Mata,Valencia,2007–2011,CAM,CM,🇪🇸,golden,la_liga,T3,Technician,87,12,32
+2519,Luka Modrić,Real Madrid,2016–,CM,,🇭🇷,modern,la_liga,T2,Technician,91,48,78
+2520,Pedri,Barcelona,2020–,CAM,CM,🇪🇸,modern,la_liga,T2,Technician,91,48,78
+2521,Gavi,Barcelona,2021–,CM,,🇪🇸,modern,la_liga,T2,Technician,90,34,64
+2522,Federico Valverde,Real Madrid,2018–,CM,,🇺🇾,modern,la_liga,T2,Technician,90,34,64
+2523,Isco,Real Madrid,2016–2022,CAM,CM,🇪🇸,modern,la_liga,T3,Technician,85,1,21
+2524,Mikel Oyarzabal,Real Sociedad,2016–,CM,,🇪🇸,modern,la_liga,T3,Technician,86,6,26
+2525,Dani Parejo,Villarreal,2019–,CM,,🇪🇸,modern,la_liga,T3,Technician,86,6,26
+2526,Nico González,Barcelona,2021–,CM,,🇪🇸,modern,la_liga,T5,Technician,79,0,2
+2527,Aleix García,Girona,2022–,CM,,🇪🇸,modern,la_liga,T4,Technician,83,0,10
+2528,Óscar Trejo,Rayo Vallecano,2018–,CM,,🇦🇷,modern,la_liga,T5,Technician,78,0,2
+2600,Ronaldinho,Barcelona,2003–2008,RW,,🇧🇷,classic,la_liga,T1,Athlete,96,170,210
+2601,Luis Figo,Barcelona,1995–2000,RW,,🇵🇹,classic,la_liga,T2,Maverick,91,48,78
+2602,Joaquín,Real Betis,2000–2006,RW,,🇪🇸,classic,la_liga,T3,Athlete,86,6,26
+2603,Jesús Navas,Sevilla,2003–2013,RW,,🇪🇸,classic,la_liga,T3,Athlete,87,12,32
+2604,Arjen Robben,Real Madrid,2007–2009,RW,,🇳🇱,classic,la_liga,T3,Maverick,88,19,39
+2605,Julio Baptista,Sevilla,2003–2006,RW,,🇧🇷,classic,la_liga,T4,Athlete,83,0,10
+2606,Francisco Rufete,Valencia,2001–2006,RW,,🇪🇸,classic,la_liga,T4,Athlete,81,0,7
+2607,Lionel Messi,Barcelona,2008–2016,RW,,🇦🇷,golden,la_liga,T1,Athlete,97,200,240
+2608,Cristiano Ronaldo,Real Madrid,2009–2016,RW,,🇵🇹,golden,la_liga,T1,Athlete,96,170,210
+2609,Neymar Jr,Barcelona,2013–2017,RW,,🇧🇷,golden,la_liga,T1,Athlete,93,80,120
+2610,Franck Ribéry,Sevilla,2022–2023,RW,,🇫🇷,modern,la_liga,T5,Athlete,80,0,2
+2611,Ángel Di María,Real Madrid,2010–2014,RW,,🇦🇷,golden,la_liga,T2,Athlete,90,38,68
+2612,Pedro Rodríguez,Barcelona,2009–2015,RW,,🇪🇸,golden,la_liga,T3,Athlete,86,6,26
+2613,Joaquín,Real Betis,2015–2023,RW,,🇪🇸,modern,la_liga,T4,Athlete,84,1,13
+2614,Marco Asensio,Real Madrid,2016–2023,RW,,🇪🇸,modern,la_liga,T3,Athlete,86,6,26
+2615,Ousmane Dembélé,Barcelona,2017–2023,RW,,🇫🇷,modern,la_liga,T3,Athlete,88,19,39
+2616,Cristiano Ronaldo,Real Madrid,2016–2018,RW,,🇵🇹,modern,la_liga,T1,Athlete,95,135,175
+2617,Rodrygo,Real Madrid,2019–,RW,,🇧🇷,modern,la_liga,T3,Athlete,87,12,32
+2618,Suso,Sevilla,2020–2023,RW,,🇪🇸,modern,la_liga,T4,Athlete,82,0,8
+2619,Nico Williams,Athletic Club,2022–,RW,,🇪🇸,modern,la_liga,T3,Athlete,88,19,39
+2620,Bryan Gil,Sevilla,2020–2021,RW,,🇪🇸,modern,la_liga,T5,Athlete,79,0,2
+2621,Álex Berenguer,Athletic Club,2021–,RW,,🇪🇸,modern,la_liga,T5,Athlete,78,0,2
+2622,Rubén García,Osasuna,2019–,RW,,🇪🇸,modern,la_liga,T5,Athlete,79,0,2
+2623,Álex Morales,Levante,2018–2021,RW,,🇪🇸,modern,la_liga,T5,Athlete,76,0,2
+2700,Raúl González,Real Madrid,1994–2010,LW,,🇪🇸,classic,la_liga,T2,Maverick,92,65,95
+2701,Rivaldo,Barcelona,1997–2002,LW,,🇧🇷,classic,la_liga,T1,Athlete,93,80,120
+2702,Robert Pires,Villarreal,2006–2010,LW,,🇫🇷,classic,la_liga,T4,Athlete,84,1,13
+2703,Luis García,Atlético,2003–2004,LW,,🇪🇸,classic,la_liga,T4,Maverick,82,0,8
+2704,Saviola,Barcelona,2001–2004,LW,,🇦🇷,classic,la_liga,T4,Athlete,84,1,13
+2705,Kily González,Valencia,2001–2006,LW,,🇦🇷,classic,la_liga,T4,Maverick,82,0,8
+2706,Dani Güiza,Mallorca,2006–2008,LW,,🇪🇸,classic,la_liga,T5,Athlete,80,0,2
+2707,Lionel Messi,Barcelona,2016–2021,LW,,🇦🇷,modern,la_liga,T1,Athlete,97,200,240
+2708,Vinicius Jr,Real Madrid,2018–,LW,,🇧🇷,modern,la_liga,T2,Athlete,92,65,95
+2709,Gareth Bale,Real Madrid,2013–2021,LW,,🏴󠁧󠁢󠁷󠁬󠁳󠁿,golden,la_liga,T2,Athlete,91,48,78
+2710,Gareth Bale,Real Madrid,2016–2021,LW,,🏴󠁧󠁢󠁷󠁬󠁳󠁿,modern,la_liga,T2,Athlete,89,23,53
+2712,Ángel Di María,PSG,2015–2022,LW,,🇦🇷,golden,ligue_1,T3,Athlete,88,19,39
+2713,Pedro Rodríguez,Barcelona,2008–2015,LW,,🇪🇸,golden,la_liga,T3,Athlete,85,1,21
+2714,Alexis Sánchez,Barcelona,2011–2014,LW,,🇨🇱,golden,la_liga,T3,Athlete,88,19,39
+2715,Iker Muniain,Athletic Club,2009–2023,LW,,🇪🇸,golden,la_liga,T3,Athlete,85,1,21
+2716,Santi Cazorla,Villarreal,2007–2011,LW,,🇪🇸,golden,la_liga,T3,Athlete,87,12,32
+2717,Vitolo,Sevilla,2012–2017,LW,,🇪🇸,golden,la_liga,T3,Athlete,85,1,21
+2718,Ansu Fati,Barcelona,2019–,LW,,🇪🇸,modern,la_liga,T3,Athlete,85,1,21
+2719,Yeremy Pino,Villarreal,2021–,LW,,🇪🇸,modern,la_liga,T4,Athlete,84,1,13
+2720,Nolito,Celta Vigo,2013–2016,LW,,🇪🇸,golden,la_liga,T3,Athlete,85,1,21
+2721,Dani Olmo,Barcelona,2024–,LW,,🇪🇸,modern,la_liga,T3,Athlete,87,12,32
+2722,Ferran Torres,Barcelona,2022–,LW,,🇪🇸,modern,la_liga,T4,Athlete,84,1,13
+2723,Samuel Chukwueze,Villarreal,2018–2023,LW,,🇳🇬,modern,la_liga,T4,Athlete,83,0,10
+2724,Iñaki Williams,Athletic Club,2014–,LW,,🇪🇸,modern,la_liga,T4,Athlete,84,1,13
+2725,Adama Traoré,Atlético,2015–2016,LW,,🇪🇸,golden,la_liga,T5,Athlete,78,0,2
+2726,Eduardo Camavinga,Real Madrid,2021–,CM,,🇫🇷,modern,la_liga,T3,Grinder,86,6,26
+2727,Theo Zidane,Real Madrid B,2019–2021,LW,,🇫🇷,modern,la_liga,T5,Athlete,72,0,2
+2800,Raúl González,Real Madrid,1994–2010,ST,,🇪🇸,classic,la_liga,T1,Maverick,93,80,120
+2801,Ronaldo (R9),Real Madrid,2002–2007,ST,,🇧🇷,classic,la_liga,T1,Grinder,94,105,145
+2802,Fernando Torres,Atlético,2001–2007,ST,,🇪🇸,classic,la_liga,T2,Warrior,91,48,78
+2803,Samuel Eto'o,Barcelona,2004–2009,ST,,🇨🇲,classic,la_liga,T2,Warrior,92,65,95
+2804,Fernando Morientes,Real Madrid,1997–2005,ST,,🇪🇸,classic,la_liga,T3,Maverick,88,19,39
+2805,David Villa,Valencia,2005–2010,ST,,🇪🇸,classic,la_liga,T2,Grinder,92,65,95
+2806,Nihat Kahveci,Real Sociedad,2001–2005,ST,,🇹🇷,classic,la_liga,T4,Warrior,84,1,13
+2807,Diego Forlán,Villarreal,2004–2007,ST,,🇺🇾,classic,la_liga,T3,Warrior,88,19,39
+2808,Roy Makaay,Deportivo,1999–2003,ST,,🇳🇱,classic,la_liga,T2,Grinder,89,23,53
+2809,Karim Benzema,Real Madrid,2009–2016,ST,,🇫🇷,golden,la_liga,T2,Athlete,91,48,78
+2810,Luis Suárez,Barcelona,2014–2020,ST,,🇺🇾,golden,la_liga,T1,Warrior,94,105,145
+2811,David Villa,Barcelona,2010–2013,ST,,🇪🇸,golden,la_liga,T2,Warrior,90,34,64
+2812,Diego Forlán,Atlético,2007–2011,ST,,🇺🇾,golden,la_liga,T2,Maverick,90,34,64
+2813,Zlatan Ibrahimović,Barcelona,2009–2010,ST,,🇸🇪,golden,la_liga,T2,Athlete,91,48,78
+2814,Álvaro Negredo,Sevilla,2009–2013,ST,,🇪🇸,golden,la_liga,T3,Grinder,86,6,26
+2815,Roberto Soldado,Valencia,2010–2013,ST,,🇪🇸,golden,la_liga,T3,Grinder,86,6,26
+2816,Gonzalo Higuaín,Real Madrid,2007–2013,ST,,🇦🇷,golden,la_liga,T2,Grinder,89,23,53
+2817,Radamel Falcao,Atlético,2011–2013,ST,,🇨🇴,golden,la_liga,T2,Grinder,92,65,95
+2818,Adrián López,Atlético,2012–2015,ST,,🇪🇸,golden,la_liga,T4,Grinder,83,0,10
+2819,Karim Benzema,Real Madrid,2016–2023,ST,,🇫🇷,modern,la_liga,T1,Grinder,94,105,145
+2820,Luis Suárez,Atlético,2020–2022,ST,,🇺🇾,modern,la_liga,T2,Grinder,89,23,53
+2821,Antoine Griezmann,Atlético,2014–2021,ST,,🇫🇷,modern,la_liga,T2,Grinder,92,65,95
+2822,Robert Lewandowski,Barcelona,2022–,ST,,🇵🇱,modern,la_liga,T1,Grinder,93,80,120
+2823,Álvaro Morata,Atlético,2021–2024,ST,,🇪🇸,modern,la_liga,T3,Grinder,86,6,26
+2824,Joselu,Real Madrid,2023–2024,ST,,🇪🇸,modern,la_liga,T4,Grinder,83,0,10
+2825,Iago Aspas,Celta Vigo,2015–,ST,,🇪🇸,modern,la_liga,T3,Grinder,87,12,32
+2826,Borja Iglesias,Real Betis,2021–2024,ST,,🇪🇸,modern,la_liga,T4,Grinder,84,1,13
+2827,Alexander Sørloth,Villarreal,2023–,ST,,🇳🇴,modern,la_liga,T4,Grinder,84,1,13
+2828,Ferran Torres,Valencia,2016–2021,ST,,🇪🇸,modern,la_liga,T4,Grinder,83,0,10
+2829,Ante Budimir,Osasuna,2020–,ST,,🇭🇷,modern,la_liga,T4,Grinder,82,0,8
+2830,Sandro Ramírez,Málaga,2015–2017,ST,,🇪🇸,modern,la_liga,T5,Grinder,79,0,2
+2831,Sergi Enrich,Eibar,2014–2021,ST,,🇪🇸,modern,la_liga,T5,Grinder,77,0,2
+2832,Luciano Vietto,Atlético,2015–2017,ST,,🇦🇷,modern,la_liga,T5,Grinder,79,0,2
+2833,Kevin Gameiro,Valencia,2017–2021,ST,,🇫🇷,modern,la_liga,T4,Grinder,82,0,8
+2834,Shon Weissman,Real Valladolid,2020–2021,ST,,🇮🇱,modern,la_liga,T5,Grinder,78,0,2
+2529,Fran Mérida,Atlético,2009–2011,CM,,🇪🇸,golden,la_liga,T5,Technician,78,0,2
+2530,Javi Morales,Levante,2011–2021,CM,,🇪🇸,modern,la_liga,T5,Technician,79,0,2
+3000,Gianluigi Buffon,Juventus,1999–2006,GK,,🇮🇹,classic,serie_a,T1,Organiser,95,135,175
+3001,Francesco Toldo,Inter,1997–2007,GK,,🇮🇹,classic,serie_a,T3,Shot Stopper,87,12,32
+3002,Angelo Peruzzi,Lazio,1998–2004,GK,,🇮🇹,classic,serie_a,T3,Organiser,86,6,26
+3003,Dida,AC Milan,2000–2010,GK,,🇧🇷,classic,serie_a,T3,Organiser,88,19,39
+3004,Sebastiano Rossi,AC Milan,1990–2002,GK,,🇮🇹,classic,serie_a,T4,Organiser,84,1,13
+3005,Gianluigi Buffon,Juventus,2006–2018,GK,,🇮🇹,golden,serie_a,T1,Organiser,93,80,120
+3006,Julio Cesar,Inter,2005–2012,GK,,🇧🇷,golden,serie_a,T3,Organiser,88,19,39
+3007,Morgan De Sanctis,Napoli,2010–2015,GK,,🇮🇹,golden,serie_a,T4,Shot Stopper,84,1,13
+3008,Stefano Sorrentino,Chievo,2008–2018,GK,,🇮🇹,golden,serie_a,T5,Sweeper Keeper,80,0,2
+3009,Christian Abbiati,AC Milan,2002–2016,GK,,🇮🇹,golden,serie_a,T4,Sweeper Keeper,83,0,10
+3010,Gianluigi Donnarumma,AC Milan,2015–2021,GK,,🇮🇹,modern,serie_a,T2,Sweeper Keeper,92,65,95
+3011,Mike Maignan,AC Milan,2021–,GK,,🇫🇷,modern,serie_a,T2,Organiser,91,48,78
+3012,Samir Handanovic,Inter,2012–2023,GK,,🇸🇮,modern,serie_a,T3,Organiser,88,19,39
+3013,Alex Meret,Napoli,2018–,GK,,🇮🇹,modern,serie_a,T3,Organiser,85,1,21
+3014,Juan Musso,Atalanta,2021–,GK,,🇦🇷,modern,serie_a,T3,Organiser,87,12,32
+3015,Pierluigi Gollini,Atalanta,2017–2021,GK,,🇮🇹,modern,serie_a,T4,Organiser,83,0,10
+3016,Ivan Provedel,Lazio,2022–,GK,,🇮🇹,modern,serie_a,T4,Organiser,83,0,10
+3017,Emiliano Viviano,Sampdoria,2014–2018,GK,,🇮🇹,golden,serie_a,T5,Organiser,80,0,2
+3018,Emilio Audero,Sampdoria,2018–2023,GK,,🇮🇹,modern,serie_a,T5,Organiser,80,0,2
+3019,Marco Sportiello,Atalanta,2016–2023,GK,,🇮🇹,modern,serie_a,T5,Organiser,79,0,2
+3020,Willy Montipo,Verona,2019–2022,GK,,🇮🇹,modern,serie_a,T5,Organiser,77,0,2
+3021,Lukasz Skorupski,Bologna,2018–,GK,,🇵🇱,modern,serie_a,T4,Organiser,81,0,7
+3022,Salvatore Sirigu,Torino,2017–2022,GK,,🇮🇹,modern,serie_a,T4,Organiser,83,0,10
+3023,Simone Scuffet,Udinese,2014–2017,GK,,🇮🇹,golden,serie_a,T5,Organiser,78,0,2
+3100,Cafu,AC Milan,2003–2008,RB,,🇧🇷,classic,serie_a,T2,Grinder,91,48,78
+3101,Javier Zanetti,Inter,1995–2006,RB,,🇦🇷,classic,serie_a,T2,Grinder,90,34,64
+3102,Gianluca Zambrotta,Juventus,2001–2006,RB,,🇮🇹,classic,serie_a,T3,Grinder,88,19,39
+3103,Christian Panucci,Roma,1996–2008,RB,,🇮🇹,classic,serie_a,T3,Grinder,86,6,26
+3104,Massimo Oddo,Lazio,2000–2006,RB,,🇮🇹,classic,serie_a,T4,Grinder,84,1,13
+3105,Javier Zanetti,Inter,2006–2014,RB,,🇦🇷,golden,serie_a,T3,Grinder,88,19,39
+3106,Gianluca Zambrotta,AC Milan,2006–2012,RB,,🇮🇹,golden,serie_a,T3,Grinder,86,6,26
+3107,Ignazio Abate,AC Milan,2011–2018,RB,,🇮🇹,golden,serie_a,T4,Grinder,84,1,13
+3108,Elseid Hysaj,Napoli,2015–2021,RB,,🇦🇱,golden,serie_a,T4,Grinder,82,0,8
+3109,Davide Santon,Inter,2010–2014,RB,,🇮🇹,golden,serie_a,T5,Grinder,80,0,2
+3110,Achraf Hakimi,Inter,2020–2021,RB,,🇲🇦,modern,serie_a,T2,Grinder,89,23,53
+3111,Giovanni Di Lorenzo,Napoli,2019–,RB,,🇮🇹,modern,serie_a,T3,Grinder,88,19,39
+3112,Denzel Dumfries,Inter,2021–,RB,,🇳🇱,modern,serie_a,T3,Grinder,85,1,21
+3113,Alessandro Florenzi,Roma,2012–2022,RB,,🇮🇹,modern,serie_a,T4,Grinder,84,1,13
+3114,Davide Calabria,AC Milan,2016–,RB,,🇮🇹,modern,serie_a,T4,Grinder,84,1,13
+3115,Rick Karsdorp,Roma,2017–2022,RB,,🇳🇱,modern,serie_a,T4,Grinder,83,0,10
+3116,Matteo Darmian,Inter,2019–,RB,,🇮🇹,modern,serie_a,T4,Grinder,83,0,10
+3117,Luca Zappacosta,Atalanta,2018–2021,RB,,🇮🇹,modern,serie_a,T5,Grinder,80,0,2
+3118,Marco Faraoni,Verona,2018–2023,RB,,🇮🇹,modern,serie_a,T5,Grinder,78,0,2
+3119,Pasquale Mazzocchi,Napoli,2023–,RB,,🇮🇹,modern,serie_a,T5,Grinder,78,0,2
+3120,Valentino Lazaro,Inter,2019–2021,RB,,🇦🇹,modern,serie_a,T5,Grinder,79,0,2
+3200,Paolo Maldini,AC Milan,1985–2009,LB,,🇮🇹,classic,serie_a,T1,Leader,96,170,210
+3201,Serginho,AC Milan,1999–2008,LB,,🇧🇷,classic,serie_a,T3,Technician,85,1,21
+3202,Fabio Grosso,Palermo,2003–2007,LB,,🇮🇹,classic,serie_a,T3,Athlete,85,1,21
+3203,Gianluca Comotto,Fiorentina,2004–2012,LB,,🇮🇹,classic,serie_a,T5,Athlete,80,0,2
+3204,Luca Antonini,AC Milan,2007–2013,LB,,🇮🇹,golden,serie_a,T5,Grinder,79,0,2
+3205,Faouzi Ghoulam,Napoli,2013–2021,LB,,🇩🇿,golden,serie_a,T3,Grinder,86,6,26
+3206,Domenico Criscito,Genoa,2012–2022,LB,,🇮🇹,golden,serie_a,T4,Grinder,82,0,8
+3207,Emerson Palmieri,Roma,2015–2017,LB,,🇮🇹,golden,serie_a,T3,Grinder,85,1,21
+3208,Theo Hernandez,AC Milan,2019–,LB,,🇫🇷,modern,serie_a,T2,Grinder,92,65,95
+3209,Federico Dimarco,Inter,2020–,LB,,🇮🇹,modern,serie_a,T3,Grinder,87,12,32
+3210,Leonardo Spinazzola,Roma,2019–,LB,,🇮🇹,modern,serie_a,T3,Grinder,87,12,32
+3211,Filip Kostic,Juventus,2022–2024,LB,,🇷🇸,modern,serie_a,T4,Grinder,84,1,13
+3212,Cristiano Biraghi,Fiorentina,2019–,LB,,🇮🇹,modern,serie_a,T4,Grinder,83,0,10
+3213,Mathias Olivera,Napoli,2022–,LB,,🇺🇾,modern,serie_a,T4,Grinder,83,0,10
+3214,Stefan Radu,Lazio,2009–2022,LB,,🇷🇴,modern,serie_a,T5,Grinder,80,0,2
+3215,Luca Pellegrini,Juventus,2021–2023,LB,,🇮🇹,modern,serie_a,T5,Grinder,79,0,2
+3216,Matteo Ruggeri,Atalanta,2021–,LB,,🇮🇹,modern,serie_a,T5,Grinder,79,0,2
+3217,Nicola Zalewski,Roma,2021–,LB,,🇵🇱,modern,serie_a,T5,Grinder,79,0,2
+3300,Alessandro Nesta,Lazio,1993–2002,CB,,🇮🇹,classic,serie_a,T1,Leader,93,80,120
+3301,Alessandro Nesta,AC Milan,2002–2012,CB,,🇮🇹,classic,serie_a,T1,Leader,95,135,175
+3302,Fabio Cannavaro,Inter/Juventus,1995–2006,CB,,🇮🇹,classic,serie_a,T1,Leader,93,80,120
+3303,Alessandro Costacurta,AC Milan,1986–2007,CB,,🇮🇹,classic,serie_a,T3,Warrior,88,19,39
+3304,Lilian Thuram,Juventus,2001–2006,CB,,🇫🇷,classic,serie_a,T2,Technician,89,23,53
+3305,Walter Samuel,Inter,2004–2014,CB,,🇦🇷,classic,serie_a,T3,Warrior,87,12,32
+3306,Marco Materazzi,Inter,2001–2011,CB,,🇮🇹,classic,serie_a,T4,Warrior,83,0,10
+3307,Ciro Ferrara,Juventus,1994–2005,CB,,🇮🇹,classic,serie_a,T4,Warrior,84,1,13
+3308,Aldair,Roma,1990–2005,CB,,🇧🇷,classic,serie_a,T3,Technician,87,12,32
+3309,Mark Iuliano,Juventus,1996–2004,CB,,🇮🇹,classic,serie_a,T4,Leader,82,0,8
+3310,Duilio Dabizas,Napoli,2000–2004,CB,,🇬🇷,classic,serie_a,T5,Warrior,80,0,2
+3311,Daniele Adani,Inter,2001–2010,CB,,🇮🇹,classic,serie_a,T5,Technician,80,0,2
+3312,Giorgio Chiellini,Juventus,2005–2016,CB,,🇮🇹,golden,serie_a,T2,Warrior,92,65,95
+3313,Leonardo Bonucci,Juventus,2010–2019,CB,,🇮🇹,golden,serie_a,T2,Warrior,91,48,78
+3314,Andrea Barzagli,Juventus,2011–2019,CB,,🇮🇹,golden,serie_a,T2,Warrior,89,23,53
+3315,Stefan de Vrij,Lazio,2014–2018,CB,,🇳🇱,golden,serie_a,T3,Warrior,88,19,39
+3316,Mehdi Benatia,Juventus,2016–2019,CB,,🇲🇦,golden,serie_a,T3,Warrior,87,12,32
+3317,Lucio,Inter,2009–2012,CB,,🇧🇷,golden,serie_a,T3,Warrior,88,19,39
+3318,Andrea Ranocchia,Inter,2011–2022,CB,,🇮🇹,golden,serie_a,T5,Warrior,78,0,2
+3319,Nenad Tomovic,Fiorentina,2015–2019,CB,,🇷🇸,golden,serie_a,T5,Warrior,76,0,2
+3320,Giorgio Chiellini,Juventus,2016–2022,CB,,🇮🇹,modern,serie_a,T2,Warrior,91,48,78
+3321,Milan Skriniar,Inter,2017–2023,CB,,🇸🇰,modern,serie_a,T2,Warrior,90,34,64
+3322,Alessandro Bastoni,Inter,2019–,CB,,🇮🇹,modern,serie_a,T2,Warrior,90,34,64
+3323,Kalidou Koulibaly,Napoli,2014–2022,CB,,🇸🇳,modern,serie_a,T2,Warrior,91,48,78
+3324,Gleison Bremer,Juventus,2022–2024,CB,,🇧🇷,modern,serie_a,T3,Warrior,88,19,39
+3325,Stefan de Vrij,Inter,2018–2023,CB,,🇳🇱,modern,serie_a,T3,Warrior,87,12,32
+3326,Simon Kjaer,AC Milan,2020–2024,CB,,🇩🇰,modern,serie_a,T4,Warrior,84,1,13
+3327,Roger Ibanez,Roma,2020–2023,CB,,🇧🇷,modern,serie_a,T4,Warrior,83,0,10
+3328,Leonardo Bonucci,Juventus,2021–2023,CB,,🇮🇹,modern,serie_a,T2,Warrior,89,23,53
+3329,Kevin Bonifazi,SPAL/Torino,2018–2021,CB,,🇮🇹,modern,serie_a,T5,Warrior,79,0,2
+3330,Fabio Lucioni,Lecce,2019–2022,CB,,🇮🇹,modern,serie_a,T5,Warrior,75,0,2
+3331,Daniele Gastaldello,Sampdoria,2010–2018,CB,,🇮🇹,golden,serie_a,T5,Warrior,77,0,2
+3400,Andrea Pirlo,AC Milan,2001–2011,DM,,🇮🇹,classic,serie_a,T1,Technician,95,135,175
+3401,Gennaro Gattuso,AC Milan,1999–2012,DM,,🇮🇹,classic,serie_a,T3,Grinder,88,19,39
+3402,Edgar Davids,Juventus,1997–2004,DM,,🇳🇱,classic,serie_a,T3,Technician,88,19,39
+3403,Emerson,Juventus,2004–2008,DM,,🇧🇷,classic,serie_a,T3,Warrior,87,12,32
+3404,Massimo Ambrosini,AC Milan,1999–2013,DM,,🇮🇹,classic,serie_a,T3,Grinder,86,6,26
+3405,Daniele De Rossi,Roma,2001–2016,DM,,🇮🇹,classic,serie_a,T2,Grinder,90,34,64
+3406,Simone Perrotta,Roma,2004–2011,DM,,🇮🇹,classic,serie_a,T4,Grinder,83,0,10
+3407,Damiano Tommasi,Roma,1996–2006,DM,,🇮🇹,classic,serie_a,T4,Grinder,83,0,10
+3408,Stephane Dalmat,Inter,2001–2003,DM,,🇫🇷,classic,serie_a,T5,Grinder,79,0,2
+3409,Andrea Pirlo,Juventus,2011–2015,DM,,🇮🇹,golden,serie_a,T1,Technician,93,80,120
+3410,Arturo Vidal,Juventus,2011–2015,DM,,🇨🇱,golden,serie_a,T2,Grinder,91,48,78
+3411,Paul Pogba,Juventus,2012–2016,DM,,🇫🇷,golden,serie_a,T2,Grinder,89,23,53
+3412,Claudio Marchisio,Juventus,2008–2018,DM,,🇮🇹,golden,serie_a,T3,Grinder,88,19,39
+3413,Radja Nainggolan,Roma,2014–2018,DM,,🇧🇪,golden,serie_a,T3,Grinder,88,19,39
+3414,Thiago Motta,Inter,2009–2012,DM,,🇮🇹,golden,serie_a,T3,Grinder,86,6,26
+3415,Simone Padoin,Juventus,2012–2016,DM,,🇮🇹,golden,serie_a,T5,Grinder,77,0,2
+3416,Blerim Dzemaili,Napoli,2015–2018,DM,,🇨🇭,golden,serie_a,T5,Grinder,79,0,2
+3417,Nicolo Barella,Inter,2019–,DM,,🇮🇹,modern,serie_a,T2,Grinder,91,48,78
+3418,Marcelo Brozovic,Inter,2016–2022,DM,,🇭🇷,modern,serie_a,T2,Grinder,89,23,53
+3419,Sergej Milinkovic-Savic,Lazio,2015–2023,DM,,🇷🇸,modern,serie_a,T2,Grinder,90,34,64
+3420,Sandro Tonali,AC Milan,2020–2023,DM,,🇮🇹,modern,serie_a,T3,Grinder,87,12,32
+3421,Rodrigo Bentancur,Juventus,2017–2022,DM,,🇺🇾,modern,serie_a,T4,Grinder,84,1,13
+3422,Bryan Cristante,Roma,2018–,DM,,🇮🇹,modern,serie_a,T4,Grinder,83,0,10
+3423,Davide Frattesi,Sassuolo,2021–2023,DM,,🇮🇹,modern,serie_a,T3,Grinder,85,1,21
+3424,Stefano Sensi,Inter,2019–2021,DM,,🇮🇹,modern,serie_a,T5,Grinder,80,0,2
+3425,Roberto Gagliardini,Inter,2017–2023,DM,,🇮🇹,modern,serie_a,T5,Grinder,79,0,2
+3426,Manuel Locatelli,Juventus,2021–,DM,,🇮🇹,modern,serie_a,T3,Grinder,85,1,21
+3427,Davide Biondini,Sassuolo,2014–2019,DM,,🇮🇹,modern,serie_a,T5,Grinder,77,0,2
+3500,Zinedine Zidane,Juventus,1996–2001,CM,,🇫🇷,classic,serie_a,T1,Technician,95,135,175
+3501,Pavel Nedved,Juventus,2001–2009,LM,LW,🇨🇿,classic,serie_a,T1,Warrior,93,80,120
+3502,Kaka,AC Milan,2003–2009,CAM,CM,🇧🇷,classic,serie_a,T1,Technician,96,170,210
+3503,Francesco Totti,Roma,1999–2007,CAM,CM,🇮🇹,classic,serie_a,T1,Maverick,93,80,120
+3505,Rui Costa,AC Milan,2001–2006,CAM,CM,🇵🇹,classic,serie_a,T2,Technician,89,23,53
+3506,Juan Sebastian Veron,Lazio,1999–2001,CM,,🇦🇷,classic,serie_a,T3,Technician,88,19,39
+3507,Dejan Stankovic,Inter,2004–2013,CM,,🇷🇸,classic,serie_a,T3,Technician,87,12,32
+3508,Alessandro Del Piero,Juventus,1999–2012,CAM,CM,🇮🇹,classic,serie_a,T2,Technician,92,65,95
+3509,Clarence Seedorf,AC Milan,2002–2012,CM,,🇳🇱,classic,serie_a,T2,Technician,89,23,53
+3510,Miralem Pjanic,Roma,2011–2015,CM,,🇧🇦,golden,serie_a,T2,Technician,89,23,53
+3511,Miralem Pjanic,Juventus,2016–2020,CM,,🇧🇦,modern,serie_a,T2,Technician,91,48,78
+3512,Paulo Dybala,Juventus,2015–2022,CAM,CM,🇦🇷,golden,serie_a,T2,Technician,91,48,78
+3513,Marek Hamsik,Napoli,2007–2019,CM,,🇸🇰,golden,serie_a,T2,Technician,90,34,64
+3514,Antonio Cassano,Roma,1999–2006,CAM,CM,🇮🇹,classic,serie_a,T3,Technician,87,12,32
+3515,Francesco Totti,Roma,2007–2017,CAM,CM,🇮🇹,golden,serie_a,T2,Technician,89,23,53
+3516,Hakan Calhanoglu,Inter,2021–,CM,,🇹🇷,modern,serie_a,T2,Technician,89,23,53
+3517,Paulo Dybala,Roma,2022–,CAM,CM,🇦🇷,modern,serie_a,T3,Technician,88,19,39
+3518,Lorenzo Pellegrini,Roma,2017–,CAM,CM,🇮🇹,modern,serie_a,T3,Technician,87,12,32
+3519,Luis Alberto,Lazio,2016–2023,CAM,CM,🇪🇸,modern,serie_a,T3,Technician,86,6,26
+3520,David Pizarro,Roma,2009–2016,CM,,🇨🇱,golden,serie_a,T4,Technician,83,0,10
+3521,Adem Ljajic,Fiorentina,2010–2018,CAM,CM,🇷🇸,golden,serie_a,T4,Technician,82,0,8
+3522,Stefano Sturaro,Juventus,2014–2019,CM,,🇮🇹,golden,serie_a,T5,Technician,79,0,2
+3523,Emanuele Giaccherini,Chievo,2013–2018,CM,,🇮🇹,golden,serie_a,T5,Technician,79,0,2
+3524,Luca Cigarini,Atalanta,2015–2019,CM,,🇮🇹,modern,serie_a,T5,Technician,79,0,2
+3525,Diego Perotti,Roma,2016–2020,CM,,🇦🇷,modern,serie_a,T5,Technician,79,0,2
+3600,Mauro Camoranesi,Juventus,2002–2010,RW,,🇮🇹,classic,serie_a,T3,Maverick,87,12,32
+3601,Angelo Di Livio,Fiorentina,1999–2004,RW,,🇮🇹,classic,serie_a,T4,Athlete,83,0,10
+3602,Stefano Fiore,Lazio,2000–2005,RW,,🇮🇹,classic,serie_a,T4,Athlete,83,0,10
+3603,Valeri Bojinov,Juventus,2005–2008,RW,,🇧🇬,classic,serie_a,T5,Athlete,80,0,2
+3604,Josip Ilicic,Atalanta,2017–2022,RW,,🇸🇮,golden,serie_a,T3,Athlete,87,12,32
+3605,Juan Cuadrado,Juventus,2015–2023,RW,,🇨🇴,golden,serie_a,T3,Athlete,86,6,26
+3606,Sebastian Giovinco,Juventus,2007–2015,RW,,🇮🇹,golden,serie_a,T3,Athlete,86,6,26
+3607,Mirko Vucinic,Juventus,2011–2015,RW,,🇲🇪,golden,serie_a,T3,Athlete,87,12,32
+3608,Felipe Anderson,Lazio,2013–2018,RW,,🇧🇷,golden,serie_a,T4,Athlete,84,1,13
+3609,Valter Birsa,Chievo,2012–2018,RW,,🇸🇮,golden,serie_a,T5,Athlete,79,0,2
+3610,Khvicha Kvaratskhelia,Napoli,2022–,RW,,🇬🇪,modern,serie_a,T2,Athlete,91,48,78
+3611,Federico Chiesa,Juventus,2020–2024,RW,,🇮🇹,modern,serie_a,T3,Athlete,88,19,39
+3612,Domenico Berardi,Sassuolo,2013–2024,RW,,🇮🇹,modern,serie_a,T3,Athlete,86,6,26
+3613,Hirving Lozano,Napoli,2019–2023,RW,,🇲🇽,modern,serie_a,T3,Athlete,85,1,21
+3614,Nicolo Zaniolo,Roma,2018–2022,RW,,🇮🇹,modern,serie_a,T4,Athlete,84,1,13
+3615,Matteo Politano,Napoli,2019–,RW,,🇮🇹,modern,serie_a,T4,Athlete,83,0,10
+3616,Nico Gonzalez,Fiorentina,2021–2024,RW,,🇦🇷,modern,serie_a,T3,Athlete,85,1,21
+3617,Bruno Fernandes,Sampdoria,2012–2016,RW,,🇵🇹,golden,serie_a,T5,Athlete,79,0,2
+3618,Emiliano Rigoni,Atalanta,2017–2019,RW,,🇦🇷,modern,serie_a,T5,Athlete,78,0,2
+3619,Nicola Sansone,Bologna,2017–2023,RW,,🇮🇹,modern,serie_a,T5,Athlete,79,0,2
+3700,Alvaro Recoba,Inter,1997–2007,LW,,🇺🇾,classic,serie_a,T3,Athlete,88,19,39
+3701,Rivaldo,AC Milan,2002–2003,LW,,🇧🇷,classic,serie_a,T2,Athlete,89,23,53
+3702,Serginho (LW),AC Milan,2003–2008,LW,,🇧🇷,classic,serie_a,T4,Athlete,84,1,13
+3703,Diego Ribas,Lazio,2007–2009,LW,,🇧🇷,classic,serie_a,T4,Athlete,84,1,13
+3704,Lorenzo Insigne,Napoli,2012–2022,LW,,🇮🇹,golden,serie_a,T2,Athlete,90,34,64
+3705,Dries Mertens,Napoli,2013–2022,LW,,🇧🇪,golden,serie_a,T3,Athlete,88,19,39
+3706,Ivan Perisic,Inter,2015–2022,LW,,🇭🇷,golden,serie_a,T3,Athlete,87,12,32
+3707,Stephan El Shaarawy,AC Milan,2012–2016,LW,,🇮🇹,golden,serie_a,T3,Athlete,85,1,21
+3708,Giacomo Bonaventura,AC Milan,2014–2020,LW,,🇮🇹,golden,serie_a,T4,Athlete,84,1,13
+3709,Antonio Cassano,AC Milan,2011–2013,LW,,🇮🇹,golden,serie_a,T3,Athlete,86,6,26
+3710,Rafael Leao,AC Milan,2019–,LW,,🇵🇹,modern,serie_a,T2,Athlete,91,48,78
+3711,Ademola Lookman,Atalanta,2022–,LW,,🇳🇬,modern,serie_a,T3,Athlete,88,19,39
+3712,Alexis Sanchez,Inter,2019–2023,LW,,🇨🇱,modern,serie_a,T3,Athlete,85,1,21
+3713,Mattia Zaccagni,Lazio,2021–,LW,,🇮🇹,modern,serie_a,T3,Athlete,85,1,21
+3714,Roberto Pereyra,Udinese,2016–2023,LW,,🇦🇷,modern,serie_a,T4,Athlete,83,0,10
+3715,Simone Verdi,Torino,2018–2021,LW,,🇮🇹,modern,serie_a,T5,Athlete,79,0,2
+3716,Iago Falque,Torino,2014–2019,LW,,🇪🇸,golden,serie_a,T5,Athlete,79,0,2
+3717,Keita Balde,Lazio,2015–2017,LW,,🇸🇳,golden,serie_a,T5,Athlete,79,0,2
+3718,Mohamed Fares,Lazio,2020–2022,LW,,🇩🇿,modern,serie_a,T5,Athlete,78,0,2
+3800,Ronaldo (R9),Inter,1997–2002,ST,,🇧🇷,classic,serie_a,T1,Maverick,97,200,240
+3801,Andriy Shevchenko,AC Milan,1999–2006,ST,,🇺🇦,classic,serie_a,T1,Athlete,94,105,145
+3802,Christian Vieri,Inter,1999–2005,ST,,🇮🇹,classic,serie_a,T1,Warrior,93,80,120
+3803,Gabriel Batistuta,Fiorentina,1995–2000,ST,,🇦🇷,classic,serie_a,T1,Warrior,93,80,120
+3804,Hernan Crespo,Inter,2002–2008,ST,,🇦🇷,classic,serie_a,T2,Warrior,91,48,78
+3805,David Trezeguet,Juventus,2000–2010,ST,,🇫🇷,classic,serie_a,T2,Athlete,90,34,64
+3806,Filippo Inzaghi,AC Milan,2001–2012,ST,,🇮🇹,classic,serie_a,T2,Maverick,89,23,53
+3807,Luca Toni,Fiorentina,2005–2008,ST,,🇮🇹,classic,serie_a,T2,Maverick,89,23,53
+3808,Vincenzo Montella,Roma,1999–2008,ST,,🇮🇹,classic,serie_a,T3,Warrior,85,1,21
+3809,Gabriel Batistuta,Roma,2000–2003,ST,,🇦🇷,classic,serie_a,T2,Maverick,89,23,53
+3810,Nicola Ventola,Atalanta,2000–2004,ST,,🇮🇹,classic,serie_a,T5,Warrior,79,0,2
+3811,Zlatan Ibrahimovic,Inter,2006–2009,ST,,🇸🇪,golden,serie_a,T1,Warrior,93,80,120
+3812,Carlos Tevez,Juventus,2012–2015,ST,,🇦🇷,golden,serie_a,T2,Warrior,92,65,95
+3813,Edinson Cavani,Napoli,2010–2013,ST,,🇺🇾,golden,serie_a,T2,Grinder,92,65,95
+3814,Gonzalo Higuain,Napoli,2013–2016,ST,,🇦🇷,golden,serie_a,T2,Grinder,92,65,95
+3815,Samuel Eto'o,Inter,2009–2011,ST,,🇨🇲,golden,serie_a,T2,Grinder,91,48,78
+3816,Mauro Icardi,Inter,2013–2019,ST,,🇦🇷,golden,serie_a,T2,Grinder,89,23,53
+3817,Antonio Di Natale,Udinese,2004–2016,ST,,🇮🇹,golden,serie_a,T2,Grinder,90,34,64
+3818,Andrea Belotti,Torino,2015–2022,ST,,🇮🇹,golden,serie_a,T3,Grinder,88,19,39
+3819,Mario Balotelli,AC Milan,2013–2015,ST,,🇮🇹,golden,serie_a,T3,Grinder,87,12,32
+3820,Alessandro Matri,Juventus,2010–2014,ST,,🇮🇹,golden,serie_a,T5,Grinder,80,0,2
+3821,Marco Sau,Cagliari,2013–2019,ST,,🇮🇹,golden,serie_a,T5,Grinder,78,0,2
+3822,Victor Osimhen,Napoli,2020–2024,ST,,🇳🇬,modern,serie_a,T2,Grinder,92,65,95
+3823,Romelu Lukaku,Inter,2019–2023,ST,,🇧🇪,modern,serie_a,T2,Grinder,91,48,78
+3824,Lautaro Martinez,Inter,2018–,ST,,🇦🇷,modern,serie_a,T2,Grinder,92,65,95
+3825,Ciro Immobile,Lazio,2016–,ST,,🇮🇹,modern,serie_a,T2,Grinder,91,48,78
+3826,Dusan Vlahovic,Juventus,2022–,ST,,🇷🇸,modern,serie_a,T2,Grinder,90,34,64
+3827,Zlatan Ibrahimovic,AC Milan,2019–2023,ST,,🇸🇪,modern,serie_a,T2,Grinder,90,34,64
+3828,Edin Dzeko,Inter,2021–2023,ST,,🇧🇦,modern,serie_a,T3,Grinder,87,12,32
+3829,Marcus Thuram,Inter,2023–,ST,,🇫🇷,modern,serie_a,T3,Grinder,87,12,32
+3830,Tammy Abraham,Roma,2021–2024,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,serie_a,T4,Grinder,83,0,10
+3831,Gianluca Scamacca,Atalanta,2023–,ST,,🇮🇹,modern,serie_a,T4,Grinder,84,1,13
+3832,Gianluca Lapadula,AC Milan,2016–2017,ST,,🇮🇹,modern,serie_a,T5,Grinder,79,0,2
+3833,Fabio Quagliarella,Sampdoria,2016–2022,ST,,🇮🇹,modern,serie_a,T3,Grinder,85,1,21
+4000,Oliver Kahn,Bayern,1994–2008,GK,,🇩🇪,classic,bundesliga,T1,Shot Stopper,94,105,145
+4001,Jens Lehmann,Dortmund,1998–2003,GK,,🇩🇪,classic,bundesliga,T3,Shot Stopper,88,19,39
+4002,Frank Rost,Schalke,1999–2007,GK,,🇩🇪,classic,bundesliga,T4,Organiser,83,0,10
+4003,Stefan Klos,Dortmund,1994–1998,GK,,🇩🇪,classic,bundesliga,T4,Organiser,82,0,8
+4004,Andreas Reinke,Werder Bremen,1998–2006,GK,,🇩🇪,classic,bundesliga,T5,Organiser,80,0,2
+4005,Dimo Wache,Mainz,2000–2009,GK,,🇩🇪,classic,bundesliga,T5,Organiser,78,0,2
+4006,Manuel Neuer,Schalke,2006–2011,GK,,🇩🇪,golden,bundesliga,T2,Sweeper Keeper,91,48,78
+4007,Rene Adler,Hamburg,2012–2015,GK,,🇩🇪,golden,bundesliga,T3,Organiser,85,1,21
+4008,Tim Wiese,Werder Bremen,2007–2013,GK,,🇩🇪,golden,bundesliga,T4,Shot Stopper,84,1,13
+4009,Bernd Leno,Leverkusen,2011–2017,GK,,🇩🇪,golden,bundesliga,T3,Shot Stopper,85,1,21
+4010,Sven Ulreich,Stuttgart,2009–2015,GK,,🇩🇪,golden,bundesliga,T5,Organiser,80,0,2
+4011,Timo Horn,Koln,2014–2022,GK,,🇩🇪,golden,bundesliga,T5,Organiser,80,0,2
+4012,Manuel Neuer,Bayern,2011–,GK,,🇩🇪,modern,bundesliga,T1,Sweeper Keeper,93,80,120
+4013,Gregor Kobel,Dortmund,2021–,GK,,🇨🇭,modern,bundesliga,T3,Shot Stopper,86,6,26
+4014,Lukas Hradecky,Leverkusen,2018–,GK,,🇫🇮,modern,bundesliga,T3,Shot Stopper,86,6,26
+4015,Peter Gulacsi,Leipzig,2015–,GK,,🇭🇺,modern,bundesliga,T3,Organiser,85,1,21
+4016,Kevin Trapp,Frankfurt,2019–,GK,,🇩🇪,modern,bundesliga,T3,Organiser,85,1,21
+4017,Yann Sommer,Gladbach,2014–2023,GK,,🇨🇭,modern,bundesliga,T3,Sweeper Keeper,86,6,26
+4018,Oliver Baumann,Hoffenheim,2014–,GK,,🇩🇪,modern,bundesliga,T4,Organiser,82,0,8
+4019,Roman Burki,Dortmund,2015–2021,GK,,🇨🇭,modern,bundesliga,T4,Shot Stopper,83,0,10
+4020,Florian Muller,Stuttgart,2021–,GK,,🇩🇪,modern,bundesliga,T5,Organiser,78,0,2
+4021,Finn Dahmen,Mainz,2021–,GK,,🇩🇪,modern,bundesliga,T5,Sweeper Keeper,77,0,2
+4022,Michael Rensing,Leverkusen,2010–2014,GK,,🇩🇪,golden,bundesliga,T5,Organiser,79,0,2
+4100,Philipp Lahm,Bayern,2002–2009,RB,,🇩🇪,classic,bundesliga,T2,Technician,91,48,78
+4101,Marcell Jansen,Hamburg,2007–2013,RB,,🇩🇪,classic,bundesliga,T4,Athlete,83,0,10
+4102,Christian Worns,Dortmund,1999–2008,RB,,🇩🇪,classic,bundesliga,T4,Warrior,83,0,10
+4103,Bernd Schneider,Leverkusen,1999–2009,RB,,🇩🇪,classic,bundesliga,T3,Grinder,85,1,21
+4104,Piotr Trochowski,Hamburg,2005–2010,RB,,🇩🇪,classic,bundesliga,T5,Grinder,79,0,2
+4106,Philipp Lahm,Bayern,2009–2017,RB,,🇩🇪,golden,bundesliga,T1,Technician,93,80,120
+4107,Lukasz Piszczek,Dortmund,2010–2021,RB,,🇵🇱,golden,bundesliga,T3,Athlete,87,12,32
+4108,Kevin Grosskreutz,Dortmund,2009–2015,RB,,🇩🇪,golden,bundesliga,T4,Grinder,81,0,7
+4109,Sebastian Jung,Frankfurt,2012–2017,RB,,🇩🇪,golden,bundesliga,T5,Grinder,79,0,2
+4110,Benjamin Henrichs,Leverkusen,2015–2018,RB,,🇩🇪,golden,bundesliga,T5,Grinder,80,0,2
+4111,Joshua Kimmich,Bayern,2015–,RB,,🇩🇪,modern,bundesliga,T2,Technician,92,65,95
+4112,Benjamin Pavard,Bayern,2019–2023,RB,,🇫🇷,modern,bundesliga,T3,Technician,85,1,21
+4113,Lukas Klostermann,Leipzig,2015–2023,RB,,🇩🇪,modern,bundesliga,T4,Grinder,83,0,10
+4114,Stefan Lainer,Gladbach,2019–2023,RB,,🇦🇹,modern,bundesliga,T4,Grinder,82,0,8
+4115,Thomas Meunier,Dortmund,2020–2023,RB,,🇧🇪,modern,bundesliga,T4,Grinder,83,0,10
+4116,Noussair Mazraoui,Bayern,2022–2024,RB,,🇲🇦,modern,bundesliga,T4,Grinder,84,1,13
+4117,Sacha Boey,Bayern,2024–,RB,,🇫🇷,modern,bundesliga,T4,Grinder,82,0,8
+4118,Julian Ryerson,Dortmund,2023–,RB,,🇳🇴,modern,bundesliga,T5,Grinder,79,0,2
+4119,Robin Koch,Leeds/Frankfurt,2023–,RB,,🇩🇪,modern,bundesliga,T5,Grinder,79,0,2
+4200,Bixente Lizarazu,Bayern,1997–2006,LB,,🇫🇷,classic,bundesliga,T3,Warrior,88,19,39
+4201,Christian Ziege,Bayern,1997–2000,LB,,🇩🇪,classic,bundesliga,T4,Grinder,83,0,10
+4202,Thomas Brdaric,Leverkusen,1999–2004,LB,,🇩🇪,classic,bundesliga,T5,Grinder,78,0,2
+4203,Frank Juric,Schalke,2000–2005,LB,,🇩🇪,classic,bundesliga,T5,Grinder,78,0,2
+4204,Patrick Owomoyela,Dortmund,2005–2011,LB,,🇩🇪,classic,bundesliga,T5,Grinder,79,0,2
+4205,Marcel Schmelzer,Dortmund,2007–2019,LB,,🇩🇪,golden,bundesliga,T3,Grinder,85,1,21
+4206,David Alaba,Bayern,2010–2021,LB,,🇦🇹,golden,bundesliga,T2,Technician,91,48,78
+4207,Rafael van der Vaart,Hamburg,2009–2012,CAM,CM,🇳🇱,golden,bundesliga,T3,Maverick,85,1,21
+4208,Nico Schulz,Hoffenheim,2017–2019,LB,,🇩🇪,golden,bundesliga,T4,Grinder,81,0,7
+4209,Jan Kirchhoff,Schalke,2014–2016,LB,,🇩🇪,golden,bundesliga,T5,Grinder,78,0,2
+4210,Alphonso Davies,Bayern,2019–,LB,,🇨🇦,modern,bundesliga,T2,Athlete,91,48,78
+4211,Raphael Guerreiro,Dortmund,2016–2023,LB,,🇵🇹,modern,bundesliga,T3,Technician,88,19,39
+4212,Robin Gosens,Frankfurt,2023–,LB,,🇩🇪,modern,bundesliga,T4,Grinder,83,0,10
+4213,Maximilian Mittelstadt,Stuttgart,2023–,LB,,🇩🇪,modern,bundesliga,T4,Grinder,82,0,8
+4215,Arne Maier,Augsburg,2021–2023,LB,,🇩🇪,modern,bundesliga,T5,Grinder,79,0,2
+4216,Mats Hummels,Dortmund,2020–2024,CB,,🇩🇪,modern,bundesliga,T5,Warrior,78,0,2
+4217,David Raum,Leipzig,2022–,LB,,🇩🇪,modern,bundesliga,T4,Grinder,84,1,13
+4300,Jens Nowotny,Leverkusen,1996–2006,CB,,🇩🇪,classic,bundesliga,T3,Warrior,85,1,21
+4301,Carsten Jancker,Bayern,1996–2002,CB,,🇩🇪,classic,bundesliga,T5,Warrior,80,0,2
+4302,Thomas Linke,Schalke,1998–2005,CB,,🇩🇪,classic,bundesliga,T4,Warrior,83,0,10
+4303,Robert Kovac,Dortmund,2001–2005,CB,,🇭🇷,classic,bundesliga,T4,Warrior,83,0,10
+4304,Lucio,Bayern,2004–2009,CB,,🇧🇷,classic,bundesliga,T2,Athlete,89,23,53
+4305,Frank Baumann,Werder Bremen,2001–2009,CB,,🇩🇪,classic,bundesliga,T4,Warrior,82,0,8
+4306,Per Mertesacker,Werder Bremen,2004–2011,CB,,🇩🇪,classic,bundesliga,T3,Leader,86,6,26
+4307,Andreas Hinkel,Stuttgart,2003–2007,CB,,🇩🇪,classic,bundesliga,T5,Warrior,79,0,2
+4308,Mats Hummels,Dortmund,2008–2016,CB,,🇩🇪,golden,bundesliga,T2,Technician,91,48,78
+4309,Neven Subotic,Dortmund,2008–2015,CB,,🇩🇪,golden,bundesliga,T3,Warrior,87,12,32
+4310,Jerome Boateng,Bayern,2011–2021,CB,,🇩🇪,golden,bundesliga,T2,Athlete,91,48,78
+4311,Dante,Bayern,2012–2014,CB,,🇧🇷,golden,bundesliga,T3,Warrior,87,12,32
+4312,Benedikt Howedes,Schalke,2009–2017,CB,,🇩🇪,golden,bundesliga,T3,Warrior,86,6,26
+4313,Sokratis,Dortmund,2013–2018,CB,,🇬🇷,golden,bundesliga,T3,Warrior,85,1,21
+4314,Shkodran Mustafi,Schalke,2019–2021,CB,,🇩🇪,golden,bundesliga,T5,Warrior,80,0,2
+4315,Timm Klose,Wolfsburg,2013–2015,CB,,🇨🇭,golden,bundesliga,T5,Warrior,79,0,2
+4316,Mats Hummels,Bayern/Dortmund,2016–2024,CB,,🇩🇪,modern,bundesliga,T2,Technician,89,23,53
+4317,Niklas Sule,Bayern,2017–2022,CB,,🇩🇪,modern,bundesliga,T3,Athlete,88,19,39
+4318,Antonio Rudiger,Stuttgart,2013–2015,CB,,🇩🇪,modern,bundesliga,T4,Warrior,84,1,13
+4319,Jonathan Tah,Leverkusen,2015–,CB,,🇩🇪,modern,bundesliga,T3,Leader,86,6,26
+4320,Dayot Upamecano,Leipzig,2017–2021,CB,,🇫🇷,modern,bundesliga,T3,Athlete,87,12,32
+4321,Willi Orban,Leipzig,2016–,CB,,🇭🇺,modern,bundesliga,T4,Warrior,84,1,13
+4322,Manuel Akanji,Dortmund,2018–2022,CB,,🇨🇭,modern,bundesliga,T3,Technician,86,6,26
+4323,Ozan Kabak,Schalke,2019–2021,CB,,🇹🇷,modern,bundesliga,T5,Warrior,80,0,2
+4324,Philipp Lienhart,Freiburg,2018–,CB,,🇦🇹,modern,bundesliga,T5,Warrior,79,0,2
+4325,Matthias Ginter,Gladbach,2017–2022,CB,,🇩🇪,modern,bundesliga,T3,Technician,85,1,21
+4326,Lucas Hernandez,Bayern,2019–2023,CB,,🇫🇷,modern,bundesliga,T3,Warrior,86,6,26
+4400,Michael Ballack,Leverkusen,1999–2002,DM,,🇩🇪,classic,bundesliga,T2,Warrior,91,48,78
+4401,Sebastian Kehl,Dortmund,2002–2015,DM,,🇩🇪,classic,bundesliga,T4,Grinder,84,1,13
+4402,Stefan Effenberg,Bayern,1998–2002,DM,,🇩🇪,classic,bundesliga,T3,Leader,88,19,39
+4403,Jens Jeremies,Bayern,1998–2005,DM,,🇩🇪,classic,bundesliga,T3,Grinder,85,1,21
+4404,Zvonimir Soldo,Stuttgart,1999–2007,DM,,🇭🇷,classic,bundesliga,T4,Grinder,83,0,10
+4405,Torsten Frings,Werder Bremen,2005–2011,DM,,🇩🇪,classic,bundesliga,T3,Warrior,86,6,26
+4406,Mladen Petric,Hamburg,2007–2012,DM,,🇭🇷,classic,bundesliga,T5,Grinder,79,0,2
+4407,Sven Bender,Dortmund,2009–2017,DM,,🇩🇪,golden,bundesliga,T3,Grinder,86,6,26
+4408,Lars Bender,Leverkusen,2009–2020,DM,,🇩🇪,golden,bundesliga,T3,Grinder,85,1,21
+4409,Javi Martinez,Bayern,2012–2020,DM,,🇪🇸,golden,bundesliga,T3,Warrior,88,19,39
+4410,Ilkay Gundogan,Dortmund,2011–2016,DM,,🇩🇪,golden,bundesliga,T3,Technician,88,19,39
+4411,Granit Xhaka,Gladbach,2012–2016,DM,,🇨🇭,golden,bundesliga,T4,Warrior,84,1,13
+4412,Sebastian Rode,Bayern,2014–2016,DM,,🇩🇪,golden,bundesliga,T4,Grinder,82,0,8
+4413,Julian Weigl,Dortmund,2015–2019,DM,,🇩🇪,golden,bundesliga,T4,Technician,83,0,10
+4414,Marvin Friedrich,Augsburg,2015–2017,DM,,🇩🇪,golden,bundesliga,T5,Grinder,78,0,2
+4415,Joshua Kimmich,Bayern,2016–,DM,,🇩🇪,modern,bundesliga,T2,Technician,91,48,78
+4416,Leon Goretzka,Bayern,2018–,DM,,🇩🇪,modern,bundesliga,T3,Warrior,88,19,39
+4417,Mahmoud Dahoud,Dortmund,2017–2023,DM,,🇩🇪,modern,bundesliga,T4,Technician,83,0,10
+4418,Emre Can,Dortmund,2019–,DM,,🇩🇪,modern,bundesliga,T4,Warrior,84,1,13
+4420,Florian Neuhaus,Gladbach,2017–2023,DM,,🇩🇪,modern,bundesliga,T4,Technician,83,0,10
+4421,Salih Ozcan,Dortmund,2022–,DM,,🇩🇪,modern,bundesliga,T5,Grinder,79,0,2
+4422,Tom Krausse,Hoffenheim,2020–2023,DM,,🇩🇪,modern,bundesliga,T5,Grinder,78,0,2
+4423,Edimilson Fernandes,Frankfurt,2017–2019,DM,,🇨🇭,modern,bundesliga,T5,Grinder,78,0,2
+4500,Michael Ballack,Bayern,2002–2006,CM,,🇩🇪,classic,bundesliga,T1,Warrior,93,80,120
+4501,Baia Ze Roberto,Bayern,2002–2006,CM,,🇧🇷,classic,bundesliga,T3,Technician,86,6,26
+4502,Giovane Elber,Bayern,1997–2003,ST,,🇧🇷,classic,bundesliga,T3,Technician,86,6,26
+4503,Mehmet Scholl,Bayern,1992–2007,CAM,CM,🇩🇪,classic,bundesliga,T3,Technician,86,6,26
+4504,Bernd Schneider,Leverkusen,1999–2009,CM,,🇩🇪,classic,bundesliga,T3,Technician,85,1,21
+4505,Zvonimir Misimovic,Wolfsburg,2008–2010,CAM,CM,🇩🇪,classic,bundesliga,T3,Maverick,86,6,26
+4506,Diego,Werder Bremen,2006–2009,CAM,CM,🇧🇷,classic,bundesliga,T3,Maverick,87,12,32
+4507,Piotr Trochowski,Hamburg,2004–2010,CM,,🇩🇪,classic,bundesliga,T4,Technician,81,0,7
+4508,Daniel Bierofka,1860 Munich,2002–2008,CM,,🇩🇪,classic,bundesliga,T5,Technician,78,0,2
+4509,Marco Reus,Dortmund,2012–2024,CAM,CM,🇩🇪,golden,bundesliga,T2,Maverick,91,48,78
+4510,Mario Gotze,Dortmund,2009–2013,CAM,CM,🇩🇪,golden,bundesliga,T2,Maverick,89,23,53
+4511,Thomas Muller,Bayern,2008–,CAM,CM,🇩🇪,golden,bundesliga,T2,Leader,91,48,78
+4512,Kevin De Bruyne,Wolfsburg,2012–2015,CAM,CM,🇧🇪,golden,bundesliga,T3,Maverick,88,19,39
+4513,Mesut Özil,Werder Bremen,2008–2010,CAM,CM,🇩🇪,golden,bundesliga,T3,Maverick,88,19,39
+4514,Mario Gotze,Bayern,2013–2016,CAM,CM,🇩🇪,golden,bundesliga,T3,Maverick,87,12,32
+4515,Mario Gotze,Dortmund,2016–2020,CAM,CM,🇩🇪,modern,bundesliga,T4,Maverick,84,1,13
+4516,Kai Havertz,Leverkusen,2016–2021,CAM,CM,🇩🇪,modern,bundesliga,T2,Maverick,89,23,53
+4517,Jadon Sancho,Dortmund,2017–2021,RW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,bundesliga,T3,Athlete,88,19,39
+4518,Jude Bellingham,Dortmund,2020–2023,CAM,CM,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,bundesliga,T2,Warrior,91,48,78
+4519,Florian Wirtz,Leverkusen,2020–,CAM,CM,🇩🇪,modern,bundesliga,T2,Maverick,92,65,95
+4520,Jamal Musiala,Bayern,2021–,CAM,CM,🇩🇪,modern,bundesliga,T2,Maverick,91,48,78
+4521,Christopher Nkunku,Leipzig,2019–2023,CAM,CM,🇫🇷,modern,bundesliga,T2,Maverick,89,23,53
+4522,Dani Olmo,Leipzig,2020–2024,CAM,CM,🇪🇸,modern,bundesliga,T3,Technician,87,12,32
+4523,Toni Kroos,Bayern,2007–2014,CM,,🇩🇪,golden,bundesliga,T2,Technician,89,23,53
+4524,Marcel Sabitzer,Leipzig,2017–2021,CM,,🇦🇹,modern,bundesliga,T3,Warrior,85,1,21
+4525,Thomas Muller,Bayern,2016–,CAM,CM,🇩🇪,modern,bundesliga,T2,Leader,89,23,53
+4526,Adam Szalai,Mainz,2014–2020,CM,,🇭🇺,golden,bundesliga,T5,Technician,79,0,2
+4527,Salomon Kalou,Hamburg,2014–2017,LW,,🇨🇮,golden,bundesliga,T5,Technician,79,0,2
+4528,Patrick Herrmann,Gladbach,2011–2023,CM,,🇩🇪,modern,bundesliga,T5,Technician,79,0,2
+4600,Arjen Robben,Bayern,2009–2019,RW,,🇳🇱,golden,bundesliga,T1,Athlete,93,80,120
+4601,Jefferson Farfan,Schalke,2008–2014,RW,,🇵🇪,golden,bundesliga,T3,Athlete,87,12,32
+4602,Kevin-Prince Boateng,Schalke,2010–2013,RW,,🇬🇭,golden,bundesliga,T4,Warrior,84,1,13
+4603,Marko Marin,Werder Bremen,2009–2012,RW,,🇩🇪,golden,bundesliga,T4,Maverick,83,0,10
+4604,Daniel Caliguiri,Wolfsburg,2013–2019,RW,,🇩🇪,golden,bundesliga,T4,Athlete,81,0,7
+4605,Maximilian Arnold,Wolfsburg,2014–,RW,,🇩🇪,golden,bundesliga,T5,Athlete,80,0,2
+4606,Ivan Perisic,Dortmund,2011–2013,RW,,🇭🇷,golden,bundesliga,T4,Athlete,83,0,10
+4607,Serge Gnabry,Bayern,2017–2023,RW,,🇩🇪,modern,bundesliga,T2,Athlete,89,23,53
+4608,Leroy Sane,Bayern,2020–,RW,,🇩🇪,modern,bundesliga,T3,Athlete,88,19,39
+4609,Kingsley Coman,Bayern,2015–,RW,,🇫🇷,modern,bundesliga,T3,Athlete,88,19,39
+4610,Moussa Diaby,Leverkusen,2019–2023,RW,,🇫🇷,modern,bundesliga,T3,Athlete,87,12,32
+4611,Donyell Malen,Dortmund,2021–,RW,,🇳🇱,modern,bundesliga,T4,Athlete,84,1,13
+4612,Mohamed Simakan,Leipzig,2021–,RW,,🇫🇷,modern,bundesliga,T4,Athlete,83,0,10
+4613,Karim Adeyemi,Dortmund,2022–,RW,,🇩🇪,modern,bundesliga,T4,Athlete,84,1,13
+4614,Callum Hudson-Odoi,Leverkusen,2023–2024,RW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,bundesliga,T4,Athlete,82,0,8
+4615,Ludovic Ajorque,Mainz,2021–2023,RW,,🇫🇷,modern,bundesliga,T5,Athlete,79,0,2
+4616,Ansgar Knauff,Frankfurt,2022–,RW,,🇩🇪,modern,bundesliga,T5,Athlete,78,0,2
+4617,Steffen Baumgart,Augsburg,2016–2018,RW,,🇩🇪,classic,bundesliga,T5,Athlete,78,0,2
+4618,Jens Todt,Hamburg,2000–2006,RW,,🇩🇪,classic,bundesliga,T5,Athlete,79,0,2
+4619,Ailton,Werder Bremen,2002–2004,RW,,🇧🇷,classic,bundesliga,T4,Athlete,83,0,10
+4700,Franck Ribery,Bayern,2007–2019,LW,,🇫🇷,golden,bundesliga,T1,Athlete,93,80,120
+4701,Claudio Pizarro,Werder Bremen,2001–2007,LW,,🇵🇪,classic,bundesliga,T3,Grinder,87,12,32
+4702,Ivan Klasnic,Werder Bremen,2000–2008,LW,,🇭🇷,classic,bundesliga,T4,Athlete,84,1,13
+4703,Leandro,Leverkusen,2001–2006,LW,,🇧🇷,classic,bundesliga,T4,Athlete,82,0,8
+4704,Dario Rodriguez,Hamburg,2000–2005,LW,,🇺🇾,classic,bundesliga,T5,Athlete,79,0,2
+4705,Morten Bisgaard,Stuttgart,2001–2005,LW,,🇩🇰,classic,bundesliga,T5,Athlete,79,0,2
+4706,Nuri Sahin,Dortmund,2009–2012,LW,,🇹🇷,golden,bundesliga,T3,Technician,85,1,21
+4707,Jakub Blaszczykowski,Dortmund,2007–2015,LW,,🇵🇱,golden,bundesliga,T4,Warrior,84,1,13
+4709,Henrikh Mkhitaryan,Dortmund,2013–2016,LW,,🇦🇲,golden,bundesliga,T3,Maverick,88,19,39
+4710,Kevin Kampl,Leverkusen,2015–2016,LW,,🇸🇮,golden,bundesliga,T4,Athlete,82,0,8
+4711,Andre Hahn,Gladbach,2014–2017,LW,,🇩🇪,golden,bundesliga,T5,Athlete,79,0,2
+4712,Leroy Sane,Schalke,2014–2016,LW,,🇩🇪,golden,bundesliga,T3,Athlete,85,1,21
+4713,Kingsley Coman,Bayern,2015–2018,LW,,🇫🇷,golden,bundesliga,T3,Athlete,85,1,21
+4714,Sadio Mane,Bayern,2022–2023,LW,,🇸🇳,modern,bundesliga,T3,Athlete,88,19,39
+4715,Bukayo Saka,Arsenal,2019–,LW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,bundesliga,T2,Athlete,90,34,64
+4716,Mathys Tel,Bayern,2022–,LW,,🇫🇷,modern,bundesliga,T4,Athlete,82,0,8
+4717,Marcus Thuram,Gladbach,2019–2023,LW,,🇫🇷,modern,bundesliga,T3,Warrior,86,6,26
+4718,Breel Embolo,Gladbach,2019–2022,LW,,🇨🇭,modern,bundesliga,T4,Athlete,82,0,8
+4719,Nico Schulz,Dortmund,2019–2022,LW,,🇩🇪,modern,bundesliga,T5,Athlete,79,0,2
+4720,Tom Bischoff,Mainz,2020–2023,LW,,🇩🇪,modern,bundesliga,T5,Athlete,77,0,2
+4800,Miroslav Klose,Werder Bremen,2004–2007,ST,,🇩🇪,classic,bundesliga,T3,Grinder,88,19,39
+4801,Claudio Pizarro,Werder Bremen,2001–2007,ST,,🇵🇪,classic,bundesliga,T3,Grinder,87,12,32
+4802,Roy Makaay,Bayern,2003–2007,ST,,🇳🇱,classic,bundesliga,T3,Grinder,88,19,39
+4803,Giovane Elber,Bayern,1997–2003,ST,,🇧🇷,classic,bundesliga,T3,Athlete,87,12,32
+4804,Martin Max,1860 Munich,1999–2004,ST,,🇩🇪,classic,bundesliga,T4,Grinder,82,0,8
+4805,Aílton,Werder Bremen,2002–2004,ST,,🇧🇷,classic,bundesliga,T4,Grinder,84,1,13
+4806,Fredi Bobic,Stuttgart,1999–2002,ST,,🇩🇪,classic,bundesliga,T4,Grinder,83,0,10
+4807,Kevin Kuranyi,Stuttgart,2002–2005,ST,,🇩🇪,classic,bundesliga,T4,Grinder,83,0,10
+4808,Sergej Barbarez,Hamburg,2001–2006,ST,,🇩🇪,classic,bundesliga,T4,Grinder,83,0,10
+4809,Marcin Mieciel,Mainz,2003–2006,ST,,🇵🇱,classic,bundesliga,T5,Grinder,77,0,2
+4810,Christoph Preuss,Bielefeld,2002–2007,ST,,🇩🇪,classic,bundesliga,T5,Grinder,77,0,2
+4811,Robert Lewandowski,Dortmund,2010–2014,ST,,🇵🇱,golden,bundesliga,T2,Warrior,92,65,95
+4812,Pierre-Emerick Aubameyang,Dortmund,2013–2018,ST,,🇬🇦,golden,bundesliga,T2,Athlete,91,48,78
+4813,Miroslav Klose,Bayern,2011–2014,ST,,🇩🇪,golden,bundesliga,T3,Grinder,88,19,39
+4814,Mario Mandzukic,Bayern,2012–2014,ST,,🇭🇷,golden,bundesliga,T3,Warrior,88,19,39
+4815,Bas Dost,Wolfsburg,2012–2016,ST,,🇳🇱,golden,bundesliga,T3,Grinder,85,1,21
+4816,Raul,Schalke,2010–2012,ST,,🇪🇸,golden,bundesliga,T3,Leader,88,19,39
+4817,Klaas-Jan Huntelaar,Schalke,2010–2017,ST,,🇳🇱,golden,bundesliga,T2,Grinder,89,23,53
+4818,Stefan Kiessling,Leverkusen,2006–2016,ST,,🇩🇪,golden,bundesliga,T3,Grinder,85,1,21
+4819,Anthony Modeste,Koln,2015–2018,ST,,🇫🇷,golden,bundesliga,T4,Grinder,84,1,13
+4820,Arkadiusz Milik,Gladbach,2014–2016,ST,,🇵🇱,golden,bundesliga,T5,Grinder,80,0,2
+4821,Robert Lewandowski,Bayern,2014–2022,ST,,🇵🇱,modern,bundesliga,T1,Warrior,96,170,210
+4822,Erling Haaland,Dortmund,2020–2022,ST,,🇳🇴,modern,bundesliga,T1,Warrior,93,80,120
+4823,Harry Kane,Bayern,2023–,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,bundesliga,T2,Leader,92,65,95
+4824,Wout Weghorst,Wolfsburg,2018–2022,ST,,🇳🇱,modern,bundesliga,T4,Grinder,83,0,10
+4825,Patrik Schick,Leverkusen,2021–,ST,,🇨🇿,modern,bundesliga,T3,Grinder,86,6,26
+4826,Sebastien Haller,Dortmund,2022–,ST,,🇨🇮,modern,bundesliga,T4,Grinder,83,0,10
+4827,Niclas Fullkrug,Dortmund,2023–,ST,,🇩🇪,modern,bundesliga,T4,Warrior,84,1,13
+4828,Luca Waldschmidt,Freiburg,2017–2020,ST,,🇩🇪,modern,bundesliga,T5,Grinder,79,0,2
+4829,Michael Gregoritsch,Augsburg,2017–2021,ST,,🇦🇹,modern,bundesliga,T5,Grinder,79,0,2
+4830,Davie Selke,Leipzig,2015–2017,ST,,🇩🇪,modern,bundesliga,T5,Grinder,78,0,2
+4831,Andrej Kramaric,Hoffenheim,2015–,ST,,🇭🇷,modern,bundesliga,T3,Maverick,85,1,21
+5000,Gregory Coupet,Lyon,2000–2010,GK,,🇫🇷,classic,ligue_1,T3,Organiser,87,12,32
+5001,Franck Silvestre,Monaco,2001–2007,GK,,🇫🇷,classic,ligue_1,T4,Organiser,82,0,8
+5002,Mickael Landreau,Nantes,2001–2009,GK,,🇫🇷,classic,ligue_1,T4,Organiser,83,0,10
+5003,Fabien Barthez,Marseille,1992–2002,GK,,🇫🇷,classic,ligue_1,T4,Sweeper Keeper,84,1,13
+5004,Cedric Carrasso,Bordeaux,2005–2012,GK,,🇫🇷,classic,ligue_1,T4,Organiser,81,0,7
+5005,Steve Mandanda,Marseille,2006–2016,GK,,🇫🇷,classic,ligue_1,T3,Organiser,86,6,26
+5006,Sylvain Chipchase,Saint-Etienne,2005–2012,GK,,🇬🇧,classic,ligue_1,T5,Organiser,79,0,2
+5007,Hugo Lloris,Lyon,2005–2012,GK,,🇫🇷,classic,ligue_1,T2,Organiser,89,23,53
+5008,Sirigu Salvatore,Palermo,2009–2011,GK,,🇮🇹,classic,ligue_1,T4,Organiser,83,0,10
+5009,Remy Vercoutre,Lyon,2011–2015,GK,,🇫🇷,golden,ligue_1,T4,Organiser,82,0,8
+5010,Nicolas Douchez,Saint-Etienne,2011–2019,GK,,🇫🇷,golden,ligue_1,T5,Organiser,80,0,2
+5011,Lionel Letizi,Nice,2013–2018,GK,,🇫🇷,golden,ligue_1,T5,Organiser,79,0,2
+5012,Danijel Subbotic,Monaco,2014–2016,GK,,🇷🇸,golden,ligue_1,T5,Organiser,80,0,2
+5013,Alfredo Talavera,Lens,2014–2015,GK,,🇲🇽,golden,ligue_1,T4,Organiser,84,1,13
+5014,Alpha Toure,Nantes,2015–2018,GK,,🇲🇱,golden,ligue_1,T5,Organiser,80,0,2
+5015,Alphonse Areola,PSG,2014–2018,GK,,🇫🇷,golden,ligue_1,T4,Sweeper Keeper,84,1,13
+5016,Gianluigi Buffon,PSG,2018–2019,GK,,🇮🇹,modern,ligue_1,T3,Organiser,88,19,39
+5017,Keylor Navas,PSG,2019–2023,GK,,🇨🇷,modern,ligue_1,T3,Shot Stopper,87,12,32
+5018,Gianluigi Donnarumma,PSG,2021–2023,GK,,🇮🇹,modern,ligue_1,T2,Sweeper Keeper,90,34,64
+5019,Pau Lopez,Marseille,2022–,GK,,🇪🇸,modern,ligue_1,T3,Shot Stopper,85,1,21
+5020,Leo Jardim,Monaco,2016–,GK,,🇵🇹,modern,ligue_1,T3,Organiser,86,6,26
+5021,Mike Maignan,Lille,2015–2021,GK,,🇫🇷,modern,ligue_1,T3,Sweeper Keeper,87,12,32
+5022,Jonas Lossl,Lille,2021–,GK,,🇩🇰,modern,ligue_1,T4,Organiser,81,0,7
+5023,Noel Chok,Montpellier,2016–2019,GK,,🇫🇷,modern,ligue_1,T5,Organiser,77,0,2
+5100,Bacary Sagna,Auxerre,2004–2007,RB,,🇫🇷,classic,ligue_1,T3,Warrior,85,1,21
+5101,Mikael Silvestre,Bordeaux,1997–2000,RB,,🇫🇷,classic,ligue_1,T4,Warrior,84,1,13
+5102,Didier Drogba,Guingamp,2001–2002,ST,,🇨🇩,classic,ligue_1,T4,Grinder,82,0,8
+5103,Willy Sagnol,Monaco,2004–2006,RB,,🇫🇷,classic,ligue_1,T4,Grinder,83,0,10
+5105,Jean-Alain Boumsong,Bordeaux,2004–2005,RB,,🇫🇷,classic,ligue_1,T5,Grinder,80,0,2
+5106,Achraf Hakimi,Borussia M,2016–2018,RB,,🇲🇦,golden,bundesliga,T4,Athlete,84,1,13
+5107,Thiago Silva,PSG,2012–2017,CB,,🇧🇷,golden,ligue_1,T2,Leader,92,65,95
+5108,Serge Aurier,PSG,2014–2017,RB,,🇨🇮,golden,ligue_1,T3,Athlete,85,1,21
+5109,Gregory van der Wiel,PSG,2010–2015,RB,,🇳🇱,golden,ligue_1,T4,Grinder,84,1,13
+5110,Jemerson,Monaco,2015–2017,RB,,🇧🇷,golden,ligue_1,T4,Grinder,84,1,13
+5111,Mathieu Debuchy,Lille,2008–2014,RB,,🇫🇷,golden,ligue_1,T4,Grinder,83,0,10
+5112,Presnel Kimpembe,PSG,2015–2023,RB,,🇫🇷,golden,ligue_1,T4,Grinder,83,0,10
+5114,Achraf Hakimi,PSG,2021–,RB,,🇲🇦,modern,ligue_1,T3,Athlete,88,19,39
+5115,Jeremias dos Santos,Marseille,2020–,RB,,🇧🇷,modern,ligue_1,T4,Grinder,82,0,8
+5117,Malo Gusto,Lyon,2021–2023,RB,,🇫🇷,modern,ligue_1,T4,Grinder,81,0,7
+5118,Raphael Guerreiro,Lille,2016–2018,RB,,🇵🇹,modern,ligue_1,T4,Grinder,84,1,13
+5119,Nordi Mukiele,Lille,2018–2022,RB,,🇩🇪,modern,ligue_1,T4,Grinder,83,0,10
+5200,Patrice Evra,Monaco,2003–2006,LB,,🇫🇷,classic,ligue_1,T3,Warrior,88,19,39
+5201,Bixente Lizarazu,Bordeaux,1996–2001,LB,,🇫🇷,classic,ligue_1,T3,Warrior,85,1,21
+5202,Sylvain Distin,Auxerre,2000–2004,LB,,🇫🇷,classic,ligue_1,T4,Grinder,83,0,10
+5203,Eric Abidal,Auxerre,2002–2004,LB,,🇫🇷,classic,ligue_1,T4,Athlete,84,1,13
+5204,Grégory Coupet,Lyon,1997–2008,GK,,🇫🇷,classic,ligue_1,T5,Organiser,88,0,2
+5205,Gael Clichy,Auxerre,2002–2006,LB,,🇫🇷,classic,ligue_1,T3,Athlete,85,1,21
+5206,Aly Cissokho,Lyon,2007–2010,LB,,🇬🇳,golden,ligue_1,T4,Grinder,83,0,10
+5207,Alex,PSG,2012–2017,LB,,🇧🇷,golden,ligue_1,T3,Warrior,86,6,26
+5208,David Luiz,PSG,2014–2016,CB,,🇧🇷,golden,ligue_1,T3,Warrior,88,19,39
+5209,Layvin Kurzawa,PSG,2015–2022,LB,,🇩🇪,golden,ligue_1,T4,Grinder,84,1,13
+5210,Jordan Amavi,Nice,2013–2015,LB,,🇫🇷,golden,ligue_1,T4,Grinder,83,0,10
+5211,Benjamin Mendy,Monaco,2016–2017,LB,,🇫🇷,golden,ligue_1,T4,Athlete,84,1,13
+5213,Juan Bernat,PSG,2014–2021,LB,,🇪🇸,modern,ligue_1,T3,Athlete,86,6,26
+5214,Ferland Mendy,Lille,2017–2019,LB,,🇫🇷,modern,ligue_1,T3,Athlete,86,6,26
+5215,Nuno Tavares,Marseille,2021–,LB,,🇵🇹,modern,ligue_1,T4,Grinder,84,1,13
+5216,Théo Hernandez,Lille,2017–2018,LB,,🇫🇷,modern,ligue_1,T4,Athlete,84,1,13
+5217,Jonas Martin,Montpellier,2016–2020,LB,,🇫🇷,modern,ligue_1,T5,Grinder,79,0,2
+5218,Romain Faivre,Lille,2020–2023,LB,,🇫🇷,modern,ligue_1,T4,Grinder,81,0,7
+5300,Sylvain Distin,Auxerre,2000–2006,CB,,🇫🇷,classic,ligue_1,T3,Warrior,86,6,26
+5301,William Gallas,Marseille,2001–2004,CB,,🇫🇷,classic,ligue_1,T3,Leader,87,12,32
+5302,Eric Abidal,Auxerre,2003–2004,CB,,🇫🇷,classic,ligue_1,T3,Athlete,85,1,21
+5303,Yaya Touré,Dijon,2002–2005,CB,,🇨🇮,classic,ligue_1,T4,Warrior,83,0,10
+5304,Anthony Reveillere,Lyon,2004–2013,CB,,🇫🇷,classic,ligue_1,T3,Warrior,85,1,21
+5306,Dedeu,Bordeaux,2001–2009,CB,,🇨🇩,classic,ligue_1,T4,Warrior,83,0,10
+5307,Jean-Claude Darcheville,Saint-Etienne,2003–2008,CB,,🇫🇷,classic,ligue_1,T4,Warrior,81,0,7
+5309,Gilberto Silva,Rennes,2000–2003,DM,,🇧🇷,classic,ligue_1,T4,Grinder,84,1,13
+5310,Thiago Silva,PSG,2012–2017,CB,,🇧🇷,golden,ligue_1,T1,Leader,93,80,120
+5311,Maxwell,PSG,2011–2016,LB,,🇧🇷,golden,ligue_1,T3,Grinder,87,12,32
+5312,David Luiz,PSG,2012–2014,CB,,🇧🇷,golden,ligue_1,T2,Maverick,89,23,53
+5313,Marquinhos,PSG,2013–,CB,,🇧🇷,golden,ligue_1,T2,Leader,89,23,53
+5314,Miranda,PSG,2014–2018,CB,,🇧🇷,golden,ligue_1,T3,Warrior,88,19,39
+5315,Jemerson,Monaco,2015–2017,CB,,🇧🇷,golden,ligue_1,T3,Warrior,85,1,21
+5317,Presnel Kimpembe,PSG,2014–,CB,,🇫🇷,golden,ligue_1,T3,Warrior,87,12,32
+5318,Raphael Varane,Lens,2010–2011,CB,,🇫🇷,golden,ligue_1,T3,Leader,85,1,21
+5320,Sergio Ramos,PSG,2021–2023,CB,,🇪🇸,modern,ligue_1,T3,Warrior,88,19,39
+5321,Marquinhos,PSG,2016–,CB,,🇧🇷,modern,ligue_1,T2,Leader,90,34,64
+5322,Presnel Kimpembe,PSG,2016–,CB,,🇫🇷,modern,ligue_1,T3,Warrior,86,6,26
+5324,Ruben Dias,Benfica,2018–2020,CB,,🇵🇹,modern,ligue_1,T3,Warrior,86,6,26
+5325,Leonardo Balerdi,Marseille,2021–,CB,,🇦🇷,modern,ligue_1,T4,Warrior,84,1,13
+5326,Mattia Viti,Brest,2022–,CB,,🇮🇹,modern,ligue_1,T5,Warrior,79,0,2
+5328,Kurt Zouma,Saint-Etienne,2023–,CB,,🇫🇷,modern,ligue_1,T4,Warrior,84,1,13
+5329,William Saliba,Nice,2021–2022,CB,,🇫🇷,modern,ligue_1,T4,Warrior,83,0,10
+5330,Benilson,Lens,2022–,CB,,🇫🇷,modern,ligue_1,T5,Warrior,79,0,2
+5400,Juninho Paulista,Lyon,2000–2009,DM,,🇧🇷,classic,ligue_1,T2,Maverick,91,48,78
+5402,Claude Makélélé,Paris,2005–2010,DM,,🇫🇷,classic,ligue_1,T3,Grinder,87,12,32
+5403,Alou Diarra,Marseille,2005–2014,DM,,🇫🇷,classic,ligue_1,T4,Grinder,84,1,13
+5404,Paul Nolan,Lyon,2004–2010,DM,,🇬🇧,classic,ligue_1,T4,Grinder,81,0,7
+5405,Youri Djorkaeff,Caen,2004–2006,DM,,🇫🇷,classic,ligue_1,T4,Grinder,81,0,7
+5406,Blaise Matuidi,PSG,2011–2017,DM,,🇫🇷,golden,ligue_1,T3,Warrior,86,6,26
+5407,Marco Verratti,PSG,2012–,DM,,🇮🇹,golden,ligue_1,T2,Technician,90,34,64
+5408,Idrissa Gueye,Lille,2011–2016,DM,,🇸🇳,golden,ligue_1,T4,Grinder,84,1,13
+5409,Bojan Krkic,Stoke,2017–2018,DM,,🇪🇸,golden,ligue_1,T5,Grinder,80,0,2
+5410,Sami Khedira,Juventus,2016–2018,DM,,🇩🇪,golden,ligue_1,T3,Warrior,86,6,26
+5411,Thiago Alcantara,Bayern loan,2016–2017,DM,,🇪🇸,golden,bundesliga,T3,Technician,88,19,39
+5412,Tiémoué Bakayoko,Monaco,2015–2018,DM,,🇨🇩,golden,ligue_1,T4,Grinder,84,1,13
+5413,Leandro Paredes,PSG,2019–,DM,,🇦🇷,modern,ligue_1,T3,Technician,86,6,26
+5414,Danilo Pereira,PSG,2020–,DM,,🇵🇹,modern,ligue_1,T3,Grinder,85,1,21
+5415,Steven N'Zonzi,Marseille,2019–2021,DM,,🇬🇦,modern,ligue_1,T4,Grinder,83,0,10
+5416,Declan Rice,West Ham,2021–,DM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,ligue_1,T3,Warrior,88,19,39
+5417,Teun Koopmeiners,Atalanta,2022–,DM,,🇳🇱,modern,ligue_1,T3,Technician,87,12,32
+5419,Guessand Azevedo,Lille,2021–,DM,,🇵🇹,modern,ligue_1,T4,Grinder,81,0,7
+5420,Nabil Bentaleb,Schalke,2018–2021,DM,,🇫🇷,modern,ligue_1,T4,Grinder,81,0,7
+5421,Frank Anguissa,Fulham,2019–2021,DM,,🇨🇲,modern,ligue_1,T4,Warrior,82,0,8
+5500,Ronaldinho,PSG,2001–2003,CAM,CM,🇧🇷,classic,ligue_1,T1,Maverick,96,170,210
+5501,Karim Benzema,Lyon,2005–2009,ST,,🇫🇷,classic,ligue_1,T2,Athlete,89,23,53
+5502,Sidney Govou,Lyon,2000–2009,RW,,🇫🇷,classic,ligue_1,T3,Technician,86,6,26
+5503,Florent Malouda,Lyon,2001–2007,LM,LW,🇫🇷,classic,ligue_1,T3,Technician,87,12,32
+5504,Didier Drogba,Marseille,2003–2004,ST,,🇨🇩,classic,ligue_1,T3,Grinder,86,6,26
+5505,Franck Ribéry,Marseille,2004–2007,LW,,🇫🇷,classic,ligue_1,T3,Athlete,88,19,39
+5506,Ludovic Giuly,Marseille,2003–2007,RW,,🇫🇷,classic,ligue_1,T3,Technician,85,1,21
+5507,Eden Hazard,Lille,2007–2012,CAM,CM,🇧🇪,classic,ligue_1,T2,Maverick,89,23,53
+5510,Ezequiel Lavezzi,PSG,2012–2014,CAM,CM,🇦🇷,golden,ligue_1,T3,Technician,87,12,32
+5511,Dimitri Payet,Marseille,2013–2017,CAM,CM,🇫🇷,golden,ligue_1,T3,Maverick,88,19,39
+5512,Nabil Fekir,Lyon,2013–2018,CAM,CM,🇫🇷,golden,ligue_1,T3,Maverick,87,12,32
+5513,Maxime Gonalons,Lyon,2011–2017,CM,,🇫🇷,golden,ligue_1,T4,Technician,84,1,13
+5514,Thomas Meunier,Lille,2014–2016,CM,,🇫🇷,golden,ligue_1,T4,Technician,83,0,10
+5515,Neymar,PSG,2017–2023,LW,,🇧🇷,modern,ligue_1,T1,Maverick,95,135,175
+5516,Kylian Mbappé,PSG,2017–2023,LW,,🇫🇷,modern,ligue_1,T1,Athlete,96,170,210
+5519,Anguissa,Napoli,2021–,CM,,🇨🇲,modern,ligue_1,T3,Technician,86,6,26
+5522,Sander Aursnes,Lille,2021–,CM,,🇳🇴,modern,ligue_1,T4,Technician,83,0,10
+5523,Nissikey Modeste,Auxerre,2019–2021,CM,,🇫🇷,modern,ligue_1,T5,Technician,79,0,2
+5524,Aurélien Tchouaméni,Monaco,2020–2023,CM,,🇫🇷,modern,ligue_1,T3,Warrior,85,1,21
+5525,Youri Tielemans,Anderlecht,2017–2019,CM,,🇧🇪,modern,ligue_1,T4,Technician,84,1,13
+5526,Kolo Toure,Arsenal,2012–2014,CM,,🇨🇮,golden,ligue_1,T4,Technician,82,0,8
+5527,Franck Ribéry,Salernitana,2022–2023,LW,,🇫🇷,modern,ligue_1,T5,Technician,79,0,2
+5600,Ailton Correia,Werder,2003–2005,RW,,🇧🇷,classic,ligue_1,T4,Athlete,84,1,13
+5601,Giordano Bruno,Bordeaux,2000–2007,RW,,🇮🇹,classic,ligue_1,T4,Athlete,83,0,10
+5602,Roux Philippe,Saint-Etienne,2003–2007,RW,,🇫🇷,classic,ligue_1,T4,Athlete,81,0,7
+5603,Bellion David,Everton,2005–2008,RW,,🇫🇷,classic,ligue_1,T5,Athlete,80,0,2
+5604,Piquionné Claude,Lyon,2004–2008,RW,,🇫🇷,classic,ligue_1,T4,Athlete,82,0,8
+5605,Nasri Samir,Arsenal,2008–2011,RW,,🇫🇷,golden,ligue_1,T3,Technician,85,1,21
+5606,Hatem Ben Arfa,Lille,2009–2011,RW,,🇹🇳,golden,ligue_1,T3,Maverick,86,6,26
+5607,Sanogo Kone,Ivory Coast,2012–2015,RW,,🇨🇮,golden,ligue_1,T4,Athlete,82,0,8
+5608,Ganso Paulo,Santos,2012–2014,RW,,🇧🇷,golden,ligue_1,T4,Maverick,84,1,13
+5609,Loïc Rémy,Newcastle,2016–2018,RW,,🇫🇷,golden,ligue_1,T4,Athlete,83,0,10
+5610,Gelson Martins,Sporting,2017–2019,RW,,🇵🇹,golden,ligue_1,T4,Athlete,82,0,8
+5611,Ousmane Dembele,Rennes,2015–2016,RW,,🇫🇷,golden,ligue_1,T4,Athlete,84,1,13
+5612,Lucas Moura,Sao Paulo,2011–2012,RW,,🇧🇷,golden,ligue_1,T4,Athlete,84,1,13
+5613,Kylian Mbappé,AS Monaco,2015–2017,RW,,🇫🇷,modern,ligue_1,T3,Athlete,87,12,32
+5619,Ismaila Sarr,Watford,2018–2020,RW,,🇸🇳,modern,ligue_1,T4,Athlete,81,0,7
+5700,David Trezeguet,Juventus,2007–2009,LW,,🇫🇷,classic,ligue_1,T3,Grinder,85,1,21
+5701,Milan Baroš,Lyon,2007–2010,LW,,🇨🇿,classic,ligue_1,T4,Warrior,84,1,13
+5702,Bakari Kone,Lyon,2006–2009,LW,,🇨🇮,classic,ligue_1,T4,Athlete,83,0,10
+5703,Frederic Kanoute,Tottenham,2007–2009,LW,,🇸🇳,classic,ligue_1,T4,Warrior,84,1,13
+5704,Mouctar Diakhaby,Marseille,2005–2010,LW,,🇲🇱,classic,ligue_1,T5,Athlete,79,0,2
+5705,Thierry Henry,Arsenal,1999–2007,LW,,🇫🇷,classic,ligue_1,T1,Athlete,97,200,240
+5706,Roux Sylvain,Lyon,2003–2009,LW,,🇫🇷,classic,ligue_1,T4,Athlete,84,1,13
+5707,Thierry Henry,Monaco,2005–2007,LW,,🇫🇷,classic,ligue_1,T2,Athlete,91,48,78
+5708,Ben Arfa,Newcastle,2013–2015,LW,,🇫🇷,golden,ligue_1,T3,Maverick,85,1,21
+5709,Alexandre Lacazette,Lyon,2010–2017,ST,,🇫🇷,golden,ligue_1,T3,Grinder,88,19,39
+5710,Maiga Modou,West Ham,2015–2018,LW,,🇲🇱,golden,ligue_1,T5,Athlete,80,0,2
+5711,Lucas Coutinho,Inter,2019–,LW,,🇧🇷,modern,ligue_1,T3,Athlete,86,6,26
+5712,Memphis Depay,Lyon,2017–2021,LW,,🇳🇱,modern,ligue_1,T3,Maverick,87,12,32
+5713,Allan Saint-Maximin,Newcastle,2019–,LW,,🇫🇷,modern,ligue_1,T4,Athlete,82,0,8
+5714,Layvin Kurzawa,PSG,2015–2019,LW,,🇩🇪,modern,ligue_1,T4,Athlete,83,0,10
+5715,Federico Bernardeschi,Fiorentina,2017–2020,LW,,🇮🇹,modern,ligue_1,T4,Athlete,82,0,8
+5716,Antony,Ajax,2020–2022,LW,,🇧🇷,modern,ligue_1,T4,Athlete,84,1,13
+5717,Amine Gouiri,Nice,2021–,LW,,🇫🇷,modern,ligue_1,T4,Maverick,83,0,10
+5718,Sofiane Boufal,Angers,2018–,LW,,🇲🇦,modern,ligue_1,T4,Maverick,81,0,7
+5719,Cabella Yannick,Nantes,2015–2020,LW,,🇫🇷,modern,ligue_1,T5,Athlete,80,0,2
+5801,Claudio Pizarro,Werder,2001–2008,ST,,🇵🇪,classic,bundesliga,T3,Grinder,88,19,39
+5802,Christian Vieri,Parma,2002–2006,ST,,🇮🇹,classic,serie_a,T2,Grinder,89,23,53
+5804,Djibril Cissé,Liverpool,2004–2006,ST,,🇸🇳,classic,premier_league,T3,Athlete,86,6,26
+5805,Radamel Falcao,Monaco,2013–2014,ST,,🇨🇴,golden,ligue_1,T1,Warrior,93,80,120
+5806,Edinson Cavani,PSG,2013–2018,ST,,🇺🇾,golden,ligue_1,T1,Warrior,93,80,120
+5807,Zlatan Ibrahimovic,PSG,2012–2016,ST,,🇸🇪,golden,ligue_1,T1,Maverick,94,105,145
+5809,Antoine Griezmann,Atletico,2014–2018,ST,,🇫🇷,golden,la_liga,T2,Athlete,91,48,78
+5810,Luis Suárez,Barcelona,2015–2018,ST,,🇺🇾,golden,la_liga,T2,Warrior,91,48,78
+5811,Mario Balotelli,Nice,2016–2017,ST,,🇮🇹,golden,ligue_1,T4,Maverick,84,1,13
+5812,Wissam Ben Yedder,Monaco,2016–,ST,,🇫🇷,modern,ligue_1,T3,Grinder,87,12,32
+5816,Dušan Vlahović,Juventus,2022–,ST,,🇷🇸,modern,serie_a,T2,Warrior,89,23,53
+5817,Pacho Alexis,Nice,2022–,ST,,🇫🇷,modern,ligue_1,T3,Grinder,85,1,21
+5818,Victor Osimhen,Napoli,2020–,ST,,🇳🇬,modern,serie_a,T2,Athlete,91,48,78
+5819,Jonathan David,Lille,2020–,ST,,🇨🇦,modern,ligue_1,T3,Grinder,88,19,39
+5820,Roberto Firmino,Liverpool,2015–2023,ST,,🇧🇷,modern,premier_league,T3,Leader,87,12,32
+5821,Aleksandar Mitrović,Fulham,2019–2023,ST,,🇷🇸,modern,premier_league,T4,Warrior,84,1,13
+5822,Luis Muriel,Atalanta,2019–,ST,,🇨🇴,modern,serie_a,T4,Grinder,84,1,13
+5823,Laborde Pierre,Montpellier,2019–,ST,,🇫🇷,modern,ligue_1,T4,Grinder,82,0,8
+5824,Stankovic Marko,Fiorentina,2020–,ST,,🇷🇸,modern,serie_a,T4,Grinder,81,0,7
+5825,Michu,Swansea,2012–2014,ST,,🇪🇸,golden,premier_league,T4,Grinder,84,1,13
+5826,Ousmane Dembélé,Barcelona,2017–,RW,,🇫🇷,modern,la_liga,T3,Athlete,85,1,21
+5827,Thauvin Florian,Marseille,2017–2021,ST,,🇫🇷,modern,ligue_1,T4,Grinder,84,1,13
+5828,Banza Serhou,Lens,2021–,ST,,🇬🇳,modern,ligue_1,T4,Grinder,81,0,7
+5829,Touré Adama,Reims,2019–2022,ST,,🇲🇱,modern,ligue_1,T5,Grinder,79,0,2
+5830,Diabate Fodé,Auxerre,2019–2021,ST,,🇨🇮,modern,ligue_1,T5,Grinder,79,0,2
+5831,Slimani Islam,Leicester,2016–2018,ST,,🇩🇿,modern,premier_league,T4,Grinder,82,0,8
+5832,Erik Lamela,Sevilla,2016–2018,RW,,🇦🇷,modern,la_liga,T5,Athlete,77,0,2
+5834,Oscar Letelier,Universidad,2019–2021,CB,,🇨🇱,modern,la_liga,T5,Warrior,76,0,2
+5835,Teun Koopmeiners,AZ,2019–2021,DM,,🇳🇱,modern,serie_a,T5,Grinder,78,0,2
+5836,Dušan Tadić,Ajax,2020–2022,CAM,CM,🇷🇸,modern,bundesliga,T5,Technician,78,0,2
+5837,Emiliano Buendía,Norwich,2018–2021,RW,,🇦🇷,modern,premier_league,T5,Athlete,78,0,2
+5838,Adama Traoré,Fulham,2020–2023,RW,,🇲🇱,modern,premier_league,T5,Athlete,77,0,2
+5839,Maxwel Cornet,Lyon,2019–2023,RW,,🇨🇩,modern,ligue_1,T5,Athlete,79,0,2
+5841,Soumare Boubakary,Lille,2019–2023,DM,,🇫🇷,modern,ligue_1,T5,Grinder,78,0,2
+5842,Kone Cheikh,Auxerre,2020–2023,CB,,🇫🇷,modern,ligue_1,T5,Warrior,77,0,2
+5843,Renato Sanches,Benfica,2018–2020,CM,,🇵🇹,modern,bundesliga,T5,Technician,78,0,2
+5845,Romain Vinagre,Rennes,2020–2022,LW,,🇫🇷,modern,ligue_1,T5,Athlete,77,0,2
+5846,Charles De Ketelaere,AC Milan,2022–,CAM,CM,🇧🇪,modern,serie_a,T5,Grinder,78,0,2
+2835,Juan Roman Riquelme,Villarreal,2007–2010,CAM,CM,🇦🇷,golden,la_liga,T2,Technician,91,48,78
+2836,Giuseppe Rossi,Villarreal,2012–2015,ST,,🇮🇹,golden,la_liga,T3,Grinder,88,19,39
+2837,Bruno Soriano,Villarreal,2009–2019,CM,,🇪🇸,golden,la_liga,T3,Technician,86,6,26
+2838,Carlos Vela,Villarreal,2011–2014,RW,,🇲🇽,golden,la_liga,T3,Athlete,85,1,21
+2839,Mario Gaspar,Villarreal,2010–2022,RB,,🇪🇸,golden,la_liga,T4,Grinder,84,1,13
+2840,Gerardo Albelda,Valencia,1997–2011,DM,,🇪🇸,classic,la_liga,T3,Grinder,87,12,32
+2841,Rubén Baraja,Valencia,2000–2012,DM,,🇪🇸,classic,la_liga,T3,Grinder,86,6,26
+2842,Pablo Aimar,Valencia,2000–2007,CAM,CM,🇦🇷,classic,la_liga,T3,Technician,88,19,39
+2843,Gastón Ramírez,Valencia,2011–2017,CAM,CM,🇺🇾,golden,la_liga,T3,Technician,85,1,21
+2844,Sofiane Feghouli,Valencia,2013–2016,RW,,🇦🇱,golden,la_liga,T4,Athlete,84,1,13
+2845,Juan Carlos Valerón,Deportivo,1995–2009,CAM,CM,🇪🇸,classic,la_liga,T3,Technician,87,12,32
+2846,Romario,Deportivo,1997–2000,ST,,🇧🇷,classic,la_liga,T2,Grinder,89,23,53
+2847,Diego López,Deportivo,2002–2009,GK,,🇪🇸,classic,la_liga,T3,Organiser,85,1,21
+2848,Iago Aspas,Deportivo,2009–2015,ST,,🇪🇸,golden,la_liga,T3,Grinder,85,1,21
+2849,Denílson,Real Betis,2006–2013,DM,,🇧🇷,golden,la_liga,T3,Grinder,86,6,26
+2851,Joaquín,Real Betis,2015–,RW,,🇪🇸,modern,la_liga,T3,Athlete,85,1,21
+2852,Sergio Canales,Real Betis,2018–,CAM,CM,🇪🇸,modern,la_liga,T3,Technician,87,12,32
+2853,Nabil Fekir,Real Betis,2019–,CAM,CM,🇫🇷,modern,la_liga,T2,Technician,89,23,53
+2854,Aritz Aduriz,Athletic Club,2012–2018,ST,,🇪🇸,golden,la_liga,T3,Grinder,87,12,32
+2855,Iker Iturraspe,Athletic Club,2013–2019,DM,,🇪🇸,golden,la_liga,T4,Grinder,84,1,13
+2856,Kepa Arrizabalaga,Athletic Club,2014–2018,GK,,🇪🇸,golden,la_liga,T3,Organiser,85,1,21
+2857,Raúl García,Athletic Club,2012–,CM,,🇪🇸,golden,la_liga,T4,Technician,84,1,13
+2858,Iker Muniain,Athletic Club,2019–,LW,,🇪🇸,modern,la_liga,T3,Athlete,86,6,26
+2859,Ever Banega,Sevilla,2014–2022,CM,,🇦🇷,golden,la_liga,T3,Technician,86,6,26
+2860,Ivan Rakitic,Sevilla,2011–2014,CM,,🇭🇷,golden,la_liga,T3,Technician,87,12,32
+2861,Nacho Fernández,Sevilla,2011–2015,CB,,🇪🇸,golden,la_liga,T4,Warrior,84,1,13
+2862,Youssef En-Nesyri,Sevilla,2020–,ST,,🇲🇦,modern,la_liga,T3,Grinder,85,1,21
+2863,Carlos Campos,Málaga,2011–2015,GK,,🇪🇸,golden,la_liga,T4,Organiser,82,0,8
+2864,Antúnez Julio,Málaga,2012–2015,LB,,🇦🇷,golden,la_liga,T4,Grinder,83,0,10
+2865,Weligton,Málaga,2010–2014,CB,,🇧🇷,golden,la_liga,T4,Warrior,83,0,10
+2866,Xabi Prieto,Real Sociedad,2002–2017,CM,,🇪🇸,golden,la_liga,T3,Technician,85,1,21
+2867,Aritz Elustondo,Real Sociedad,2011–,CB,,🇪🇸,golden,la_liga,T4,Warrior,84,1,13
+2868,Asier Illarramendi,Real Sociedad,2009–2013,DM,,🇪🇸,golden,la_liga,T3,Grinder,85,1,21
+2869,David Silva,Real Sociedad,2018–2023,CAM,CM,🇪🇸,modern,la_liga,T3,Technician,87,12,32
+6001,Lev Yashin,Dynamo Moscow,1949–71,GK,,🇷🇺,legend,legends,T2,Shot Stopper,92,55,95
+6002,Gordon Banks,Stoke City,1958–77,GK,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,legend,legends,T2,Shot Stopper,91,40,78
+6003,Ken Mulhearn,Shrewsbury Town,1971–78,GK,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,legend,legends,T5,Organiser,68,0,2
+6004,Franz Beckenbauer,Bayern Munich,1964–83,CB,,🇩🇪,legend,legends,T1,Leader,93,75,115
+6005,Franco Baresi,AC Milan,1977–97,CB,,🇮🇹,legend,legends,T2,Leader,92,55,95
+6006,Bobby Moore,West Ham,1958–77,CB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,legend,legends,T2,Leader,90,28,65
+6007,Ronald Koeman,Barcelona,1980–97,CB,,🇳🇱,legend,legends,T2,Technician,90,28,65
+6008,Michel Platini,Juventus,1972–87,CAM,,🇫🇷,legend,legends,T1,Technician,93,75,115
+6009,Ruud Gullit,AC Milan,1979–98,CAM,,🇳🇱,legend,legends,T2,Maverick,92,55,95
+6010,Lothar Matthaus,Bayern Munich,1984–92,CM,,🇩🇪,legend,legends,T2,Leader,92,55,95
+6011,Bobby Charlton,Man Utd,1956–73,CM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,legend,legends,T2,Technician,91,40,78
+6012,Bryan Robson,Man Utd,1974–97,CM,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,legend,legends,T3,Warrior,89,18,53
+6013,Socrates,Corinthians,1974–89,CM,,🇧🇷,legend,legends,T3,Technician,88,12,44
+6014,Gheorghe Hagi,Real Madrid,1982–2001,CAM,,🇷🇴,legend,legends,T3,Maverick,89,18,53
+6015,George Best,Man Utd,1963–83,RW,,🏴󠁧󠁢󠁮󠁩󠁲󠁿,legend,legends,T2,Maverick,92,55,95
+6016,Stanley Matthews,Blackpool,1930–65,RW,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,legend,legends,T2,Technician,90,28,65
+6017,Hristo Stoichkov,Barcelona,1984–2003,LW,,🇧🇬,legend,legends,T2,Maverick,90,28,65
+6018,Pelé,Santos,1956–77,ST,,🇧🇷,legend,legends,T1,Maverick,96,165,205
+6019,Diego Maradona,Napoli,1976–97,CAM,,🇦🇷,legend,legends,T1,Maverick,96,165,205
+6020,Johan Cruyff,Barcelona,1964–84,ST,,🇳🇱,legend,legends,T1,Maverick,95,130,170
+6021,Alfredo Di Stéfano,Real Madrid,1943–66,ST,,🇦🇷,legend,legends,T1,Leader,94,100,140
+6022,Marco van Basten,AC Milan,1982–95,ST,,🇳🇱,legend,legends,T1,Athlete,94,100,140
+6023,Gerd Müller,Bayern Munich,1964–81,ST,,🇩🇪,legend,legends,T1,Athlete,93,75,115
+6024,Roberto Baggio,Juventus,1990–95,CAM,,🇮🇹,legend,legends,T2,Maverick,92,55,95
+6025,Eusébio,Benfica,1961–78,ST,,🇵🇹,legend,legends,T2,Athlete,91,40,78
+6026,Eric Cantona,Man Utd,1988–97,ST,,🇫🇷,legend,legends,T2,Leader,91,40,78
+6027,Denis Law,Man Utd,1962–73,ST,,🏴󠁧󠁢󠁳󠁣󠁴󠁿,legend,legends,T2,Athlete,91,40,78
+6028,Kenny Dalglish,Liverpool,1967–90,ST,,🏴󠁧󠁢󠁳󠁣󠁴󠁿,legend,legends,T2,Technician,90,28,65
+6029,Gary Lineker,Barcelona,1978–94,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,legend,legends,T2,Grinder,90,28,65
+6030,Karl-Heinz Rummenigge,Bayern Munich,1974–89,ST,,🇩🇪,legend,legends,T3,Athlete,89,18,53
+6031,Kevin Keegan,Hamburg,1968–84,ST,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,legend,legends,T3,Athlete,89,18,53
+6032,Ian Rush,Liverpool,1979–2000,ST,,🏴󠁧󠁢󠁷󠁬󠁳󠁿,legend,legends,T3,Grinder,88,12,44
+6033,Mark Hughes,Man Utd,1983–2002,ST,,🏴󠁧󠁢󠁷󠁬󠁳󠁿,legend,legends,T3,Warrior,87,7,35
