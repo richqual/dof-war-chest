@@ -55,7 +55,7 @@ export default function WarChestLobbyScreen({ onContinue, onBack }) {
           </div>
 
           {numClubs === 2 && (
-            <div className="difficulty-section">
+            <div className="difficulty-section" style={{ maxWidth: 260 }}>
               <span className="field-label-sm">BEST OF</span>
               <div className="difficulty-row">
                 {FORMAT_OPTIONS.map(f => (
