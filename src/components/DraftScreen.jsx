@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { POSITIONS, generateBudget, chooseCpuPick } from "../data/players";
+import { POSITIONS, generateBudget, chooseCpuPick, normalizeSearch } from "../data/players";
 import { GROUP_COLORS, FORMATIONS, FORMATION_DISPLAY_ORDER } from "../data/formations";
 import { POSITIONS as ALL_POSITIONS } from "../data/players";
 import PlayerCard, { ARCHETYPE_COLOR } from "./PlayerCard";
@@ -38,6 +38,7 @@ export default function DraftScreen({
     if (currentPos.key === lastPosKey) return;
     setLastPosKey(currentPos.key);
     setFilterPos(new Set([currentPos.key]));
+    setNameSearch("");
     const cat = isGkPos ? "gk" : "outfield";
     const prevCat = ["GK", "GKSUB"].includes(lastPosKey) ? "gk" : "outfield";
     if (cat !== prevCat) setFilterArchetypes(new Set(relevantArchetypes));
@@ -55,6 +56,7 @@ export default function DraftScreen({
   const [showArchetypeDropdown, setShowArchetypeDropdown] = useState(false);
   const [hideBadges, setHideBadges] = useState(false);
   const [showArchetypeLegend, setShowArchetypeLegend] = useState(false);
+  const [nameSearch, setNameSearch] = useState("");
 
   function toggleEra(era) {
     setFilterEra(prev => {
@@ -143,6 +145,12 @@ export default function DraftScreen({
     available = available.filter(p => !p.archetype || filterArchetypes.has(p.archetype));
   }
 
+  // Name search — diacritic-insensitive so "Sane" matches "Sané", "Denilson" matches "Denílson"
+  if (nameSearch.trim()) {
+    const q = normalizeSearch(nameSearch.trim());
+    available = available.filter(p => normalizeSearch(p.name).includes(q) || normalizeSearch(p.club).includes(q));
+  }
+
   // Sort
   const tierOrder = { T1: 1, T2: 2, T3: 3, T4: 4, T5: 5 };
   const dir = sortDir === "desc" ? -1 : 1;
@@ -220,7 +228,7 @@ export default function DraftScreen({
       } else if (currentBudget === null) {
         confirmBudget(generateBudget(draft.difficulty));
       } else {
-        const pick = chooseCpuPick(getAvailablePlayers(currentPos.key), currentBudget);
+        const pick = chooseCpuPick(getAvailablePlayers(currentPos.key), currentBudget, currentPos.key);
         if (pick) handlePickPlayer(pick);
         else skipTurn();
       }
@@ -652,6 +660,15 @@ export default function DraftScreen({
                     })}
                   </div>
                 )}
+              </div>
+              <div className="filter-sort-row">
+                <input
+                  className="player-name-search"
+                  type="text"
+                  placeholder="Search player or club…"
+                  value={nameSearch}
+                  onChange={e => setNameSearch(e.target.value)}
+                />
               </div>
               <div className="filter-sort-row">
                 <span className="filter-sort-label">SORT</span>

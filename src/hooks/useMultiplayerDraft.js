@@ -159,7 +159,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
         };
       }
       const posKey = resolveCurrentPosKey(d);
-      const pick = chooseCpuPick(getPlayersFromState(d, posKey), d.currentBudget);
+      const pick = chooseCpuPick(getPlayersFromState(d, posKey), d.currentBudget, posKey);
       if (!pick) {
         d = { ...d, currentBudget: null, noCarryoverNext: true };
         continue;
@@ -188,7 +188,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
         };
       }
       const posKey = resolveCurrentPosKey(d);
-      const pick = chooseCpuPick(getPlayersFromState(d, posKey), d.currentBudget);
+      const pick = chooseCpuPick(getPlayersFromState(d, posKey), d.currentBudget, posKey);
       if (!pick) {
         d = { ...d, currentBudget: null, noCarryoverNext: true };
         continue;

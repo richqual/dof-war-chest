@@ -192,7 +192,8 @@ export function getSeriesContext(series, managers) {
     }
   }
 
-  return { label: `MATCH ${next.matchNum} · ${next.label}`, standing, homeIdx: next.homeIdx, awayIdx: next.awayIdx, legContext, isLeg1, isGrandFinal, homePrevResult, awayPrevResult, isSeriesTiebreaker: next.isSeriesTiebreaker ?? false };
+  const isTournamentKnockout = series.format === "tournament" || series.format === "tournament8";
+  return { label: `MATCH ${next.matchNum} · ${next.label}`, standing, homeIdx: next.homeIdx, awayIdx: next.awayIdx, legContext, isLeg1, isGrandFinal, homePrevResult, awayPrevResult, isSeriesTiebreaker: next.isSeriesTiebreaker ?? false, isTournamentKnockout };
 }
 
 // Two-player series standings panel

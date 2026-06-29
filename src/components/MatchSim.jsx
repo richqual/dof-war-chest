@@ -1012,8 +1012,14 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   // ET fires: aggregate tie in leg 2, series tiebreaker, or standalone match level.
   // Regular series matches (bo3/bo5/bo7) allow draws — no ET.
   const isSeriesTiebreaker = seriesContext?.isSeriesTiebreaker ?? false;
-  const isRegularSeriesMatch = !!seriesContext && !isSeriesTiebreaker && !legContext;
-  const needsET = !isLeg1 && !isRegularSeriesMatch && (legContext ? aggHome() === aggAway() : hGoals === aGoals);
+  const isRegularSeriesMatch = !!seriesContext && !isSeriesTiebreaker && !legContext && !seriesContext.isTournamentKnockout;
+  const skipToShootout = seriesContext?.skipToShootout ?? false;
+  const needsET = !isLeg1 && !isRegularSeriesMatch && !skipToShootout && (legContext ? aggHome() === aggAway() : hGoals === aGoals);
+  const needsShootout = skipToShootout && hGoals === aGoals;
+
+  if (needsShootout) {
+    etEvents.push({ min: matchMinutes, type: "commentary", text: `FULL TIME — ${hGoals}–${aGoals}. It's level — straight to penalties!`, penStartPause: true });
+  }
 
   if (needsET) {
     const ftNote = legContext
@@ -1064,93 +1070,99 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     const stillLevel = legContext ? aggHome() === aggAway() : finalHome === finalAway;
     if (stillLevel) {
       etEvents.push({ min: matchMinutes + 15, type: "commentary", text: `FULL TIME EXTRA TIME — ${finalHome}–${finalAway}. PENALTY SHOOTOUT!`, penStartPause: true });
+    }
+  }
 
-      const PEN_SUCCESS = 0.76;
-      const NUM_KICKS = 5;
-      // Best attacking players take pens first
-      const byAtt = ps => [...ps].sort((a, b) => deriveAttributes(b).att - deriveAttributes(a).att);
-      const hOF = byAtt(homeSquad.slice(0, 11).filter(p => p && p.pos !== "GK"));
-      const aOF = byAtt(awaySquad.slice(0, 11).filter(p => p && p.pos !== "GK"));
-      const hFallback = homeSquad.slice(0, 11).filter(Boolean);
-      const aFallback = awaySquad.slice(0, 11).filter(Boolean);
-      const hOrder = hOF.length ? hOF : hFallback;
-      const aOrder = aOF.length ? aOF : aFallback;
+  // Penalties: reached either after ET (still level) or directly (skipToShootout)
+  const afterETLevel = needsET && (legContext ? aggHome() === aggAway() : finalHome === finalAway);
+  if (afterETLevel || needsShootout) {
+    const penMin = needsShootout ? matchMinutes : matchMinutes + 15;
 
-      let hPens = 0, aPens = 0;
-      let penDone = false;
+    const PEN_SUCCESS = 0.76;
+    const NUM_KICKS = 5;
+    // Best attacking players take pens first
+    const byAtt = ps => [...ps].sort((a, b) => deriveAttributes(b).att - deriveAttributes(a).att);
+    const hOF = byAtt(homeSquad.slice(0, 11).filter(p => p && p.pos !== "GK"));
+    const aOF = byAtt(awaySquad.slice(0, 11).filter(p => p && p.pos !== "GK"));
+    const hFallback = homeSquad.slice(0, 11).filter(Boolean);
+    const aFallback = awaySquad.slice(0, 11).filter(Boolean);
+    const hOrder = hOF.length ? hOF : hFallback;
+    const aOrder = aOF.length ? aOF : aFallback;
 
-      for (let round = 0; round < NUM_KICKS && !penDone; round++) {
-        // Home kick
-        const hTaker = hOrder[round % Math.max(1, hOrder.length)];
+    let hPens = 0, aPens = 0;
+    let penDone = false;
+
+    for (let round = 0; round < NUM_KICKS && !penDone; round++) {
+      // Home kick
+      const hTaker = hOrder[round % Math.max(1, hOrder.length)];
+      const hName = hTaker?.name || "The taker";
+      const hScored = Math.random() < PEN_SUCCESS;
+      if (hScored) hPens++;
+      etEvents.push({
+        min: penMin, type: hScored ? "pen_goal" : "pen_miss", team: "home",
+        scorer: hScored ? hName : null,
+        text: hScored ? pick(COMMENTARY_PEN_SCORED)(hName) : pick(COMMENTARY_PEN_MISSED)(hName),
+        penScore: `${hPens}–${aPens}`,
+      });
+      // Early clinch check: away can't catch up even scoring all remaining kicks
+      if (hPens > aPens + (NUM_KICKS - round)) { penDone = true; penWinner = "home"; break; }
+
+      // Away kick
+      const aTaker = aOrder[round % Math.max(1, aOrder.length)];
+      const aName = aTaker?.name || "The taker";
+      const aScored = Math.random() < PEN_SUCCESS;
+      if (aScored) aPens++;
+      etEvents.push({
+        min: penMin, type: aScored ? "pen_goal" : "pen_miss", team: "away",
+        scorer: aScored ? aName : null,
+        text: aScored ? pick(COMMENTARY_PEN_SCORED)(aName) : pick(COMMENTARY_PEN_MISSED)(aName),
+        penScore: `${hPens}–${aPens}`,
+      });
+      // Early clinch check: home can't catch up
+      if (aPens > hPens + (NUM_KICKS - round - 1)) { penDone = true; penWinner = "away"; break; }
+    }
+
+    if (!penDone) {
+      if (hPens > aPens) { penWinner = "home"; penDone = true; }
+      else if (aPens > hPens) { penWinner = "away"; penDone = true; }
+    }
+
+    // Sudden death
+    if (!penDone) {
+      etEvents.push({ min: penMin, type: "commentary", text: pick(COMMENTARY_PEN_SD) });
+      let sdRound = 0;
+      while (!penDone && sdRound < 10) {
+        const hTaker = hOrder[(NUM_KICKS + sdRound) % Math.max(1, hOrder.length)];
+        const aTaker = aOrder[(NUM_KICKS + sdRound) % Math.max(1, aOrder.length)];
         const hName = hTaker?.name || "The taker";
+        const aName = aTaker?.name || "The taker";
         const hScored = Math.random() < PEN_SUCCESS;
         if (hScored) hPens++;
         etEvents.push({
-          min: matchMinutes + 15, type: hScored ? "pen_goal" : "pen_miss", team: "home",
+          min: penMin, type: hScored ? "pen_goal" : "pen_miss", team: "home",
           scorer: hScored ? hName : null,
           text: hScored ? pick(COMMENTARY_PEN_SCORED)(hName) : pick(COMMENTARY_PEN_MISSED)(hName),
-          penScore: `${hPens}–${aPens}`,
+          penScore: `${hPens}–${aPens}`, suddenDeath: true,
         });
-        // Early clinch check: away can't catch up even scoring all remaining kicks
-        if (hPens > aPens + (NUM_KICKS - round)) { penDone = true; penWinner = "home"; break; }
-
-        // Away kick
-        const aTaker = aOrder[round % Math.max(1, aOrder.length)];
-        const aName = aTaker?.name || "The taker";
         const aScored = Math.random() < PEN_SUCCESS;
         if (aScored) aPens++;
         etEvents.push({
-          min: matchMinutes + 15, type: aScored ? "pen_goal" : "pen_miss", team: "away",
+          min: penMin, type: aScored ? "pen_goal" : "pen_miss", team: "away",
           scorer: aScored ? aName : null,
           text: aScored ? pick(COMMENTARY_PEN_SCORED)(aName) : pick(COMMENTARY_PEN_MISSED)(aName),
-          penScore: `${hPens}–${aPens}`,
+          penScore: `${hPens}–${aPens}`, suddenDeath: true,
         });
-        // Early clinch check: home can't catch up
-        if (aPens > hPens + (NUM_KICKS - round - 1)) { penDone = true; penWinner = "away"; break; }
+        if (hPens !== aPens) { penWinner = hPens > aPens ? "home" : "away"; penDone = true; }
+        sdRound++;
       }
-
-      if (!penDone) {
-        if (hPens > aPens) { penWinner = "home"; penDone = true; }
-        else if (aPens > hPens) { penWinner = "away"; penDone = true; }
-      }
-
-      // Sudden death
-      if (!penDone) {
-        etEvents.push({ min: matchMinutes + 15, type: "commentary", text: pick(COMMENTARY_PEN_SD) });
-        let sdRound = 0;
-        while (!penDone && sdRound < 10) {
-          const hTaker = hOrder[(NUM_KICKS + sdRound) % Math.max(1, hOrder.length)];
-          const aTaker = aOrder[(NUM_KICKS + sdRound) % Math.max(1, aOrder.length)];
-          const hName = hTaker?.name || "The taker";
-          const aName = aTaker?.name || "The taker";
-          const hScored = Math.random() < PEN_SUCCESS;
-          if (hScored) hPens++;
-          etEvents.push({
-            min: matchMinutes + 15, type: hScored ? "pen_goal" : "pen_miss", team: "home",
-            scorer: hScored ? hName : null,
-            text: hScored ? pick(COMMENTARY_PEN_SCORED)(hName) : pick(COMMENTARY_PEN_MISSED)(hName),
-            penScore: `${hPens}–${aPens}`, suddenDeath: true,
-          });
-          const aScored = Math.random() < PEN_SUCCESS;
-          if (aScored) aPens++;
-          etEvents.push({
-            min: matchMinutes + 15, type: aScored ? "pen_goal" : "pen_miss", team: "away",
-            scorer: aScored ? aName : null,
-            text: aScored ? pick(COMMENTARY_PEN_SCORED)(aName) : pick(COMMENTARY_PEN_MISSED)(aName),
-            penScore: `${hPens}–${aPens}`, suddenDeath: true,
-          });
-          if (hPens !== aPens) { penWinner = hPens > aPens ? "home" : "away"; penDone = true; }
-          sdRound++;
-        }
-        if (!penDone) penWinner = Math.random() < 0.5 ? "home" : "away";
-      }
-
-      etEvents.push({
-        min: matchMinutes + 15, type: "pens", team: penWinner,
-        text: `${penWinner === "home" ? homeName : awayName} WIN ON PENALTIES! ${homeName} ${hPens}–${aPens} ${awayName}.`,
-        penWinner, penScore: `${hPens}–${aPens}`,
-      });
+      if (!penDone) penWinner = Math.random() < 0.5 ? "home" : "away";
     }
+
+    etEvents.push({
+      min: penMin, type: "pens", team: penWinner,
+      text: `${penWinner === "home" ? homeName : awayName} WIN ON PENALTIES! ${homeName} ${hPens}–${aPens} ${awayName}.`,
+      penWinner, penScore: `${hPens}–${aPens}`,
+    });
   }
 
   const allEvents = [...events, ...etEvents];
@@ -1405,7 +1417,7 @@ function LineupPanel({ homeManager, awayManager, homeName, awayName, onClose }) 
 }
 
 export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResult, seriesContext, isHost = true, externalMatchData = null, onMatchGenerated = null, matchMinutes = 90 }) {
-  const isRegularSeriesMatch = !!seriesContext && !seriesContext.isSeriesTiebreaker && !seriesContext.legContext;
+  const isRegularSeriesMatch = !!seriesContext && !seriesContext.isSeriesTiebreaker && !seriesContext.legContext && !seriesContext.isTournamentKnockout;
   const homeManager = draft.managers[homeIdx];
   const awayManager = draft.managers[awayIdx];
   const homeName = homeManager.teamName || homeManager.name;
@@ -1491,7 +1503,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
       seriesContext?.isLeg1 ?? false,
       homeManager.tactics ?? "balanced",
       awayManager.tactics ?? "balanced",
-      seriesContext ? { homePrevResult: seriesContext.homePrevResult ?? null, awayPrevResult: seriesContext.awayPrevResult ?? null } : null,
+      seriesContext ? { homePrevResult: seriesContext.homePrevResult ?? null, awayPrevResult: seriesContext.awayPrevResult ?? null, isSeriesTiebreaker: seriesContext.isSeriesTiebreaker ?? false, isTournamentKnockout: seriesContext.isTournamentKnockout ?? false, skipToShootout: (seriesContext.isTournamentKnockout && matchMinutes < 90) ?? false } : null,
       matchMinutes,
     );
     if (onMatchGenerated) onMatchGenerated(r); // broadcast to all players via Firestore

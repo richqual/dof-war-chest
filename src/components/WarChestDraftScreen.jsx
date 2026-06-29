@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { WAR_CHEST_SLOTS } from "../hooks/draftUtils";
-import { formatValue, getRatingBg, getRatingColor } from "../data/players";
+import { formatValue, getRatingBg, getRatingColor, normalizeSearch } from "../data/players";
 import KitSwatch from "./KitSwatch";
 
 function formatChest(v) {
@@ -58,7 +58,7 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
 
   const activePlayers = activeSlot !== null
     ? getPlayers(activeSlot)
-        .filter(p => !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.club.toLowerCase().includes(search.toLowerCase()))
+        .filter(p => !search || normalizeSearch(p.name).includes(normalizeSearch(search)) || normalizeSearch(p.club).includes(normalizeSearch(search)))
         .map(p => ({ ...p, affordable: p.value <= remaining }))
         .sort((a, b) => {
           if (a.affordable !== b.affordable) return a.affordable ? -1 : 1;

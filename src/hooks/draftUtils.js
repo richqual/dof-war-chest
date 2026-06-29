@@ -137,7 +137,7 @@ export function applyPick(d, player) {
       currentBudget: null,
       noCarryoverNext: false,
       currentSlot: null,
-      currentOrder: Array.from({ length: n }, (_, i) => (i + newRound) % n),
+      currentOrder: newRound % 2 === 0 ? [...d.snakeOrder] : [...d.snakeOrder].reverse(),
       phase: "draft",
     };
   }
@@ -288,6 +288,7 @@ export function buildInitialDraft(clubs, options = {}) {
     round: 0,
     currentBudget: null,
     currentOrder: initialOrder,
+    snakeOrder: initialOrder,
     takenIds: [],
     availablePlayerIds,
     playerValues,
