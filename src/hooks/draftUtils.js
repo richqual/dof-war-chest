@@ -385,9 +385,19 @@ export function buildInitialWarChestDraft(clubs, options = {}) {
   const playerValues = options.dynamicValues !== false ? randomizePlayerValues(availablePlayerIds) : new Map();
   const playerForm = options.dynamicForm !== false ? generatePlayerForm(availablePlayerIds) : new Map();
   const playerOrder = generatePlayerOrder(availablePlayerIds);
+
+  // Randomise human draft order, keep computers at the end
+  const humans = clubs.filter(c => !c.isComputer);
+  const computers = clubs.filter(c => c.isComputer);
+  for (let i = humans.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [humans[i], humans[j]] = [humans[j], humans[i]];
+  }
+  const orderedClubs = [...humans, ...computers];
+
   return {
     warChest: true,
-    managers: clubs.map(c => ({
+    managers: orderedClubs.map(c => ({
       name: c.dofName,
       dofName: c.dofName,
       clubName: c.clubName,
@@ -413,7 +423,7 @@ export function buildInitialWarChestDraft(clubs, options = {}) {
     dynamicForm: options.dynamicForm !== false,
     dynamicValues: options.dynamicValues !== false,
     phase: "draft",
-    series: buildWCSeries(clubs.length, options.format),
+    series: buildWCSeries(orderedClubs.length, options.format),
   };
 }
 

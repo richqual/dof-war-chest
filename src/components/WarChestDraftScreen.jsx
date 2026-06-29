@@ -30,11 +30,9 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
   const [activeSlot, setActiveSlot] = useState(null);
   const [search, setSearch] = useState("");
 
-  const numHumans = draft.managers.filter(m => !m.isComputer).length;
-  const humanManagerCount = numHumans;
-  const currentHumanOrder = draft.managers.filter(m => !m.isComputer).findIndex(
-    (_, i) => draft.managers.slice(0, managerIdx + 1).filter(m => !m.isComputer).length - 1 === i
-  ) + 1;
+  const humanManagers = draft.managers.filter(m => !m.isComputer);
+  const humanManagerCount = humanManagers.length;
+  const currentHumanOrder = draft.managers.slice(0, managerIdx + 1).filter(m => !m.isComputer).length;
 
   const allFilled = manager.squad.slice(0, WAR_CHEST_SLOTS.length).every(Boolean);
   // GK (0), DEF (1), MID (2) are required; slots 3 & 4 (ATT) must also be filled
@@ -77,16 +75,27 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
       <div className="draft-header">
         <div className="wc-draft-header-inner">
           <div className="wc-draft-kit-row">
-            <KitSwatch primary={manager.primaryColor} secondary={manager.secondaryColor} pattern={manager.pattern} size={28} />
+            <KitSwatch primary={manager.primaryColor} secondary={manager.secondaryColor} pattern={manager.pattern} size={32} />
             <div>
               <div className="wc-draft-club">{manager.clubName}</div>
-              {totalManagers > 1 && (
-                <div className="wc-draft-turn-badge">
-                  {humanManagerCount > 1 ? `Player ${currentHumanOrder} of ${humanManagerCount}` : ""}
-                </div>
+              {humanManagerCount > 1 && (
+                <div className="wc-draft-turn-badge">Pick {currentHumanOrder} of {humanManagerCount}</div>
               )}
             </div>
           </div>
+          {humanManagerCount > 1 && (
+            <div className="wc-draft-order-row">
+              {humanManagers.map((m, i) => (
+                <span
+                  key={i}
+                  className={`wc-draft-order-pip ${draft.managers.indexOf(m) < managerIdx ? "wc-order-done" : draft.managers.indexOf(m) === managerIdx ? "wc-order-current" : "wc-order-upcoming"}`}
+                  title={m.clubName}
+                >
+                  <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern} size={14} />
+                </span>
+              ))}
+            </div>
+          )}
           <div className="wc-budget-remaining">{formatChest(remaining)}</div>
           <div className="wc-budget-labels">
             <div className="wc-budget-label">remaining of {formatChest(budget)}</div>

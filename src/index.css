@@ -5580,13 +5580,19 @@ html.large-text .match-report-title  { font-size: 14px; }
   padding-bottom: 8px;
 }
 .wc-draft-kit-row { display: flex; align-items: center; gap: 10px; }
-.wc-draft-club { font-family: var(--font-head); font-size: 9px; color: var(--text); letter-spacing: 1px; }
-.wc-draft-turn-badge { font-family: var(--font); font-size: 12px; color: var(--text3); margin-top: 2px; }
+.wc-draft-club { font-family: var(--font-head); font-size: 13px; color: var(--text); letter-spacing: 1px; }
+.wc-draft-turn-badge { font-family: var(--font); font-size: 13px; color: var(--text3); margin-top: 3px; }
 
-.wc-budget-remaining { font-family: var(--font-head); font-size: 14px; color: var(--amber); }
+.wc-budget-remaining { font-family: var(--font-head); font-size: 22px; color: var(--amber); }
 .wc-budget-labels { text-align: right; }
-.wc-budget-label { font-family: var(--font); font-size: 12px; color: var(--text3); margin-top: 2px; }
-.wc-budget-avg  { font-family: var(--font); font-size: 11px; color: var(--text3); margin-top: 1px; opacity: 0.75; }
+.wc-budget-label { font-family: var(--font); font-size: 13px; color: var(--text3); margin-top: 2px; }
+.wc-budget-avg  { font-family: var(--font); font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+.wc-draft-order-row { display: flex; align-items: center; gap: 6px; }
+.wc-draft-order-pip { display: flex; align-items: center; transition: opacity 0.15s; }
+.wc-order-done { opacity: 0.35; }
+.wc-order-current { opacity: 1; outline: 2px solid var(--amber); border-radius: 2px; }
+.wc-order-upcoming { opacity: 0.6; }
 
 .wc-budget-bar-track {
   height: 4px;
