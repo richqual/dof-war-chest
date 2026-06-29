@@ -8,7 +8,7 @@ function findLabel(list, key) {
 
 const ITEM_H = 68; // px per drum item
 const VISIBLE = 3; // items shown in window
-const SPIN_DURATION = 3000; // ms fast spin
+const SPIN_DURATION = 1400; // ms fast spin — shorter so decel starts sooner
 
 // Build a long looping strip ending on the final item, with padding after
 // so items are still visible above and below the winner on landing.
@@ -63,17 +63,17 @@ function DrumReel({ options, finalKey, spinning, onLanded }) {
     const t = setTimeout(() => {
       el.classList.remove("dr-drum-spinning");
       // Snap to a few items before final (no transition)
-      const snapY = -((finalIndex - 4) * ITEM_H) + (centerOffset * ITEM_H);
+      const snapY = -((finalIndex - 10) * ITEM_H) + (centerOffset * ITEM_H);
       el.style.transition = "none";
       el.style.transform = `translateY(${snapY}px)`;
       // Force reflow
       el.getBoundingClientRect();
-      // Glide to exact final position — slow steep deceleration for tension
+      // Long drawn-out deceleration — 10 items to crawl through
       const targetY = -(finalIndex * ITEM_H) + (centerOffset * ITEM_H);
-      el.style.transition = `transform 2.4s cubic-bezier(0.05, 0.85, 0.1, 1)`;
+      el.style.transition = `transform 4.2s cubic-bezier(0.02, 0.82, 0.06, 1)`;
       el.style.transform = `translateY(${targetY}px)`;
 
-      setTimeout(onLanded, 2450);
+      setTimeout(onLanded, 4300);
     }, SPIN_DURATION);
 
     return () => clearTimeout(t);
