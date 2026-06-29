@@ -8,7 +8,7 @@ function findLabel(list, key) {
 
 const ITEM_H = 68; // px per drum item
 const VISIBLE = 3; // items shown in window
-const SPIN_DURATION = 2800; // ms
+const SPIN_DURATION = 3000; // ms fast spin
 
 // Build a long looping strip ending on the final item, with padding after
 // so items are still visible above and below the winner on landing.
@@ -68,12 +68,12 @@ function DrumReel({ options, finalKey, spinning, onLanded }) {
       el.style.transform = `translateY(${snapY}px)`;
       // Force reflow
       el.getBoundingClientRect();
-      // Glide to exact final position
+      // Glide to exact final position — slow steep deceleration for tension
       const targetY = -(finalIndex * ITEM_H) + (centerOffset * ITEM_H);
-      el.style.transition = `transform 0.9s cubic-bezier(0.17, 0.84, 0.44, 1)`;
+      el.style.transition = `transform 2.4s cubic-bezier(0.05, 0.85, 0.1, 1)`;
       el.style.transform = `translateY(${targetY}px)`;
 
-      setTimeout(onLanded, 950);
+      setTimeout(onLanded, 2450);
     }, SPIN_DURATION);
 
     return () => clearTimeout(t);
