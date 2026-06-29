@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DraftRouletteToggle from "./DraftRouletteToggle";
 
 const FORMAT_OPTIONS = [
   { key: "bo3", label: "3", hint: "First to 2 wins" },
@@ -21,6 +22,7 @@ export default function WarChestLobbyScreen({ onContinue, onBack }) {
   const [format, setFormat] = useState("bo3");
   const [hideRatings, setHideRatings] = useState(false);
   const [dynamicValues, setDynamicValues] = useState(true);
+  const [draftRoulette, setDraftRoulette] = useState({ enabled: false, era: false, league: true });
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   function handleNumClubs(n) {
@@ -29,7 +31,7 @@ export default function WarChestLobbyScreen({ onContinue, onBack }) {
   }
 
   function handleContinue() {
-    onContinue({ numClubs, numHumans, difficulty, format: numClubs === 2 ? format : undefined, hideRatings, dynamicValues, dynamicForm: true });
+    onContinue({ numClubs, numHumans, difficulty, format: numClubs === 2 ? format : undefined, hideRatings, dynamicValues, dynamicForm: true, draftRoulette });
   }
 
   return (
@@ -103,6 +105,8 @@ export default function WarChestLobbyScreen({ onContinue, onBack }) {
           <div className="difficulty-hint setup-row-hint">
             {DIFFICULTY_INFO.find(d => d.key === difficulty)?.hint}
           </div>
+
+          <DraftRouletteToggle value={draftRoulette} onChange={setDraftRoulette} />
 
           <button className="advanced-toggle" onClick={() => setShowAdvanced(v => !v)}>
             {showAdvanced ? "▲" : "▼"} ADVANCED OPTIONS

@@ -43,7 +43,7 @@ export function useDraftState() {
   function startGame(clubs, options) {
     const d = buildInitialDraft(clubs, options);
     setDraft(d);
-    setScreen("order-draw");
+    setScreen(options?.draftRoulette?.enabled ? "draft-roulette" : "order-draw");
   }
 
   function completeDraw(drawOrder) {
@@ -303,7 +303,11 @@ export function useDraftState() {
   }
 
   function getAvailablePlayers(posKey) {
-    let players = availablePlayersFor(posKey, draft ? draft.takenIds : []);
+    const activeManager = draft?.managers?.[draft.currentOrder[draft.turnIndex]];
+    const rouletteAssignment = activeManager
+      ? { era: activeManager.assignedEra, league: activeManager.assignedLeague }
+      : null;
+    let players = availablePlayersFor(posKey, draft ? draft.takenIds : [], rouletteAssignment);
     if (draft?.availablePlayerIds) {
       players = players.filter(p => draft.availablePlayerIds.has(p.id));
     }
@@ -464,7 +468,7 @@ export function useDraftState() {
       setScreen("squads");
     } else {
       setDraft({ ...d, wcCurrentManagerIdx: idx });
-      setScreen("war-chest-select");
+      setScreen(options?.draftRoulette?.enabled ? "draft-roulette" : "war-chest-select");
     }
   }
 
@@ -515,8 +519,12 @@ export function useDraftState() {
 
   function getWarChestPlayers(slotIdx) {
     if (!draft) return [];
+    const activeManager = draft.managers[draft.wcCurrentManagerIdx];
+    const rouletteAssignment = activeManager
+      ? { era: activeManager.assignedEra, league: activeManager.assignedLeague }
+      : null;
     return getWarChestPlayersForSlot(
-      slotIdx, draft.takenIds, draft.availablePlayerIds, draft.playerValues, draft.playerForm
+      slotIdx, draft.takenIds, draft.availablePlayerIds, draft.playerValues, draft.playerForm, rouletteAssignment
     );
   }
 

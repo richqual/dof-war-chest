@@ -3,6 +3,20 @@ import { GROUP_SLOT_INDICES, FORMATIONS } from "../data/formations";
 
 export { generateBudget, chooseCpuPick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS };
 
+// Draft Roulette pools — legends are excluded (pool too shallow for a hard restriction).
+export const DRAFT_ROULETTE_ERAS = [
+  { key: "classic", label: "Classic Era" },
+  { key: "golden",  label: "Golden Era" },
+  { key: "modern",  label: "Modern Era" },
+];
+export const DRAFT_ROULETTE_LEAGUES = [
+  { key: "premier_league", label: "Premier League" },
+  { key: "la_liga",        label: "La Liga" },
+  { key: "serie_a",        label: "Serie A" },
+  { key: "bundesliga",     label: "Bundesliga" },
+  { key: "ligue_1",        label: "Ligue 1" },
+];
+
 export const POS_LABELS = {
   GK: "Goalkeeper", RB: "Right Back", LB: "Left Back", CB: "Centre Back",
   DM: "Def. Mid", CM: "Midfielder", MF: "Midfielder", CAM: "Att. Mid", AM: "Att. Mid",
@@ -87,18 +101,31 @@ export function deserializeDraft(draft) {
   };
 }
 
-export function availablePlayersFor(posKey, takenIds) {
+// `rouletteAssignment` is the active manager's { era, league } from Draft Roulette
+// (either field may be null if that axis wasn't randomised). Legends are always
+// excluded once Draft Roulette is on, since their pool is too shallow to restrict.
+function matchesRoulette(p, rouletteAssignment) {
+  if (!rouletteAssignment) return true;
+  const { era, league } = rouletteAssignment;
+  if (!era && !league) return true;
+  if (p.league === "legends") return false;
+  if (era && p.era !== era) return false;
+  if (league && p.league !== league) return false;
+  return true;
+}
+
+export function availablePlayersFor(posKey, takenIds, rouletteAssignment) {
   const taken = new Set(takenIds);
   if (posKey === "GKSUB") {
-    return PLAYERS.filter(p => p.pos === "GK" && !taken.has(p.id));
+    return PLAYERS.filter(p => p.pos === "GK" && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
   }
   if (SUB_POSITIONS[posKey]) {
-    return PLAYERS.filter(p => SUB_POSITIONS[posKey].includes(p.pos) && !taken.has(p.id));
+    return PLAYERS.filter(p => SUB_POSITIONS[posKey].includes(p.pos) && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
   }
   if (posKey === "GK") {
-    return PLAYERS.filter(p => p.pos === "GK" && !taken.has(p.id));
+    return PLAYERS.filter(p => p.pos === "GK" && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
   }
-  return PLAYERS.filter(p => p.pos !== "GK" && !taken.has(p.id));
+  return PLAYERS.filter(p => p.pos !== "GK" && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
 }
 
 export function applyPick(d, player) {
@@ -192,6 +219,30 @@ export function shuffle(arr) {
   return a;
 }
 
+// Shuffled-bag distribution: no repeat combo until every combo has been used once,
+// then the bag refills and reshuffles. Guarantees the most even possible spread.
+export function assignDraftRoulette(n, draftRoulette) {
+  if (!draftRoulette?.enabled || (!draftRoulette.era && !draftRoulette.league)) {
+    return Array.from({ length: n }, () => ({ era: null, league: null }));
+  }
+  const eras = draftRoulette.era ? DRAFT_ROULETTE_ERAS.map(e => e.key) : [null];
+  const leagues = draftRoulette.league ? DRAFT_ROULETTE_LEAGUES.map(l => l.key) : [null];
+  const combos = [];
+  for (const era of eras) {
+    for (const league of leagues) {
+      combos.push({ era, league });
+    }
+  }
+
+  const assignments = [];
+  let bag = [];
+  while (assignments.length < n) {
+    if (bag.length === 0) bag = shuffle(combos);
+    assignments.push(bag.shift());
+  }
+  return assignments;
+}
+
 export function selectGamePlayers(filter = {}) {
   const { eras, leagues, tiers } = filter;
   const pool = PLAYERS.filter(p =>
@@ -267,6 +318,7 @@ export function buildInitialDraft(clubs, options = {}) {
   const playerValues = options.dynamicValues !== false ? randomizePlayerValues(availablePlayerIds) : new Map();
   const playerForm = options.dynamicForm !== false ? generatePlayerForm(availablePlayerIds) : new Map();
   const playerOrder = generatePlayerOrder(availablePlayerIds);
+  const rouletteAssignments = assignDraftRoulette(n, options.draftRoulette);
   return {
     managers: clubs.map((c, i) => ({
       id: i,
@@ -282,7 +334,10 @@ export function buildInitialDraft(clubs, options = {}) {
       carryover: 0,
       tactics: "balanced",
       formation: c.formation || "4-3-3",
+      assignedEra: rouletteAssignments[i].era,
+      assignedLeague: rouletteAssignments[i].league,
     })),
+    draftRoulette: options.draftRoulette || null,
     positionIndex: 0,
     turnIndex: 0,
     round: 0,
@@ -306,7 +361,11 @@ export function buildInitialDraft(clubs, options = {}) {
 }
 
 export function getPlayersFromState(d, posKey) {
-  let players = availablePlayersFor(posKey, d.takenIds);
+  const activeManager = d.managers[d.currentOrder[d.turnIndex]];
+  const rouletteAssignment = activeManager
+    ? { era: activeManager.assignedEra, league: activeManager.assignedLeague }
+    : null;
+  let players = availablePlayersFor(posKey, d.takenIds, rouletteAssignment);
   if (d.availablePlayerIds instanceof Set) {
     players = players.filter(p => d.availablePlayerIds.has(p.id));
   }
@@ -394,10 +453,11 @@ export function buildInitialWarChestDraft(clubs, options = {}) {
     [humans[i], humans[j]] = [humans[j], humans[i]];
   }
   const orderedClubs = [...humans, ...computers];
+  const rouletteAssignments = assignDraftRoulette(orderedClubs.length, options.draftRoulette);
 
   return {
     warChest: true,
-    managers: orderedClubs.map(c => ({
+    managers: orderedClubs.map((c, i) => ({
       name: c.dofName,
       dofName: c.dofName,
       clubName: c.clubName,
@@ -410,7 +470,10 @@ export function buildInitialWarChestDraft(clubs, options = {}) {
       chestBudget: null,
       wcBudgetRemaining: null,
       tactics: "balanced",
+      assignedEra: rouletteAssignments[i].era,
+      assignedLeague: rouletteAssignments[i].league,
     })),
+    draftRoulette: options.draftRoulette || null,
     wcCurrentManagerIdx: 0,
     wcPhase: "selecting",
     takenIds: [],
@@ -427,7 +490,7 @@ export function buildInitialWarChestDraft(clubs, options = {}) {
   };
 }
 
-export function getWarChestPlayersForSlot(slotIdx, takenIds, availablePlayerIds, playerValues, playerForm) {
+export function getWarChestPlayersForSlot(slotIdx, takenIds, availablePlayerIds, playerValues, playerForm, rouletteAssignment) {
   const slotDef = WAR_CHEST_SLOTS[slotIdx];
   if (!slotDef) return [];
   const taken = new Set(takenIds);
@@ -435,7 +498,8 @@ export function getWarChestPlayersForSlot(slotIdx, takenIds, availablePlayerIds,
     .filter(p =>
       slotDef.posFilter.includes(p.pos) &&
       !taken.has(p.id) &&
-      (!availablePlayerIds || availablePlayerIds.has(p.id))
+      (!availablePlayerIds || availablePlayerIds.has(p.id)) &&
+      matchesRoulette(p, rouletteAssignment)
     )
     .map(p => {
       const player = { ...p };
@@ -451,6 +515,10 @@ export function autoBuildWarChestSquad(d, managerIdx) {
   let takenIds = [...d.takenIds];
   let budgetRemaining = budget;
   const squad = Array(16).fill(null);
+  const activeManager = d.managers[managerIdx];
+  const rouletteAssignment = activeManager
+    ? { era: activeManager.assignedEra, league: activeManager.assignedLeague }
+    : null;
 
   // Pick ATT slots first so they get the biggest share of budget.
   // Slot indices: 0=GK, 1=DEF, 2=MID, 3=ATT, 4=ATT
@@ -469,7 +537,8 @@ export function autoBuildWarChestSquad(d, managerIdx) {
         slotDef.posFilter.includes(p.pos) &&
         !takenIds.includes(p.id) &&
         d.availablePlayerIds.has(p.id) &&
-        !(isAttSlot && ATT_EXCLUDE_POS.includes(p.pos))
+        !(isAttSlot && ATT_EXCLUDE_POS.includes(p.pos)) &&
+        matchesRoulette(p, rouletteAssignment)
       )
       .map(p => {
         const value = d.playerValues instanceof Map ? (d.playerValues.get(p.id) ?? p.value) : p.value;

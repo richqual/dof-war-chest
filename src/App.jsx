@@ -5,6 +5,7 @@ import { useMultiplayerDraft } from "./hooks/useMultiplayerDraft";
 import LobbyScreen, { ModeSelectScreen } from "./components/LobbyScreen";
 import ClubCreatorScreen from "./components/ClubCreatorScreen";
 import OrderDrawScreen from "./components/OrderDrawScreen";
+import DraftRouletteScreen from "./components/DraftRouletteScreen";
 import DraftScreen from "./components/DraftScreen";
 import SquadScreen from "./components/SquadScreen";
 import MatchSim from "./components/MatchSim";
@@ -531,6 +532,9 @@ function AppInner({ onMultiplayer }) {
 
   // ── War Chest screens ────────────────────────────────────────────────────
   if (draft?.warChest) {
+    if (screen === "draft-roulette") {
+      return <>{globalMenu}<DraftRouletteScreen draft={draft} onStart={() => setScreen("war-chest-select")} /></>;
+    }
     if (screen === "war-chest-select") {
       return (
         <>
@@ -602,6 +606,10 @@ function AppInner({ onMultiplayer }) {
         </>
       );
     }
+  }
+
+  if (screen === "draft-roulette" && draft) {
+    return <>{globalMenu}<DraftRouletteScreen draft={draft} onStart={() => setScreen("order-draw")} /></>;
   }
 
   if (screen === "order-draw" && draft) {
@@ -727,7 +735,7 @@ function AppInner({ onMultiplayer }) {
   return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
 }
 
-const APP_VERSION = "2.7.2";
+const APP_VERSION = "2.9.0";
 
 function AppFooter() {
   return (

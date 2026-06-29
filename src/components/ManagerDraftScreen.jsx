@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { MANAGERS, TIER_LABELS, TIER_COLORS, TIER_BG } from "../data/managers";
 import { ERA_LABELS, ERA_COLORS, ERA_BG } from "../data/players";
+import { DRAFT_ROULETTE_ERAS, DRAFT_ROULETTE_LEAGUES } from "../hooks/draftUtils";
+
+const DRAFT_ROULETTE_ERA_LABELS = Object.fromEntries(DRAFT_ROULETTE_ERAS.map(e => [e.key, e.label]));
+const DRAFT_ROULETTE_LEAGUE_LABELS = Object.fromEntries(DRAFT_ROULETTE_LEAGUES.map(l => [l.key, l.label]));
 
 const LEAGUE_CONFIG = [
   { label: "Premier League", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", key: "premier_league" },
@@ -24,6 +28,19 @@ function getManagerLeague(m) {
 function getFilteredPool(leagues, tiers) {
   return MANAGERS.filter(m =>
     leagues.includes(getManagerLeague(m)) && tiers.includes(m.tier)
+  );
+}
+
+// Mirrors matchesRoulette() in draftUtils.js for players — same hard-restriction rule,
+// applied to whichever subset of `pool` is being offered to the active manager.
+function filterByRoulette(pool, manager) {
+  const era = manager?.assignedEra;
+  const league = manager?.assignedLeague;
+  if (!era && !league) return pool;
+  return pool.filter(m =>
+    getManagerLeague(m) !== "legends" &&
+    (!era || m.era === era) &&
+    (!league || getManagerLeague(m) === league)
   );
 }
 
@@ -218,10 +235,11 @@ export default function ManagerDraftScreen({
   onSetManagerDraftConfig = null,
 }) {
   const isMultiplayer = !!onManagerPick;
+  const draftRouletteActive = !!draft.draftRoulette?.enabled;
 
-  const [phase, setPhase] = useState("league-select");
+  const [phase, setPhase] = useState(draftRouletteActive ? "playing" : "league-select");
   const [pickOrder] = useState(() => shuffle(draft.managers.map((_, i) => i)));
-  const [pool, setPool] = useState([]);
+  const [pool, setPool] = useState(() => draftRouletteActive ? shuffle([...MANAGERS]) : []);
   const [turnIdx, setTurnIdx] = useState(0);
   const [offered, setOffered] = useState(null);
   const [revealed, setRevealed] = useState(0);
@@ -281,7 +299,7 @@ export default function ManagerDraftScreen({
     setRevealed(0);
     setOffered(null);
 
-    pendingOffer.current = dedupByName(shuffle([...pool])).slice(0, 3);
+    pendingOffer.current = dedupByName(shuffle(filterByRoulette(pool, currentManager))).slice(0, 3);
 
     const t0 = setTimeout(() => {
       setSpinning(false);
@@ -296,7 +314,7 @@ export default function ManagerDraftScreen({
 
   function skipReveal() {
     clearTimers();
-    setOffered(pendingOffer.current || dedupByName(shuffle([...pool])).slice(0, 3));
+    setOffered(pendingOffer.current || dedupByName(shuffle(filterByRoulette(pool, currentManager))).slice(0, 3));
     setSpinning(false);
     setRevealed(3);
   }
@@ -397,7 +415,8 @@ export default function ManagerDraftScreen({
     for (let i = turnIdx; i < pickOrder.length; i++) {
       const mgr = draft.managers[pickOrder[i]];
       if (mgr.isComputer) {
-        const sorted = [...remaining].sort((a, b) => {
+        const cpuPool = filterByRoulette(remaining, mgr);
+        const sorted = cpuPool.sort((a, b) => {
           const order = { elite: 0, established: 1, journeyman: 2 };
           return order[a.tier] - order[b.tier];
         });
@@ -462,6 +481,11 @@ export default function ManagerDraftScreen({
       <div className="mgr-draft-header">
         <div className="mgr-draft-title">THE MERRY-GO-ROUND</div>
         <div className="mgr-draft-sub">Manager Draft — Pick {turnIdx + 1} of {pickOrder.length}</div>
+        {draftRouletteActive && currentManager && (
+          <div className="mgr-roulette-pool-badge">
+            🎰 {[currentManager.assignedEra && DRAFT_ROULETTE_ERA_LABELS[currentManager.assignedEra], currentManager.assignedLeague && DRAFT_ROULETTE_LEAGUE_LABELS[currentManager.assignedLeague]].filter(Boolean).join(" · ")}
+          </div>
+        )}
       </div>
 
       <div className="mgr-turn-banner">

@@ -3328,6 +3328,484 @@ input, select { font-family: var(--font); }
   100% { transform: scale(1.18); opacity: 1; }
 }
 
+/* Draft Roulette toggle sub-section */
+.draft-roulette-axes {
+  padding: 0.4rem 0 0.4rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border-left: 2px solid var(--amber);
+  margin-top: 0.25rem;
+}
+
+/* Per-manager pool badge on Merry-Go-Round header */
+.mgr-roulette-pool-badge {
+  margin-top: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--amber);
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+/* ── Draft Roulette slot-machine chassis + reels ───────────────────────── */
+
+/* Outer cabinet — dark metal casing that contains all drums */
+/* ═══════════════════════════════════════════════════════
+   SLOT MACHINE CABINET
+   ═══════════════════════════════════════════════════════ */
+
+.slot-machine {
+  position: relative;
+  width: 100%;
+  margin: 0.5rem 0 0.75rem;
+  /* right padding makes room for the lever */
+  padding-right: 44px;
+}
+
+/* Light bulb on top of machine */
+.slot-machine-bulb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #555, #222);
+  border: 2px solid #444;
+  margin: 0 auto -9px;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 0 4px rgba(0,0,0,0.6);
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.slot-machine-bulb-on {
+  background: radial-gradient(circle at 40% 35%, #fff9c0, #f0c020);
+  border-color: #c8a000;
+  box-shadow: 0 0 14px 4px rgba(255,220,50,0.7), 0 0 4px rgba(0,0,0,0.4);
+}
+
+/* Marquee header bar */
+.slot-machine-marquee {
+  background: linear-gradient(to bottom, #b88c10 0%, #8a6400 50%, #c8a020 100%);
+  border: 2px solid #f0c830;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  padding: 6px 12px 5px;
+  text-align: center;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,200,0.25),
+    0 -2px 6px rgba(0,0,0,0.4);
+}
+.slot-machine-marquee-text {
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  color: #fff8d0;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.7), 0 0 8px rgba(255,220,50,0.4);
+  font-family: inherit;
+}
+
+/* Cabinet body row: side panels + reel window */
+.slot-machine-body {
+  display: flex;
+  align-items: stretch;
+  background: linear-gradient(to bottom, #1c1408, #120e06);
+  border-left: 3px solid #f0c830;
+  border-right: 3px solid #f0c830;
+}
+
+.slot-machine-side-panel {
+  width: 14px;
+  flex-shrink: 0;
+  background: linear-gradient(to right, #2a1e08, #1a1206);
+  border-right: 1px solid #3a2a0a;
+}
+.slot-machine-side-panel-right {
+  background: linear-gradient(to left, #2a1e08, #1a1206);
+  border-right: none;
+  border-left: 1px solid #3a2a0a;
+}
+
+/* The windowed area that holds the drums */
+.slot-machine-window {
+  flex: 1;
+  padding: 10px 8px;
+  background: #0a0804;
+}
+.slot-machine-window-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  /* gold inset frame */
+  border: 2px solid #6b4c00;
+  border-radius: 4px;
+  box-shadow:
+    inset 0 0 0 1px #1a1206,
+    0 0 0 1px #c8a020,
+    inset 0 2px 8px rgba(0,0,0,0.8);
+  background: #080604;
+  padding: 8px;
+}
+
+/* Divider between two reels */
+.slot-machine-window-divider {
+  width: 2px;
+  background: linear-gradient(to bottom, transparent, #6b4c00, transparent);
+  margin: 0 8px;
+  align-self: stretch;
+}
+
+/* Bottom base panel */
+.slot-machine-base {
+  background: linear-gradient(to bottom, #1a1408, #0e0c06);
+  border: 2px solid #f0c830;
+  border-top: 2px solid #8a6400;
+  border-radius: 0 0 8px 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+}
+.slot-machine-dots {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.slot-machine-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #2a2008;
+  border: 1px solid #4a3810;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.slot-machine-dot-on {
+  background: #c8a020;
+  border-color: #f0c830;
+  box-shadow: 0 0 6px rgba(200,160,32,0.8);
+}
+.slot-machine-coin-slot {
+  width: 40px;
+  height: 6px;
+  background: #060402;
+  border: 1px solid #3a2a0a;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.9);
+}
+
+/* ── LEVER ───────────────────────────────────────────── */
+.slot-machine-lever-wrap {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-30%);
+  /* whole lever rotates around the pivot at the bottom */
+  transform-origin: center bottom;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  width: 36px;
+  transition: transform 0.2s cubic-bezier(0.34, 1.3, 0.64, 1);
+  user-select: none;
+}
+.slot-machine-lever-wrap:not(.slot-machine-lever-hidden):hover {
+  filter: brightness(1.15);
+}
+.slot-machine-lever-pulled {
+  transform: translateY(-30%) rotate(55deg) !important;
+  transition: transform 0.15s ease-in !important;
+}
+.slot-machine-lever-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.slot-machine-lever-ball {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff7070, #aa0000);
+  box-shadow:
+    0 3px 8px rgba(0,0,0,0.7),
+    inset 0 2px 4px rgba(255,180,180,0.4),
+    inset 0 -2px 4px rgba(0,0,0,0.4);
+  flex-shrink: 0;
+}
+.slot-machine-lever-arm {
+  width: 10px;
+  height: 64px;
+  background: linear-gradient(to right, #444, #ccc 35%, #aaa 65%, #555);
+  border-radius: 5px;
+  flex-shrink: 0;
+  margin-top: -2px;
+  box-shadow: 2px 0 4px rgba(0,0,0,0.4);
+}
+.slot-machine-lever-pivot {
+  width: 24px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #888, #333);
+  border: 2px solid #555;
+  box-shadow:
+    0 2px 6px rgba(0,0,0,0.6),
+    inset 0 1px 2px rgba(255,255,255,0.1);
+  flex-shrink: 0;
+  margin-top: -2px;
+}
+
+/* Column: reel drum + label underneath */
+.roulette-reel-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+}
+.roulette-reel-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  color: #6b5020;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* Outer chrome frame */
+.roulette-machine-reel {
+  position: relative;
+  width: 100%;
+  min-width: 130px;
+  max-width: 200px;
+  height: 52px;          /* shows exactly one item */
+  overflow: hidden;
+  border-radius: 8px;
+  /* Layered border: inner dark ring + amber glow ring + outer dark ring */
+  box-shadow:
+    0 0 0 1px #111,
+    0 0 0 3px #6b4c00,
+    0 0 0 4px #222,
+    0 0 18px 4px rgba(255,200,50,0.08);
+  background: #0a0804;
+  cursor: default;
+}
+
+/* Landed state — amber glow intensifies */
+.roulette-machine-reel-landed {
+  box-shadow:
+    0 0 0 1px #111,
+    0 0 0 3px var(--amber),
+    0 0 0 4px #222,
+    0 0 28px 10px rgba(255,200,50,0.5);
+  animation: reel-land-pop 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+}
+@keyframes reel-land-pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}
+
+/* Top & bottom gradient fades — simulate depth/glass */
+.roulette-reel-fade {
+  position: absolute;
+  left: 0; right: 0;
+  height: 40%;
+  z-index: 3;
+  pointer-events: none;
+}
+.roulette-reel-fade-top {
+  top: 0;
+  background: linear-gradient(to bottom, rgba(10,8,4,0.85) 0%, transparent 100%);
+}
+.roulette-reel-fade-bottom {
+  bottom: 0;
+  background: linear-gradient(to top, rgba(10,8,4,0.85) 0%, transparent 100%);
+}
+
+/* Centre win-line — the lit bar where the result sits */
+.roulette-win-line {
+  position: absolute;
+  top: 50%;
+  left: 4px; right: 4px;
+  height: 52px;
+  transform: translateY(-50%);
+  z-index: 2;
+  border-top: 1px solid rgba(255,200,50,0.25);
+  border-bottom: 1px solid rgba(255,200,50,0.25);
+  background: rgba(255,200,50,0.04);
+  pointer-events: none;
+}
+
+/* Scrolling drum — translateY controlled by JS */
+.roulette-reel-track {
+  position: absolute;
+  left: 0; right: 0;
+  top: 0;
+  will-change: transform;
+  z-index: 1;
+}
+
+/* Fast continuous spin animation */
+.roulette-reel-track-spin {
+  animation: reel-fast-scroll 0.12s linear infinite;
+}
+@keyframes reel-fast-scroll {
+  0%   { transform: translateY(0); }
+  100% { transform: translateY(-52px); }
+}
+
+/* Individual item on the drum */
+.roulette-reel-item {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #c89040;
+  text-transform: uppercase;
+  padding: 0 0.5rem;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* The winning item — bright gold */
+.roulette-reel-item-winner {
+  color: #ffe566;
+  text-shadow: 0 0 10px rgba(255,220,80,0.8), 0 0 2px rgba(255,220,80,0.5);
+}
+
+/* ── DRAFT ROULETTE DRUM ────────────────────────────────── */
+.dr-displays {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  width: 100%;
+}
+
+.dr-display-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+.dr-display-label {
+  font-size: 0.55rem;
+  letter-spacing: 0.15em;
+  color: var(--text3);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+/* Clipping window — shows 3 items (3 × 68px = 204px) */
+.dr-drum-window {
+  position: relative;
+  width: 100%;
+  height: 204px;
+  overflow: hidden;
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  background: #060504;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.dr-drum-window-landed {
+  border-color: var(--amber);
+  box-shadow:
+    inset 0 0 20px rgba(0,0,0,0.6),
+    0 0 20px 4px rgba(200,160,32,0.35);
+  animation: dr-land-pop 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) forwards;
+}
+@keyframes dr-land-pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+/* Top & bottom fades — deep shadow so only center is clear */
+.dr-drum-fade {
+  position: absolute;
+  left: 0; right: 0;
+  height: 38%;
+  z-index: 3;
+  pointer-events: none;
+}
+.dr-drum-fade-top {
+  top: 0;
+  background: linear-gradient(to bottom, rgba(6,5,4,0.92) 0%, transparent 100%);
+}
+.dr-drum-fade-bottom {
+  bottom: 0;
+  background: linear-gradient(to top, rgba(6,5,4,0.92) 0%, transparent 100%);
+}
+
+/* Win-line — highlights the center slot */
+.dr-drum-winline {
+  position: absolute;
+  top: 50%;
+  left: 0; right: 0;
+  height: 68px;
+  transform: translateY(-50%);
+  z-index: 2;
+  border-top: 1px solid rgba(200,160,32,0.3);
+  border-bottom: 1px solid rgba(200,160,32,0.3);
+  background: rgba(200,160,32,0.04);
+  pointer-events: none;
+}
+
+/* Scrolling track */
+.dr-drum-track {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  will-change: transform;
+  z-index: 1;
+}
+
+/* Fast CSS spin animation — one item per step */
+.dr-drum-spinning {
+  animation: dr-fast-scroll 0.09s linear infinite;
+}
+@keyframes dr-fast-scroll {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-68px); }
+}
+
+/* Each item on the track */
+.dr-drum-item {
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.88rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: rgba(200,160,32,0.55);
+  text-transform: uppercase;
+  text-align: center;
+  padding: 0 8px;
+  line-height: 1.2;
+}
+
+/* The landing winner — bright gold */
+.dr-drum-item-winner {
+  color: #ffe566;
+  text-shadow: 0 0 14px rgba(255,220,80,0.7), 0 0 4px rgba(255,220,80,0.4);
+  font-size: 1rem;
+}
+
+.roulette-summary-row {
+  justify-content: space-between;
+}
+.roulette-summary-pool {
+  margin-left: auto;
+  font-size: 0.7rem;
+  color: var(--amber);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 /* Results so far */
 .draw-results {
   width: 100%;

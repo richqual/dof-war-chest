@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DraftRouletteToggle from "./DraftRouletteToggle";
 
 const DIFFICULTY_INFO = [
   { key: "easy",   label: "GENEROUS", hint: "War chest — big budgets, one zero on the wheel (avg £109m)" },
@@ -73,6 +74,7 @@ export default function LobbyScreen({ onContinue, onBack }) {
   const [dynamicValues, setDynamicValues] = useState(true);
   const [dynamicForm, setDynamicForm] = useState(true);
   const [managerTiming, setManagerTiming] = useState("before");
+  const [draftRoulette, setDraftRoulette] = useState({ enabled: false, era: false, league: true });
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showRules, setShowRules] = useState(false);
 
@@ -96,6 +98,7 @@ export default function LobbyScreen({ onContinue, onBack }) {
       dynamicValues,
       dynamicForm,
       managerTiming,
+      draftRoulette,
     });
   }
 
@@ -182,6 +185,8 @@ export default function LobbyScreen({ onContinue, onBack }) {
               ? "Classic order — GK first, subs last. Predictable and competitive"
               : "Spin to reveal your position each round — chaos, carnage, and competition"}
           </div>
+
+          <DraftRouletteToggle value={draftRoulette} onChange={setDraftRoulette} />
 
           {numClubs === 2 && (
             <>
