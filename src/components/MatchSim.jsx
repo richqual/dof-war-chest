@@ -121,11 +121,24 @@ function teamAttStrength(squad) {
   return outfield.reduce((s, p) => s + deriveAttributes(p).att, 0) / outfield.length;
 }
 
-// Average defensive attribute of all starters (used for goal chance against).
+// Defensive responsibility isn't spread evenly — a weak keeper or centre-back
+// should hurt a team's defensive strength far more than a weak winger. Weighted
+// average so goals conceded actually tracks the quality of the players whose
+// job it is to stop them.
+const DEF_STR_WEIGHT = {
+  GK: 1.8, CB: 1.5, LB: 1.2, RB: 1.2, DM: 1.2,
+  CM: 1.0, CAM: 0.8, LM: 0.8, RM: 0.8, LW: 0.7, RW: 0.7, ST: 0.6,
+};
 function teamDefStrength(squad) {
   const starters = squad.slice(0, 11).filter(Boolean);
   if (!starters.length) return 50;
-  return starters.reduce((s, p) => s + deriveAttributes(p).def, 0) / starters.length;
+  let weighted = 0, weightTotal = 0;
+  for (const p of starters) {
+    const w = DEF_STR_WEIGHT[p.pos] ?? 1.0;
+    weighted += deriveAttributes(p).def * w;
+    weightTotal += w;
+  }
+  return weighted / weightTotal;
 }
 
 // Goal commentary keyed by match situation, so an equaliser never
@@ -944,7 +957,10 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       const menDown = (isHome ? hSentOff.size : aSentOff.size) - (isHome ? aSentOff.size : hSentOff.size);
       // Goal chance: tactics-adjusted att vs def — attacking opens up play, defensive tightens it
       const attVsDef = isHome ? (hEffAttStr - aEffDefStr) : (aEffAttStr - hEffDefStr);
-      const goalChance = (is5aside ? 0.45 : 0.38) + attVsDef * 0.004 - menDown * 0.08
+      // 5-a-side gets far more shot attempts than classic (denser event pacing),
+      // so its per-shot conversion is dialled back below classic's rather than
+      // above it — the extra goals should come from shot volume, not finishing.
+      const goalChance = (is5aside ? 0.37 : 0.38) + attVsDef * 0.003 - menDown * 0.08
         + goalChanceBonus(isHome) - opponentShotPenalty(isHome) + (isHome ? hTierMod : aTierMod);
       if (isHome) possH = Math.min(0.82, possH + 0.025); else possH = Math.max(0.18, possH - 0.025);
       if (Math.random() < goalChance) {
