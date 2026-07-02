@@ -838,7 +838,7 @@ function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone }) {
   );
 }
 
-export default function SeriesScreen({ draft, setScreen, recordMatchResult, restartGame, onSaveSquad, saveState }) {
+export default function SeriesScreen({ draft, setScreen, recordMatchResult, restartGame, onSaveSquad, saveState, isHost = true }) {
   const { managers, series } = draft;
   const [cpuSimActive, setCpuSimActive] = useState(false);
 
@@ -915,10 +915,17 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
             <TournamentResults tournamentStats={draft.tournamentStats} managers={managers} />
 
             {/* Actions */}
-            <div className="champion-actions">
-              <button className="sim-btn secondary" onClick={() => setScreen("squads")}>VIEW ALL SQUADS</button>
-              <button className="sim-btn secondary" onClick={restartGame}>NEW GAME</button>
-            </div>
+            {isHost ? (
+              <div className="champion-actions">
+                <button className="sim-btn secondary" onClick={() => setScreen("squads")}>VIEW ALL SQUADS</button>
+                <button className="sim-btn secondary" onClick={restartGame}>NEW GAME</button>
+              </div>
+            ) : (
+              <div className="mp-waiting-screen">
+                <div className="mp-waiting-spinner" />
+                <p className="mp-waiting-text">Waiting for the host…</p>
+              </div>
+            )}
 
           </div>
         </div>
@@ -945,17 +952,24 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
           <TournamentStats tournamentStats={draft.tournamentStats} managers={managers} />
 
           {nextMatchup && (
-            <div className="series-actions">
-              <button className="sim-btn" onClick={playNextMatch}>
-                ▶ {nextMatchup.label === "GRAND FINAL" ? "PLAY GRAND FINAL" : nextMatchup.matchNum > 1 ? `PLAY MATCH ${nextMatchup.matchNum} — ${nextMatchup.label}` : `PLAY MATCH 1 — ${nextMatchup.label}`}
-              </button>
-              {isCpuVsCpu && (
-                <button className="sim-btn cpu-auto-btn" onClick={() => setCpuSimActive(true)}>
-                  ⚡ AUTO-SIMULATE
+            isHost ? (
+              <div className="series-actions">
+                <button className="sim-btn" onClick={playNextMatch}>
+                  ▶ {nextMatchup.label === "GRAND FINAL" ? "PLAY GRAND FINAL" : nextMatchup.matchNum > 1 ? `PLAY MATCH ${nextMatchup.matchNum} — ${nextMatchup.label}` : `PLAY MATCH 1 — ${nextMatchup.label}`}
                 </button>
-              )}
-              <button className="sim-btn secondary" onClick={() => setScreen("squads")}>TEAM MANAGEMENT</button>
-            </div>
+                {isCpuVsCpu && (
+                  <button className="sim-btn cpu-auto-btn" onClick={() => setCpuSimActive(true)}>
+                    ⚡ AUTO-SIMULATE
+                  </button>
+                )}
+                <button className="sim-btn secondary" onClick={() => setScreen("squads")}>TEAM MANAGEMENT</button>
+              </div>
+            ) : (
+              <div className="mp-waiting-screen">
+                <div className="mp-waiting-spinner" />
+                <p className="mp-waiting-text">Waiting for the host to play the next match…</p>
+              </div>
+            )
           )}
 
           {cpuSimActive && nextMatchup && (

@@ -68,7 +68,7 @@ function SquadCard({ manager, isMe, onMatchClick, matchTarget, allReady }) {
   );
 }
 
-export default function WarChestSquadScreen({ draft, setScreen }) {
+export default function WarChestSquadScreen({ draft, setScreen, isHost = true }) {
   const managers = draft.managers;
   const n = managers.length;
   const series = draft.series;
@@ -88,25 +88,34 @@ export default function WarChestSquadScreen({ draft, setScreen }) {
         </div>
 
         <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
-          {n === 2 && (
-            <button className="start-btn active" onClick={() => setScreen("match", { homeIdx: 0, awayIdx: 1 })}>
-              PLAY 60-MIN MATCH →
-            </button>
-          )}
-          {n > 2 && series?.stage === "draw" && (
-            <button className="start-btn active" onClick={() => setScreen("draw")}>
-              DRAW THE TOURNAMENT →
-            </button>
-          )}
-          {n > 2 && series && series.stage !== "draw" && series.stage !== "champion" && (
-            <button className="start-btn active" onClick={() => setScreen("series")}>
-              CONTINUE TOURNAMENT →
-            </button>
-          )}
-          {n > 2 && series?.stage === "champion" && (
-            <button className="start-btn active" onClick={() => setScreen("series")}>
-              SEE THE RESULTS →
-            </button>
+          {!isHost ? (
+            <div className="mp-waiting-screen">
+              <div className="mp-waiting-spinner" />
+              <p className="mp-waiting-text">Waiting for the host to start the match…</p>
+            </div>
+          ) : (
+            <>
+              {n === 2 && (
+                <button className="start-btn active" onClick={() => setScreen("match", { homeIdx: 0, awayIdx: 1 })}>
+                  PLAY 60-MIN MATCH →
+                </button>
+              )}
+              {n > 2 && series?.stage === "draw" && (
+                <button className="start-btn active" onClick={() => setScreen("draw")}>
+                  DRAW THE TOURNAMENT →
+                </button>
+              )}
+              {n > 2 && series && series.stage !== "draw" && series.stage !== "champion" && (
+                <button className="start-btn active" onClick={() => setScreen("series")}>
+                  CONTINUE TOURNAMENT →
+                </button>
+              )}
+              {n > 2 && series?.stage === "champion" && (
+                <button className="start-btn active" onClick={() => setScreen("series")}>
+                  SEE THE RESULTS →
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>

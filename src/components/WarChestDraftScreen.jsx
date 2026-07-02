@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { WAR_CHEST_SLOTS } from "../hooks/draftUtils";
 import { formatValue, getRatingBg, getRatingColor, normalizeSearch } from "../data/players";
 import KitSwatch from "./KitSwatch";
+import SquadTimer from "./SquadTimer";
 
 function formatChest(v) {
   if (v === 0) return "FREE";
@@ -18,7 +19,7 @@ function posGroupColor(pos) {
 
 const SLOT_COLORS = ["#f97316", "#3b82f6", "#16a34a", "#a855f7", "#ec4899"];
 
-export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlayers }) {
+export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlayers, deadline }) {
   useEffect(() => { window.scrollTo(0, 0); }, []);
   const managerIdx = draft.wcCurrentManagerIdx;
   const manager = draft.managers[managerIdx];
@@ -74,6 +75,11 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
   return (
     <div className="draft-screen">
       <div className="draft-header">
+        {deadline && (
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "6px" }}>
+            <SquadTimer deadline={deadline} />
+          </div>
+        )}
         <div className="wc-draft-header-inner">
           <div className="wc-draft-kit-row">
             <KitSwatch primary={manager.primaryColor} secondary={manager.secondaryColor} pattern={manager.pattern} size={32} />

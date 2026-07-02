@@ -514,6 +514,14 @@ export function getWarChestPlayersForSlot(slotIdx, takenIds, availablePlayerIds,
     });
 }
 
+// Pick ATT slots first so they get the biggest share of budget.
+// Slot indices: 0=GK, 1=DEF, 2=MID, 3=ATT, 4=ATT
+const WC_PICK_ORDER = [3, 4, 0, 2, 1];
+// Budget fraction ceiling per slot (sums to 1.0)
+const WC_MAX_FRACTION = { 3: 0.30, 4: 0.26, 0: 0.22, 2: 0.14, 1: 0.08 };
+// ATT slots: exclude purely defensive positions even if posFilter allows them
+const WC_ATT_EXCLUDE_POS = ["CB", "LB", "RB", "DM"];
+
 export function autoBuildWarChestSquad(d, managerIdx) {
   const values = WAR_CHEST_VALUES[d.difficulty] || WAR_CHEST_VALUES.hard;
   const budget = values[Math.floor(Math.random() * values.length)];
@@ -525,24 +533,16 @@ export function autoBuildWarChestSquad(d, managerIdx) {
     ? { era: activeManager.assignedEra, league: activeManager.assignedLeague }
     : null;
 
-  // Pick ATT slots first so they get the biggest share of budget.
-  // Slot indices: 0=GK, 1=DEF, 2=MID, 3=ATT, 4=ATT
-  const PICK_ORDER = [3, 4, 0, 2, 1];
-  // Budget fraction ceiling per slot (sums to 1.0)
-  const MAX_FRACTION = { 3: 0.30, 4: 0.26, 0: 0.22, 2: 0.14, 1: 0.08 };
-  // ATT slots: exclude purely defensive positions even if posFilter allows them
-  const ATT_EXCLUDE_POS = ["CB", "LB", "RB", "DM"];
-
-  for (const slot of PICK_ORDER) {
+  for (const slot of WC_PICK_ORDER) {
     const slotDef = WAR_CHEST_SLOTS[slot];
-    const maxForSlot = Math.floor(budget * MAX_FRACTION[slot]);
+    const maxForSlot = Math.floor(budget * WC_MAX_FRACTION[slot]);
     const isAttSlot = slot === 3 || slot === 4;
     const affordable = PLAYERS
       .filter(p =>
         slotDef.posFilter.includes(p.pos) &&
         !takenIds.includes(p.id) &&
         d.availablePlayerIds.has(p.id) &&
-        !(isAttSlot && ATT_EXCLUDE_POS.includes(p.pos)) &&
+        !(isAttSlot && WC_ATT_EXCLUDE_POS.includes(p.pos)) &&
         matchesRoulette(p, rouletteAssignment)
       )
       .map(p => {
@@ -567,4 +567,48 @@ export function autoBuildWarChestSquad(d, managerIdx) {
       : m
   );
   return { ...d, managers, takenIds };
+}
+
+// Multiplayer War Chest has no shared taken-players pool (duplicates across managers are
+// allowed, since squads build simultaneously) — so unlike autoBuildWarChestSquad above,
+// this only avoids repicking a player already sitting in this manager's own squad.
+// Used both to fill an entire squad from scratch (CPU slots, no-show players) and to
+// top up whatever slots a player didn't finish before their timer ran out.
+export function autoFillWarChestSlot({ chestBudget, wcBudgetRemaining, squad, availablePlayerIds, playerValues, difficulty, rouletteAssignment }) {
+  const values = WAR_CHEST_VALUES[difficulty] || WAR_CHEST_VALUES.hard;
+  const budget = chestBudget ?? values[Math.floor(Math.random() * values.length)];
+  let budgetRemaining = chestBudget == null ? budget : (wcBudgetRemaining ?? budget);
+  const filledSquad = squad ? [...squad] : Array(16).fill(null);
+  const takenIds = filledSquad.filter(Boolean).map(p => p.id);
+
+  for (const slot of WC_PICK_ORDER) {
+    if (filledSquad[slot]) continue;
+    const slotDef = WAR_CHEST_SLOTS[slot];
+    const maxForSlot = Math.floor(budget * WC_MAX_FRACTION[slot]);
+    const isAttSlot = slot === 3 || slot === 4;
+    const affordable = PLAYERS
+      .filter(p =>
+        slotDef.posFilter.includes(p.pos) &&
+        !takenIds.includes(p.id) &&
+        (!availablePlayerIds || availablePlayerIds.has(p.id)) &&
+        !(isAttSlot && WC_ATT_EXCLUDE_POS.includes(p.pos)) &&
+        matchesRoulette(p, rouletteAssignment)
+      )
+      .map(p => {
+        const value = playerValues instanceof Map ? (playerValues.get(p.id) ?? p.value) : p.value;
+        return { ...p, value };
+      })
+      .filter(p => p.value <= Math.min(budgetRemaining, maxForSlot))
+      .sort((a, b) => b.rating - a.rating);
+
+    if (affordable.length > 0) {
+      const topN = affordable.slice(0, Math.min(3, affordable.length));
+      const pick = topN[Math.floor(Math.random() * topN.length)];
+      filledSquad[slot] = pick;
+      takenIds.push(pick.id);
+      budgetRemaining -= pick.value;
+    }
+  }
+
+  return { chestBudget: budget, wcBudgetRemaining: budgetRemaining, squad: filledSquad };
 }

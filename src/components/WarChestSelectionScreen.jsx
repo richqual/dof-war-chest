@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { WAR_CHEST_VALUES } from "../hooks/draftUtils";
 import KitSwatch from "./KitSwatch";
+import SquadTimer from "./SquadTimer";
 
 function formatChest(v) {
   if (v === 0) return "ZERO";
@@ -85,7 +86,7 @@ function AnimatedChest({ phase, value }) {
   );
 }
 
-export default function WarChestSelectionScreen({ draft, onSelect }) {
+export default function WarChestSelectionScreen({ draft, onSelect, deadline }) {
   const managerIdx = draft.wcCurrentManagerIdx;
   const manager = draft.managers[managerIdx];
   if (!manager) return null;
@@ -149,6 +150,7 @@ export default function WarChestSelectionScreen({ draft, onSelect }) {
       <div className="setup-card">
         <div className="wc-selection-header">
           <div className="wc-mode-badge">WAR CHEST</div>
+          {deadline && <SquadTimer deadline={deadline} />}
           <div className="wc-kit-row">
             <KitSwatch
               primary={manager.primaryColor}

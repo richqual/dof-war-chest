@@ -17,6 +17,14 @@ const WC_DIFFICULTY_INFO = [
   { key: "brutal",   label: "BRUTAL",   hint: "Best chest £55m — zero possible" },
 ];
 
+const WC_TIMER_OPTIONS = [
+  { key: 0,   label: "OFF" },
+  { key: 60,  label: "60s" },
+  { key: 90,  label: "90s" },
+  { key: 120, label: "2 MIN" },
+  { key: 180, label: "3 MIN" },
+];
+
 function HostGameConfig({ onStart, slots, initialGameMode = "classic" }) {
   const numClubs = slots.length;
   const [gameMode, setGameMode] = useState(initialGameMode === "warchest" ? "warchest" : "classic");
@@ -33,6 +41,7 @@ function HostGameConfig({ onStart, slots, initialGameMode = "classic" }) {
   // War Chest settings
   const [wcDifficulty, setWcDifficulty] = useState("normal");
   const [wcHideRatings, setWcHideRatings] = useState(false);
+  const [wcTimerSeconds, setWcTimerSeconds] = useState(0);
 
   // Determine valid format options based on club count
   let formatOptions = [];
@@ -68,6 +77,7 @@ function HostGameConfig({ onStart, slots, initialGameMode = "classic" }) {
         hideRatings: wcHideRatings,
         dynamicValues: true,
         dynamicForm: true,
+        squadTimerSeconds: wcTimerSeconds || null,
       });
     } else {
       onStart(clubs, {
@@ -170,6 +180,22 @@ function HostGameConfig({ onStart, slots, initialGameMode = "classic" }) {
               </div>
             </div>
           )}
+
+          <div className="setup-row">
+            <span className="setup-row-label">SQUAD TIMER</span>
+            <div className="setup-row-btns">
+              {WC_TIMER_OPTIONS.map(t => (
+                <button key={t.key} className={`setup-row-btn ${wcTimerSeconds === t.key ? "active" : ""}`} onClick={() => setWcTimerSeconds(t.key)}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <p className="difficulty-hint setup-row-hint">
+            {wcTimerSeconds > 0
+              ? `Anyone not finished within ${wcTimerSeconds}s gets auto-filled — same logic as a CPU squad.`
+              : "No time limit — everyone builds at their own pace."}
+          </p>
 
           <label className="option-row" style={{ marginTop: "0.75rem" }}>
             <input type="checkbox" className="option-checkbox" checked={wcHideRatings} onChange={e => setWcHideRatings(e.target.checked)} />

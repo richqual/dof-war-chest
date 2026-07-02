@@ -19,7 +19,7 @@ function DrawSlot({ mgr, uid, revealed }) {
   );
 }
 
-export default function DrawScreen({ draft, onComplete }) {
+export default function DrawScreen({ draft, onComplete, isHost = true }) {
   useEffect(() => { window.scrollTo(0, 0); }, []);
   const { managers } = draft;
   const n = managers.length; // 4 or 8
@@ -59,6 +59,36 @@ export default function DrawScreen({ draft, onComplete }) {
     : draft.warChest
       ? "Semi-finals: 1 leg · Grand Final: 1 leg"
       : "Semi-finals: 2 legs (aggregate) · Grand Final: 1 leg";
+
+  // Non-host devices don't run the draw themselves — the drawOrder above is generated
+  // locally and would show a different (fake) bracket than whatever the host actually draws.
+  if (!isHost) {
+    return (
+      <div className="draw-screen">
+        <div className="draw-header">
+          <div className="setup-badge">🎩 THE DRAW</div>
+          <h2 className="draw-title">TOURNAMENT DRAW</h2>
+          <p className="draw-sub">{subText}</p>
+        </div>
+
+        <div className={`draw-bracket ${is8 ? "draw-bracket-8" : ""}`}>
+          {Array.from({ length: numPairings }, (_, pi) => (
+            <div key={pi} className="draw-semi">
+              <div className="draw-semi-label">{roundLabel} {pi + 1}</div>
+              <DrawSlot revealed={false} />
+              <div className="draw-vs">VS</div>
+              <DrawSlot revealed={false} />
+            </div>
+          ))}
+        </div>
+
+        <div className="draw-action mp-waiting-screen">
+          <div className="mp-waiting-spinner" />
+          <p className="mp-waiting-text">Waiting for the host to make the draw…</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="draw-screen">

@@ -6066,6 +6066,29 @@ html.large-text .match-report-title  { font-size: 14px; }
   margin-bottom: 10px;
 }
 
+.wc-timer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg2);
+  border: 2px solid var(--border2);
+  color: var(--text2);
+  font-family: var(--font-head);
+  font-size: 12px;
+  letter-spacing: 1px;
+  padding: 4px 10px;
+  margin-bottom: 6px;
+}
+.wc-timer-urgent {
+  color: var(--red);
+  border-color: var(--red);
+  animation: wc-timer-pulse 1s infinite;
+}
+@keyframes wc-timer-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
 /* Selection screen */
 .wc-selection-header { text-align: center; margin-bottom: 1.5rem; }
 .wc-kit-row { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 10px 0 6px; }

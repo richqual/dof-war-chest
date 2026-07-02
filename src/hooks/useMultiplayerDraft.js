@@ -6,7 +6,7 @@ import {
   autoDrawSlot, resolveCurrentPosKey, resolveCurrentPos,
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder,
   getFormArrow,
-  buildInitialWarChestDraft, getWarChestPlayersForSlot,
+  buildInitialWarChestDraft, getWarChestPlayersForSlot, autoFillWarChestSlot,
 } from "./draftUtils";
 
 export { getFormArrow };
@@ -34,8 +34,27 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
     if (!isHost) return;
     if (options?.warChest) {
       const d = buildInitialWarChestDraft(clubs, { ...options, noShuffle: true });
-      await updateGameFields({ wcSlots: {} });
-      await setDraftAndScreen(d, "wc-select");
+
+      // CPU slots never visit the wc-select/wc-draft screens themselves — fill them
+      // immediately so they don't block the "everyone's done" checks below.
+      const initialWcSlots = {};
+      d.managers.forEach((m, i) => {
+        if (!m.isComputer) return;
+        const filled = autoFillWarChestSlot({
+          chestBudget: null,
+          wcBudgetRemaining: null,
+          squad: Array(16).fill(null),
+          availablePlayerIds: d.availablePlayerIds,
+          playerValues: d.playerValues,
+          difficulty: d.difficulty,
+          rouletteAssignment: { era: m.assignedEra, league: m.assignedLeague },
+        });
+        initialWcSlots[i] = { ...filled, done: true };
+      });
+
+      const wcDeadline = options.squadTimerSeconds ? Date.now() + options.squadTimerSeconds * 1000 : null;
+      await updateGameFields({ wcSlots: initialWcSlots });
+      await setDraftAndScreen({ ...d, wcDeadline, squadTimerSeconds: options.squadTimerSeconds || null }, "wc-select");
       await setPhase("playing");
     } else {
       const d = buildInitialDraft(clubs, options);
@@ -211,7 +230,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
   // ── Post-draft actions ─────────────────────────────────────────────────
 
   async function recordMatchResult(homeIdx, awayIdx, winnerIdx, score, matchRatings, matchEvents, matchInjuries) {
-    if (!draft) return;
+    if (!isHost || !draft) return;
     const s = draft.series;
     if (!s) return;
 
@@ -222,8 +241,12 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
       const maxGames = s.target * 2 - 1;
       if (winnerIdx === null) {
         const newDraws = (s.draws ?? 0) + 1;
-        const tied = newPlayed >= maxGames && s.wins[0] === s.wins[1];
-        next = { ...draft, series: { ...s, draws: newDraws, played: newPlayed, stage: tied ? "tiebreaker" : "playing" } };
+        const allPlayed = newPlayed >= maxGames;
+        const tied = allPlayed && s.wins[0] === s.wins[1];
+        const champion = allPlayed && !tied
+          ? s.participants[s.wins[0] >= s.wins[1] ? 0 : 1]
+          : null;
+        next = { ...draft, series: { ...s, draws: newDraws, played: newPlayed, champion, stage: champion !== null ? "champion" : (tied ? "tiebreaker" : "playing") } };
       } else {
         const pos = s.participants.indexOf(winnerIdx);
         if (pos < 0) return;
@@ -414,6 +437,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
   }
 
   async function restartGame() {
+    if (!isHost) return;
     await writeGameState(null, "setup");
   }
 
@@ -476,6 +500,27 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
     return getWarChestPlayersForSlot(slotIdx, [], draft.availablePlayerIds, draft.playerValues, draft.playerForm, rouletteAssignment);
   }
 
+  // Host-only: called once a player's squad-build timer expires. Keeps whatever they'd
+  // already picked and fills the rest using the same weighted logic as a CPU squad.
+  async function autoFillWcSlot(slotIdx) {
+    if (!isHost || !draft) return;
+    const manager = draft.managers[slotIdx];
+    if (!manager || manager.isComputer) return;
+    const wcData = gameDoc?.wcSlots?.[slotIdx] || {};
+    if (wcData.done) return;
+    const rouletteAssignment = { era: manager.assignedEra, league: manager.assignedLeague };
+    const filled = autoFillWarChestSlot({
+      chestBudget: wcData.chestBudget,
+      wcBudgetRemaining: wcData.wcBudgetRemaining,
+      squad: wcData.squad,
+      availablePlayerIds: draft.availablePlayerIds,
+      playerValues: draft.playerValues,
+      difficulty: draft.difficulty,
+      rouletteAssignment,
+    });
+    await updateWcSlot({ ...filled, done: true, auto: true }, slotIdx);
+  }
+
   // Host-only: merge wcSlots into draft and advance to the next screen
   async function advanceWcPhase(nextDraft, nextScreen) {
     if (!isHost) return;
@@ -516,5 +561,6 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
     completeWarChestSquad,
     getWarChestPlayers,
     advanceWcPhase,
+    autoFillWcSlot,
   };
 }

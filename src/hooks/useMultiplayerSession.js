@@ -190,10 +190,12 @@ export function useMultiplayerSession() {
     await updateDoc(doc(db, "games", gameId), { phase });
   }
 
-  // Write only this player's WC slot data (chest pick + squad) without touching others
-  async function updateWcSlot(data) {
-    if (!gameId || mySlotIdx === null) return;
-    await updateDoc(doc(db, "games", gameId), { [`wcSlots.${mySlotIdx}`]: data });
+  // Write a single player's WC slot data (chest pick + squad) without touching others.
+  // Defaults to this device's own slot; the host also uses this to fill CPU slots and
+  // to auto-fill a slot when a player's squad-build timer expires.
+  async function updateWcSlot(data, slotIdx = mySlotIdx) {
+    if (!gameId || slotIdx === null || slotIdx === undefined) return;
+    await updateDoc(doc(db, "games", gameId), { [`wcSlots.${slotIdx}`]: data });
   }
 
   // Arbitrary field update — used by host to clear wcSlots on game start

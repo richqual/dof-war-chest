@@ -812,7 +812,10 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
 
   const hEffStr = hStr + styleStrengthBonus(hStyle, true) + hTierMod * 50 + hCohesion + hMatchupBonus + hMomentum;
   const aEffStr = aStr + styleStrengthBonus(aStyle, true) + aTierMod * 50 + aCohesion + aMatchupBonus + aMomentum;
-  const ratio = Math.min(0.82, Math.max(0.18, hEffStr / (hEffStr + aEffStr) + tacticsDelta));
+  // Logistic curve on the strength gap rather than a plain ratio — a consistent
+  // rating gap now buys a real, compounding edge instead of washing out to ~50/50.
+  const strTilt = 0.5 * Math.tanh((hEffStr - aEffStr) / 40);
+  const ratio = Math.min(0.82, Math.max(0.18, 0.5 + strTilt + tacticsDelta));
 
   // Track which new commentary has been used this match (fire each at most once)
   let cohesionCommentaryFired = false;
@@ -880,7 +883,13 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   const onPitch = (squad, sentOff) => squad.slice(0, 11).filter(p => p && !sentOff.has(p.name));
 
   const is5aside = homeSquad.filter(Boolean).length <= 5;
-  const minutes = [...new Set(Array.from({ length: is5aside ? rand(25, 38) : rand(18, 28) }, () => rand(1, matchMinutes)))].sort((a, b) => a - b);
+  // 5-a-side pitches are tiny — the ball is live constantly, so allow multiple
+  // events per minute instead of deduping down to unique minutes like classic mode.
+  const rawMinutes = Array.from({ length: is5aside ? rand(38, 55) : rand(18, 28) }, () => rand(1, matchMinutes));
+  const minutes = (is5aside ? rawMinutes : [...new Set(rawMinutes)]).sort((a, b) => a - b);
+  // Small-sided games have way more shots and far fewer stoppages than 11-a-side.
+  const SHOT_THRESH = is5aside ? 0.48 : 0.32;
+  const FOUL_THRESH = is5aside ? SHOT_THRESH + 0.09 : 0.45;
 
   // Style-influenced goal frequency modifiers
   function goalChanceBonus(isHome) {
@@ -918,7 +927,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   for (const min of minutes) {
     const r = Math.random();
 
-    if (r < 0.32) {
+    if (r < SHOT_THRESH) {
       const isHome = Math.random() < ratio;
       const team = isHome ? homeSquad : awaySquad;
       const teamName = isHome ? homeName : awayName;
@@ -935,7 +944,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       const menDown = (isHome ? hSentOff.size : aSentOff.size) - (isHome ? aSentOff.size : hSentOff.size);
       // Goal chance: tactics-adjusted att vs def — attacking opens up play, defensive tightens it
       const attVsDef = isHome ? (hEffAttStr - aEffDefStr) : (aEffAttStr - hEffDefStr);
-      const goalChance = (is5aside ? 0.45 : 0.38) + attVsDef * 0.002 - menDown * 0.08
+      const goalChance = (is5aside ? 0.45 : 0.38) + attVsDef * 0.004 - menDown * 0.08
         + goalChanceBonus(isHome) - opponentShotPenalty(isHome) + (isHome ? hTierMod : aTierMod);
       if (isHome) possH = Math.min(0.82, possH + 0.025); else possH = Math.max(0.18, possH - 0.025);
       if (Math.random() < goalChance) {
@@ -958,7 +967,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
         if (isHome) hShots++; else aShots++;
         if (Math.random() < 0.5) { if (isHome) hOnTarget++; else aOnTarget++; }
       }
-    } else if (r < 0.45) {
+    } else if (r < FOUL_THRESH) {
       const isHome = Math.random() < 0.5;
       const team = isHome ? homeSquad : awaySquad;
       const booked = isHome ? hBooked : aBooked;
@@ -1079,7 +1088,13 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   if (afterETLevel || needsShootout) {
     const penMin = needsShootout ? matchMinutes : matchMinutes + 15;
 
-    const PEN_SUCCESS = 0.76;
+    // Success scales gently with the taker's finishing — a stacked attack still
+    // has to convert its pens, but it's no longer a flat coin flip for everyone.
+    function penSuccessChance(taker) {
+      if (!taker) return 0.76;
+      const att = deriveAttributes(taker).att;
+      return Math.min(0.90, Math.max(0.55, 0.68 + (att - 70) * 0.003));
+    }
     const NUM_KICKS = 5;
     // Best attacking players take pens first
     const byAtt = ps => [...ps].sort((a, b) => deriveAttributes(b).att - deriveAttributes(a).att);
@@ -1097,7 +1112,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       // Home kick
       const hTaker = hOrder[round % Math.max(1, hOrder.length)];
       const hName = hTaker?.name || "The taker";
-      const hScored = Math.random() < PEN_SUCCESS;
+      const hScored = Math.random() < penSuccessChance(hTaker);
       if (hScored) hPens++;
       etEvents.push({
         min: penMin, type: hScored ? "pen_goal" : "pen_miss", team: "home",
@@ -1111,7 +1126,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       // Away kick
       const aTaker = aOrder[round % Math.max(1, aOrder.length)];
       const aName = aTaker?.name || "The taker";
-      const aScored = Math.random() < PEN_SUCCESS;
+      const aScored = Math.random() < penSuccessChance(aTaker);
       if (aScored) aPens++;
       etEvents.push({
         min: penMin, type: aScored ? "pen_goal" : "pen_miss", team: "away",
@@ -1137,7 +1152,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
         const aTaker = aOrder[(NUM_KICKS + sdRound) % Math.max(1, aOrder.length)];
         const hName = hTaker?.name || "The taker";
         const aName = aTaker?.name || "The taker";
-        const hScored = Math.random() < PEN_SUCCESS;
+        const hScored = Math.random() < penSuccessChance(hTaker);
         if (hScored) hPens++;
         etEvents.push({
           min: penMin, type: hScored ? "pen_goal" : "pen_miss", team: "home",
@@ -1145,7 +1160,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
           text: hScored ? pick(COMMENTARY_PEN_SCORED)(hName) : pick(COMMENTARY_PEN_MISSED)(hName),
           penScore: `${hPens}–${aPens}`, suddenDeath: true,
         });
-        const aScored = Math.random() < PEN_SUCCESS;
+        const aScored = Math.random() < penSuccessChance(aTaker);
         if (aScored) aPens++;
         etEvents.push({
           min: penMin, type: aScored ? "pen_goal" : "pen_miss", team: "away",

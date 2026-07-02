@@ -1,4 +1,4 @@
-import { useState, useEffect, Component } from "react";
+import { useState, useEffect, useRef, Component } from "react";
 import { useDraftState } from "./hooks/useDraftState";
 import { useMultiplayerSession } from "./hooks/useMultiplayerSession";
 import { useMultiplayerDraft } from "./hooks/useMultiplayerDraft";
@@ -25,6 +25,7 @@ import WarChestLobbyScreen from "./components/WarChestLobbyScreen";
 import WarChestSelectionScreen from "./components/WarChestSelectionScreen";
 import WarChestDraftScreen from "./components/WarChestDraftScreen";
 import WarChestSquadScreen from "./components/WarChestSquadScreen";
+import SquadTimer from "./components/SquadTimer";
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -53,7 +54,7 @@ class ErrorBoundary extends Component {
   }
 }
 
-function GlobalMenu({ light, onToggle, largeText, onToggleLargeText, hasGame, onAbandon, onAbout, extraOptions, user, isGuest, onSignIn, onSignInGuest, onLinkGoogle, onSignOut, onProfile, onMySquads }) {
+function GlobalMenu({ light, onToggle, largeText, onToggleLargeText, hasGame, onAbandon, abandonLabel = "✕ QUIT & RETURN TO HOME", abandonWarn = "Abandons the current game and returns to the setup screen.", onAbout, extraOptions, user, isGuest, onSignIn, onSignInGuest, onLinkGoogle, onSignOut, onProfile, onMySquads }) {
   const [open, setOpen] = useState(false);
 
   function abandon() {
@@ -164,9 +165,9 @@ function GlobalMenu({ light, onToggle, largeText, onToggleLargeText, hasGame, on
               <>
                 <div className="global-menu-divider" />
                 <button className="global-menu-item danger" onClick={abandon}>
-                  ✕ QUIT &amp; RETURN TO HOME
+                  {abandonLabel}
                 </button>
-                <p className="global-menu-warn">Abandons the current game and returns to the setup screen.</p>
+                <p className="global-menu-warn">{abandonWarn}</p>
               </>
             )}
           </div>
@@ -210,15 +211,15 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
   const { screen, draft, activeManager, activeManagerIdx, currentPos, isMyTurn, ...actions } = mpDraft;
 
   // ── War Chest multiplayer: host advances phase when all players are ready ──
+  // (CPU slots are auto-filled up front in startGame(), so they're always ready.)
   useEffect(() => {
     if (!isHost || !draft?.warChest || screen !== "wc-select") return;
     const wcSlots = gameDoc?.wcSlots || {};
-    const allSelected = draft.managers.every((m, i) => m.isComputer || wcSlots[i]?.chestBudget != null);
+    const allSelected = draft.managers.every((_, i) => wcSlots[i]?.chestBudget != null);
     if (!allSelected) return;
     const nextDraft = {
       ...draft,
       managers: draft.managers.map((m, i) => {
-        if (m.isComputer) return m;
         const wd = wcSlots[i] || {};
         return { ...m, chestBudget: wd.chestBudget, wcBudgetRemaining: wd.chestBudget };
       }),
@@ -229,12 +230,11 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
   useEffect(() => {
     if (!isHost || !draft?.warChest || screen !== "wc-draft") return;
     const wcSlots = gameDoc?.wcSlots || {};
-    const allDone = draft.managers.every((m, i) => m.isComputer || wcSlots[i]?.done);
+    const allDone = draft.managers.every((_, i) => wcSlots[i]?.done);
     if (!allDone) return;
     const nextDraft = {
       ...draft,
       managers: draft.managers.map((m, i) => {
-        if (m.isComputer) return m;
         const wd = wcSlots[i] || {};
         return { ...m, squad: wd.squad || m.squad, wcBudgetRemaining: wd.wcBudgetRemaining ?? m.wcBudgetRemaining, chestBudget: wd.chestBudget ?? m.chestBudget };
       }),
@@ -243,6 +243,27 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
     };
     actions.advanceWcPhase(nextDraft, "squads");
   }, [gameDoc?.wcSlots, screen, isHost, draft?.warChest]); // eslint-disable-line
+
+  // ── War Chest multiplayer: host auto-fills anyone still not done once the squad-build
+  // timer expires, reusing the same CPU pick logic (keeps whatever they'd already picked).
+  const wcAutoFillInFlight = useRef(new Set());
+  useEffect(() => {
+    if (!isHost || !draft?.warChest || !draft.wcDeadline) return;
+    if (screen !== "wc-select" && screen !== "wc-draft") return;
+    const tick = () => {
+      if (Date.now() < draft.wcDeadline) return;
+      const wcSlots = gameDoc?.wcSlots || {};
+      draft.managers.forEach((m, i) => {
+        if (m.isComputer || wcSlots[i]?.done) { wcAutoFillInFlight.current.delete(i); return; }
+        if (wcAutoFillInFlight.current.has(i)) return;
+        wcAutoFillInFlight.current.add(i);
+        actions.autoFillWcSlot(i);
+      });
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [isHost, draft?.warChest, draft?.wcDeadline, screen, gameDoc?.wcSlots]); // eslint-disable-line
 
   function handleSetScreen(s, extra) {
     if (s === "match") {
@@ -264,7 +285,9 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
       largeText={largeText}
       onToggleLargeText={() => setLargeText(t => !t)}
       hasGame={!!draft}
-      onAbandon={() => { actions.restartGame(); }}
+      onAbandon={() => { if (isHost) actions.restartGame(); else handleLeave(); }}
+      abandonLabel={isHost ? "✕ END GAME FOR EVERYONE" : "✕ LEAVE GAME"}
+      abandonWarn={isHost ? "Ends the game for all players and returns everyone to setup." : "You'll leave the game — the other players can continue without you."}
     />
   );
 
@@ -328,7 +351,9 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
           largeText={largeText}
           onToggleLargeText={() => setLargeText(t => !t)}
           hasGame={true}
-          onAbandon={actions.restartGame}
+          onAbandon={() => { if (isHost) actions.restartGame(); else handleLeave(); }}
+          abandonLabel={isHost ? "✕ END GAME FOR EVERYONE" : "✕ LEAVE GAME"}
+          abandonWarn={isHost ? "Ends the game for all players and returns everyone to setup." : "You'll leave the game — the other players can continue without you."}
           extraOptions={draftMenuOptions}
         />
         <DraftScreen
@@ -361,8 +386,12 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
         <>{globalMenu}
           <div className="setup-screen"><div className="setup-card">
             <div className="mp-waiting-screen">
+              {draft.wcDeadline && <SquadTimer deadline={draft.wcDeadline} />}
               <div className="mp-waiting-spinner" />
-              <p className="mp-waiting-text">Chest opened! Waiting for {othersLeft === 1 ? "1 other manager" : `${othersLeft} others`}…</p>
+              <p className="mp-waiting-text">
+                {myWcData.auto ? "⏱ Time's up — your squad was auto-filled! " : "Chest opened! "}
+                Waiting for {othersLeft === 1 ? "1 other manager" : `${othersLeft} others`}…
+              </p>
             </div>
           </div></div>
         </>
@@ -373,6 +402,7 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
         <WarChestSelectionScreen
           draft={{ ...draft, wcCurrentManagerIdx: mySlotIdx }}
           onSelect={actions.selectWarChest}
+          deadline={draft.wcDeadline}
         />
       </>
     );
@@ -386,8 +416,12 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
         <>{globalMenu}
           <div className="setup-screen"><div className="setup-card">
             <div className="mp-waiting-screen">
+              {draft.wcDeadline && <SquadTimer deadline={draft.wcDeadline} />}
               <div className="mp-waiting-spinner" />
-              <p className="mp-waiting-text">Squad complete! Waiting for {othersLeft === 1 ? "1 other manager" : `${othersLeft} others`}…</p>
+              <p className="mp-waiting-text">
+                {myWcData.auto ? "⏱ Time's up — your squad was auto-filled! " : "Squad complete! "}
+                Waiting for {othersLeft === 1 ? "1 other manager" : `${othersLeft} others`}…
+              </p>
             </div>
           </div></div>
         </>
@@ -409,6 +443,7 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
           pickPlayer={(slot, player) => actions.pickWarChestPlayer(slot, player)}
           onDone={actions.completeWarChestSquad}
           getPlayers={actions.getWarChestPlayers}
+          deadline={draft.wcDeadline}
         />
       </>
     );
@@ -474,7 +509,7 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
       return (
         <>
           {globalMenu}
-          <WarChestSquadScreen draft={draft} setScreen={mpSquadSetScreen} />
+          <WarChestSquadScreen draft={draft} setScreen={mpSquadSetScreen} isHost={isHost} />
         </>
       );
     }
@@ -501,7 +536,7 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
   }
 
   if (screen === "draw" && draft?.series?.stage === "draw") {
-    return <>{globalMenu}<DrawScreen draft={draft} onComplete={actions.completeDraw} /></>;
+    return <>{globalMenu}<DrawScreen draft={draft} onComplete={actions.completeDraw} isHost={isHost} /></>;
   }
 
   if (screen === "series" && draft?.series) {
@@ -513,6 +548,7 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
           setScreen={isHost ? handleSetScreen : () => {}}
           recordMatchResult={isHost ? actions.recordMatchResult : () => {}}
           restartGame={isHost ? actions.restartGame : () => {}}
+          isHost={isHost}
         />
       </>
     );
@@ -961,7 +997,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
 }
 
-const APP_VERSION = "2.10.0";
+const APP_VERSION = "2.14.0";
 
 function AppFooter() {
   return (

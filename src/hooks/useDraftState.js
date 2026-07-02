@@ -92,8 +92,12 @@ export function useDraftState() {
 
         if (winnerIdx === null) {
           const newDraws = (s.draws ?? 0) + 1;
-          const tied = newPlayed >= maxGames && s.wins[0] === s.wins[1];
-          next = { ...prev, series: { ...s, draws: newDraws, played: newPlayed, stage: tied ? "tiebreaker" : "playing" } };
+          const allPlayed = newPlayed >= maxGames;
+          const tied = allPlayed && s.wins[0] === s.wins[1];
+          const champion = allPlayed && !tied
+            ? s.participants[s.wins[0] >= s.wins[1] ? 0 : 1]
+            : null;
+          next = { ...prev, series: { ...s, draws: newDraws, played: newPlayed, champion, stage: champion !== null ? "champion" : (tied ? "tiebreaker" : "playing") } };
         } else {
           const pos = s.participants.indexOf(winnerIdx);
           if (pos < 0) return prev;
