@@ -2,11 +2,11 @@ import { useState } from "react";
 import DraftRouletteToggle from "./DraftRouletteToggle";
 
 const DIFFICULTY_INFO = [
-  { key: "easy",   label: "GENEROUS", hint: "War chest — big budgets, one zero on the wheel (avg £109m)" },
-  { key: "normal", label: "EASY",     hint: "Comfortable budgets — room to breathe on most spins (avg £80m)" },
-  { key: "hard",   label: "NORMAL",   hint: "Balanced budgets with the occasional dry spell (avg £48m)" },
-  { key: "expert", label: "HARD",     hint: "Shoestring — bargain bins and frequent zeros (avg £38m)" },
-  { key: "brutal", label: "BRUTAL",   hint: "Scrap heap — half the wheel is zero, fight for free transfers (avg £23m)" },
+  { key: "generous", label: "GENEROUS", hint: "Big budgets — legends within reach on most spins (avg £81m)" },
+  { key: "easy",     label: "EASY",     hint: "Comfortable budgets — room to breathe on most spins (avg £61m)" },
+  { key: "normal",   label: "NORMAL",   hint: "Balanced budgets with the occasional dry spell (avg £41m)" },
+  { key: "hard",     label: "HARD",     hint: "Shoestring — bargain bins and frequent zeros (avg £31m)" },
+  { key: "brutal",   label: "BRUTAL",   hint: "Scrap heap — half the wheel is zero, fight for free transfers (avg £17m)" },
 ];
 
 const FORMAT_OPTIONS_2 = [
@@ -23,7 +23,9 @@ const FORMAT_OPTIONS_8 = [
   { key: "tournament8", label: "TOURNAMENT", short: "CUP", hint: "Single-leg quarter-finals, 2-legged semi-finals (aggregate), then a 1-leg Grand Final" },
 ];
 
-export function ModeSelectScreen({ onSameDevice, onOnline, onWarChest, onAbout }) {
+export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onWcOnline, onAbout }) {
+  const [selected, setSelected] = useState(null); // null | "classic" | "warchest"
+
   return (
     <div className="setup-screen">
       <div className="setup-card mode-select-card">
@@ -33,29 +35,49 @@ export function ModeSelectScreen({ onSameDevice, onOnline, onWarChest, onAbout }
         </div>
 
         <div className="mode-options">
-          <button className="mode-card" onClick={onSameDevice}>
-            <div className="mode-card-label">CLASSIC</div>
-            <div className="mode-card-desc">
-              Solo or local — 1–8 players on one screen. Spin the Transfer Wheel, build your squad, then play.
-            </div>
-            <div className="mode-card-cta">PLAY →</div>
-          </button>
+          <div className={`mode-card ${selected === "classic" ? "mode-card-expanded" : ""}`}>
+            <button className="mode-card-main" onClick={() => setSelected(selected === "classic" ? null : "classic")}>
+              <div className="mode-card-label">CLASSIC</div>
+              <div className="mode-card-desc">
+                Spin the Transfer Wheel, build your squad, then play. Solo, local, or online.
+              </div>
+              <div className="mode-card-cta">{selected === "classic" ? "▲" : "PLAY →"}</div>
+            </button>
+            {selected === "classic" && (
+              <div className="mode-sub-options">
+                <button className="mode-sub-btn" onClick={onClassicSolo}>
+                  <span className="mode-sub-label">SOLO / LOCAL</span>
+                  <span className="mode-sub-desc">1–8 players on one screen</span>
+                </button>
+                <button className="mode-sub-btn mode-sub-btn-online" onClick={onClassicOnline}>
+                  <span className="mode-sub-label">ONLINE</span>
+                  <span className="mode-sub-desc">Each player joins from their own device</span>
+                </button>
+              </div>
+            )}
+          </div>
 
-          <button className="mode-card mode-card-online" onClick={onOnline}>
-            <div className="mode-card-label">ONLINE</div>
-            <div className="mode-card-desc">
-              Classic mode, online — each player joins from their own phone or laptop and drafts together from anywhere.
-            </div>
-            <div className="mode-card-cta">PLAY →</div>
-          </button>
-
-          <button className="mode-card mode-card-warchest" onClick={onWarChest}>
-            <div className="mode-card-label">WAR CHEST</div>
-            <div className="mode-card-desc">
-              5-a-side. Pick a mystery chest to reveal your budget, then race to build the best squad you can afford.
-            </div>
-            <div className="mode-card-cta">PLAY →</div>
-          </button>
+          <div className={`mode-card mode-card-warchest ${selected === "warchest" ? "mode-card-expanded" : ""}`}>
+            <button className="mode-card-main" onClick={() => setSelected(selected === "warchest" ? null : "warchest")}>
+              <div className="mode-card-label">WAR CHEST</div>
+              <div className="mode-card-desc">
+                5-a-side. Pick a mystery chest to reveal your budget, then race to build the best squad you can afford.
+              </div>
+              <div className="mode-card-cta">{selected === "warchest" ? "▲" : "PLAY →"}</div>
+            </button>
+            {selected === "warchest" && (
+              <div className="mode-sub-options">
+                <button className="mode-sub-btn" onClick={onWcSolo}>
+                  <span className="mode-sub-label">SOLO / LOCAL</span>
+                  <span className="mode-sub-desc">1–8 players on one screen</span>
+                </button>
+                <button className="mode-sub-btn mode-sub-btn-online" onClick={onWcOnline}>
+                  <span className="mode-sub-label">ONLINE</span>
+                  <span className="mode-sub-desc">Everyone picks simultaneously from their own device</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
 
         <button className="mode-back-link" onClick={onAbout}>About this game</button>
@@ -67,7 +89,7 @@ export function ModeSelectScreen({ onSameDevice, onOnline, onWarChest, onAbout }
 export default function LobbyScreen({ onContinue, onBack }) {
   const [numClubs, setNumClubs] = useState(2);
   const [numHumans, setNumHumans] = useState(1);
-  const [difficulty, setDifficulty] = useState("hard");
+  const [difficulty, setDifficulty] = useState("normal");
   const [positionMode, setPositionMode] = useState("random");
   const [format, setFormat] = useState("bo7");
   const [hideRatings, setHideRatings] = useState(true);

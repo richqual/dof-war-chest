@@ -445,14 +445,19 @@ export function buildInitialWarChestDraft(clubs, options = {}) {
   const playerForm = options.dynamicForm !== false ? generatePlayerForm(availablePlayerIds) : new Map();
   const playerOrder = generatePlayerOrder(availablePlayerIds);
 
-  // Randomise human draft order, keep computers at the end
-  const humans = clubs.filter(c => !c.isComputer);
-  const computers = clubs.filter(c => c.isComputer);
-  for (let i = humans.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [humans[i], humans[j]] = [humans[j], humans[i]];
+  // In multiplayer WC, slots are fixed (each player is their own index) — skip shuffle
+  let orderedClubs;
+  if (options.noShuffle) {
+    orderedClubs = [...clubs];
+  } else {
+    const humans = clubs.filter(c => !c.isComputer);
+    const computers = clubs.filter(c => c.isComputer);
+    for (let i = humans.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [humans[i], humans[j]] = [humans[j], humans[i]];
+    }
+    orderedClubs = [...humans, ...computers];
   }
-  const orderedClubs = [...humans, ...computers];
   const rouletteAssignments = assignDraftRoulette(orderedClubs.length, options.draftRoulette);
 
   return {

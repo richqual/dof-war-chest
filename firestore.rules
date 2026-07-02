@@ -27,5 +27,13 @@ service cloud.firestore {
       // No deletes (abandoned games just sit until Firestore TTL or manual cleanup)
       allow delete: if false;
     }
+
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+
+      match /squads/{squadId} {
+        allow read, write, delete: if request.auth != null && request.auth.uid == userId;
+      }
+    }
   }
 }

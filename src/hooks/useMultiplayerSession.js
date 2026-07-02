@@ -190,6 +190,18 @@ export function useMultiplayerSession() {
     await updateDoc(doc(db, "games", gameId), { phase });
   }
 
+  // Write only this player's WC slot data (chest pick + squad) without touching others
+  async function updateWcSlot(data) {
+    if (!gameId || mySlotIdx === null) return;
+    await updateDoc(doc(db, "games", gameId), { [`wcSlots.${mySlotIdx}`]: data });
+  }
+
+  // Arbitrary field update — used by host to clear wcSlots on game start
+  async function updateGameFields(fields) {
+    if (!gameId) return;
+    await updateDoc(doc(db, "games", gameId), fields);
+  }
+
   async function leaveGame() {
     setGameId(null);
     setGameDoc(null);
@@ -219,6 +231,8 @@ export function useMultiplayerSession() {
     setMatchData,
     clearMatchData,
     setPhase,
+    updateWcSlot,
+    updateGameFields,
     leaveGame,
     clearError: () => setError(null),
   };

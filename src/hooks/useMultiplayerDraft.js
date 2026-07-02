@@ -6,6 +6,7 @@ import {
   autoDrawSlot, resolveCurrentPosKey, resolveCurrentPos,
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder,
   getFormArrow,
+  buildInitialWarChestDraft, getWarChestPlayersForSlot,
 } from "./draftUtils";
 
 export { getFormArrow };
@@ -15,7 +16,7 @@ export { getFormArrow };
 // mySlotIdx — which manager slot this device controls
 // writeGameState(serializedDraft, screen) — writes to Firestore
 // isHost    — whether this device can run setup screens and CPU turns
-export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPhase, isHost }) {
+export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPhase, isHost, updateWcSlot, updateGameFields }) {
   const draft = gameDoc?.draft ? deserializeDraft(gameDoc.draft) : null;
   const screen = gameDoc?.screen ?? "setup";
 
@@ -31,9 +32,16 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
 
   async function startGame(clubs, options) {
     if (!isHost) return;
-    const d = buildInitialDraft(clubs, options);
-    await setDraftAndScreen(d, "order-draw");
-    await setPhase("playing");
+    if (options?.warChest) {
+      const d = buildInitialWarChestDraft(clubs, { ...options, noShuffle: true });
+      await updateGameFields({ wcSlots: {} });
+      await setDraftAndScreen(d, "wc-select");
+      await setPhase("playing");
+    } else {
+      const d = buildInitialDraft(clubs, options);
+      await setDraftAndScreen(d, "order-draw");
+      await setPhase("playing");
+    }
   }
 
   async function setPlayerPool(filter) {
@@ -96,8 +104,10 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
 
   // ── Draft actions (active player only) ────────────────────────────────
 
-  const activeManagerIdx = draft ? draft.currentOrder[draft.turnIndex] : 0;
-  const isMyTurn = draft ? activeManagerIdx === mySlotIdx : false;
+  const activeManagerIdx = draft
+    ? (draft.warChest ? mySlotIdx : draft.currentOrder?.[draft.turnIndex] ?? 0)
+    : 0;
+  const isMyTurn = draft ? (draft.warChest ? true : activeManagerIdx === mySlotIdx) : false;
 
   async function confirmBudget(spunVal) {
     if (!draft || !isMyTurn) return;
@@ -438,6 +448,40 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
     });
   }
 
+  // ── War Chest multiplayer actions ─────────────────────────────────────────
+  // Each player writes only their own slot — no race conditions with other players.
+
+  async function selectWarChest(value) {
+    await updateWcSlot({ chestBudget: value, squad: Array(16).fill(null), wcBudgetRemaining: value, done: false });
+  }
+
+  async function pickWarChestPlayer(slotIdx, player) {
+    const wcData = gameDoc?.wcSlots?.[mySlotIdx] || {};
+    const squad = [...(wcData.squad || Array(16).fill(null))];
+    squad[slotIdx] = { ...player };
+    const wcBudgetRemaining = (wcData.wcBudgetRemaining ?? wcData.chestBudget ?? 0) - player.value;
+    await updateWcSlot({ ...wcData, squad, wcBudgetRemaining });
+  }
+
+  async function completeWarChestSquad() {
+    const wcData = gameDoc?.wcSlots?.[mySlotIdx] || {};
+    await updateWcSlot({ ...wcData, done: true });
+  }
+
+  function getWarChestPlayers(slotIdx) {
+    if (!draft) return [];
+    const manager = draft.managers[mySlotIdx];
+    const rouletteAssignment = manager ? { era: manager.assignedEra, league: manager.assignedLeague } : null;
+    // Empty takenIds — duplicates allowed in WC multiplayer
+    return getWarChestPlayersForSlot(slotIdx, [], draft.availablePlayerIds, draft.playerValues, draft.playerForm, rouletteAssignment);
+  }
+
+  // Host-only: merge wcSlots into draft and advance to the next screen
+  async function advanceWcPhase(nextDraft, nextScreen) {
+    if (!isHost) return;
+    await setDraftAndScreen(nextDraft, nextScreen);
+  }
+
   const activeManager = draft ? draft.managers[activeManagerIdx] : null;
   const currentPos = resolveCurrentPos(draft);
 
@@ -467,5 +511,10 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
     recordMatchResult,
     assignManagers,
     setPlayerPool,
+    selectWarChest,
+    pickWarChestPlayer,
+    completeWarChestSquad,
+    getWarChestPlayers,
+    advanceWcPhase,
   };
 }

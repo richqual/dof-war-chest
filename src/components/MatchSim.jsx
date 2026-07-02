@@ -879,7 +879,8 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
 
   const onPitch = (squad, sentOff) => squad.slice(0, 11).filter(p => p && !sentOff.has(p.name));
 
-  const minutes = [...new Set(Array.from({ length: rand(18, 28) }, () => rand(1, matchMinutes)))].sort((a, b) => a - b);
+  const is5aside = homeSquad.filter(Boolean).length <= 5;
+  const minutes = [...new Set(Array.from({ length: is5aside ? rand(25, 38) : rand(18, 28) }, () => rand(1, matchMinutes)))].sort((a, b) => a - b);
 
   // Style-influenced goal frequency modifiers
   function goalChanceBonus(isHome) {
@@ -934,7 +935,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       const menDown = (isHome ? hSentOff.size : aSentOff.size) - (isHome ? aSentOff.size : hSentOff.size);
       // Goal chance: tactics-adjusted att vs def — attacking opens up play, defensive tightens it
       const attVsDef = isHome ? (hEffAttStr - aEffDefStr) : (aEffAttStr - hEffDefStr);
-      const goalChance = 0.38 + attVsDef * 0.002 - menDown * 0.08
+      const goalChance = (is5aside ? 0.45 : 0.38) + attVsDef * 0.002 - menDown * 0.08
         + goalChanceBonus(isHome) - opponentShotPenalty(isHome) + (isHome ? hTierMod : aTierMod);
       if (isHome) possH = Math.min(0.82, possH + 0.025); else possH = Math.max(0.18, possH - 0.025);
       if (Math.random() < goalChance) {
@@ -1424,6 +1425,8 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
   const awayName = awayManager.teamName || awayManager.name;
   const homeAccent = teamAccent(homeManager.primaryColor, homeManager.secondaryColor);
   const awayAccent = teamAccent(awayManager.primaryColor, awayManager.secondaryColor);
+
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const [result, setResult] = useState(null);
   const [visibleEvents, setVisibleEvents] = useState([]);

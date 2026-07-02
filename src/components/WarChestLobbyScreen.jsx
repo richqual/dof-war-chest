@@ -8,17 +8,17 @@ const FORMAT_OPTIONS = [
 ];
 
 const DIFFICULTY_INFO = [
-  { key: "easy",   label: "GENEROUS", hint: "5 chests: £800m / £650m / £500m / £375m / £250m — legends await" },
-  { key: "normal", label: "EASY",     hint: "5 chests: £500m / £400m / £300m / £220m / £150m" },
-  { key: "hard",   label: "NORMAL",   hint: "5 chests: £350m / £275m / £200m / £140m / £100m" },
-  { key: "expert", label: "HARD",     hint: "5 chests: £175m / £130m / £100m / £75m / £50m — bargain bins beckon" },
-  { key: "brutal", label: "BRUTAL",   hint: "5 chests: £75m / £50m / £30m / £15m / £0m — zero is possible" },
+  { key: "generous", label: "GENEROUS", hint: "5 chests: £1000m / £750m / £550m / £400m / £275m — 4 GOATs possible" },
+  { key: "easy",     label: "EASY",     hint: "5 chests: £520m / £390m / £275m / £190m / £125m" },
+  { key: "normal",   label: "NORMAL",   hint: "5 chests: £270m / £205m / £150m / £105m / £70m" },
+  { key: "hard",     label: "HARD",     hint: "5 chests: £160m / £120m / £85m / £58m / £35m — bargain bins beckon" },
+  { key: "brutal",   label: "BRUTAL",   hint: "5 chests: £55m / £35m / £20m / £8m / £0m — zero is possible" },
 ];
 
 export default function WarChestLobbyScreen({ onContinue, onBack }) {
   const [numClubs, setNumClubs] = useState(2);
   const [numHumans, setNumHumans] = useState(1);
-  const [difficulty, setDifficulty] = useState("hard");
+  const [difficulty, setDifficulty] = useState("normal");
   const [format, setFormat] = useState("bo3");
   const [hideRatings, setHideRatings] = useState(false);
   const [dynamicValues, setDynamicValues] = useState(true);

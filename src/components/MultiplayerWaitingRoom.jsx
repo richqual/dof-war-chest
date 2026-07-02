@@ -2,22 +2,37 @@ import { useState } from "react";
 import KitSwatch from "./KitSwatch";
 
 const DIFFICULTY_INFO = [
-  { key: "easy",   label: "GENEROUS", hint: "Big budgets (avg £109m)" },
-  { key: "normal", label: "EASY",     hint: "Comfortable budgets (avg £80m)" },
-  { key: "hard",   label: "NORMAL",   hint: "Balanced, occasional dry spell (avg £48m)" },
-  { key: "expert", label: "HARD",     hint: "Shoestring budgets (avg £38m)" },
-  { key: "brutal", label: "BRUTAL",   hint: "Scrap heap (avg £23m)" },
+  { key: "generous", label: "GENEROUS", hint: "Big budgets (avg £81m)" },
+  { key: "easy",     label: "EASY",     hint: "Comfortable budgets (avg £61m)" },
+  { key: "normal",   label: "NORMAL",   hint: "Balanced, occasional dry spell (avg £41m)" },
+  { key: "hard",     label: "HARD",     hint: "Shoestring budgets (avg £31m)" },
+  { key: "brutal",   label: "BRUTAL",   hint: "Scrap heap (avg £17m)" },
 ];
 
-function HostGameConfig({ onStart, slots }) {
+const WC_DIFFICULTY_INFO = [
+  { key: "generous", label: "GENEROUS", hint: "Best chest £1B — GOATs possible" },
+  { key: "easy",     label: "EASY",     hint: "Best chest £520m" },
+  { key: "normal",   label: "NORMAL",   hint: "Best chest £270m" },
+  { key: "hard",     label: "HARD",     hint: "Best chest £160m" },
+  { key: "brutal",   label: "BRUTAL",   hint: "Best chest £55m — zero possible" },
+];
+
+function HostGameConfig({ onStart, slots, initialGameMode = "classic" }) {
   const numClubs = slots.length;
-  const [difficulty, setDifficulty] = useState("hard");
+  const [gameMode, setGameMode] = useState(initialGameMode === "warchest" ? "warchest" : "classic");
+
+  // Classic settings
+  const [difficulty, setDifficulty] = useState("normal");
   const [positionMode, setPositionMode] = useState("random");
   const [hideRatings, setHideRatings] = useState(true);
   const [dynamicValues, setDynamicValues] = useState(true);
   const [dynamicForm, setDynamicForm] = useState(true);
   const [managerTiming, setManagerTiming] = useState("before");
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // War Chest settings
+  const [wcDifficulty, setWcDifficulty] = useState("normal");
+  const [wcHideRatings, setWcHideRatings] = useState(false);
 
   // Determine valid format options based on club count
   let formatOptions = [];
@@ -32,10 +47,9 @@ function HostGameConfig({ onStart, slots }) {
   } else if (numClubs === 8) {
     formatOptions = [{ key: "tournament8", label: "TOURNAMENT" }];
   }
-  const [format, setFormat] = useState(formatOptions[0]?.key || "bo7");
+  const [format, setFormat] = useState(formatOptions[0]?.key || "bo3");
 
   function handleStart() {
-    // Build clubs array from slots
     const clubs = slots.map((s, i) => ({
       dofName: s.displayName || `Player ${i + 1}`,
       clubName: s.clubName || `Club ${i + 1}`,
@@ -45,16 +59,27 @@ function HostGameConfig({ onStart, slots }) {
       formation: s.formation || "4-3-3",
       isComputer: !s.deviceId,
     }));
-    const options = {
-      difficulty,
-      positionMode,
-      format: formatOptions.length > 0 ? format : "bo7",
-      hideRatings,
-      dynamicValues,
-      dynamicForm,
-      managerTiming,
-    };
-    onStart(clubs, options);
+
+    if (gameMode === "warchest") {
+      onStart(clubs, {
+        warChest: true,
+        difficulty: wcDifficulty,
+        format: formatOptions.length > 0 ? format : "bo3",
+        hideRatings: wcHideRatings,
+        dynamicValues: true,
+        dynamicForm: true,
+      });
+    } else {
+      onStart(clubs, {
+        difficulty,
+        positionMode,
+        format: formatOptions.length > 0 ? format : "bo7",
+        hideRatings,
+        dynamicValues,
+        dynamicForm,
+        managerTiming,
+      });
+    }
   }
 
   return (
@@ -62,56 +87,99 @@ function HostGameConfig({ onStart, slots }) {
       <div className="options-title">GAME SETTINGS</div>
 
       <div className="setup-row">
-        <span className="setup-row-label">DIFFICULTY</span>
-        <select className="setup-row-select setup-row-select-wide" value={difficulty} onChange={e => setDifficulty(e.target.value)}>
-          {DIFFICULTY_INFO.map(d => <option key={d.key} value={d.key}>{d.label} — {d.hint}</option>)}
-        </select>
-      </div>
-
-      <div className="setup-row">
-        <span className="setup-row-label">DRAFT ORDER</span>
+        <span className="setup-row-label">MODE</span>
         <div className="setup-row-btns">
-          <button className={`setup-row-btn ${positionMode === "fixed" ? "active" : ""}`} onClick={() => setPositionMode("fixed")}>FIXED</button>
-          <button className={`setup-row-btn ${positionMode === "random" ? "active" : ""}`} onClick={() => setPositionMode("random")}>RANDOM</button>
+          <button className={`setup-row-btn ${gameMode === "classic" ? "active" : ""}`} onClick={() => setGameMode("classic")}>CLASSIC</button>
+          <button className={`setup-row-btn ${gameMode === "warchest" ? "active" : ""}`} onClick={() => setGameMode("warchest")}>WAR CHEST</button>
         </div>
       </div>
 
-      {formatOptions.length > 1 && (
-        <div className="setup-row">
-          <span className="setup-row-label">FORMAT</span>
-          <div className="setup-row-btns">
-            {formatOptions.map(f => (
-              <button key={f.key} className={`setup-row-btn ${format === f.key ? "active" : ""}`} onClick={() => setFormat(f.key)}>
-                {f.label}
-              </button>
-            ))}
+      {gameMode === "classic" ? (
+        <>
+          <div className="setup-row">
+            <span className="setup-row-label">DIFFICULTY</span>
+            <select className="setup-row-select setup-row-select-wide" value={difficulty} onChange={e => setDifficulty(e.target.value)}>
+              {DIFFICULTY_INFO.map(d => <option key={d.key} value={d.key}>{d.label} — {d.hint}</option>)}
+            </select>
           </div>
-        </div>
-      )}
 
-      <button className="advanced-toggle" onClick={() => setShowAdvanced(v => !v)}>
-        {showAdvanced ? "▲" : "▼"} ADVANCED
-      </button>
+          <div className="setup-row">
+            <span className="setup-row-label">DRAFT ORDER</span>
+            <div className="setup-row-btns">
+              <button className={`setup-row-btn ${positionMode === "fixed" ? "active" : ""}`} onClick={() => setPositionMode("fixed")}>FIXED</button>
+              <button className={`setup-row-btn ${positionMode === "random" ? "active" : ""}`} onClick={() => setPositionMode("random")}>RANDOM</button>
+            </div>
+          </div>
 
-      {showAdvanced && (
-        <div className="advanced-options">
-          <label className="option-row">
-            <input type="checkbox" className="option-checkbox" checked={managerTiming === "before"} onChange={e => setManagerTiming(e.target.checked ? "before" : "after")} />
-            <span className="option-label">Manager draft before squad draft</span>
-          </label>
-          <label className="option-row">
-            <input type="checkbox" className="option-checkbox" checked={hideRatings} onChange={e => setHideRatings(e.target.checked)} />
+          {formatOptions.length > 1 && (
+            <div className="setup-row">
+              <span className="setup-row-label">FORMAT</span>
+              <div className="setup-row-btns">
+                {formatOptions.map(f => (
+                  <button key={f.key} className={`setup-row-btn ${format === f.key ? "active" : ""}`} onClick={() => setFormat(f.key)}>
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <button className="advanced-toggle" onClick={() => setShowAdvanced(v => !v)}>
+            {showAdvanced ? "▲" : "▼"} ADVANCED
+          </button>
+
+          {showAdvanced && (
+            <div className="advanced-options">
+              <label className="option-row">
+                <input type="checkbox" className="option-checkbox" checked={managerTiming === "before"} onChange={e => setManagerTiming(e.target.checked ? "before" : "after")} />
+                <span className="option-label">Manager draft before squad draft</span>
+              </label>
+              <label className="option-row">
+                <input type="checkbox" className="option-checkbox" checked={hideRatings} onChange={e => setHideRatings(e.target.checked)} />
+                <span className="option-label">Hide player ratings during draft</span>
+              </label>
+              <label className="option-row">
+                <input type="checkbox" className="option-checkbox" checked={dynamicValues} onChange={e => setDynamicValues(e.target.checked)} />
+                <span className="option-label">Randomize player values each game</span>
+              </label>
+              <label className="option-row">
+                <input type="checkbox" className="option-checkbox" checked={dynamicForm} onChange={e => setDynamicForm(e.target.checked)} />
+                <span className="option-label">Apply player form variance</span>
+              </label>
+            </div>
+          )}
+        </>
+      ) : (
+        <>
+          <div className="setup-row">
+            <span className="setup-row-label">DIFFICULTY</span>
+            <select className="setup-row-select setup-row-select-wide" value={wcDifficulty} onChange={e => setWcDifficulty(e.target.value)}>
+              {WC_DIFFICULTY_INFO.map(d => <option key={d.key} value={d.key}>{d.label} — {d.hint}</option>)}
+            </select>
+          </div>
+
+          {formatOptions.length > 1 && (
+            <div className="setup-row">
+              <span className="setup-row-label">FORMAT</span>
+              <div className="setup-row-btns">
+                {formatOptions.map(f => (
+                  <button key={f.key} className={`setup-row-btn ${format === f.key ? "active" : ""}`} onClick={() => setFormat(f.key)}>
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <label className="option-row" style={{ marginTop: "0.75rem" }}>
+            <input type="checkbox" className="option-checkbox" checked={wcHideRatings} onChange={e => setWcHideRatings(e.target.checked)} />
             <span className="option-label">Hide player ratings during draft</span>
           </label>
-          <label className="option-row">
-            <input type="checkbox" className="option-checkbox" checked={dynamicValues} onChange={e => setDynamicValues(e.target.checked)} />
-            <span className="option-label">Randomize player values each game</span>
-          </label>
-          <label className="option-row">
-            <input type="checkbox" className="option-checkbox" checked={dynamicForm} onChange={e => setDynamicForm(e.target.checked)} />
-            <span className="option-label">Apply player form variance</span>
-          </label>
-        </div>
+
+          <p className="mp-hint" style={{ marginTop: "0.5rem", fontSize: "0.75rem" }}>
+            Everyone picks their chest and builds their squad simultaneously — duplicate players allowed.
+          </p>
+        </>
       )}
 
       <button className="start-btn active" onClick={handleStart}>
@@ -129,7 +197,8 @@ const COLORS = [
 
 const FORMATIONS = ["4-3-3", "4-4-2", "4-2-3-1", "3-5-2", "5-3-2", "3-4-3"];
 
-export default function MultiplayerWaitingRoom({ gameDoc, mySlotIdx, isHost, onUpdateSlot, onStartGame, onLeave }) {
+export default function MultiplayerWaitingRoom({ gameDoc, mySlotIdx, isHost, onUpdateSlot, onStartGame, onLeave, initialGameMode = "classic" }) {
+  const isWarchest = initialGameMode === "warchest";
   const [editing, setEditing] = useState(false);
   const [clubName, setClubName] = useState(gameDoc?.slots?.[mySlotIdx]?.clubName || "");
   const [displayName, setDisplayName] = useState(gameDoc?.slots?.[mySlotIdx]?.displayName || "");
@@ -251,16 +320,18 @@ export default function MultiplayerWaitingRoom({ gameDoc, mySlotIdx, isHost, onU
               />
             </div>
 
-            <div className="setup-row">
-              <span className="setup-row-label">FORMATION</span>
-              <select
-                className="setup-row-select"
-                value={formation}
-                onChange={e => setFormation(e.target.value)}
-              >
-                {FORMATIONS.map(f => <option key={f} value={f}>{f}</option>)}
-              </select>
-            </div>
+            {!isWarchest && (
+              <div className="setup-row">
+                <span className="setup-row-label">FORMATION</span>
+                <select
+                  className="setup-row-select"
+                  value={formation}
+                  onChange={e => setFormation(e.target.value)}
+                >
+                  {FORMATIONS.map(f => <option key={f} value={f}>{f}</option>)}
+                </select>
+              </div>
+            )}
 
             <div className="mp-color-row">
               <span className="setup-row-label">PRIMARY</span>
@@ -316,7 +387,7 @@ export default function MultiplayerWaitingRoom({ gameDoc, mySlotIdx, isHost, onU
               </p>
             )}
 
-            {canStart && <HostGameConfig onStart={onStartGame} slots={slots} />}
+            {canStart && <HostGameConfig onStart={onStartGame} slots={slots} initialGameMode={initialGameMode} />}
           </div>
         )}
 

@@ -515,7 +515,7 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
   );
 }
 
-export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setTactics, restartGame, setScreen, onBackToSeries, onManagerDraft }) {
+export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setTactics, restartGame, setScreen, onBackToSeries, onManagerDraft, onSaveSquad, saveState }) {
   const [viewIdx, setViewIdx] = useState(null);
   const { managers } = draft;
   const [captains, setCaptains] = useState(() => {
@@ -534,6 +534,7 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
     setCaptains(prev => ({ ...prev, [managerIdx]: playerId }));
   }
   const inSeries = !!draft.series;
+  const seriesOver = inSeries && draft.series.champion !== null && draft.series.champion !== undefined;
 
   if (viewIdx !== null) {
     return (
@@ -545,7 +546,7 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
         swapSquadPlayers={swapSquadPlayers}
         setTactics={setTactics}
         onBack={() => setViewIdx(null)}
-        onSimulate={inSeries ? null : (hi, ai) => { setScreen("match", { homeIdx: hi, awayIdx: ai }); }}
+        onSimulate={(inSeries || seriesOver) ? null : (hi, ai) => { setScreen("match", { homeIdx: hi, awayIdx: ai }); }}
         allManagers={managers}
         managers={managers}
         captainId={captains[viewIdx] ?? null}
@@ -557,7 +558,7 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
   return (
     <div className="squads-screen">
       <div className="squads-header">
-        {onBackToSeries && (
+        {onBackToSeries && !seriesOver && (
           <button className="back-btn" style={{ marginBottom: "0.5rem" }} onClick={onBackToSeries}>← TO TOURNAMENT</button>
         )}
         {onManagerDraft && (
@@ -632,12 +633,23 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
       )}
 
       <div className="squads-footer">
-        {onBackToSeries && (
+        {onBackToSeries && !seriesOver && (
           <button className="sim-btn secondary" onClick={onBackToSeries}>← TO TOURNAMENT</button>
         )}
-        {!onBackToSeries && (
+        {(!onBackToSeries || seriesOver) && (
           <button className="restart-btn" onClick={restartGame}>NEW GAME</button>
         )}
+        {onSaveSquad && (
+          <button
+            className="sim-btn secondary"
+            onClick={onSaveSquad}
+            disabled={saveState?.saving || saveState?.saved}
+            style={{ marginTop: "0.5rem" }}
+          >
+            {saveState?.saved ? "✓ SQUAD SAVED" : saveState?.saving ? "SAVING…" : "💾 SAVE MY SQUAD"}
+          </button>
+        )}
+        {saveState?.error && <p className="mysquads-save-error">{saveState.error}</p>}
       </div>
     </div>
   );

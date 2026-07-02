@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { WAR_CHEST_SLOTS } from "../hooks/draftUtils";
 import { formatValue, getRatingBg, getRatingColor, normalizeSearch } from "../data/players";
 import KitSwatch from "./KitSwatch";
@@ -19,6 +19,7 @@ function posGroupColor(pos) {
 const SLOT_COLORS = ["#f97316", "#3b82f6", "#16a34a", "#a855f7", "#ec4899"];
 
 export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlayers }) {
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   const managerIdx = draft.wcCurrentManagerIdx;
   const manager = draft.managers[managerIdx];
 

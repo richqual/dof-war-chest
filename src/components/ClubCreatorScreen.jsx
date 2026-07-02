@@ -120,11 +120,29 @@ function makeCpuClub(existingNames, takenColors = []) {
 
 // ── Shared club editor form ───────────────────────────────────────────────────
 
-function ClubEditorForm({ club, onChange, index, hideFormation = false }) {
+function ClubEditorForm({ club, onChange, index, hideFormation = false, profileDefaults }) {
   const defaults = HUMAN_KITS[index % HUMAN_KITS.length];
+
+  function applyProfile() {
+    onChange({
+      ...club,
+      dofName:        profileDefaults.dofName        || club.dofName,
+      clubName:       profileDefaults.clubName        || club.clubName,
+      primaryColor:   profileDefaults.primaryColor    || club.primaryColor,
+      secondaryColor: profileDefaults.secondaryColor  || club.secondaryColor,
+      pattern:        profileDefaults.pattern         || club.pattern,
+    });
+  }
 
   return (
     <>
+      {profileDefaults && (
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <button className="profile-autofill-btn" type="button" onClick={applyProfile}>
+            ⚽ USE MY SAVED CLUB
+          </button>
+        </div>
+      )}
       <div className="club-setup-field">
         <label className="field-label-sm">DIRECTOR OF FOOTBALL</label>
         <input
@@ -303,7 +321,7 @@ function CpuEditorStep({ index, club, onChange, onDone, otherColors = [], hideFo
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export default function ClubCreatorScreen({ config, onStart, onBack }) {
+export default function ClubCreatorScreen({ config, onStart, onBack, profileDefaults }) {
   const { numClubs, numHumans, warChest, ...gameOptions } = config;
   const hideFormation = !!warChest;
 
@@ -396,7 +414,7 @@ export default function ClubCreatorScreen({ config, onStart, onBack }) {
             ))}
           </div>
 
-          <ClubEditorForm club={club} onChange={updated => updateClub(step, updated)} index={step} hideFormation={hideFormation} />
+          <ClubEditorForm club={club} onChange={updated => updateClub(step, updated)} index={step} hideFormation={hideFormation} profileDefaults={step === 0 ? profileDefaults : null} />
 
           <button
             className={`start-btn ${valid ? "active" : ""}`}

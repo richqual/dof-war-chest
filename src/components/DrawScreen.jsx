@@ -20,6 +20,7 @@ function DrawSlot({ mgr, uid, revealed }) {
 }
 
 export default function DrawScreen({ draft, onComplete }) {
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   const { managers } = draft;
   const n = managers.length; // 4 or 8
   const numPairings = n / 2; // 2 or 4
@@ -55,7 +56,9 @@ export default function DrawScreen({ draft, onComplete }) {
   const roundLabel = is8 ? "QUARTER-FINAL" : "SEMI-FINAL";
   const subText = is8
     ? "2-legged quarter-finals · 2-legged semi-finals · 1-leg Grand Final"
-    : "Semi-finals: 2 legs (aggregate) · Grand Final: 1 leg";
+    : draft.warChest
+      ? "Semi-finals: 1 leg · Grand Final: 1 leg"
+      : "Semi-finals: 2 legs (aggregate) · Grand Final: 1 leg";
 
   return (
     <div className="draw-screen">

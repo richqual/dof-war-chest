@@ -215,11 +215,11 @@ function makeClub(index) {
 }
 
 const DIFFICULTY_INFO = [
-  { key: "easy",   label: "GENEROUS", hint: "War chest — big budgets, one zero on the wheel (avg £109m)" },
-  { key: "normal", label: "EASY",     hint: "Comfortable budgets — room to breathe on most spins (avg £80m)" },
-  { key: "hard",   label: "NORMAL",   hint: "Balanced budgets with the occasional dry spell (avg £48m)" },
-  { key: "expert", label: "HARD",     hint: "Shoestring — bargain bins and frequent zeros (avg £38m)" },
-  { key: "brutal", label: "BRUTAL",   hint: "Scrap heap — half the wheel is zero, fight for free transfers (avg £23m)" },
+  { key: "generous", label: "GENEROUS", hint: "Big budgets — legends within reach on most spins (avg £81m)" },
+  { key: "easy",     label: "EASY",     hint: "Comfortable budgets — room to breathe on most spins (avg £61m)" },
+  { key: "normal",   label: "NORMAL",   hint: "Balanced budgets with the occasional dry spell (avg £41m)" },
+  { key: "hard",     label: "HARD",     hint: "Shoestring — bargain bins and frequent zeros (avg £31m)" },
+  { key: "brutal",   label: "BRUTAL",   hint: "Scrap heap — half the wheel is zero, fight for free transfers (avg £17m)" },
 ];
 
 const FORMAT_OPTIONS_2 = [
@@ -236,7 +236,7 @@ export default function SetupScreen({ onStart }) {
   const [hideRatings, setHideRatings] = useState(true);
   const [dynamicValues, setDynamicValues] = useState(true);
   const [dynamicForm, setDynamicForm] = useState(true);
-  const [difficulty, setDifficulty] = useState("hard");
+  const [difficulty, setDifficulty] = useState("normal");
   const [format, setFormat] = useState("bo7");
   const [managerTiming, setManagerTiming] = useState("before");
   const [positionMode, setPositionMode] = useState("random");

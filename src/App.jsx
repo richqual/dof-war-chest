@@ -2,9 +2,13 @@ import { useState, useEffect, Component } from "react";
 import { useDraftState } from "./hooks/useDraftState";
 import { useMultiplayerSession } from "./hooks/useMultiplayerSession";
 import { useMultiplayerDraft } from "./hooks/useMultiplayerDraft";
+import { useAuth } from "./hooks/useAuth";
+import { useSaveSquad } from "./hooks/useSaveSquad";
 import LobbyScreen, { ModeSelectScreen } from "./components/LobbyScreen";
 import ClubCreatorScreen from "./components/ClubCreatorScreen";
 import OrderDrawScreen from "./components/OrderDrawScreen";
+import ProfileScreen from "./components/ProfileScreen";
+import MySquadsScreen from "./components/MySquadsScreen";
 import DraftRouletteScreen from "./components/DraftRouletteScreen";
 import DraftScreen from "./components/DraftScreen";
 import SquadScreen from "./components/SquadScreen";
@@ -49,7 +53,7 @@ class ErrorBoundary extends Component {
   }
 }
 
-function GlobalMenu({ light, onToggle, largeText, onToggleLargeText, hasGame, onAbandon, onAbout, extraOptions }) {
+function GlobalMenu({ light, onToggle, largeText, onToggleLargeText, hasGame, onAbandon, onAbout, extraOptions, user, isGuest, onSignIn, onSignInGuest, onLinkGoogle, onSignOut, onProfile, onMySquads }) {
   const [open, setOpen] = useState(false);
 
   function abandon() {
@@ -87,6 +91,48 @@ function GlobalMenu({ light, onToggle, largeText, onToggleLargeText, hasGame, on
                     {opt.warn && <p className="global-menu-warn">{opt.warn}</p>}
                   </div>
                 ))}
+              </>
+            )}
+
+            <div className="global-menu-divider" />
+
+            {/* Auth section */}
+            {user && !isGuest ? (
+              <>
+                <div className="global-menu-account">
+                  <span className="global-menu-account-name">⚽ {user.displayName || user.email}</span>
+                </div>
+                <button className="global-menu-item" onClick={() => { setOpen(false); onMySquads(); }}>
+                  🗂 MY SQUADS
+                </button>
+                <button className="global-menu-item" onClick={() => { setOpen(false); onProfile(); }}>
+                  👤 EDIT PROFILE
+                </button>
+                <button className="global-menu-item" onClick={() => { setOpen(false); onSignOut(); }}>
+                  ⇥ SIGN OUT
+                </button>
+              </>
+            ) : isGuest ? (
+              <>
+                <div className="global-menu-account">
+                  <span className="global-menu-account-name">👤 Playing as Guest</span>
+                </div>
+                <button className="global-menu-item" onClick={() => { setOpen(false); onLinkGoogle(); }}>
+                  ⇥ LINK GOOGLE ACCOUNT
+                </button>
+                <p className="global-menu-warn">Link to save your squads and history.</p>
+                <button className="global-menu-item" onClick={() => { setOpen(false); onSignOut(); }}>
+                  ⇥ SIGN OUT
+                </button>
+              </>
+            ) : (
+              <>
+                <button className="global-menu-item" onClick={() => { setOpen(false); onSignIn(); }}>
+                  ⇥ SIGN IN WITH GOOGLE
+                </button>
+                <button className="global-menu-item" onClick={() => { setOpen(false); onSignInGuest(); }}>
+                  ⇥ PLAY AS GUEST
+                </button>
               </>
             )}
 
@@ -132,9 +178,9 @@ function GlobalMenu({ light, onToggle, largeText, onToggleLargeText, hasGame, on
 
 // ── Multiplayer ────────────────────────────────────────────────────────────
 
-function MultiplayerApp({ onBack }) {
+function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
   const session = useMultiplayerSession();
-  const { gameDoc, mySlotIdx, isHost, error, loading, createGame, joinGame, updateMySlot, writeGameState, submitManagerPick, setManagerDraftConfig, setMatchConfig: setMatchConfigRemote, setMatchData, clearMatchData, setPhase, leaveGame, clearError } = session;
+  const { gameDoc, mySlotIdx, isHost, error, loading, createGame, joinGame, updateMySlot, writeGameState, submitManagerPick, setManagerDraftConfig, setMatchConfig: setMatchConfigRemote, setMatchData, clearMatchData, setPhase, updateWcSlot, updateGameFields, leaveGame, clearError } = session;
 
   const mpDraft = useMultiplayerDraft({
     gameDoc,
@@ -142,6 +188,8 @@ function MultiplayerApp({ onBack }) {
     writeGameState,
     setPhase,
     isHost,
+    updateWcSlot,
+    updateGameFields,
   });
 
   const [lightMode, setLightMode] = useState(() => localStorage.getItem("tg-theme") === "light");
@@ -160,6 +208,41 @@ function MultiplayerApp({ onBack }) {
   }, [largeText]);
 
   const { screen, draft, activeManager, activeManagerIdx, currentPos, isMyTurn, ...actions } = mpDraft;
+
+  // ── War Chest multiplayer: host advances phase when all players are ready ──
+  useEffect(() => {
+    if (!isHost || !draft?.warChest || screen !== "wc-select") return;
+    const wcSlots = gameDoc?.wcSlots || {};
+    const allSelected = draft.managers.every((m, i) => m.isComputer || wcSlots[i]?.chestBudget != null);
+    if (!allSelected) return;
+    const nextDraft = {
+      ...draft,
+      managers: draft.managers.map((m, i) => {
+        if (m.isComputer) return m;
+        const wd = wcSlots[i] || {};
+        return { ...m, chestBudget: wd.chestBudget, wcBudgetRemaining: wd.chestBudget };
+      }),
+    };
+    actions.advanceWcPhase(nextDraft, "wc-draft");
+  }, [gameDoc?.wcSlots, screen, isHost, draft?.warChest]); // eslint-disable-line
+
+  useEffect(() => {
+    if (!isHost || !draft?.warChest || screen !== "wc-draft") return;
+    const wcSlots = gameDoc?.wcSlots || {};
+    const allDone = draft.managers.every((m, i) => m.isComputer || wcSlots[i]?.done);
+    if (!allDone) return;
+    const nextDraft = {
+      ...draft,
+      managers: draft.managers.map((m, i) => {
+        if (m.isComputer) return m;
+        const wd = wcSlots[i] || {};
+        return { ...m, squad: wd.squad || m.squad, wcBudgetRemaining: wd.wcBudgetRemaining ?? m.wcBudgetRemaining, chestBudget: wd.chestBudget ?? m.chestBudget };
+      }),
+      phase: "complete",
+      wcPhase: "complete",
+    };
+    actions.advanceWcPhase(nextDraft, "squads");
+  }, [gameDoc?.wcSlots, screen, isHost, draft?.warChest]); // eslint-disable-line
 
   function handleSetScreen(s, extra) {
     if (s === "match") {
@@ -209,6 +292,7 @@ function MultiplayerApp({ onBack }) {
         onUpdateSlot={updateMySlot}
         onStartGame={(clubs, options) => actions.startGame(clubs, options)}
         onLeave={handleLeave}
+        initialGameMode={initialGameMode}
       />
     );
   }
@@ -267,6 +351,69 @@ function MultiplayerApp({ onBack }) {
     );
   }
 
+  // ── War Chest multiplayer screens ─────────────────────────────────────────
+
+  if (screen === "wc-select" && draft) {
+    const myWcData = gameDoc?.wcSlots?.[mySlotIdx] || {};
+    if (myWcData.chestBudget != null) {
+      const othersLeft = draft.managers.filter((m, i) => !m.isComputer && i !== mySlotIdx && !(gameDoc?.wcSlots?.[i]?.chestBudget != null)).length;
+      return (
+        <>{globalMenu}
+          <div className="setup-screen"><div className="setup-card">
+            <div className="mp-waiting-screen">
+              <div className="mp-waiting-spinner" />
+              <p className="mp-waiting-text">Chest opened! Waiting for {othersLeft === 1 ? "1 other manager" : `${othersLeft} others`}…</p>
+            </div>
+          </div></div>
+        </>
+      );
+    }
+    return (
+      <>{globalMenu}
+        <WarChestSelectionScreen
+          draft={{ ...draft, wcCurrentManagerIdx: mySlotIdx }}
+          onSelect={actions.selectWarChest}
+        />
+      </>
+    );
+  }
+
+  if (screen === "wc-draft" && draft) {
+    const myWcData = gameDoc?.wcSlots?.[mySlotIdx] || {};
+    if (myWcData.done) {
+      const othersLeft = draft.managers.filter((m, i) => !m.isComputer && i !== mySlotIdx && !gameDoc?.wcSlots?.[i]?.done).length;
+      return (
+        <>{globalMenu}
+          <div className="setup-screen"><div className="setup-card">
+            <div className="mp-waiting-screen">
+              <div className="mp-waiting-spinner" />
+              <p className="mp-waiting-text">Squad complete! Waiting for {othersLeft === 1 ? "1 other manager" : `${othersLeft} others`}…</p>
+            </div>
+          </div></div>
+        </>
+      );
+    }
+    const localDraft = {
+      ...draft,
+      wcCurrentManagerIdx: mySlotIdx,
+      managers: draft.managers.map((m, i) =>
+        i === mySlotIdx
+          ? { ...m, chestBudget: myWcData.chestBudget, wcBudgetRemaining: myWcData.wcBudgetRemaining ?? myWcData.chestBudget, squad: myWcData.squad || Array(16).fill(null) }
+          : m
+      ),
+    };
+    return (
+      <>{globalMenu}
+        <WarChestDraftScreen
+          draft={localDraft}
+          pickPlayer={(slot, player) => actions.pickWarChestPlayer(slot, player)}
+          onDone={actions.completeWarChestSquad}
+          getPlayers={actions.getWarChestPlayers}
+        />
+      </>
+    );
+  }
+
   // All other screens — render normally (same as single player)
   if (screen === "setup" || !draft) {
     return (
@@ -319,15 +466,22 @@ function MultiplayerApp({ onBack }) {
   }
 
   if (screen === "squads" && draft) {
+    function mpSquadSetScreen(s, extra) {
+      if ((s === "match" || s === "series" || s === "draw") && !isHost) return;
+      handleSetScreen(s, extra);
+    }
+    if (draft.warChest) {
+      return (
+        <>
+          {globalMenu}
+          <WarChestSquadScreen draft={draft} setScreen={mpSquadSetScreen} />
+        </>
+      );
+    }
     const managersAssigned = draft.managers.some(m => m.footballManager);
     const onManagerDraft = (draft.managerTiming === "after" && !managersAssigned)
       ? () => mpDraft.setScreen("manager-draft")
       : undefined;
-    // Non-host can view squads and manage their own, but only host can start a match
-    function mpSquadSetScreen(s, extra) {
-      if (s === "match" && !isHost) return;
-      handleSetScreen(s, extra);
-    }
     return (
       <>
         {globalMenu}
@@ -371,7 +525,7 @@ function MultiplayerApp({ onBack }) {
       return <>{globalMenu}<SquadScreen draft={draft} setTeamName={actions.setTeamName} swapSquadPlayers={actions.swapSquadPlayers} setTactics={actions.setTactics} restartGame={actions.restartGame} setScreen={handleSetScreen} onBackToSeries={draft.series ? () => mpDraft.setScreen("series") : undefined} mySlotIdx={mySlotIdx} /></>;
     }
     const inSeries = !!draft.series;
-    const seriesCtx = inSeries ? getSeriesContext(draft.series, draft.managers) : null;
+    const seriesCtx = inSeries ? getSeriesContext(draft.series, draft.managers, !!draft.warChest) : null;
     return (
       <>
         {globalMenu}
@@ -379,6 +533,7 @@ function MultiplayerApp({ onBack }) {
           draft={draft}
           homeIdx={homeIdx}
           awayIdx={awayIdx}
+          matchMinutes={draft.warChest ? 60 : 90}
           onBack={isHost ? () => mpDraft.setScreen(inSeries ? "series" : "squads") : null}
           onMatchResult={inSeries && isHost ? (winnerIdx, score, ratings, events, injuries) => {
             clearMatchData();
@@ -398,7 +553,7 @@ function MultiplayerApp({ onBack }) {
 
 // ── Single player ──────────────────────────────────────────────────────────
 
-function AppInner({ onMultiplayer }) {
+function AppInner({ onMultiplayer, auth }) {
   const {
     screen, setScreen,
     draft, activeManager, activeManagerIdx, currentPos,
@@ -411,7 +566,11 @@ function AppInner({ onMultiplayer }) {
 
   const [preScreen, setPreScreen] = useState("mode-select"); // "mode-select" | "lobby" | "club-creator" | "wc-lobby" | "wc-club-creator"
   const [showAbout, setShowAbout] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showMySquads, setShowMySquads] = useState(false);
   const [lobbyConfig, setLobbyConfig] = useState(null);
+
+  const saveSquadHook = useSaveSquad(auth.user);
 
   const [matchConfig, setMatchConfig] = useState({ homeIdx: 0, awayIdx: 1 });
   const [lightMode, setLightMode] = useState(() => localStorage.getItem("tg-theme") === "light");
@@ -455,8 +614,41 @@ function AppInner({ onMultiplayer }) {
       onAbandon={handleAbandon}
       onAbout={() => setShowAbout(true)}
       screen={screen}
+      user={auth.user}
+      isGuest={auth.isGuest}
+      onSignIn={auth.signInWithGoogle}
+      onSignInGuest={auth.signInAsGuest}
+      onLinkGoogle={auth.linkGoogleAccount}
+      onSignOut={auth.signOut}
+      onProfile={() => setShowProfile(true)}
+      onMySquads={() => setShowMySquads(true)}
     />
   );
+
+  // First-time profile setup (not for guests)
+  if (auth.user && !auth.isGuest && auth.profile && !auth.profile.setupComplete) {
+    return (
+      <ProfileScreen
+        profile={auth.profile}
+        onSave={auth.saveProfile}
+        isSetup
+      />
+    );
+  }
+
+  // Edit profile overlay
+  if (showProfile) {
+    return (
+      <>
+        {globalMenu}
+        <ProfileScreen
+          profile={auth.profile}
+          onSave={async (updates) => { await auth.saveProfile(updates); setShowProfile(false); }}
+          onBack={() => setShowProfile(false)}
+        />
+      </>
+    );
+  }
 
   if (showAbout) {
     return (
@@ -467,15 +659,29 @@ function AppInner({ onMultiplayer }) {
     );
   }
 
+  if (showMySquads) {
+    return (
+      <>
+        {globalMenu}
+        <MySquadsScreen
+          loadSquads={saveSquadHook.loadSquads}
+          deleteSquad={saveSquadHook.deleteSquad}
+          onBack={() => setShowMySquads(false)}
+        />
+      </>
+    );
+  }
+
   if (screen === "setup" || !draft) {
     if (preScreen === "mode-select") {
       return (
         <>
           {globalMenu}
           <ModeSelectScreen
-            onSameDevice={() => setPreScreen("lobby")}
-            onOnline={onMultiplayer}
-            onWarChest={() => setPreScreen("wc-lobby")}
+            onClassicSolo={() => setPreScreen("lobby")}
+            onClassicOnline={() => onMultiplayer("classic")}
+            onWcSolo={() => setPreScreen("wc-lobby")}
+            onWcOnline={() => onMultiplayer("warchest")}
             onAbout={() => setShowAbout(true)}
           />
         </>
@@ -498,6 +704,7 @@ function AppInner({ onMultiplayer }) {
           {globalMenu}
           <ClubCreatorScreen
             config={lobbyConfig}
+            profileDefaults={auth.profile?.setupComplete ? auth.profile : null}
             onStart={(clubs, opts) => {
               startWarChestGame(clubs, { ...opts, ...lobbyConfig });
               setPreScreen("mode-select");
@@ -523,6 +730,7 @@ function AppInner({ onMultiplayer }) {
         {globalMenu}
         <ClubCreatorScreen
           config={lobbyConfig}
+          profileDefaults={auth.profile?.setupComplete ? auth.profile : null}
           onStart={(clubs, opts) => { startGame(clubs, opts); setPreScreen("mode-select"); }}
           onBack={() => setPreScreen("lobby")}
         />
@@ -576,6 +784,11 @@ function AppInner({ onMultiplayer }) {
             setScreen={handleSetScreen}
             recordMatchResult={recordMatchResult}
             restartGame={restartGame}
+            onSaveSquad={auth.user && !auth.isGuest ? () => {
+              const hIdx = draft.managers.findIndex(m => !m.isComputer);
+              if (hIdx !== -1) saveSquadHook.saveSquad(draft, hIdx);
+            } : undefined}
+            saveState={saveSquadHook}
           />
         </>
       );
@@ -584,7 +797,7 @@ function AppInner({ onMultiplayer }) {
       const homeIdx = matchConfig.homeIdx ?? 0;
       const awayIdx = matchConfig.awayIdx ?? 1;
       const inSeries = !!draft.series;
-      const seriesCtx = inSeries ? getSeriesContext(draft.series, draft.managers) : null;
+      const seriesCtx = inSeries ? getSeriesContext(draft.series, draft.managers, !!draft.warChest) : null;
       return (
         <>
           {globalMenu}
@@ -613,10 +826,18 @@ function AppInner({ onMultiplayer }) {
   }
 
   if (screen === "order-draw" && draft) {
-    return <>{globalMenu}<OrderDrawScreen draft={draft} onStart={() => setScreen("player-pool")} /></>;
+    const afterDraw = draft.draftRoulette?.enabled
+      ? (draft.managerTiming === "before" ? "manager-draft" : "draft")
+      : "player-pool";
+    return <>{globalMenu}<OrderDrawScreen draft={draft} onStart={() => setScreen(afterDraw)} /></>;
   }
 
   if (screen === "player-pool" && draft) {
+    // Draft Roulette assigns pools per-manager — skip the global pool screen
+    if (draft.draftRoulette?.enabled) {
+      setScreen(draft.managerTiming === "before" ? "manager-draft" : "draft");
+      return null;
+    }
     return (
       <>
         {globalMenu}
@@ -704,6 +925,11 @@ function AppInner({ onMultiplayer }) {
           setScreen={handleSetScreen}
           recordMatchResult={recordMatchResult}
           restartGame={restartGame}
+          onSaveSquad={auth.user && !auth.isGuest ? () => {
+            const hIdx = draft.managers.findIndex(m => !m.isComputer);
+            if (hIdx !== -1) saveSquadHook.saveSquad(draft, hIdx);
+          } : undefined}
+          saveState={saveSquadHook}
         />
       </>
     );
@@ -716,7 +942,7 @@ function AppInner({ onMultiplayer }) {
       return <>{globalMenu}<SquadScreen draft={draft} setTeamName={setTeamName} swapSquadPlayers={swapSquadPlayers} setTactics={setTactics} restartGame={restartGame} setScreen={handleSetScreen} onBackToSeries={draft.series ? () => setScreen("series") : undefined} /></>;
     }
     const inSeries = !!draft.series;
-    const seriesCtx = inSeries ? getSeriesContext(draft.series, draft.managers) : null;
+    const seriesCtx = inSeries ? getSeriesContext(draft.series, draft.managers, !!draft.warChest) : null;
     return (
       <>
         {globalMenu}
@@ -747,11 +973,22 @@ function AppFooter() {
 
 export default function App() {
   const [mode, setMode] = useState("single"); // "single" | "multiplayer"
+  const [mpInitialMode, setMpInitialMode] = useState("classic");
+  const auth = useAuth();
+
+  function goMultiplayer(gameMode = "classic") {
+    setMpInitialMode(gameMode);
+    setMode("multiplayer");
+  }
+
+  // Still resolving auth state — show nothing to avoid flash
+  if (auth.user === undefined) return null;
+
   return (
     <ErrorBoundary>
       {mode === "multiplayer"
-        ? <MultiplayerApp onBack={() => setMode("single")} />
-        : <AppInner onMultiplayer={() => setMode("multiplayer")} />
+        ? <MultiplayerApp onBack={() => setMode("single")} initialGameMode={mpInitialMode} />
+        : <AppInner onMultiplayer={goMultiplayer} auth={auth} />
       }
       <AppFooter />
     </ErrorBoundary>

@@ -113,7 +113,7 @@ function getNextMatchup(series) {
   return null;
 }
 
-export function getSeriesContext(series, managers) {
+export function getSeriesContext(series, managers, warChest = false) {
   const next = getNextMatchup(series);
   if (!next) return null;
   const hm = managers[next.homeIdx];
@@ -193,7 +193,7 @@ export function getSeriesContext(series, managers) {
   }
 
   const isTournamentKnockout = series.format === "tournament" || series.format === "tournament8";
-  return { label: `MATCH ${next.matchNum} · ${next.label}`, standing, homeIdx: next.homeIdx, awayIdx: next.awayIdx, legContext, isLeg1, isGrandFinal, homePrevResult, awayPrevResult, isSeriesTiebreaker: next.isSeriesTiebreaker ?? false, isTournamentKnockout };
+  return { label: `MATCH ${next.matchNum} · ${next.label}`, standing, homeIdx: next.homeIdx, awayIdx: next.awayIdx, legContext, isLeg1, isGrandFinal, homePrevResult, awayPrevResult, isSeriesTiebreaker: next.isSeriesTiebreaker ?? false, isTournamentKnockout, skipToShootout: !!warChest };
 }
 
 // Two-player series standings panel
@@ -503,7 +503,7 @@ async function drawSquadCard(manager) {
   return canvas;
 }
 
-function ChampionSquad({ manager }) {
+function ChampionSquad({ manager, onSaveSquad, saveState }) {
   const [collapsed, setCollapsed] = useState(true);
   const [exporting, setExporting] = useState(false);
   const isWC = manager.chestBudget !== undefined;
@@ -540,6 +540,15 @@ function ChampionSquad({ manager }) {
         <span className="champ-squad-toggle-label">SQUAD</span>
         <span className="champ-squad-toggle">{collapsed ? "▲" : "▼"}</span>
         <button className="action-btn" disabled={exporting} onClick={e => { e.stopPropagation(); exportSquad(); }}>{exporting ? "…" : "SHARE"}</button>
+        {onSaveSquad && (
+          <button
+            className="action-btn"
+            disabled={saveState?.saving || saveState?.saved}
+            onClick={e => { e.stopPropagation(); onSaveSquad(); }}
+          >
+            {saveState?.saved ? "✓" : saveState?.saving ? "…" : "SAVE"}
+          </button>
+        )}
       </div>
 
       {!collapsed && <>
@@ -829,7 +838,7 @@ function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone }) {
   );
 }
 
-export default function SeriesScreen({ draft, setScreen, recordMatchResult, restartGame }) {
+export default function SeriesScreen({ draft, setScreen, recordMatchResult, restartGame, onSaveSquad, saveState }) {
   const { managers, series } = draft;
   const [cpuSimActive, setCpuSimActive] = useState(false);
 
@@ -900,7 +909,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
             </div>
 
             {/* Full squad */}
-            <ChampionSquad manager={champion} />
+            <ChampionSquad manager={champion} onSaveSquad={onSaveSquad} saveState={saveState} />
 
             {/* Tournament stats */}
             <TournamentResults tournamentStats={draft.tournamentStats} managers={managers} />
