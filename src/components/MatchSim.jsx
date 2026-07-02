@@ -977,7 +977,15 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       if (target) {
         possH = possH * 0.94 + ratio * 0.06;
         if (isHome) hFouls++; else aFouls++;
-        if (booked.has(target.name)) {
+        // 5-a-side: no red cards — losing a fifth of your squad for the rest of
+        // the tie (with no bench to cover) is too punishing for the format.
+        if (is5aside) {
+          if (!booked.has(target.name)) {
+            booked.add(target.name);
+            events.push({ min, type: "yellow", team: isHome ? "home" : "away", player: target.name, text: pick(COMMENTARY_CARD)(target.name), poss: Math.round(possH * 100) });
+            if (isHome) hCards.push(target.name); else aCards.push(target.name);
+          }
+        } else if (booked.has(target.name)) {
           sentOff.add(target.name);
           events.push({ min, type: "red", team: isHome ? "home" : "away", player: target.name, text: pick(COMMENTARY_RED)(target.name, isHome ? homeName : awayName, 11 - sentOff.size), poss: Math.round(possH * 100) });
         } else {
@@ -995,9 +1003,10 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   }
 
   // Injury events: one possible injury per team, fired at a random mid-match minute
-  // We pick the player now (post loop so we know who stayed on), then inject a commentary event
+  // We pick the player now (post loop so we know who stayed on), then inject a commentary event.
+  // Skipped in 5-a-side — losing a fifth of a 5-player squad with no bench cover is too harsh.
   const matchInjuries = []; // { name, team: "home"|"away" }
-  for (const [squad, side, teamName] of [[homeSquad, "home", homeName], [awaySquad, "away", awayName]]) {
+  for (const [squad, side, teamName] of is5aside ? [] : [[homeSquad, "home", homeName], [awaySquad, "away", awayName]]) {
     if (Math.random() < 0.08) {
       const eligible = squad.slice(0, 11).filter(p => p);
       if (eligible.length > 0) {
