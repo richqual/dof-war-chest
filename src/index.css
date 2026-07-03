@@ -6524,6 +6524,86 @@ html.large-text .match-report-title  { font-size: 14px; }
   outline: none;
 }
 .wc-search::placeholder { color: var(--text3); }
+
+/* Price range slider */
+.wc-price-filter {
+  padding: 10px 14px 12px;
+  border-bottom: 1px solid var(--border2);
+  background: var(--bg3);
+}
+.wc-price-filter-labels {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-head);
+  font-size: 11px;
+  color: var(--amber);
+  margin-bottom: 8px;
+}
+.wc-price-slider {
+  position: relative;
+  height: 18px;
+}
+.wc-price-slider-track {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 3px;
+  transform: translateY(-50%);
+  background: var(--border2);
+  border-radius: 2px;
+}
+.wc-price-slider-fill {
+  position: absolute;
+  top: 50%;
+  height: 3px;
+  transform: translateY(-50%);
+  background: var(--amber);
+  border-radius: 2px;
+}
+.wc-price-slider-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.wc-price-slider-input::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
+  background: transparent;
+  height: 18px;
+}
+.wc-price-slider-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--amber);
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--border2);
+  cursor: pointer;
+  margin-top: 1px;
+}
+.wc-price-slider-input::-moz-range-track {
+  background: transparent;
+  height: 18px;
+}
+.wc-price-slider-input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--amber);
+  border: 2px solid var(--bg);
+  box-shadow: 0 0 0 1px var(--border2);
+  cursor: pointer;
+}
 .wc-player-list { max-height: 260px; overflow-y: auto; }
 .wc-no-players { padding: 1rem; font-family: var(--font); font-size: 14px; color: var(--text3); text-align: center; }
 

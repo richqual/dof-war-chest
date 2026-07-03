@@ -31,6 +31,7 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
 
   const [activeSlot, setActiveSlot] = useState(null);
   const [search, setSearch] = useState("");
+  const [priceRange, setPriceRange] = useState(null);
 
   const humanManagers = draft.managers.filter(m => !m.isComputer);
   const humanManagerCount = humanManagers.length;
@@ -47,6 +48,7 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
     if (manager.squad[slotIdx]) return; // already filled
     setActiveSlot(slotIdx === activeSlot ? null : slotIdx);
     setSearch("");
+    setPriceRange(null);
   }
 
   function handlePick(player) {
@@ -56,9 +58,15 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
     setSearch("");
   }
 
+  const slotPlayers = activeSlot !== null ? getPlayers(activeSlot) : [];
+  const boundsMin = slotPlayers.length ? Math.min(...slotPlayers.map(p => p.value)) : 0;
+  const boundsMax = slotPlayers.length ? Math.max(...slotPlayers.map(p => p.value)) : 0;
+  const [priceMin, priceMax] = priceRange ?? [boundsMin, boundsMax];
+
   const activePlayers = activeSlot !== null
-    ? getPlayers(activeSlot)
+    ? slotPlayers
         .filter(p => !search || normalizeSearch(p.name).includes(normalizeSearch(search)) || normalizeSearch(p.club).includes(normalizeSearch(search)))
+        .filter(p => p.value >= priceMin && p.value <= priceMax)
         .map(p => ({ ...p, affordable: p.value <= remaining }))
         .sort((a, b) => {
           if (a.affordable !== b.affordable) return a.affordable ? -1 : 1;
@@ -162,6 +170,40 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
               onChange={e => setSearch(e.target.value)}
               autoFocus
             />
+            {boundsMax > boundsMin && (
+              <div className="wc-price-filter">
+                <div className="wc-price-filter-labels">
+                  <span>{formatValue(priceMin)}</span>
+                  <span>{formatValue(priceMax)}</span>
+                </div>
+                <div className="wc-price-slider">
+                  <div className="wc-price-slider-track" />
+                  <div
+                    className="wc-price-slider-fill"
+                    style={{
+                      left: `${((priceMin - boundsMin) / (boundsMax - boundsMin)) * 100}%`,
+                      right: `${100 - ((priceMax - boundsMin) / (boundsMax - boundsMin)) * 100}%`,
+                    }}
+                  />
+                  <input
+                    type="range"
+                    className="wc-price-slider-input"
+                    min={boundsMin}
+                    max={boundsMax}
+                    value={priceMin}
+                    onChange={e => setPriceRange([Math.min(Number(e.target.value), priceMax), priceMax])}
+                  />
+                  <input
+                    type="range"
+                    className="wc-price-slider-input"
+                    min={boundsMin}
+                    max={boundsMax}
+                    value={priceMax}
+                    onChange={e => setPriceRange([priceMin, Math.max(Number(e.target.value), priceMin)])}
+                  />
+                </div>
+              </div>
+            )}
             <div className="wc-player-list">
               {activePlayers.length === 0 && (
                 <div className="wc-no-players">No players available</div>
