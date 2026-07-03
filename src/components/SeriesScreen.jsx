@@ -885,6 +885,12 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
             <div className="champion-dof">
               Director of Football: {champion.dofName || champion.name}
             </div>
+            {champion.footballManager && (
+              <div className="champion-manager">
+                ⚙ {champion.footballManager.name}
+                {champion.footballManager.styleLabel && ` — ${champion.footballManager.styleLabel}`}
+              </div>
+            )}
             <div className="champion-sub">
               {(series.format === "tournament" || series.format === "tournament8")
                 ? "Wins the tournament!"
