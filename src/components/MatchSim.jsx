@@ -618,7 +618,9 @@ function generatePreMatchNarrative(draft, homeIdx, awayIdx, seriesContext) {
       q.p.includes(homeIdx) && q.p.includes(awayIdx)
     );
     if (qIdx >= 0) {
-      if (seriesContext?.isLeg1) {
+      if (series.singleLeg) {
+        sentences.push(`Quarter-final — ${homeName} host ${awayName} in a straight knockout tie tonight. Penalties await if the scores are level.`);
+      } else if (seriesContext?.isLeg1) {
         sentences.push(`Quarter-final first leg — ${homeName} host ${awayName}. The second leg awaits on their travels.`);
       } else {
         const agg = series.quarters[qIdx];
@@ -651,7 +653,13 @@ function generatePreMatchNarrative(draft, homeIdx, awayIdx, seriesContext) {
       const otherFinalistName = otherFinalist ? (otherFinalist.teamName || otherFinalist.name) : null;
 
       if (sm.legsPlayed === 0) {
-        if (otherFinalistName) {
+        if (series.singleLeg) {
+          if (otherFinalistName) {
+            sentences.push(`${homeName} and ${awayName} meet in a one-off semi-final tonight, with ${otherFinalistName} already through to the grand final.`);
+          } else {
+            sentences.push(`The semi-finals are underway — ${homeName} host ${awayName} in a straight knockout tie tonight.`);
+          }
+        } else if (otherFinalistName) {
           sentences.push(`${homeName} and ${awayName} kick off their semi-final tonight knowing ${otherFinalistName} are already waiting in the grand final.`);
         } else {
           sentences.push(`The semi-finals are underway — ${homeName} welcome ${awayName} for the first leg of what promises to be a mouthwatering tie.`);
@@ -659,9 +667,13 @@ function generatePreMatchNarrative(draft, homeIdx, awayIdx, seriesContext) {
         if (hmFmName && amFmName) {
           sentences.push(`${hmFmName} and ${amFmName} go head to head — two very different football philosophies about to collide.`);
         } else if (hmFmName) {
-          sentences.push(`All eyes on ${hmFmName} tonight — can ${mgrTeamRef(hmFmName, homeName, hmFm.style)} take a crucial first-leg advantage?`);
+          sentences.push(series.singleLeg
+            ? `All eyes on ${hmFmName} tonight — can ${mgrTeamRef(hmFmName, homeName, hmFm.style)} book their place in the final?`
+            : `All eyes on ${hmFmName} tonight — can ${mgrTeamRef(hmFmName, homeName, hmFm.style)} take a crucial first-leg advantage?`);
         } else if (amFmName) {
-          sentences.push(`${amFmName} brings his side here with one objective: leave with an advantage heading into the second leg.`);
+          sentences.push(series.singleLeg
+            ? `${amFmName} brings his side here with one objective: win tonight and reach the grand final.`
+            : `${amFmName} brings his side here with one objective: leave with an advantage heading into the second leg.`);
         }
       } else {
         // Leg 2
@@ -1500,7 +1512,7 @@ function PreMatchPitch({ manager, accent, formation, variant = "grass" }) {
   );
 }
 
-function LineupPanel({ homeManager, awayManager, homeName, awayName, onClose }) {
+function LineupPanel({ homeManager, awayManager, homeName, awayName, warChest = false, onClose }) {
   const teams = [
     { mgr: homeManager, name: homeName, uid: "lh" },
     { mgr: awayManager, name: awayName, uid: "la" },
@@ -1519,14 +1531,14 @@ function LineupPanel({ homeManager, awayManager, homeName, awayName, onClose }) 
                 <KitSwatch primary={mgr.primaryColor} secondary={mgr.secondaryColor} pattern={mgr.pattern} uid={uid} size={26} />
                 <span>{name}</span>
               </div>
-              {mgr.squad.slice(0, 11).map((p, i) => (
+              {mgr.squad.slice(0, warChest ? 5 : 11).map((p, i) => (
                 <div className="lineup-row" key={i}>
                   <span className="lineup-pos">{p ? p.pos : "–"}</span>
                   <span className="lineup-name">{p ? p.name : "(empty)"}</span>
                   <span className="lineup-rating">{p ? p.rating : ""}</span>
                 </div>
               ))}
-              {mgr.squad.slice(11, 16).some(Boolean) && <>
+              {!warChest && mgr.squad.slice(11, 16).some(Boolean) && <>
                 <div className="lineup-subs-label">SUBSTITUTES</div>
                 {mgr.squad.slice(11, 16).map((p, i) => (
                   <div className="lineup-row sub" key={i}>
@@ -2041,6 +2053,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
           awayManager={awayManager}
           homeName={homeName}
           awayName={awayName}
+          warChest={!!draft?.warChest}
           onClose={() => setShowLineups(false)}
         />
       )}

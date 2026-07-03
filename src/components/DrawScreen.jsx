@@ -55,7 +55,9 @@ export default function DrawScreen({ draft, onComplete, isHost = true }) {
 
   const roundLabel = is8 ? "QUARTER-FINAL" : "SEMI-FINAL";
   const subText = is8
-    ? "2-legged quarter-finals · 2-legged semi-finals · 1-leg Grand Final"
+    ? (draft.warChest
+      ? "Quarter-finals: 1 leg · Semi-finals: 1 leg · Grand Final: 1 leg"
+      : "2-legged quarter-finals · 2-legged semi-finals · 1-leg Grand Final")
     : draft.warChest
       ? "Semi-finals: 1 leg · Grand Final: 1 leg"
       : "Semi-finals: 2 legs (aggregate) · Grand Final: 1 leg";
