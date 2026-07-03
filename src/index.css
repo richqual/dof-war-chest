@@ -2725,6 +2725,11 @@ input, select { font-family: var(--font); }
 .mr-good { color: var(--green-l); }
 .mr-ok { color: var(--text2); }
 .mr-poor { color: var(--red); }
+.mr-row.mr-subbed-off { opacity: 0.6; }
+.mr-sub-mark { font-size: 10px; }
+.mr-sub-off-mark { color: var(--red); }
+.mr-sub-on-mark { color: #3b82f6; }
+.ratings-subs-label { font-family: var(--font-head); font-size: 8px; color: var(--text3); letter-spacing: 2px; margin: 8px 0 2px; }
 
 @media (max-width: 700px) {
   .summary-cols { flex-direction: column; }

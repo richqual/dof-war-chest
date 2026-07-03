@@ -456,6 +456,8 @@ function buildRatings(players, side, allEvents, conceded, won, drew) {
     const assists = allEvents.filter(e => e.type === "goal" && e.team === side && e.assister === p.name).length;
     const yellow = allEvents.some(e => e.type === "yellow" && e.team === side && e.player === p.name);
     const red = allEvents.some(e => e.type === "red" && e.team === side && e.player === p.name);
+    const subOn = allEvents.find(e => e.type === "sub" && e.team === side && e.onName === p.name);
+    const subOff = allEvents.find(e => e.type === "sub" && e.team === side && e.offName === p.name);
 
     let r = 6.2 + (p.rating - 80) * 0.04 + Math.random() * 0.9;
     r += goals * 1.2;
@@ -467,7 +469,11 @@ function buildRatings(players, side, allEvents, conceded, won, drew) {
     else if (DEFENSIVE_POS.has(p.pos) && conceded >= 3) r -= 0.5;
     r = Math.min(10, Math.max(3.5, Math.round(r * 10) / 10));
 
-    return { name: p.name, pos: p.pos, rating: r, goals, assists, yellow, red };
+    return {
+      name: p.name, pos: p.pos, rating: r, goals, assists, yellow, red,
+      subOnMin: subOn ? subOn.min : null,
+      subOffMin: subOff ? subOff.min : null,
+    };
   });
 }
 
@@ -1622,13 +1628,15 @@ function ratingClass(r) {
 
 function PlayerRatingRow({ r }) {
   return (
-    <div className={`mr-row ${r.motm ? "motm" : ""}`}>
+    <div className={`mr-row ${r.motm ? "motm" : ""} ${r.subOffMin != null ? "mr-subbed-off" : ""}`}>
       <span className="mr-pos">{r.pos}</span>
       <span className="mr-name">
         {r.name}
         {r.goals > 0 && <span className="mr-marks"> {"⚽".repeat(r.goals)}</span>}
         {r.assists > 0 && <span className="mr-marks mr-assist"> {"🅰️".repeat(r.assists)}</span>}
         {r.red ? <span className="mr-marks"> 🟥</span> : r.yellow ? <span className="mr-marks"> 🟨</span> : null}
+        {r.subOffMin != null && <span className="mr-marks mr-sub-mark mr-sub-off-mark"> ↓{r.subOffMin}′</span>}
+        {r.subOnMin != null && <span className="mr-marks mr-sub-mark mr-sub-on-mark"> ↑{r.subOnMin}′</span>}
         {r.motm && <span className="mr-marks"> ⭐</span>}
       </span>
       <span className={`mr-val ${ratingClass(r.rating)}`}>{r.rating.toFixed(1)}</span>
@@ -2215,7 +2223,12 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
                 ].map(({ rs, accent, name, reaction }) => (
                   <div className="ratings-col" key={name}>
                     <div className="ratings-team" style={{ color: accent }}>{name}</div>
-                    {rs.map(r => <PlayerRatingRow key={r.name} r={r} />)}
+                    {rs.map((r, i) => [
+                      r.subOnMin != null && (i === 0 || rs[i - 1].subOnMin == null) && (
+                        <div className="ratings-subs-label" key={`${r.name}-sub-label`}>SUBSTITUTES</div>
+                      ),
+                      <PlayerRatingRow key={r.name} r={r} />,
+                    ])}
                     {reaction && (
                       <div className="post-mgr-quote" style={{ borderColor: accent }}>
                         <span className="post-mgr-text">{reaction}</span>
