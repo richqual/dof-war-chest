@@ -377,6 +377,33 @@ const COMMENTARY_INJURY = [
   (p, t) => `${p} signals he can't continue. A blow for ${t} — he'll be assessed after the match.`,
 ];
 
+const COMMENTARY_SUB = [
+  (off, on, t) => `${t} make a change — ${off} makes way for ${on}.`,
+  (off, on, t) => `Fresh legs for ${t}: ${on} is on, ${off} gets the applause as he departs.`,
+  (off, on, t) => `${t}'s manager rolls the dice — ${on} replaces ${off}.`,
+  (off, on, t) => `Tactical switch for ${t} — ${off} comes off, ${on} comes on.`,
+  (off, on, t) => `${on} is stripped and ready — he replaces ${off} for ${t}.`,
+  (off, on, t) => `${t} looking to change the picture here. ${off} makes way, ${on} enters the fray.`,
+];
+
+const COMMENTARY_INJURY_SUB = [
+  (p, on, t) => `${p} cannot continue for ${t} — ${on} is sent on in his place.`,
+  (p, on, t) => `That's the end of ${p}'s afternoon. ${t} bring on ${on} as a precaution.`,
+  (p, on, t) => `${p} is helped off the pitch — ${t} have no choice but to bring on ${on}.`,
+  (p, on, t) => `A forced change for ${t}: ${p} is done for the day, ${on} replaces him.`,
+];
+
+const COMMENTARY_GK_RED_SUB = [
+  (off, on, t) => `${t} are forced into a reshuffle — ${off} makes way so substitute keeper ${on} can come on.`,
+  (off, on, t) => `With their goalkeeper dismissed, ${t} sacrifice ${off} to bring on ${on} between the sticks.`,
+  (off, on, t) => `${t} have to take off ${off} to get ${on} on in goal. Tough afternoon getting tougher.`,
+];
+
+const COMMENTARY_NO_GK_LEFT = [
+  (t) => `${t} have no fit goalkeeper left to bring on — they'll have to see this one out without a recognised number one.`,
+  (t) => `No substitutes left for ${t} — an outfield player will have to fill in between the posts.`,
+];
+
 const POS_PRIORITY = {
   GK:  ["GK"],
   CB:  ["CB", "LB", "RB", "DM", "CM"],
@@ -423,8 +450,8 @@ function goalContext(forGoals, againstGoals) {
 
 const DEFENSIVE_POS = new Set(["GK", "RB", "LB", "CB", "DM"]);
 
-function buildRatings(squad, side, allEvents, conceded, won, drew) {
-  return squad.slice(0, 11).filter(Boolean).map(p => {
+function buildRatings(players, side, allEvents, conceded, won, drew) {
+  return players.filter(Boolean).map(p => {
     const goals = allEvents.filter(e => e.type === "goal" && e.team === side && e.scorer === p.name).length;
     const assists = allEvents.filter(e => e.type === "goal" && e.team === side && e.assister === p.name).length;
     const yellow = allEvents.some(e => e.type === "yellow" && e.team === side && e.player === p.name);
@@ -954,9 +981,156 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   const hSentOff = new Set(), aSentOff = new Set();
   let possH = ratio; // running possession [0,1], drifts per event
 
-  const onPitch = (squad, sentOff) => squad.slice(0, 11).filter(p => p && !sentOff.has(p.name));
+  const onPitch = (squad, sentOff, unavailable) =>
+    squad.slice(0, 11).filter(p => p && !sentOff.has(p.name) && !(unavailable && unavailable.has(p.name)));
 
   const is5aside = homeSquad.filter(Boolean).length <= 5;
+
+  // ---------------------------------------------------------------------
+  // Substitutions — classic 11-a-side only. Up to 3 per team, usually rolled
+  // out from the second half onwards. An injury forces an immediate change
+  // (using a sub if one's available, otherwise the player just plays out the
+  // rest of the match a body down, like a red card). A goalkeeper red card is
+  // a special case: bringing on the reserve keeper still costs an outfield
+  // player, since the sub replaces a team-mate's spot rather than adding a man.
+  let hSubsUsed = 0, aSubsUsed = 0;
+  const hBenchPool = homeSquad.slice(11, 16).filter(Boolean);
+  const aBenchPool = awaySquad.slice(11, 16).filter(Boolean);
+  const homeXI = homeSquad.slice(0, 11).map(p => p || null);
+  const awayXI = awaySquad.slice(0, 11).map(p => p || null);
+  const hUnavailable = new Set(); // hurt/subbed off with no replacement left
+  const aUnavailable = new Set();
+  const hUsedFromBench = [], aUsedFromBench = []; // for post-match ratings
+  const matchInjuries = []; // { name, team: "home"|"away" } — carries into next match
+
+  const xiFor = side => (side === "home" ? homeXI : awayXI);
+  const benchPoolFor = side => (side === "home" ? hBenchPool : aBenchPool);
+  const unavailableFor = side => (side === "home" ? hUnavailable : aUnavailable);
+  const usedFromBenchFor = side => (side === "home" ? hUsedFromBench : aUsedFromBench);
+  const sentOffFor = side => (side === "home" ? hSentOff : aSentOff);
+  const nameFor = side => (side === "home" ? homeName : awayName);
+  const subsUsedFor = side => (side === "home" ? hSubsUsed : aSubsUsed);
+  const incSubsUsed = side => { if (side === "home") hSubsUsed++; else aSubsUsed++; };
+
+  function takeBenchReplacement(side, outgoingPos, requireGK = false) {
+    const bench = benchPoolFor(side);
+    let replacement = null;
+    if (requireGK) {
+      replacement = bench.find(b => b.pos === "GK");
+    } else {
+      const priority = POS_PRIORITY[outgoingPos] || [];
+      for (const posGroup of priority) {
+        replacement = bench.find(b => b.pos === posGroup);
+        if (replacement) break;
+      }
+      if (!replacement) replacement = bench.find(b => b.pos !== "GK");
+    }
+    if (replacement) bench.splice(bench.indexOf(replacement), 1);
+    return replacement;
+  }
+
+  function makeSub(side, idx, replacement, min, text) {
+    const XI = xiFor(side);
+    const off = XI[idx];
+    XI[idx] = replacement;
+    usedFromBenchFor(side).push(replacement);
+    incSubsUsed(side);
+    events.push({ min, type: "sub", team: side, offName: off.name, onName: replacement.name, text, poss: Math.round(possH * 100) });
+  }
+
+  function doTacticalSub(side, min) {
+    if (subsUsedFor(side) >= 3 || !benchPoolFor(side).length) return;
+    const XI = xiFor(side);
+    const sentOff = sentOffFor(side);
+    const unavailable = unavailableFor(side);
+    const candidates = XI
+      .map((p, i) => ({ p, i }))
+      .filter(x => x.p && x.p.pos !== "GK" && !sentOff.has(x.p.name) && !unavailable.has(x.p.name));
+    if (!candidates.length) return;
+    const outgoing = pick(candidates);
+    const replacement = takeBenchReplacement(side, outgoing.p.pos);
+    if (!replacement) return;
+    const text = pick(COMMENTARY_SUB)(outgoing.p.name, replacement.name, nameFor(side));
+    makeSub(side, outgoing.i, replacement, min, text);
+  }
+
+  function doInjury(side, min) {
+    const XI = xiFor(side);
+    const sentOff = sentOffFor(side);
+    const unavailable = unavailableFor(side);
+    const eligible = XI
+      .map((p, i) => ({ p, i }))
+      .filter(x => x.p && !sentOff.has(x.p.name) && !unavailable.has(x.p.name));
+    if (!eligible.length) return;
+    const victim = pick(eligible);
+    const teamName = nameFor(side);
+    matchInjuries.push({ name: victim.p.name, team: side });
+    if (subsUsedFor(side) < 3 && benchPoolFor(side).length) {
+      const replacement = takeBenchReplacement(side, victim.p.pos, victim.p.pos === "GK");
+      if (replacement) {
+        const text = pick(COMMENTARY_INJURY_SUB)(victim.p.name, replacement.name, teamName);
+        makeSub(side, victim.i, replacement, min, text);
+        return;
+      }
+    }
+    unavailable.add(victim.p.name);
+    events.push({ min, type: "injury", team: side, player: victim.p.name, text: pick(COMMENTARY_INJURY)(victim.p.name, teamName), poss: Math.round(possH * 100) });
+  }
+
+  function doGkRedCardSwap(side, gk, gkIdx, min) {
+    const teamName = nameFor(side);
+    if (subsUsedFor(side) < 3) {
+      const benchGK = takeBenchReplacement(side, "GK", true);
+      if (benchGK) {
+        const XI = xiFor(side);
+        const sentOff = sentOffFor(side);
+        const unavailable = unavailableFor(side);
+        const outfieldOnPitch = XI
+          .map((p, i) => ({ p, i }))
+          .filter(x => x.p && x.i !== gkIdx && !sentOff.has(x.p.name) && !unavailable.has(x.p.name));
+        if (outfieldOnPitch.length) {
+          const sacrifice = pick(outfieldOnPitch);
+          XI[sacrifice.i] = null;
+          XI[gkIdx] = benchGK;
+          usedFromBenchFor(side).push(benchGK);
+          incSubsUsed(side);
+          const text = pick(COMMENTARY_GK_RED_SUB)(sacrifice.p.name, benchGK.name, teamName);
+          events.push({ min, type: "sub", team: side, offName: sacrifice.p.name, onName: benchGK.name, text, poss: Math.round(possH * 100) });
+          return;
+        }
+      }
+    }
+    events.push({ min, type: "commentary", text: pick(COMMENTARY_NO_GK_LEFT)(teamName), poss: Math.round(possH * 100) });
+  }
+
+  // Planned tactical subs: 0-3 per team, weighted toward 2-3, spread across
+  // the second half (later subs land later).
+  function plannedSubCount() {
+    const r = Math.random();
+    if (r < 0.08) return 0;
+    if (r < 0.28) return 1;
+    if (r < 0.68) return 2;
+    return 3;
+  }
+  function plannedSubMinute(order, total) {
+    const start = Math.max(1, Math.round(matchMinutes * 0.55));
+    const end = Math.max(start + 1, matchMinutes - 1);
+    const span = end - start;
+    const segStart = start + Math.floor(span * (order / total));
+    const segEnd = start + Math.floor(span * ((order + 1) / total));
+    return rand(segStart, Math.max(segStart, segEnd));
+  }
+  const specials = [];
+  if (!is5aside) {
+    const hPlanned = plannedSubCount();
+    const aPlanned = plannedSubCount();
+    for (let i = 0; i < hPlanned; i++) specials.push({ min: plannedSubMinute(i, hPlanned), side: "home", kind: "tactical" });
+    for (let i = 0; i < aPlanned; i++) specials.push({ min: plannedSubMinute(i, aPlanned), side: "away", kind: "tactical" });
+    // One possible injury per team, fired at a random mid-match minute.
+    if (Math.random() < 0.08) specials.push({ min: rand(Math.max(1, Math.round(matchMinutes * 0.2)), Math.max(2, matchMinutes - 2)), side: "home", kind: "injury" });
+    if (Math.random() < 0.08) specials.push({ min: rand(Math.max(1, Math.round(matchMinutes * 0.2)), Math.max(2, matchMinutes - 2)), side: "away", kind: "injury" });
+  }
+
   // 5-a-side pitches are tiny — the ball is live constantly, so allow multiple
   // events per minute instead of deduping down to unique minutes like classic mode.
   // More total events per match (both modes) lowers single-match variance —
@@ -967,6 +1141,13 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   // schedule can get once the draw count gets large.
   const rawMinutes = Array.from({ length: is5aside ? rand(38, 55) : rand(30, 42) }, () => rand(1, matchMinutes));
   const minutes = rawMinutes.sort((a, b) => a - b);
+  // Merge the normal per-minute rolls with scheduled substitutions/injuries
+  // into a single chronological timeline so subs actually affect who's
+  // available for later events, instead of just being tacked on as flavour.
+  const timeline = [
+    ...minutes.map(min => ({ min, kind: "roll" })),
+    ...specials,
+  ].sort((a, b) => a.min - b.min);
   // Small-sided games have way more shots and far fewer stoppages than 11-a-side.
   const SHOT_THRESH = is5aside ? 0.48 : 0.32;
   const FOUL_THRESH = is5aside ? SHOT_THRESH + 0.09 : 0.45;
@@ -1018,15 +1199,18 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     return { min, type: "commentary", text: pick(pool)(mgrName, teamName) };
   }
 
-  for (const min of minutes) {
+  for (const entry of timeline) {
+    const min = entry.min;
+    if (entry.kind === "tactical") { doTacticalSub(entry.side, min); continue; }
+    if (entry.kind === "injury") { doInjury(entry.side, min); continue; }
     const r = Math.random();
 
     if (r < SHOT_THRESH) {
       const isHome = Math.random() < ratio;
-      const team = isHome ? homeSquad : awaySquad;
+      const team = isHome ? homeXI : awayXI;
       const teamName = isHome ? homeName : awayName;
       const side = isHome ? "home" : "away";
-      const pitchPlayers = onPitch(team, isHome ? hSentOff : aSentOff);
+      const pitchPlayers = onPitch(team, isHome ? hSentOff : aSentOff, isHome ? hUnavailable : aUnavailable);
       const pitchOutfield = pitchPlayers.filter(p => p.pos !== "GK");
       // ~15% of goals are aerial (headed) — scored by players with high aer attribute
       const isAerial = Math.random() < 0.15;
@@ -1034,8 +1218,11 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       const attacker = isAerial ? pickAerialScorer(scorerPool) : pickAttacker(scorerPool);
       const name = attacker ? attacker.name : "The striker";
 
-      // Being a man (or more) down makes scoring harder
-      const menDown = (isHome ? hSentOff.size : aSentOff.size) - (isHome ? aSentOff.size : hSentOff.size);
+      // Being a man (or more) down makes scoring harder — counts red cards and
+      // any injuries/GK swaps that couldn't be covered by a substitution.
+      const hOut = hSentOff.size + hUnavailable.size;
+      const aOut = aSentOff.size + aUnavailable.size;
+      const menDown = (isHome ? hOut : aOut) - (isHome ? aOut : hOut);
 
       // Stage 1 — chance quality: creation vs defense decides big chance vs half chance.
       const creationVsDef = isHome ? (hCreationStr - aEffDefStr) : (aCreationStr - hEffDefStr);
@@ -1077,10 +1264,10 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       }
     } else if (r < FOUL_THRESH) {
       const isHome = Math.random() < 0.5;
-      const team = isHome ? homeSquad : awaySquad;
+      const team = isHome ? homeXI : awayXI;
       const booked = isHome ? hBooked : aBooked;
       const sentOff = isHome ? hSentOff : aSentOff;
-      const pl = onPitch(team, sentOff);
+      const pl = onPitch(team, sentOff, isHome ? hUnavailable : aUnavailable);
       const target = pl[rand(0, pl.length - 1)];
       // Grinder/Warrior play the physical stuff smart rather than reckless —
       // a chunk of what would've been a cardable foul just turns into a clean
@@ -1102,6 +1289,11 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
         } else if (booked.has(target.name)) {
           sentOff.add(target.name);
           events.push({ min, type: "red", team: isHome ? "home" : "away", player: target.name, text: pick(COMMENTARY_RED)(target.name, isHome ? homeName : awayName, 11 - sentOff.size), poss: Math.round(possH * 100) });
+          if (target.pos === "GK") {
+            const side = isHome ? "home" : "away";
+            const gkIdx = team.findIndex(p => p && p.name === target.name);
+            doGkRedCardSwap(side, target, gkIdx, min);
+          }
         } else {
           booked.add(target.name);
           events.push({ min, type: "yellow", team: isHome ? "home" : "away", player: target.name, text: pick(COMMENTARY_CARD)(target.name), poss: Math.round(possH * 100) });
@@ -1116,22 +1308,10 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     }
   }
 
-  // Injury events: one possible injury per team, fired at a random mid-match minute
-  // We pick the player now (post loop so we know who stayed on), then inject a commentary event.
-  // Skipped in 5-a-side — losing a fifth of a 5-player squad with no bench cover is too harsh.
-  const matchInjuries = []; // { name, team: "home"|"away" }
-  for (const [squad, side, teamName] of is5aside ? [] : [[homeSquad, "home", homeName], [awaySquad, "away", awayName]]) {
-    if (Math.random() < 0.08) {
-      const eligible = squad.slice(0, 11).filter(p => p);
-      if (eligible.length > 0) {
-        const victim = pick(eligible);
-        const injMin = rand(20, 88);
-        events.push({ min: injMin, type: "injury", team: side, player: victim.name, text: pick(COMMENTARY_INJURY)(victim.name, teamName), poss: Math.round(possH * 100) });
-        matchInjuries.push({ name: victim.name, team: side });
-      }
-    }
-  }
-  // Re-sort events by minute after injection
+  // Injuries and substitutions are now resolved inline during the timeline
+  // loop above (see doInjury/doTacticalSub/doGkRedCardSwap) rather than
+  // injected afterward, so they actually affect who's on the pitch for the
+  // rest of the match. Still need a final sort for the early-minute events.
   events.sort((a, b) => a.min - b.min);
 
   let etEvents = [];
@@ -1170,10 +1350,10 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     for (const min of etMinutes) {
       if (Math.random() < 0.2) {
         const isHome = Math.random() < ratio;
-        const team = isHome ? homeSquad : awaySquad;
+        const team = isHome ? homeXI : awayXI;
         const teamName = isHome ? homeName : awayName;
         const side = isHome ? "home" : "away";
-        const etPitch = onPitch(team, isHome ? hSentOff : aSentOff);
+        const etPitch = onPitch(team, isHome ? hSentOff : aSentOff, isHome ? hUnavailable : aUnavailable);
         const etOutfield = etPitch.filter(p => p.pos !== "GK");
         const etAttacker = pickAttacker(etOutfield.length > 0 ? etOutfield : etPitch);
         const name = etAttacker ? etAttacker.name : "The striker";
@@ -1222,10 +1402,10 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     const NUM_KICKS = 5;
     // Best attacking players take pens first
     const byAtt = ps => [...ps].sort((a, b) => deriveAttributes(b).att - deriveAttributes(a).att);
-    const hOF = byAtt(homeSquad.slice(0, 11).filter(p => p && p.pos !== "GK"));
-    const aOF = byAtt(awaySquad.slice(0, 11).filter(p => p && p.pos !== "GK"));
-    const hFallback = homeSquad.slice(0, 11).filter(Boolean);
-    const aFallback = awaySquad.slice(0, 11).filter(Boolean);
+    const hOF = byAtt(onPitch(homeXI, hSentOff, hUnavailable).filter(p => p.pos !== "GK"));
+    const aOF = byAtt(onPitch(awayXI, aSentOff, aUnavailable).filter(p => p.pos !== "GK"));
+    const hFallback = onPitch(homeXI, hSentOff, hUnavailable);
+    const aFallback = onPitch(awayXI, aSentOff, aUnavailable);
     const hOrder = hOF.length ? hOF : hFallback;
     const aOrder = aOF.length ? aOF : aFallback;
 
@@ -1316,8 +1496,10 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   const totalAway = finalAway + (legContext?.awayAgg ?? 0);
   const winnerSide = penWinner || (totalHome > totalAway ? "home" : totalAway > totalHome ? "away" : null);
   const drew = !penWinner && totalHome === totalAway;
-  const homeRatings = buildRatings(homeSquad, "home", allEvents, finalAway, winnerSide === "home", drew);
-  const awayRatings = buildRatings(awaySquad, "away", allEvents, finalHome, winnerSide === "away", drew);
+  const homePlayed = [...homeSquad.slice(0, 11).filter(Boolean), ...hUsedFromBench];
+  const awayPlayed = [...awaySquad.slice(0, 11).filter(Boolean), ...aUsedFromBench];
+  const homeRatings = buildRatings(homePlayed, "home", allEvents, finalAway, winnerSide === "home", drew);
+  const awayRatings = buildRatings(awayPlayed, "away", allEvents, finalHome, winnerSide === "away", drew);
 
   const allRated = [
     ...homeRatings.map(r => ({ ...r, side: "home" })),
@@ -1714,6 +1896,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
     if (e.type === "pen_goal") return "⚽";
     if (e.type === "pen_miss") return "✕";
     if (e.type === "injury") return "🚑";
+    if (e.type === "sub") return "🔄";
     return "▸";
   }
 
@@ -1726,6 +1909,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
     if (e.type === "pen_goal") return "event-goal event-pen";
     if (e.type === "pen_miss") return "event-miss event-pen";
     if (e.type === "injury") return "event-injury";
+    if (e.type === "sub") return "event-sub";
     return "event-commentary";
   }
 

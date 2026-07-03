@@ -812,6 +812,36 @@ input, select { font-family: var(--font); }
   transition: opacity 0.15s;
 }
 .respin-btn:hover { opacity: 0.85; }
+.no-afford-filters {
+  text-align: center;
+  padding: 20px 16px;
+  border: 1px solid var(--amber);
+  background: rgba(255,215,0,0.06);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.no-afford-filters-title {
+  font-family: var(--font-head);
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--amber);
+  letter-spacing: 1px;
+}
+.clear-filters-btn {
+  font-family: var(--font-head);
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  padding: 8px 20px;
+  background: var(--amber);
+  color: #111;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.clear-filters-btn:hover { opacity: 0.85; }
 .section-divider {
   font-size: 10px;
   letter-spacing: 2px;
@@ -1926,6 +1956,8 @@ input, select { font-family: var(--font); }
 .event-pens .event-text { color: var(--text); }
 .event-injury { background: rgba(234,179,8,0.07); border-left-color: #eab308; }
 .event-injury .event-text { color: var(--text); }
+.event-sub { background: rgba(59,130,246,0.07); border-left-color: #3b82f6; }
+.event-sub .event-text { color: var(--text); }
 
 .pre-absences {
   display: flex;

@@ -108,6 +108,7 @@ export default function DraftScreen({
   }
 
   let available = getAvailablePlayers(currentPos.key);
+  const rawAvailable = available;
   if (showPosChips && filterPos.size < OUTFIELD_POS.length) {
     available = available.filter(p => filterPos.has(p.pos) || (p.pos2 && filterPos.has(p.pos2)));
   }
@@ -174,6 +175,23 @@ export default function DraftScreen({
   const affordable = available.filter(p => currentBudget !== null && p.value <= currentBudget);
   const tooExpensive = available.filter(p => currentBudget !== null && p.value > currentBudget);
   const takenPlayers = currentBudget !== null ? getTakenPlayers(currentPos.key) : [];
+
+  // Whether any filter is narrower than its "show everything" state
+  const hasActiveFilters = (showPosChips && filterPos.size < OUTFIELD_POS.length)
+    || filterEra.size < 3 || filterLeague.size < 6 || filterTiers.size < 5
+    || filterArchetypes.size < relevantArchetypes.length || nameSearch.trim() !== "";
+  // True budget shortfall: no affordable player exists even ignoring filters
+  const genuinelyNoAfford = currentBudget !== null && !rawAvailable.some(p => p.value <= currentBudget);
+
+  function clearFilters() {
+    if (showPosChips) setFilterPos(new Set(OUTFIELD_POS));
+    setFilterEra(new Set(["classic", "golden", "modern"]));
+    setFilterLeague(new Set(["premier_league", "la_liga", "serie_a", "bundesliga", "ligue_1", "legends"]));
+    setFilterTiers(new Set(["T1", "T2", "T3", "T4", "T5"]));
+    setFilterArchetypes(new Set(relevantArchetypes));
+    setNameSearch("");
+  }
+
   // carryover shown before spin (what the active manager has banked)
   const pendingCarryover = activeManager?.carryover || 0;
 
@@ -717,14 +735,24 @@ export default function DraftScreen({
 
             <div className="player-list">
               {affordable.length === 0 && currentBudget !== null && (
-                <div className="no-afford-respin">
-                  <div className="no-afford-title">⚠ NO AFFORDABLE PLAYERS</div>
-                  <div className="no-afford-msg">
-                    £{currentBudget}m isn't enough for anyone available. Re-spin for a new budget —
-                    but this money is lost and <strong>no carryover</strong> after this pick.
+                genuinelyNoAfford ? (
+                  <div className="no-afford-respin">
+                    <div className="no-afford-title">⚠ NO AFFORDABLE PLAYERS</div>
+                    <div className="no-afford-msg">
+                      £{currentBudget}m isn't enough for anyone available. Re-spin for a new budget —
+                      but this money is lost and <strong>no carryover</strong> after this pick.
+                    </div>
+                    <button className="respin-btn" onClick={respin}>↺ RE-SPIN (NO CARRYOVER)</button>
                   </div>
-                  <button className="respin-btn" onClick={respin}>↺ RE-SPIN (NO CARRYOVER)</button>
-                </div>
+                ) : (
+                  <div className="no-afford-filters">
+                    <div className="no-afford-filters-title">FILTERS HIDING AFFORDABLE PLAYERS</div>
+                    <div className="no-afford-msg">
+                      There's someone affordable in your budget, but your current filters are hiding them.
+                    </div>
+                    <button className="clear-filters-btn" onClick={clearFilters}>✕ CLEAR FILTERS</button>
+                  </div>
+                )
               )}
               {affordable.map(p => (
                 <PlayerCard key={p.id} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} />
