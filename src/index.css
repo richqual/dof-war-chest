@@ -4958,6 +4958,11 @@ input, select { font-family: var(--font); }
   letter-spacing: 0.1em;
   margin-top: 0.25rem;
 }
+.mysquads-manager {
+  font-size: 0.7rem;
+  color: var(--amber);
+  letter-spacing: 0.05em;
+}
 .mysquads-player-list {
   display: flex;
   flex-direction: column;

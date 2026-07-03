@@ -27,6 +27,7 @@ export function useSaveSquad(user) {
         pattern:       m.pattern || "plain",
         formation:     m.formation || "4-3-3",
         tactics:       m.tactics || "balanced",
+        footballManager: m.footballManager || null,
         rating,
         squad:         m.squad,
         mode:          draft.warChest ? "War Chest" : "Standard",

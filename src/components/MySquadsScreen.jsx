@@ -31,6 +31,13 @@ function SquadDetail({ squad, onClose, onDelete }) {
         <div className="mysquads-rating" style={{ color: getRatingColor(squad.rating) }}>{squad.rating}</div>
       </div>
 
+      {squad.footballManager?.name && (
+        <div className="mysquads-manager">
+          ⚙ {squad.footballManager.name}
+          {squad.footballManager.styleLabel && ` — ${squad.footballManager.styleLabel}`}
+        </div>
+      )}
+
       <div className="mysquads-section-label">STARTING XI — {squad.formation}</div>
       <div className="mysquads-player-list">
         {starters.map((p, i) => (
@@ -126,7 +133,10 @@ export default function MySquadsScreen({ loadSquads, deleteSquad, onBack }) {
                 <KitSwatch primary={s.primaryColor} secondary={s.secondaryColor} pattern={s.pattern} uid={s.id} size={28} />
                 <div className="mysquads-row-info">
                   <span className="mysquads-row-name">{s.clubName}</span>
-                  <span className="mysquads-row-meta">{s.mode} · {formatDate(s.savedAt)}</span>
+                  <span className="mysquads-row-meta">
+                    {s.footballManager?.name && `⚙ ${s.footballManager.name} · `}
+                    {s.mode} · {formatDate(s.savedAt)}
+                  </span>
                 </div>
                 <span className="mysquads-row-rating" style={{ color: getRatingColor(s.rating) }}>{s.rating}</span>
               </button>
