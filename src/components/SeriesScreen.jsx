@@ -552,6 +552,12 @@ function ChampionSquad({ manager, onSaveSquad, saveState }) {
       </div>
 
       {!collapsed && <>
+        {manager.footballManager && (
+          <div className="champ-squad-manager">
+            ⚙ {manager.footballManager.name}
+            {manager.footballManager.styleLabel && ` — ${manager.footballManager.styleLabel}`}
+          </div>
+        )}
         <div className="champ-squad-section-label">{isWC ? "SQUAD" : "STARTING XI"}</div>
         <div className="champ-squad-list">
           {starters.map((p, i) => p ? (
@@ -885,12 +891,6 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
             <div className="champion-dof">
               Director of Football: {champion.dofName || champion.name}
             </div>
-            {champion.footballManager && (
-              <div className="champion-manager">
-                ⚙ {champion.footballManager.name}
-                {champion.footballManager.styleLabel && ` — ${champion.footballManager.styleLabel}`}
-              </div>
-            )}
             <div className="champion-sub">
               {(series.format === "tournament" || series.format === "tournament8")
                 ? "Wins the tournament!"
