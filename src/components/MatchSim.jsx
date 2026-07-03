@@ -56,7 +56,21 @@ function deriveAttributes(player) {
     pac,
     tec: clamp(Math.round(pas * 0.55 + dri * 0.45)),
     aer: clamp(Math.round(phy * 0.65 + def * 0.35)),
+    // Pure finishing — isolated from dri so a poacher and a dribbler with the
+    // same "att" blend no longer convert chances identically.
+    finish: sho,
   };
+}
+
+// Creation is what turns a shot event into a clear-cut chance rather than a
+// half-chance: vision/passing, dribbling to create separation, and pace to
+// get in behind. Deliberately excludes sho — that's isolated for finishing.
+function deriveCreationScore(player) {
+  const clamp = v => Math.round(Math.min(99, Math.max(1, v)));
+  const pac = clamp(player.pac ?? 60);
+  const pas = clamp(player.pas ?? 50);
+  const dri = clamp(player.dri ?? 50);
+  return clamp(pac * 0.25 + pas * 0.35 + dri * 0.40);
 }
 
 // Pick a player from a list, weighted by a scorer function.
@@ -114,11 +128,12 @@ function pickAerialScorer(players) {
   });
 }
 
-// Average attacking attribute of the outfield players (used for goal chance).
-function teamAttStrength(squad) {
+// Average creation attribute of the outfield players — decides how often a
+// shot event is a clear-cut chance vs a low-percentage half-chance.
+function teamCreationStrength(squad) {
   const outfield = squad.slice(0, 11).filter(p => p && p.pos !== "GK");
   if (!outfield.length) return 50;
-  return outfield.reduce((s, p) => s + deriveAttributes(p).att, 0) / outfield.length;
+  return outfield.reduce((s, p) => s + deriveCreationScore(p), 0) / outfield.length;
 }
 
 // Defensive responsibility isn't spread evenly — a weak keeper or centre-back
@@ -129,13 +144,37 @@ const DEF_STR_WEIGHT = {
   GK: 1.8, CB: 1.5, LB: 1.2, RB: 1.2, DM: 1.2,
   CM: 1.0, CAM: 0.8, LM: 0.8, RM: 0.8, LW: 0.7, RW: 0.7, ST: 0.6,
 };
+
+// A keeper's raw `def` (tackling) field doesn't measure shot-stopping and sits
+// on a completely different scale to outfield defenders (data average: GK def
+// ~44 vs CB def ~89) — reusing it as-is just makes every keeper drag a team's
+// defense down regardless of quality. Give GKs their own composite instead:
+// physicality carries most of the weight, `def` counts for less, and the
+// keeper-specific archetypes get a direct bonus. The baseline is lifted so an
+// average keeper lands in the same ballpark as an average CB (~89) — quality
+// differences between keepers should move this number, not the position itself.
+const GK_ARCHETYPE_BONUS = { "Shot Stopper": 8, "Sweeper Keeper": 6 };
+
+// Archetypes wired into specific mechanics beyond the flat cohesion bonus.
+const DISCIPLINED_ARCHETYPES = new Set(["Grinder", "Warrior"]);
+const PEN_ARCHETYPE_BONUS = { Maverick: 0.05, Leader: 0.04 };
+const STEADYING_ARCHETYPES = new Set(["Leader", "Organiser"]);
+function deriveGkDefense(player) {
+  const clamp = v => Math.round(Math.min(99, Math.max(1, v)));
+  const phy = clamp(player.phy ?? 60);
+  const def = clamp(player.def ?? 50);
+  const archBonus = GK_ARCHETYPE_BONUS[player.archetype] ?? 0;
+  return clamp(76 + (phy - 60) * 1.1 + (def - 45) * 0.3 + archBonus);
+}
+
 function teamDefStrength(squad) {
   const starters = squad.slice(0, 11).filter(Boolean);
   if (!starters.length) return 50;
   let weighted = 0, weightTotal = 0;
   for (const p of starters) {
     const w = DEF_STR_WEIGHT[p.pos] ?? 1.0;
-    weighted += deriveAttributes(p).def * w;
+    const defScore = p.pos === "GK" ? deriveGkDefense(p) : deriveAttributes(p).def;
+    weighted += defScore * w;
     weightTotal += w;
   }
   return weighted / weightTotal;
@@ -780,8 +819,8 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
 
   const hStr = teamStrength(homeSquad);
   const aStr = teamStrength(awaySquad);
-  const hAttStr = teamAttStrength(homeSquad);
-  const aAttStr = teamAttStrength(awaySquad);
+  const hCreationStrRaw = teamCreationStrength(homeSquad);
+  const aCreationStrRaw = teamCreationStrength(awaySquad);
   const hDefStr = teamDefStrength(homeSquad);
   const aDefStr = teamDefStrength(awaySquad);
 
@@ -803,11 +842,11 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   const TACTICS_MOD = { attacking: 0.05, balanced: 0, defensive: -0.04 };
   const tacticsDelta = (TACTICS_MOD[homeTactics] ?? 0) - (TACTICS_MOD[awayTactics] ?? 0);
 
-  // Attribute modifiers: attacking boosts effective att but opens up defensively, and vice versa
+  // Attribute modifiers: attacking boosts effective creation but opens up defensively, and vice versa
   const TACTICS_ATT_MOD = { attacking: +8, balanced: 0, defensive: -6 };
   const TACTICS_DEF_MOD = { attacking: -6, balanced: 0, defensive: +8 };
-  const hEffAttStr = hAttStr + (TACTICS_ATT_MOD[homeTactics] ?? 0);
-  const aEffAttStr = aAttStr + (TACTICS_ATT_MOD[awayTactics] ?? 0);
+  const hCreationStr = hCreationStrRaw + (TACTICS_ATT_MOD[homeTactics] ?? 0);
+  const aCreationStr = aCreationStrRaw + (TACTICS_ATT_MOD[awayTactics] ?? 0);
   const hEffDefStr = hDefStr + (TACTICS_DEF_MOD[homeTactics] ?? 0);
   const aEffDefStr = aDefStr + (TACTICS_DEF_MOD[awayTactics] ?? 0);
 
@@ -820,8 +859,18 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   const aMatchupBonus = styleMatchupBonus(aStyle, hStyle);
 
   // Momentum (±1 from previous match result in series)
-  const hMomentum = seriesContext?.homePrevResult === "win" ? 1 : seriesContext?.homePrevResult === "loss" ? -1 : 0;
-  const aMomentum = seriesContext?.awayPrevResult === "win" ? 1 : seriesContext?.awayPrevResult === "loss" ? -1 : 0;
+  // Leader/Organiser keep heads level — a squad built around them rides the
+  // emotional swing of a previous result less than one without.
+  function momentumDampening(squad) {
+    const starters = squad.slice(0, 11).filter(Boolean);
+    if (!starters.length) return 1;
+    const steadying = starters.filter(p => STEADYING_ARCHETYPES.has(p.archetype)).length;
+    return 1 - (steadying / starters.length) * 0.6;
+  }
+  const hMomentumRaw = seriesContext?.homePrevResult === "win" ? 1 : seriesContext?.homePrevResult === "loss" ? -1 : 0;
+  const aMomentumRaw = seriesContext?.awayPrevResult === "win" ? 1 : seriesContext?.awayPrevResult === "loss" ? -1 : 0;
+  const hMomentum = hMomentumRaw * momentumDampening(homeSquad);
+  const aMomentum = aMomentumRaw * momentumDampening(awaySquad);
 
   const hEffStr = hStr + styleStrengthBonus(hStyle, true) + hTierMod * 50 + hCohesion + hMatchupBonus + hMomentum;
   const aEffStr = aStr + styleStrengthBonus(aStyle, true) + aTierMod * 50 + aCohesion + aMatchupBonus + aMomentum;
@@ -849,16 +898,16 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
 
   // Inject early contextual commentary (minutes 2-15) for new systems
   const earlyMins = [];
-  if (hMomentum === 1 && homeFootballMgr) {
+  if (hMomentumRaw === 1 && homeFootballMgr) {
     earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_WIN)(homeName, homeFootballMgr.name.split(" ").pop()) });
   }
-  if (aMomentum === 1 && awayFootballMgr) {
+  if (aMomentumRaw === 1 && awayFootballMgr) {
     earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_WIN)(awayName, awayFootballMgr.name.split(" ").pop()) });
   }
-  if (hMomentum === -1 && homeFootballMgr) {
+  if (hMomentumRaw === -1 && homeFootballMgr) {
     earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_LOSS)(homeName, homeFootballMgr.name.split(" ").pop()) });
   }
-  if (aMomentum === -1 && awayFootballMgr) {
+  if (aMomentumRaw === -1 && awayFootballMgr) {
     earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_LOSS)(awayName, awayFootballMgr.name.split(" ").pop()) });
   }
   // Cohesion commentary for the team with higher cohesion (>60% match)
@@ -898,11 +947,31 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   const is5aside = homeSquad.filter(Boolean).length <= 5;
   // 5-a-side pitches are tiny — the ball is live constantly, so allow multiple
   // events per minute instead of deduping down to unique minutes like classic mode.
-  const rawMinutes = Array.from({ length: is5aside ? rand(38, 55) : rand(18, 28) }, () => rand(1, matchMinutes));
-  const minutes = (is5aside ? rawMinutes : [...new Set(rawMinutes)]).sort((a, b) => a - b);
+  // More total events per match (both modes) lowers single-match variance —
+  // the same expected-goals mean now comes from more, lower-probability shot
+  // events instead of fewer high-probability ones. Duplicate-minute events are
+  // allowed in both modes now rather than deduped to unique minutes, since
+  // deduping against only 90 (or 60) slots artificially caps how dense the
+  // schedule can get once the draw count gets large.
+  const rawMinutes = Array.from({ length: is5aside ? rand(38, 55) : rand(30, 42) }, () => rand(1, matchMinutes));
+  const minutes = rawMinutes.sort((a, b) => a - b);
   // Small-sided games have way more shots and far fewer stoppages than 11-a-side.
   const SHOT_THRESH = is5aside ? 0.48 : 0.32;
   const FOUL_THRESH = is5aside ? SHOT_THRESH + 0.09 : 0.45;
+
+  // Two-tier shot resolution: creation-vs-defense (below) decides whether a
+  // shot event is a clear-cut "big chance" or a low-percentage "half chance";
+  // the specific shooter's finishing then resolves conversion within that tier.
+  // 5-a-side needs its own, notably higher tier bases — small-sided chances
+  // are typically far more clear-cut (often just the keeper to beat), and
+  // reusing classic's bases here quietly cut the mode's average conversion
+  // from ~0.37 flat down to ~0.25, undoing last round's goal-volume tuning.
+  const BIG_CHANCE_BASE = is5aside ? 0.63 : 0.40;
+  const BIG_CHANCE_MIN = is5aside ? 0.40 : 0.25;
+  const BIG_CHANCE_MAX = is5aside ? 0.75 : 0.55;
+  const HALF_CHANCE_BASE = is5aside ? 0.25 : 0.115;
+  const HALF_CHANCE_MIN = is5aside ? 0.14 : 0.05;
+  const HALF_CHANCE_MAX = is5aside ? 0.36 : 0.20;
 
   // Style-influenced goal frequency modifiers
   function goalChanceBonus(isHome) {
@@ -955,13 +1024,24 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
 
       // Being a man (or more) down makes scoring harder
       const menDown = (isHome ? hSentOff.size : aSentOff.size) - (isHome ? aSentOff.size : hSentOff.size);
-      // Goal chance: tactics-adjusted att vs def — attacking opens up play, defensive tightens it
-      const attVsDef = isHome ? (hEffAttStr - aEffDefStr) : (aEffAttStr - hEffDefStr);
-      // 5-a-side gets far more shot attempts than classic (denser event pacing),
-      // so its per-shot conversion is dialled back below classic's rather than
-      // above it — the extra goals should come from shot volume, not finishing.
-      const goalChance = (is5aside ? 0.37 : 0.38) + attVsDef * 0.003 - menDown * 0.08
-        + goalChanceBonus(isHome) - opponentShotPenalty(isHome) + (isHome ? hTierMod : aTierMod);
+
+      // Stage 1 — chance quality: creation vs defense decides big chance vs half chance.
+      const creationVsDef = isHome ? (hCreationStr - aEffDefStr) : (aCreationStr - hEffDefStr);
+      const bigChanceProb = Math.min(0.68, Math.max(0.14, 0.32 + creationVsDef * 0.006));
+      const isBigChance = Math.random() < bigChanceProb;
+
+      // Stage 2 — finishing: the specific shooter's finish attribute resolves
+      // conversion within that tier's band. Other modifiers (cards, style,
+      // manager tier) apply directly to the final rate, same as before.
+      const finishAttr = attacker ? deriveAttributes(attacker).finish : 65;
+      const finishAdj = (finishAttr - 65) * 0.0022;
+      const tierBase = isBigChance ? BIG_CHANCE_BASE : HALF_CHANCE_BASE;
+      const tierMin = isBigChance ? BIG_CHANCE_MIN : HALF_CHANCE_MIN;
+      const tierMax = isBigChance ? BIG_CHANCE_MAX : HALF_CHANCE_MAX;
+      const goalChance = Math.min(tierMax, Math.max(tierMin,
+        tierBase + finishAdj - menDown * 0.08
+        + goalChanceBonus(isHome) - opponentShotPenalty(isHome) + (isHome ? hTierMod : aTierMod)
+      ));
       if (isHome) possH = Math.min(0.82, possH + 0.025); else possH = Math.max(0.18, possH - 0.025);
       if (Math.random() < goalChance) {
         const ctx = isHome ? goalContext(hGoals, aGoals) : goalContext(aGoals, hGoals);
@@ -990,7 +1070,13 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       const sentOff = isHome ? hSentOff : aSentOff;
       const pl = onPitch(team, sentOff);
       const target = pl[rand(0, pl.length - 1)];
-      if (target) {
+      // Grinder/Warrior play the physical stuff smart rather than reckless —
+      // a chunk of what would've been a cardable foul just turns into a clean
+      // (if uncomfortable) challenge instead.
+      if (target && DISCIPLINED_ARCHETYPES.has(target.archetype) && Math.random() < 0.35) {
+        possH = possH * 0.94 + ratio * 0.06;
+        events.push({ min, type: "commentary", text: pickNeutral(homeName, awayName), poss: Math.round(possH * 100) });
+      } else if (target) {
         possH = possH * 0.94 + ratio * 0.06;
         if (isHome) hFouls++; else aFouls++;
         // 5-a-side: no red cards — losing a fifth of your squad for the rest of
@@ -1118,7 +1204,8 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     function penSuccessChance(taker) {
       if (!taker) return 0.76;
       const att = deriveAttributes(taker).att;
-      return Math.min(0.90, Math.max(0.55, 0.68 + (att - 70) * 0.003));
+      const archBonus = PEN_ARCHETYPE_BONUS[taker.archetype] ?? 0;
+      return Math.min(0.90, Math.max(0.55, 0.68 + (att - 70) * 0.003 + archBonus));
     }
     const NUM_KICKS = 5;
     // Best attacking players take pens first
