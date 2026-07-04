@@ -252,12 +252,12 @@ function TournamentBracket({ series, managers }) {
                 <div key={i} className="bracket-semi">
                   <div className="bracket-semi-label">QF {i + 1}</div>
                   <div className={`bracket-team ${q.winner === q.p[0] ? "bracket-winner" : q.winner !== null ? "bracket-out" : ""}`}>
-                    <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bq${i}a`} size={22} />
+                    <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bq${i}a`} size={16} />
                     <span style={{ color: accent0 }}>{m0.teamName || m0.clubName || m0.name}</span>
                     <span className="bracket-wins">{q.goals?.[0] ?? 0}</span>
                   </div>
                   <div className={`bracket-team ${q.winner === q.p[1] ? "bracket-winner" : q.winner !== null ? "bracket-out" : ""}`}>
-                    <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bq${i}b`} size={22} />
+                    <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bq${i}b`} size={16} />
                     <span style={{ color: accent1 }}>{m1.teamName || m1.clubName || m1.name}</span>
                     <span className="bracket-wins">{q.goals?.[1] ?? 0}</span>
                   </div>
@@ -289,12 +289,12 @@ function TournamentBracket({ series, managers }) {
               <div key={i} className="bracket-semi">
                 <div className="bracket-semi-label">SEMI-FINAL {i + 1}</div>
                 <div className={`bracket-team ${sm.winner === sm.p[0] ? "bracket-winner" : sm.winner !== null ? "bracket-out" : ""}`}>
-                  <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bs${i}a`} size={22} />
+                  <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bs${i}a`} size={16} />
                   <span style={{ color: accent0 }}>{m0.teamName || m0.clubName || m0.name}</span>
                   <span className="bracket-wins">{sm.goals?.[0] ?? 0}</span>
                 </div>
                 <div className={`bracket-team ${sm.winner === sm.p[1] ? "bracket-winner" : sm.winner !== null ? "bracket-out" : ""}`}>
-                  <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bs${i}b`} size={22} />
+                  <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bs${i}b`} size={16} />
                   <span style={{ color: accent1 }}>{m1.teamName || m1.clubName || m1.name}</span>
                   <span className="bracket-wins">{sm.goals?.[1] ?? 0}</span>
                 </div>

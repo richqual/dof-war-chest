@@ -2946,21 +2946,21 @@ input, select { font-family: var(--font); }
 .tournament-bracket {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 18px;
 
   align-items: center;
   width: 100%;
   max-width: 640px;
 }
-.bracket-semi, .bracket-final {
+.bracket-semi {
   background: var(--bg2);
   border: 1px solid var(--border);
   border-radius: 4px;
-  padding: 14px 16px;
-  min-width: 200px;
+  padding: 8px 12px;
+  min-width: 160px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 .bracket-final {
   border: 2px solid var(--amber);
@@ -2969,13 +2969,16 @@ input, select { font-family: var(--font); }
   padding: 18px 22px;
   background: linear-gradient(180deg, rgba(255,215,0,0.08), var(--bg2) 60%);
   box-shadow: 0 0 24px rgba(255,215,0,0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 .bracket-semi-label, .bracket-final-label {
   font-family: var(--font-head);
-  font-size: 11px;
+  font-size: 9px;
   color: var(--amber);
-  letter-spacing: 2px;
-  margin-bottom: 4px;
+  letter-spacing: 1.5px;
+  margin-bottom: 2px;
 }
 .bracket-final-label {
   font-size: 16px;
@@ -2985,38 +2988,39 @@ input, select { font-family: var(--font); }
   text-shadow: 0 0 12px rgba(255,215,0,0.5);
 }
 .bracket-final .bracket-team { font-size: 17px; padding: 6px 0; }
+.bracket-final .bracket-wins { font-size: 18px; }
 .bracket-team {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-family: var(--font-sub);
-  font-size: 14px;
-  padding: 4px 0;
+  font-size: 12px;
+  padding: 2px 0;
   opacity: 1;
   transition: opacity 0.3s;
 }
 .bracket-team span:nth-child(2) { flex: 1; }
-.bracket-wins { font-family: var(--font-head); font-size: 18px; color: var(--text); }
+.bracket-wins { font-family: var(--font-head); font-size: 13px; color: var(--text); }
 .bracket-winner { }
 .bracket-winner .bracket-wins { color: var(--amber); }
 .bracket-out { opacity: 0.4; }
-.bracket-adv { font-family: var(--font-head); font-size: 11px; color: var(--green-l); letter-spacing: 1px; margin-top: 4px; }
+.bracket-adv { font-family: var(--font-head); font-size: 9px; color: var(--green-l); letter-spacing: 1px; margin-top: 2px; }
 
 .bracket-section {
   width: 100%;
 }
 .bracket-section-title {
   font-family: var(--font-head);
-  font-size: 11px;
+  font-size: 10px;
   color: var(--text3);
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 .bracket-quarters-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 8px;
 }
 @media (max-width: 480px) {
   .bracket-quarters-grid { grid-template-columns: 1fr; }
