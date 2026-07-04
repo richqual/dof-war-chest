@@ -239,6 +239,44 @@ function TournamentBracket({ series, managers }) {
         </div>
       )}
 
+      {/* Semi-finals — shown before quarter-finals so the bracket reads in
+          reverse-chronological order beneath the Grand Final (most recent,
+          most relevant round first). */}
+      {semis.length > 0 && (
+        <div className="bracket-section">
+          {quarters.length > 0 && <div className="bracket-section-title">SEMI-FINALS</div>}
+          {semis.map((sm, i) => {
+            const m0 = managers[sm.p[0]], m1 = managers[sm.p[1]];
+            const accent0 = kitAccent(m0.primaryColor, m0.secondaryColor);
+            const accent1 = kitAccent(m1.primaryColor, m1.secondaryColor);
+            return (
+              <div key={i} className="bracket-semi">
+                <div className="bracket-semi-label">SEMI-FINAL {i + 1}</div>
+                <div className={`bracket-team ${sm.winner === sm.p[0] ? "bracket-winner" : sm.winner !== null ? "bracket-out" : ""}`}>
+                  <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bs${i}a`} size={16} />
+                  <span style={{ color: accent0 }}>{m0.teamName || m0.clubName || m0.name}</span>
+                  <span className="bracket-wins">{sm.goals?.[0] ?? 0}</span>
+                </div>
+                <div className={`bracket-team ${sm.winner === sm.p[1] ? "bracket-winner" : sm.winner !== null ? "bracket-out" : ""}`}>
+                  <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bs${i}b`} size={16} />
+                  <span style={{ color: accent1 }}>{m1.teamName || m1.clubName || m1.name}</span>
+                  <span className="bracket-wins">{sm.goals?.[1] ?? 0}</span>
+                </div>
+                {sm.legsPlayed === 1 && sm.winner === null && (
+                  <div className="bracket-adv">Agg: {sm.goals[0]}–{sm.goals[1]} · Leg 2 to come</div>
+                )}
+                {sm.winner !== null && (
+                  <div className="bracket-adv">
+                    → {managers[sm.winner].teamName || managers[sm.winner].name} advance
+                    {sm.wonOnPens ? " (pens)" : ""}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* Quarter-finals (8-team only) */}
       {quarters.length > 0 && (
         <div className="bracket-section">
@@ -274,42 +312,6 @@ function TournamentBracket({ series, managers }) {
               );
             })}
           </div>
-        </div>
-      )}
-
-      {/* Semi-finals */}
-      {semis.length > 0 && (
-        <div className="bracket-section">
-          {quarters.length > 0 && <div className="bracket-section-title">SEMI-FINALS</div>}
-          {semis.map((sm, i) => {
-            const m0 = managers[sm.p[0]], m1 = managers[sm.p[1]];
-            const accent0 = kitAccent(m0.primaryColor, m0.secondaryColor);
-            const accent1 = kitAccent(m1.primaryColor, m1.secondaryColor);
-            return (
-              <div key={i} className="bracket-semi">
-                <div className="bracket-semi-label">SEMI-FINAL {i + 1}</div>
-                <div className={`bracket-team ${sm.winner === sm.p[0] ? "bracket-winner" : sm.winner !== null ? "bracket-out" : ""}`}>
-                  <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bs${i}a`} size={16} />
-                  <span style={{ color: accent0 }}>{m0.teamName || m0.clubName || m0.name}</span>
-                  <span className="bracket-wins">{sm.goals?.[0] ?? 0}</span>
-                </div>
-                <div className={`bracket-team ${sm.winner === sm.p[1] ? "bracket-winner" : sm.winner !== null ? "bracket-out" : ""}`}>
-                  <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bs${i}b`} size={16} />
-                  <span style={{ color: accent1 }}>{m1.teamName || m1.clubName || m1.name}</span>
-                  <span className="bracket-wins">{sm.goals?.[1] ?? 0}</span>
-                </div>
-                {sm.legsPlayed === 1 && sm.winner === null && (
-                  <div className="bracket-adv">Agg: {sm.goals[0]}–{sm.goals[1]} · Leg 2 to come</div>
-                )}
-                {sm.winner !== null && (
-                  <div className="bracket-adv">
-                    → {managers[sm.winner].teamName || managers[sm.winner].name} advance
-                    {sm.wonOnPens ? " (pens)" : ""}
-                  </div>
-                )}
-              </div>
-            );
-          })}
         </div>
       )}
 
