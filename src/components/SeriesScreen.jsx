@@ -219,6 +219,26 @@ function TournamentBracket({ series, managers }) {
 
   return (
     <div className="tournament-bracket">
+      {/* Grand Final — shown first and made prominent once the semis are through,
+          so the upcoming (or just-played) decider doesn't get buried under
+          rounds that have already been settled. */}
+      {series.final && (
+        <div className="bracket-final">
+          <div className="bracket-final-label">⭐ GRAND FINAL</div>
+          {series.final.p.map((pi, i) => {
+            const m = managers[pi];
+            const accent = kitAccent(m.primaryColor, m.secondaryColor);
+            return (
+              <div key={i} className={`bracket-team ${series.final.winner === pi ? "bracket-winner" : series.final.winner !== null ? "bracket-out" : ""}`}>
+                <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern} uid={`bf${i}`} size={22} />
+                <span style={{ color: accent }}>{m.teamName || m.clubName || m.name}</span>
+                {series.final.winner !== null && <span className="bracket-wins">{series.final.wins[i]}</span>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* Quarter-finals (8-team only) */}
       {quarters.length > 0 && (
         <div className="bracket-section">
@@ -293,23 +313,6 @@ function TournamentBracket({ series, managers }) {
         </div>
       )}
 
-      {/* Grand Final */}
-      {series.final && (
-        <div className="bracket-final">
-          <div className="bracket-final-label">⭐ GRAND FINAL</div>
-          {series.final.p.map((pi, i) => {
-            const m = managers[pi];
-            const accent = kitAccent(m.primaryColor, m.secondaryColor);
-            return (
-              <div key={i} className={`bracket-team ${series.final.winner === pi ? "bracket-winner" : series.final.winner !== null ? "bracket-out" : ""}`}>
-                <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern} uid={`bf${i}`} size={22} />
-                <span style={{ color: accent }}>{m.teamName || m.clubName || m.name}</span>
-                <span className="bracket-wins">{series.final.wins[i]}</span>
-              </div>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }
