@@ -293,21 +293,8 @@ html, body, #root {
   line-height: 1.4;
 }
 
-/* CRT scanlines overlay */
-body::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 3px,
-    rgba(0,0,0,0.12) 3px,
-    rgba(0,0,0,0.12) 4px
-  );
-  pointer-events: none;
-  z-index: 9999;
-}
+/* CRT scanlines overlay — removed with the broadcast redesign (was a leftover
+   from the old retro skin, painting thin lines across every screen) */
 
 /* Pixel grid background */
 body {
