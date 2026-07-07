@@ -19,52 +19,38 @@ export default function DraftRouletteToggle({ value, onChange }) {
   }
 
   return (
-    <div className="draft-roulette-toggle">
-      <div className="setup-row">
-        <span className="setup-row-label">🎰 DRAFT ROULETTE</span>
-        <div className="setup-row-btns">
-          <button
-            className={`setup-row-btn ${!enabled ? "active" : ""}`}
-            onClick={() => setEnabled(false)}
-          >
-            OFF
-          </button>
-          <button
-            className={`setup-row-btn ${enabled ? "active" : ""}`}
-            onClick={() => setEnabled(true)}
-          >
-            ON
-          </button>
+    <>
+      <div className="bw-setup-row">
+        <span className="bw-setup-label">🎰 DRAFT ROULETTE</span>
+        <div className="bw-tactics-toggle">
+          <button className={`bw-tactics-seg ${!enabled ? "active" : ""}`} onClick={() => setEnabled(false)}>OFF</button>
+          <button className={`bw-tactics-seg ${enabled ? "active" : ""}`} onClick={() => setEnabled(true)}>ON</button>
         </div>
       </div>
-      <div className="difficulty-hint setup-row-hint">
+      <div className="bw-setup-hint">
         Every card is in play — each drafter spins for a random era and/or league pool, and can only draft from theirs
       </div>
 
       {enabled && (
-        <div className="draft-roulette-axes">
-          <label className="option-row">
-            <input
-              type="checkbox"
-              className="option-checkbox"
-              checked={era}
-              onChange={() => toggleAxis("era")}
-            />
-            <span className="option-label">Randomise Era</span>
-            <span className="option-hint">Classic, Golden, or Modern</span>
+        <div className="bw-pool-list bw-setup-block">
+          <label className={`bw-pool-row ${era ? "checked" : "unchecked"}`}>
+            <input type="checkbox" checked={era} onChange={() => toggleAxis("era")} />
+            <span className="bw-pool-check-icon">{era ? "✓" : ""}</span>
+            <span className="bw-pool-label-wrap">
+              <span className="bw-pool-label">Randomise Era</span>
+              <span className="bw-pool-label-sub">Classic, Golden, or Modern</span>
+            </span>
           </label>
-          <label className="option-row">
-            <input
-              type="checkbox"
-              className="option-checkbox"
-              checked={league}
-              onChange={() => toggleAxis("league")}
-            />
-            <span className="option-label">Randomise League</span>
-            <span className="option-hint">Premier League, La Liga, Serie A, Bundesliga, or Ligue 1</span>
+          <label className={`bw-pool-row ${league ? "checked" : "unchecked"}`}>
+            <input type="checkbox" checked={league} onChange={() => toggleAxis("league")} />
+            <span className="bw-pool-check-icon">{league ? "✓" : ""}</span>
+            <span className="bw-pool-label-wrap">
+              <span className="bw-pool-label">Randomise League</span>
+              <span className="bw-pool-label-sub">Premier League, La Liga, Serie A, Bundesliga, or Ligue 1</span>
+            </span>
           </label>
         </div>
       )}
-    </div>
+    </>
   );
 }

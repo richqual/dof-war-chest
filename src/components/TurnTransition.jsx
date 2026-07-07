@@ -3,13 +3,13 @@ import KitSwatch, { readableTextOn, kitAccent } from "./KitSwatch";
 export default function TurnTransition({ prevManager, player, nextManager, posLabel, nextKit, prevKit, onContinue }) {
   const signingBg = prevKit?.primaryColor || "#1a3a6b";
   const signingText = readableTextOn(signingBg);
-  const signingAccent = prevKit ? kitAccent(prevKit.primaryColor, prevKit.secondaryColor) : "#ffd700";
+  const signingAccent = prevKit ? kitAccent(prevKit.primaryColor, prevKit.secondaryColor) : "#f5c542";
 
   return (
-    <div className="turn-transition-overlay">
-      <div className="turn-transition-box">
+    <div className="tt-overlay">
+      <div className="tt-box">
         {/* Signing confirmation — in the signing team's colours */}
-        <div className="tt-signing-block" style={{ background: signingBg, color: signingText, borderBottom: `3px solid ${prevKit?.secondaryColor || "#fff"}` }}>
+        <div className="tt-signing-block" style={{ background: signingBg, color: signingText, borderBottom: `3px solid ${prevKit?.secondaryColor || "var(--bw-gold)"}` }}>
           <div className="tt-complete" style={{ color: signingAccent === signingBg ? signingText : signingAccent }}>TRANSFER COMPLETE</div>
           {prevKit && (
             <KitSwatch
@@ -30,30 +30,32 @@ export default function TurnTransition({ prevManager, player, nextManager, posLa
           </div>
         </div>
 
-        {/* Hand-off to next player */}
-        <div
-          className="tt-next-up"
-          style={nextKit ? {
-            background: nextKit.primaryColor,
-            color: readableTextOn(nextKit.primaryColor),
-            borderColor: nextKit.secondaryColor,
-          } : undefined}
-        >
-          {nextKit && (
-            <KitSwatch
-              primary={nextKit.primaryColor}
-              secondary={nextKit.secondaryColor}
-              pattern={nextKit.pattern || "plain"}
-              uid="tt-next"
-              size={22}
-            />
-          )}
-          NEXT UP: <strong style={nextKit ? { color: "inherit" } : undefined}>{nextManager}</strong>
+        <div className="tt-body">
+          {/* Hand-off to next player */}
+          <div
+            className="tt-next-up"
+            style={nextKit ? {
+              background: nextKit.primaryColor,
+              color: readableTextOn(nextKit.primaryColor),
+              borderColor: nextKit.secondaryColor,
+            } : undefined}
+          >
+            {nextKit && (
+              <KitSwatch
+                primary={nextKit.primaryColor}
+                secondary={nextKit.secondaryColor}
+                pattern={nextKit.pattern || "plain"}
+                uid="tt-next"
+                size={22}
+              />
+            )}
+            NEXT UP: <strong style={nextKit ? { color: "inherit" } : undefined}>{nextManager}</strong>
+          </div>
+          <div className="tt-next-pos">signing: {posLabel}</div>
+          <button className="bw-cta-primary" onClick={onContinue}>
+            ▶ CONTINUE
+          </button>
         </div>
-        <div className="tt-next-pos">signing: {posLabel}</div>
-        <button className="tt-continue-btn" onClick={onContinue}>
-          ▶ CONTINUE
-        </button>
       </div>
     </div>
   );

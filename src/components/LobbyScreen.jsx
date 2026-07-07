@@ -27,60 +27,64 @@ export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onW
   const [selected, setSelected] = useState(null); // null | "classic" | "warchest"
 
   return (
-    <div className="setup-screen">
-      <div className="setup-card mode-select-card">
-        <div className="setup-header">
-          <h1 className="setup-title">The Transfer Wheel</h1>
-          <p className="setup-sub">Build a squad. Spin the wheel. Become a legend.</p>
+    <div className="bw-home-screen">
+      <div className="bw-home-card">
+        <div className="bw-hero">
+          <div className="bw-wordmark">THE TRANSFER<br />WHEEL</div>
+          <div className="bw-tagline">Build a squad. Spin the wheel. Become a legend.</div>
         </div>
 
-        <div className="mode-options">
-          <div className={`mode-card ${selected === "classic" ? "mode-card-expanded" : ""}`}>
-            <button className="mode-card-main" onClick={() => setSelected(selected === "classic" ? null : "classic")}>
-              <div className="mode-card-label">CLASSIC</div>
-              <div className="mode-card-desc">
-                Spin the Transfer Wheel, build your squad, then play. Solo, local, or online.
+        <div className="bw-home-body">
+          <div className={`bw-mode-card bw-mode-card-classic ${selected === "classic" ? "bw-mode-card-expanded" : ""}`}>
+            <button className="bw-mode-card-main" onClick={() => setSelected(selected === "classic" ? null : "classic")}>
+              <div className="bw-mode-card-text">
+                <div className="bw-mode-card-label">CLASSIC</div>
+                <div className="bw-mode-card-desc">
+                  Spin the Transfer Wheel, build your squad, then play. Solo, local, or online.
+                </div>
               </div>
-              <div className="mode-card-cta">{selected === "classic" ? "▲" : "PLAY →"}</div>
+              <div className="bw-mode-card-cta">{selected === "classic" ? "▲" : "PLAY →"}</div>
             </button>
             {selected === "classic" && (
-              <div className="mode-sub-options">
-                <button className="mode-sub-btn" onClick={onClassicSolo}>
-                  <span className="mode-sub-label">SOLO / LOCAL</span>
-                  <span className="mode-sub-desc">1–8 players on one screen</span>
+              <div className="bw-mode-sub-options">
+                <button className="bw-mode-sub-btn" onClick={onClassicSolo}>
+                  <span className="bw-mode-sub-label">SOLO / LOCAL</span>
+                  <span className="bw-mode-sub-desc">1–8 players on one screen</span>
                 </button>
-                <button className="mode-sub-btn mode-sub-btn-online" onClick={onClassicOnline}>
-                  <span className="mode-sub-label">ONLINE</span>
-                  <span className="mode-sub-desc">Each player joins from their own device</span>
+                <button className="bw-mode-sub-btn bw-mode-sub-btn-online" onClick={onClassicOnline}>
+                  <span className="bw-mode-sub-label">ONLINE</span>
+                  <span className="bw-mode-sub-desc">Each player joins from their own device</span>
                 </button>
               </div>
             )}
           </div>
 
-          <div className={`mode-card mode-card-warchest ${selected === "warchest" ? "mode-card-expanded" : ""}`}>
-            <button className="mode-card-main" onClick={() => setSelected(selected === "warchest" ? null : "warchest")}>
-              <div className="mode-card-label">WAR CHEST</div>
-              <div className="mode-card-desc">
-                5-a-side. Pick a mystery chest to reveal your budget, then race to build the best squad you can afford.
+          <div className={`bw-mode-card bw-mode-card-wc ${selected === "warchest" ? "bw-mode-card-expanded" : ""}`}>
+            <button className="bw-mode-card-main" onClick={() => setSelected(selected === "warchest" ? null : "warchest")}>
+              <div className="bw-mode-card-text">
+                <div className="bw-mode-card-label">WAR CHEST</div>
+                <div className="bw-mode-card-desc">
+                  5-a-side. Pick a mystery chest to reveal your budget, then race to build the best squad you can afford.
+                </div>
               </div>
-              <div className="mode-card-cta">{selected === "warchest" ? "▲" : "PLAY →"}</div>
+              <div className="bw-mode-card-cta">{selected === "warchest" ? "▲" : "PLAY →"}</div>
             </button>
             {selected === "warchest" && (
-              <div className="mode-sub-options">
-                <button className="mode-sub-btn" onClick={onWcSolo}>
-                  <span className="mode-sub-label">SOLO / LOCAL</span>
-                  <span className="mode-sub-desc">1–8 players on one screen</span>
+              <div className="bw-mode-sub-options">
+                <button className="bw-mode-sub-btn" onClick={onWcSolo}>
+                  <span className="bw-mode-sub-label">SOLO / LOCAL</span>
+                  <span className="bw-mode-sub-desc">1–8 players on one screen</span>
                 </button>
-                <button className="mode-sub-btn mode-sub-btn-online" onClick={onWcOnline}>
-                  <span className="mode-sub-label">ONLINE</span>
-                  <span className="mode-sub-desc">Everyone picks simultaneously from their own device</span>
+                <button className="bw-mode-sub-btn bw-mode-sub-btn-online" onClick={onWcOnline}>
+                  <span className="bw-mode-sub-label">ONLINE</span>
+                  <span className="bw-mode-sub-desc">Everyone picks simultaneously from their own device</span>
                 </button>
               </div>
             )}
           </div>
-        </div>
 
-        <button className="mode-back-link" onClick={onAbout}>About this game</button>
+          <button className="bw-about-link" onClick={onAbout}>About this game</button>
+        </div>
       </div>
     </div>
   );
@@ -126,83 +130,87 @@ export default function LobbyScreen({ onContinue, onBack }) {
 
   return (
     <div className="setup-screen">
-      <div className="setup-card setup-card-wide">
-        <div className="setup-header">
-          <h1 className="setup-title">The Transfer Wheel</h1>
-          <p className="setup-sub">Build a squad. Spin the wheel. Become a legend.</p>
+      <div className="bw-frame">
+        <div className="bw-banner">
+          <div className="bw-banner-title">GAME SETUP</div>
+          <div className="bw-banner-subtitle">Build a squad. Spin the wheel. Become a legend.</div>
         </div>
 
-        <div className="game-options">
-          <div className="options-title">GAME SETUP</div>
-
-          <div className="setup-row">
-            <span className="setup-row-label">CLUBS</span>
-            <select
-              className="setup-row-select"
-              value={numClubs}
-              onChange={e => handleNumClubs(Number(e.target.value))}
-            >
-              {[2, 4, 8].map(n => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
+        <div className="bw-body">
+          <div className="bw-setup-row">
+            <span className="bw-setup-label">CLUBS</span>
+            <div className="bw-setup-select-wrap">
+              <select
+                className="bw-setup-select"
+                value={numClubs}
+                onChange={e => handleNumClubs(Number(e.target.value))}
+              >
+                {[2, 4, 8].map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="difficulty-hint setup-row-hint">
+          <div className="bw-setup-hint">
             {numClubs === 2 ? "Head-to-head — two clubs, one draft, one winner" : numClubs === 8 ? "Eight-way draft — maximum chaos, maximum competition" : "Four-way draft — more chaos, more competition"}
           </div>
 
-          <div className="setup-row">
-            <span className="setup-row-label">PLAYERS</span>
-            <select
-              className="setup-row-select"
-              value={numHumans}
-              onChange={e => setNumHumans(Number(e.target.value))}
-            >
-              {Array.from({ length: numClubs }, (_, i) => i + 1).map(n => (
-                <option key={n} value={n}>{n}</option>
-              ))}
-            </select>
+          <div className="bw-setup-row">
+            <span className="bw-setup-label">PLAYERS</span>
+            <div className="bw-setup-select-wrap">
+              <select
+                className="bw-setup-select"
+                value={numHumans}
+                onChange={e => setNumHumans(Number(e.target.value))}
+              >
+                {Array.from({ length: numClubs }, (_, i) => i + 1).map(n => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="difficulty-hint setup-row-hint">
+          <div className="bw-setup-hint">
             {numHumans === numClubs
               ? "All clubs are human-controlled"
               : `${numClubs - numHumans} CPU club${numClubs - numHumans > 1 ? "s" : ""} will be auto-generated`}
           </div>
 
-          <div className="setup-row">
-            <span className="setup-row-label">DIFFICULTY</span>
-            <select
-              className="setup-row-select setup-row-select-wide"
-              value={difficulty}
-              onChange={e => setDifficulty(e.target.value)}
-            >
-              {DIFFICULTY_INFO.map(d => (
-                <option key={d.key} value={d.key}>{d.label}</option>
-              ))}
-            </select>
+          <div className="bw-setup-row">
+            <span className="bw-setup-label">DIFFICULTY</span>
+            <div className="bw-setup-select-wrap">
+              <select
+                className="bw-setup-select accent"
+                value={difficulty}
+                onChange={e => setDifficulty(e.target.value)}
+              >
+                {DIFFICULTY_INFO.map(d => (
+                  <option key={d.key} value={d.key}>{d.label}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="difficulty-hint setup-row-hint">
+          <div className="bw-setup-hint">
             {DIFFICULTY_INFO.find(d => d.key === difficulty)?.hint}
           </div>
 
-          <div className="setup-row">
-            <span className="setup-row-label">DRAFT ORDER</span>
-            <div className="setup-row-btns">
+          <div className="bw-setup-row">
+            <span className="bw-setup-label">DRAFT ORDER</span>
+            <div className="bw-tactics-toggle">
               <button
-                className={`setup-row-btn ${positionMode === "fixed" ? "active" : ""}`}
+                className={`bw-tactics-seg ${positionMode === "fixed" ? "active" : ""}`}
                 onClick={() => setPositionMode("fixed")}
               >
                 FIXED
               </button>
               <button
-                className={`setup-row-btn ${positionMode === "random" ? "active" : ""}`}
+                className={`bw-tactics-seg ${positionMode === "random" ? "active" : ""}`}
                 onClick={() => setPositionMode("random")}
               >
                 RANDOM
               </button>
             </div>
           </div>
-          <div className="difficulty-hint setup-row-hint">
+          <div className="bw-setup-hint">
             {positionMode === "fixed"
               ? "Classic order — GK first, subs last. Predictable and competitive"
               : "Spin to reveal your position each round — chaos, carnage, and competition"}
@@ -212,13 +220,13 @@ export default function LobbyScreen({ onContinue, onBack }) {
 
           {numClubs === 2 && (
             <>
-              <div className="setup-row">
-                <span className="setup-row-label">BEST OF</span>
-                <div className="setup-row-btns">
+              <div className="bw-setup-row">
+                <span className="bw-setup-label">BEST OF</span>
+                <div className="bw-tactics-toggle">
                   {formatOptions.map(f => (
                     <button
                       key={f.key}
-                      className={`setup-row-btn ${activeFormat === f.key ? "active" : ""}`}
+                      className={`bw-tactics-seg ${activeFormat === f.key ? "active" : ""}`}
                       onClick={() => setFormat(f.key)}
                     >
                       {f.key === "bo3" ? "3" : f.key === "bo5" ? "5" : "7"}
@@ -226,78 +234,87 @@ export default function LobbyScreen({ onContinue, onBack }) {
                   ))}
                 </div>
               </div>
-              <div className="difficulty-hint setup-row-hint">
+              <div className="bw-setup-hint">
                 {formatOptions.find(f => f.key === activeFormat)?.hint}
               </div>
             </>
           )}
 
           <button
-            className="advanced-toggle"
+            className="bw-collapse-toggle"
             onClick={() => setShowAdvanced(v => !v)}
           >
             {showAdvanced ? "▲" : "▼"} ADVANCED OPTIONS
           </button>
 
           {showAdvanced && (
-            <div className="advanced-options">
-              <label className="option-row">
+            <div className="bw-pool-list bw-setup-block">
+              <label className={`bw-pool-row ${managerTiming === "before" ? "checked" : "unchecked"}`}>
                 <input
                   type="checkbox"
-                  className="option-checkbox"
                   checked={managerTiming === "before"}
                   onChange={e => setManagerTiming(e.target.checked ? "before" : "after")}
                 />
-                <span className="option-label">Manager draft before squad draft</span>
-                <span className="option-hint">Spin the Merry-Go-Round first, then build your squad</span>
+                <span className="bw-pool-check-icon">{managerTiming === "before" ? "✓" : ""}</span>
+                <span className="bw-pool-label-wrap">
+                  <span className="bw-pool-label">Manager draft before squad draft</span>
+                  <span className="bw-pool-label-sub">Spin the Merry-Go-Round first, then build your squad</span>
+                </span>
               </label>
-              <label className="option-row">
+              <label className={`bw-pool-row ${hideRatings ? "checked" : "unchecked"}`}>
                 <input
                   type="checkbox"
-                  className="option-checkbox"
                   checked={hideRatings}
                   onChange={e => setHideRatings(e.target.checked)}
                 />
-                <span className="option-label">Hide player ratings during draft</span>
-                <span className="option-hint">Adds mystery — pick on reputation alone</span>
+                <span className="bw-pool-check-icon">{hideRatings ? "✓" : ""}</span>
+                <span className="bw-pool-label-wrap">
+                  <span className="bw-pool-label">Hide player ratings during draft</span>
+                  <span className="bw-pool-label-sub">Adds mystery — pick on reputation alone</span>
+                </span>
               </label>
-              <label className="option-row">
+              <label className={`bw-pool-row ${dynamicValues ? "checked" : "unchecked"}`}>
                 <input
                   type="checkbox"
-                  className="option-checkbox"
                   checked={dynamicValues}
                   onChange={e => setDynamicValues(e.target.checked)}
                 />
-                <span className="option-label">Randomize player values each game</span>
-                <span className="option-hint">Prices vary by tier — no two games are alike</span>
+                <span className="bw-pool-check-icon">{dynamicValues ? "✓" : ""}</span>
+                <span className="bw-pool-label-wrap">
+                  <span className="bw-pool-label">Randomize player values each game</span>
+                  <span className="bw-pool-label-sub">Prices vary by tier — no two games are alike</span>
+                </span>
               </label>
-              <label className="option-row">
+              <label className={`bw-pool-row ${dynamicForm ? "checked" : "unchecked"}`}>
                 <input
                   type="checkbox"
-                  className="option-checkbox"
                   checked={dynamicForm}
                   onChange={e => setDynamicForm(e.target.checked)}
                 />
-                <span className="option-label">Apply player form variance</span>
-                <span className="option-hint">Hot form +2, poor form -2 — bargains and traps daily</span>
+                <span className="bw-pool-check-icon">{dynamicForm ? "✓" : ""}</span>
+                <span className="bw-pool-label-wrap">
+                  <span className="bw-pool-label">Apply player form variance</span>
+                  <span className="bw-pool-label-sub">Hot form +2, poor form -2 — bargains and traps daily</span>
+                </span>
               </label>
             </div>
           )}
-        </div>
 
-        <div className="setup-rules">
-          <div className="rules-title">HOW IT WORKS</div>
-          <p className="rules-intro">
-            You are a Director of Football tasked with building a new team from the ground up.
-            Jump on the Managerial Merry-Go-Round, try your luck on the transfer wheel and
-            build a squad of 16 players to become the ultimate football director.
-          </p>
-          <button className="rules-toggle" onClick={() => setShowRules(v => !v)}>
-            {showRules ? "▲ hide rules" : "▼ see rules"}
+          <button
+            className="bw-collapse-toggle"
+            onClick={() => setShowRules(v => !v)}
+          >
+            {showRules ? "▲" : "▼"} HOW IT WORKS
           </button>
+
           {showRules && (
-            <div className="rules-detail">
-              <ul className="rules-bullets">
+            <div className="bw-rules-box">
+              <p className="bw-rules-intro">
+                You are a Director of Football tasked with building a new team from the ground up.
+                Jump on the Managerial Merry-Go-Round, try your luck on the transfer wheel and
+                build a squad of 16 players to become the ultimate football director.
+              </p>
+              <ul className="bw-rules-list">
                 <li>Spin the Managerial Merry-Go-Round to assign a manager to your squad</li>
                 <li>Spin the budget wheel each turn — £0 to £200m, unspent carries over</li>
                 <li>Draft one player per position until your squad of 16 is complete</li>
@@ -311,17 +328,17 @@ export default function LobbyScreen({ onContinue, onBack }) {
               </ul>
             </div>
           )}
-        </div>
 
-        <button className="start-btn active" onClick={handleContinue}>
-          CONTINUE →
-        </button>
-
-        {onBack && (
-          <button className="mode-back-link" onClick={onBack}>
-            ← change mode
+          <button className="bw-cta-primary" style={{ marginTop: 10 }} onClick={handleContinue}>
+            CONTINUE →
           </button>
-        )}
+
+          {onBack && (
+            <button className="bw-about-link" onClick={onBack}>
+              ← change mode
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

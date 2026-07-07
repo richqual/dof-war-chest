@@ -51,82 +51,87 @@ export default function PlayerPoolScreen({ onConfirm, numClubs = 4 }) {
   }
 
   return (
-    <div className="player-pool-screen">
-      <div className="mgr-draft-header">
-        <div className="mgr-draft-title">BUILD YOUR PLAYER POOL</div>
-        <div className="mgr-draft-sub">Choose which eras, leagues &amp; tiers to draft from</div>
-      </div>
-
-      <div className="player-pool-grid">
-        <div className="player-pool-section">
-          <div className="mgr-pool-section-title">ERAS</div>
-          <div className="mgr-pool-checks">
-            {ERA_CONFIG.map(cfg => {
-              const count = new Set(PLAYERS.filter(p => p.era === cfg.key).map(p => p.name)).size;
-              const checked = eras.includes(cfg.key);
-              return (
-                <label key={cfg.key} className={`mgr-pool-check${checked ? " checked" : ""}`}>
-                  <input type="checkbox" checked={checked} onChange={() => toggle(eras, setEras, cfg.key)} />
-                  <span className="mgr-pool-flag">{cfg.flag}</span>
-                  <span className="mgr-pool-label">
-                    {cfg.label}
-                    <span className="mgr-pool-sub">{cfg.sub}</span>
-                  </span>
-                  <span className="mgr-pool-count">{count}</span>
-                </label>
-              );
-            })}
-          </div>
+    <div className="setup-screen">
+      <div className="bw-frame">
+        <div className="bw-banner">
+          <div className="bw-banner-title">PLAYER POOL</div>
+          <div className="bw-banner-subtitle">Choose which eras, leagues &amp; tiers to draft from</div>
         </div>
 
-        <div className="player-pool-section">
-          <div className="mgr-pool-section-title">LEAGUES</div>
-          <div className="mgr-pool-checks">
-            {LEAGUE_CONFIG.map(cfg => {
-              const count = new Set(PLAYERS.filter(p => p.league === cfg.key).map(p => p.name)).size;
-              const checked = leagues.includes(cfg.key);
-              return (
-                <label key={cfg.key} className={`mgr-pool-check${checked ? " checked" : ""}`}>
-                  <input type="checkbox" checked={checked} onChange={() => toggle(leagues, setLeagues, cfg.key)} />
-                  <span className="mgr-pool-flag">{cfg.flag}</span>
-                  <span className="mgr-pool-label">{cfg.label}</span>
-                  <span className="mgr-pool-count">{count}</span>
-                </label>
-              );
-            })}
+        <div className="bw-body">
+          <div className="bw-field">
+            <div className="bw-field-label">ERAS</div>
+            <div className="bw-pool-list">
+              {ERA_CONFIG.map(cfg => {
+                const count = new Set(PLAYERS.filter(p => p.era === cfg.key).map(p => p.name)).size;
+                const checked = eras.includes(cfg.key);
+                return (
+                  <label key={cfg.key} className={`bw-pool-row ${checked ? "checked" : "unchecked"}`}>
+                    <input type="checkbox" checked={checked} onChange={() => toggle(eras, setEras, cfg.key)} />
+                    <span className="bw-pool-check-icon">{checked ? "✓" : ""}</span>
+                    <span className="bw-pool-flag">{cfg.flag}</span>
+                    <span className="bw-pool-label-wrap">
+                      <span className="bw-pool-label">{cfg.label}</span>
+                      <span className="bw-pool-label-sub">{cfg.sub}</span>
+                    </span>
+                    <span className="bw-pool-count">{count}</span>
+                  </label>
+                );
+              })}
+            </div>
           </div>
-        </div>
 
-        <div className="player-pool-section">
-          <div className="mgr-pool-section-title">TIERS</div>
-          <div className="mgr-pool-checks">
-            {TIER_CONFIG.map(cfg => {
-              const count = new Set(PLAYERS.filter(p => p.tier === cfg.key).map(p => p.name)).size;
-              const checked = tiers.includes(cfg.key);
-              return (
-                <label key={cfg.key} className={`mgr-pool-check${checked ? " checked" : ""}`}>
-                  <input type="checkbox" checked={checked} onChange={() => toggle(tiers, setTiers, cfg.key)} />
-                  <span className="mgr-pool-label">
-                    {cfg.label}
-                    <span className="mgr-pool-sub">{cfg.sub}</span>
-                  </span>
-                  <span className="mgr-pool-count">{count}</span>
-                </label>
-              );
-            })}
+          <div className="bw-field">
+            <div className="bw-field-label">LEAGUES</div>
+            <div className="bw-pool-list">
+              {LEAGUE_CONFIG.map(cfg => {
+                const count = new Set(PLAYERS.filter(p => p.league === cfg.key).map(p => p.name)).size;
+                const checked = leagues.includes(cfg.key);
+                return (
+                  <label key={cfg.key} className={`bw-pool-row ${checked ? "checked" : "unchecked"}`}>
+                    <input type="checkbox" checked={checked} onChange={() => toggle(leagues, setLeagues, cfg.key)} />
+                    <span className="bw-pool-check-icon">{checked ? "✓" : ""}</span>
+                    <span className="bw-pool-flag">{cfg.flag}</span>
+                    <span className="bw-pool-label">{cfg.label}</span>
+                    <span className="bw-pool-count">{count}</span>
+                  </label>
+                );
+              })}
+            </div>
           </div>
+
+          <div className="bw-field">
+            <div className="bw-field-label">TIERS</div>
+            <div className="bw-pool-list">
+              {TIER_CONFIG.map(cfg => {
+                const count = new Set(PLAYERS.filter(p => p.tier === cfg.key).map(p => p.name)).size;
+                const checked = tiers.includes(cfg.key);
+                return (
+                  <label key={cfg.key} className={`bw-pool-row ${checked ? "checked" : "unchecked"}`}>
+                    <input type="checkbox" checked={checked} onChange={() => toggle(tiers, setTiers, cfg.key)} />
+                    <span className="bw-pool-check-icon">{checked ? "✓" : ""}</span>
+                    <span className="bw-pool-label-wrap">
+                      <span className="bw-pool-label">{cfg.label}</span>
+                      <span className="bw-pool-label-sub">{cfg.sub}</span>
+                    </span>
+                    <span className="bw-pool-count">{count}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className={`bw-pool-total ${tooSmall ? "too-small" : ""}`}>
+            {tooSmall
+              ? `Only ~${poolSize} unique players — need ~${minPool} for ${numClubs} teams. Select more options.`
+              : <><strong>{poolSize}</strong> unique players in pool</>}
+          </div>
+
+          <button className="bw-cta-arcade" disabled={tooSmall} onClick={handleConfirm}>
+            ▶ START THE DRAFT
+          </button>
         </div>
       </div>
-
-      <div className={`mgr-pool-total${tooSmall ? " too-small" : ""}`}>
-        {tooSmall
-          ? `Only ~${poolSize} unique players — need ~${minPool} for ${numClubs} teams. Select more options.`
-          : `~${poolSize} unique players in pool`}
-      </div>
-
-      <button className="mgr-go-btn" disabled={tooSmall} onClick={handleConfirm}>
-        ▶ START THE DRAFT
-      </button>
     </div>
   );
 }

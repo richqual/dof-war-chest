@@ -23,3 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Design references / mocks — not shipped app code
+design_handoff_transfer_wheel/
+transfer-wheel-skin-options/
+docs/

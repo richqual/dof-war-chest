@@ -4,29 +4,27 @@ import { POSITIONS, getRatingBg, getRatingColor, formatValue } from "../data/pla
 import { squadRating } from "./SquadScreen";
 import { generateEvents, buildEffectiveSquad } from "./MatchSim";
 
-function WinDots({ wins, target, accent }) {
+function teamName(m) {
+  return m.teamName || m.clubName || m.name;
+}
+
+function BwPips({ wins, target }) {
   return (
-    <div className="win-dots">
+    <div className="bw-pips">
       {Array.from({ length: target }, (_, i) => (
-        <span key={i} className={`win-dot ${i < wins ? "filled" : ""}`} style={i < wins ? { background: accent } : {}} />
+        <span key={i} className={`bw-pip ${i < wins ? "filled" : ""}`} />
       ))}
     </div>
   );
 }
 
-function ManagerStrip({ mgr, wins, target, isChampion }) {
-  const accent = kitAccent(mgr.primaryColor, mgr.secondaryColor);
+function BwTeamRow({ mgr, wins, target, lead }) {
   return (
-    <div className={`series-mgr-strip ${isChampion ? "champion" : ""}`} style={isChampion ? { "--champ-a": mgr.primaryColor, "--champ-b": mgr.secondaryColor } : {}}>
-      <KitSwatch primary={mgr.primaryColor} secondary={mgr.secondaryColor} pattern={mgr.pattern} uid={`s${mgr.id}`} size={36} />
-      <div className="series-mgr-info">
-        <span className="series-mgr-name" style={{ color: accent }}>{mgr.teamName || mgr.clubName || mgr.name}</span>
-        {isChampion && <span className="series-champ-tag">🏆 CHAMPION</span>}
-      </div>
-      <div className="series-mgr-right">
-        <span className="series-win-count">{wins}</span>
-        <WinDots wins={wins} target={target} accent={accent} />
-      </div>
+    <div className="bw-score-row" style={{ "--bw-row-tint": mgr.primaryColor }}>
+      <KitSwatch primary={mgr.primaryColor} secondary={mgr.secondaryColor} pattern={mgr.pattern} uid={`s${mgr.id}`} size={20} />
+      <span className="bw-score-name">{teamName(mgr)}</span>
+      <BwPips wins={wins} target={target} />
+      <span className={`bw-score-num ${lead ? "lead" : ""}`}>{wins}</span>
     </div>
   );
 }
@@ -196,18 +194,103 @@ export function getSeriesContext(series, managers, warChest = false) {
   return { label: `MATCH ${next.matchNum} · ${next.label}`, standing, homeIdx: next.homeIdx, awayIdx: next.awayIdx, legContext, isLeg1, isGrandFinal, homePrevResult, awayPrevResult, isSeriesTiebreaker: next.isSeriesTiebreaker ?? false, isTournamentKnockout, skipToShootout: !!warChest };
 }
 
-// Two-player series standings panel
-function TwoPlayerStandings({ series, managers }) {
+// Fixtures strip — one tile per possible leg (target*2-1), driven by series.history.
+function BwFixtures({ series }) {
+  const maxGames = series.target * 2 - 1;
+  const nowIndex = series.champion === null ? series.history.length : -1;
+  return (
+    <div className="bw-fixtures">
+      <div className="bw-fixtures-label">FIXTURES</div>
+      <div className="bw-fixtures-row">
+        {Array.from({ length: maxGames }, (_, i) => {
+          const leg = series.history[i];
+          const isNow = i === nowIndex;
+          const cls = leg ? (leg.winnerPos === 0 ? "won" : leg.winnerPos === 1 ? "lost" : "drawn") : isNow ? "now" : "future";
+          return (
+            <div key={i} className={`bw-fixture-tile bw-fixture-${cls}`}>
+              <div className="bw-fixture-num">M{i + 1}</div>
+              {leg ? (
+                <div className="bw-fixture-score">{leg.p0Goals}-{leg.p1Goals}</div>
+              ) : isNow ? (
+                <div className="bw-fixture-now-label">NOW</div>
+              ) : (
+                <div className="bw-fixture-score">–</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Series hub — the head-to-head best-of-N spine (mock ref: 2d).
+function TwoPlayerSeriesHub({ draft, series, managers, nextMatchup, isHost, isCpuVsCpu, cpuSimActive, setCpuSimActive, playNextMatch, setScreen, seriesCtxForSim, handleSimDone }) {
   const [p0, p1] = series.participants;
   const m0 = managers[p0], m1 = managers[p1];
+  const [w0, w1] = series.wins;
+
+  let caption;
+  if (w0 === w1) caption = <>All square · first to <strong>{series.target}</strong> lifts the cup</>;
+  else caption = <>{teamName(w0 > w1 ? m0 : m1)} lead the series · first to <strong>{series.target}</strong> lifts the cup</>;
+
+  const subtitle = nextMatchup
+    ? `${series.format.toUpperCase().replace("BO", "Best of ")}${nextMatchup.isSeriesTiebreaker ? " · Tiebreaker" : ` · Match ${nextMatchup.matchNum}`}`
+    : series.format.toUpperCase().replace("BO", "Best of ");
+
   return (
-    <div className="series-standings">
-      <ManagerStrip mgr={m0} wins={series.wins[0]} target={series.target} isChampion={series.champion === p0} />
-      <div className="series-vs-divider">
-        {series.wins[0]}–{series.wins[1]}
-        {(series.draws ?? 0) > 0 && <span className="series-draws-label">{series.draws}D</span>}
+    <div className="bw-series-frame">
+      <div className="bw-banner">
+        <div className="bw-banner-title">GRAND FINAL</div>
+        <div className="bw-banner-subtitle">{subtitle}</div>
       </div>
-      <ManagerStrip mgr={m1} wins={series.wins[1]} target={series.target} isChampion={series.champion === p1} />
+
+      <div className="bw-series-body">
+        <div className="bw-scoreboard">
+          <BwTeamRow mgr={m0} wins={w0} target={series.target} lead={w0 > w1} />
+          <div className="bw-scoreboard-divider" />
+          <BwTeamRow mgr={m1} wins={w1} target={series.target} lead={w1 > w0} />
+        </div>
+        <div className="bw-scoreboard-caption">
+          {caption}
+          {(series.draws ?? 0) > 0 && <span> · {series.draws}D</span>}
+        </div>
+
+        <BwFixtures series={series} />
+
+        <TournamentStats tournamentStats={draft.tournamentStats} managers={managers} />
+
+        {nextMatchup && (
+          isHost ? (
+            <div className="bw-series-actions">
+              <button className="bw-cta-arcade" onClick={playNextMatch}>
+                ▶ {nextMatchup.isSeriesTiebreaker ? "PLAY TIEBREAKER" : `PLAY MATCH ${nextMatchup.matchNum}`}
+              </button>
+              {isCpuVsCpu && (
+                <button className="bw-cta-secondary" onClick={() => setCpuSimActive(true)}>
+                  ⚡ AUTO-SIMULATE
+                </button>
+              )}
+              <button className="bw-cta-secondary" onClick={() => setScreen("squads")}>TEAM MANAGEMENT</button>
+            </div>
+          ) : (
+            <div className="mp-waiting-screen">
+              <div className="mp-waiting-spinner" />
+              <p className="mp-waiting-text">Waiting for the host to play the next match…</p>
+            </div>
+          )
+        )}
+
+        {cpuSimActive && nextMatchup && (
+          <CpuSimOverlay
+            draft={draft}
+            homeIdx={nextMatchup.homeIdx}
+            awayIdx={nextMatchup.awayIdx}
+            seriesCtx={seriesCtxForSim}
+            onDone={handleSimDone}
+          />
+        )}
+      </div>
     </div>
   );
 }
@@ -218,21 +301,20 @@ function TournamentBracket({ series, managers }) {
   const semis = series.semis || [];
 
   return (
-    <div className="tournament-bracket">
+    <div className="bw-bracket">
       {/* Grand Final — shown first and made prominent once the semis are through,
           so the upcoming (or just-played) decider doesn't get buried under
           rounds that have already been settled. */}
       {series.final && (
-        <div className="bracket-final">
-          <div className="bracket-final-label">⭐ GRAND FINAL</div>
+        <div className="bw-bracket-final">
+          <div className="bw-bracket-final-label">⭐ GRAND FINAL</div>
           {series.final.p.map((pi, i) => {
             const m = managers[pi];
-            const accent = kitAccent(m.primaryColor, m.secondaryColor);
             return (
-              <div key={i} className={`bracket-team ${series.final.winner === pi ? "bracket-winner" : series.final.winner !== null ? "bracket-out" : ""}`}>
+              <div key={i} className={`bw-bracket-row ${series.final.winner === pi ? "bw-bracket-winner" : series.final.winner !== null ? "bw-bracket-out" : ""}`}>
                 <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern} uid={`bf${i}`} size={22} />
-                <span style={{ color: accent }}>{m.teamName || m.clubName || m.name}</span>
-                {series.final.winner !== null && <span className="bracket-wins">{series.final.wins[i]}</span>}
+                <span>{m.teamName || m.clubName || m.name}</span>
+                {series.final.winner !== null && <span className="bw-bracket-score">{series.final.wins[i]}</span>}
               </div>
             );
           })}
@@ -243,30 +325,28 @@ function TournamentBracket({ series, managers }) {
           reverse-chronological order beneath the Grand Final (most recent,
           most relevant round first). */}
       {semis.length > 0 && (
-        <div className="bracket-section">
-          {quarters.length > 0 && <div className="bracket-section-title">SEMI-FINALS</div>}
+        <div className="bw-bracket-section">
+          {quarters.length > 0 && <div className="bw-bracket-section-title">SEMI-FINALS</div>}
           {semis.map((sm, i) => {
             const m0 = managers[sm.p[0]], m1 = managers[sm.p[1]];
-            const accent0 = kitAccent(m0.primaryColor, m0.secondaryColor);
-            const accent1 = kitAccent(m1.primaryColor, m1.secondaryColor);
             return (
-              <div key={i} className="bracket-semi">
-                <div className="bracket-semi-label">SEMI-FINAL {i + 1}</div>
-                <div className={`bracket-team ${sm.winner === sm.p[0] ? "bracket-winner" : sm.winner !== null ? "bracket-out" : ""}`}>
+              <div key={i} className="bw-bracket-card">
+                <div className="bw-bracket-card-label">SEMI-FINAL {i + 1}</div>
+                <div className={`bw-bracket-row ${sm.winner === sm.p[0] ? "bw-bracket-winner" : sm.winner !== null ? "bw-bracket-out" : ""}`}>
                   <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bs${i}a`} size={16} />
-                  <span style={{ color: accent0 }}>{m0.teamName || m0.clubName || m0.name}</span>
-                  <span className="bracket-wins">{sm.goals?.[0] ?? 0}</span>
+                  <span>{m0.teamName || m0.clubName || m0.name}</span>
+                  <span className="bw-bracket-score">{sm.goals?.[0] ?? 0}</span>
                 </div>
-                <div className={`bracket-team ${sm.winner === sm.p[1] ? "bracket-winner" : sm.winner !== null ? "bracket-out" : ""}`}>
+                <div className={`bw-bracket-row ${sm.winner === sm.p[1] ? "bw-bracket-winner" : sm.winner !== null ? "bw-bracket-out" : ""}`}>
                   <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bs${i}b`} size={16} />
-                  <span style={{ color: accent1 }}>{m1.teamName || m1.clubName || m1.name}</span>
-                  <span className="bracket-wins">{sm.goals?.[1] ?? 0}</span>
+                  <span>{m1.teamName || m1.clubName || m1.name}</span>
+                  <span className="bw-bracket-score">{sm.goals?.[1] ?? 0}</span>
                 </div>
                 {sm.legsPlayed === 1 && sm.winner === null && (
-                  <div className="bracket-adv">Agg: {sm.goals[0]}–{sm.goals[1]} · Leg 2 to come</div>
+                  <div className="bw-bracket-adv">Agg: {sm.goals[0]}–{sm.goals[1]} · Leg 2 to come</div>
                 )}
                 {sm.winner !== null && (
-                  <div className="bracket-adv">
+                  <div className="bw-bracket-adv">
                     → {managers[sm.winner].teamName || managers[sm.winner].name} advance
                     {sm.wonOnPens ? " (pens)" : ""}
                   </div>
@@ -279,31 +359,29 @@ function TournamentBracket({ series, managers }) {
 
       {/* Quarter-finals (8-team only) */}
       {quarters.length > 0 && (
-        <div className="bracket-section">
-          <div className="bracket-section-title">QUARTER-FINALS</div>
-          <div className="bracket-quarters-grid">
+        <div className="bw-bracket-section">
+          <div className="bw-bracket-section-title">QUARTER-FINALS</div>
+          <div className="bw-bracket-grid">
             {quarters.map((q, i) => {
               const m0 = managers[q.p[0]], m1 = managers[q.p[1]];
-              const accent0 = kitAccent(m0.primaryColor, m0.secondaryColor);
-              const accent1 = kitAccent(m1.primaryColor, m1.secondaryColor);
               return (
-                <div key={i} className="bracket-semi">
-                  <div className="bracket-semi-label">QF {i + 1}</div>
-                  <div className={`bracket-team ${q.winner === q.p[0] ? "bracket-winner" : q.winner !== null ? "bracket-out" : ""}`}>
+                <div key={i} className="bw-bracket-card">
+                  <div className="bw-bracket-card-label">QF {i + 1}</div>
+                  <div className={`bw-bracket-row ${q.winner === q.p[0] ? "bw-bracket-winner" : q.winner !== null ? "bw-bracket-out" : ""}`}>
                     <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bq${i}a`} size={16} />
-                    <span style={{ color: accent0 }}>{m0.teamName || m0.clubName || m0.name}</span>
-                    <span className="bracket-wins">{q.goals?.[0] ?? 0}</span>
+                    <span>{m0.teamName || m0.clubName || m0.name}</span>
+                    <span className="bw-bracket-score">{q.goals?.[0] ?? 0}</span>
                   </div>
-                  <div className={`bracket-team ${q.winner === q.p[1] ? "bracket-winner" : q.winner !== null ? "bracket-out" : ""}`}>
+                  <div className={`bw-bracket-row ${q.winner === q.p[1] ? "bw-bracket-winner" : q.winner !== null ? "bw-bracket-out" : ""}`}>
                     <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bq${i}b`} size={16} />
-                    <span style={{ color: accent1 }}>{m1.teamName || m1.clubName || m1.name}</span>
-                    <span className="bracket-wins">{q.goals?.[1] ?? 0}</span>
+                    <span>{m1.teamName || m1.clubName || m1.name}</span>
+                    <span className="bw-bracket-score">{q.goals?.[1] ?? 0}</span>
                   </div>
                   {q.legsPlayed === 1 && q.winner === null && (
-                    <div className="bracket-adv">Agg: {q.goals[0]}–{q.goals[1]} · Leg 2 to come</div>
+                    <div className="bw-bracket-adv">Agg: {q.goals[0]}–{q.goals[1]} · Leg 2 to come</div>
                   )}
                   {q.winner !== null && (
-                    <div className="bracket-adv">
+                    <div className="bw-bracket-adv">
                       → {(managers[q.winner].teamName || managers[q.winner].name)} advance
                       {q.wonOnPens ? " (pens)" : ""}
                     </div>
@@ -539,15 +617,15 @@ function ChampionSquad({ manager, onSaveSquad, saveState }) {
   const ovr = squadRating(manager.squad);
 
   return (
-    <div className="champ-squad">
-      <div className="champ-squad-header" onClick={() => setCollapsed(c => !c)}>
-        <span className="champ-squad-ovr">OVR {ovr}</span>
-        <span className="champ-squad-toggle-label">SQUAD</span>
-        <span className="champ-squad-toggle">{collapsed ? "▲" : "▼"}</span>
-        <button className="action-btn" disabled={exporting} onClick={e => { e.stopPropagation(); exportSquad(); }}>{exporting ? "…" : "SHARE"}</button>
+    <div className="bw-champ-squad">
+      <div className="bw-champ-squad-header" onClick={() => setCollapsed(c => !c)}>
+        <span className="bw-champ-squad-ovr">OVR {ovr}</span>
+        <span className="bw-champ-squad-toggle-label">SQUAD</span>
+        <span className="bw-champ-squad-toggle">{collapsed ? "▲" : "▼"}</span>
+        <button className="bw-squad-action-btn" disabled={exporting} onClick={e => { e.stopPropagation(); exportSquad(); }}>{exporting ? "…" : "SHARE"}</button>
         {onSaveSquad && (
           <button
-            className="action-btn"
+            className="bw-squad-action-btn"
             disabled={saveState?.saving || saveState?.saved}
             onClick={e => { e.stopPropagation(); onSaveSquad(); }}
           >
@@ -556,22 +634,22 @@ function ChampionSquad({ manager, onSaveSquad, saveState }) {
         )}
       </div>
 
-      {!collapsed && <>
+      {!collapsed && <div className="bw-champ-squad-body">
         {manager.footballManager && (
-          <div className="champ-squad-manager">
+          <div className="bw-champ-squad-manager">
             ⚙ {manager.footballManager.name}
             {manager.footballManager.styleLabel && ` — ${manager.footballManager.styleLabel}`}
           </div>
         )}
-        <div className="champ-squad-section-label">{isWC ? "SQUAD" : "STARTING XI"}</div>
-        <div className="champ-squad-list">
+        <div className="bw-champ-squad-section-label">{isWC ? "SQUAD" : "STARTING XI"}</div>
+        <div className="bw-champ-squad-list">
           {starters.map((p, i) => p ? (
-            <div key={i} className="champ-squad-row">
-              {!isWC && <span className="champ-squad-pos">{POSITIONS[i].key}</span>}
-              <span className="champ-squad-name">{p.name}</span>
-              <span className="champ-squad-club">{p.club}</span>
+            <div key={i} className="bw-champ-squad-row">
+              {!isWC && <span className="bw-champ-squad-pos">{POSITIONS[i].key}</span>}
+              <span className="bw-champ-squad-name">{p.name}</span>
+              <span className="bw-champ-squad-club">{p.club}</span>
               <span
-                className="champ-squad-rating"
+                className="bw-champ-squad-rating"
                 style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}
               >{p.rating}</span>
             </div>
@@ -579,22 +657,22 @@ function ChampionSquad({ manager, onSaveSquad, saveState }) {
         </div>
 
         {!isWC && <>
-          <div className="champ-squad-section-label">BENCH</div>
-          <div className="champ-squad-list">
+          <div className="bw-champ-squad-section-label">BENCH</div>
+          <div className="bw-champ-squad-list">
             {bench.map((p, i) => p ? (
-              <div key={i} className="champ-squad-row">
-                <span className="champ-squad-pos">SUB</span>
-                <span className="champ-squad-name">{p.name}</span>
-                <span className="champ-squad-club">{p.club}</span>
+              <div key={i} className="bw-champ-squad-row">
+                <span className="bw-champ-squad-pos">SUB</span>
+                <span className="bw-champ-squad-name">{p.name}</span>
+                <span className="bw-champ-squad-club">{p.club}</span>
                 <span
-                  className="champ-squad-rating"
+                  className="bw-champ-squad-rating"
                   style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}
                 >{p.rating}</span>
               </div>
             ) : null)}
           </div>
         </>}
-      </>}
+      </div>}
     </div>
   );
 }
@@ -682,41 +760,42 @@ function TournamentResults({ tournamentStats, managers }) {
   }
 
   return (
-    <div className="tourn-results">
+    <div className="bw-champ-tourn">
       {pott && (
-        <div className="tourn-pott">
-          <div className="tourn-pott-label">⭐ PLAYER OF THE TOURNAMENT</div>
-          <div className="tourn-pott-name">{pott.name}</div>
-          <div className="tourn-pott-team">{teamName(pott.managerIdx)}</div>
-          <div className="tourn-pott-stats">
-            <span>⚽ {pott.goals}</span>
-            <span>🅰️ {pott.assists}</span>
-            <span>★ {pott.avgRating.toFixed(2)} avg</span>
+        <div>
+          <div className="bw-champ-pott-label">PLAYER OF THE TOURNAMENT</div>
+          <div className="bw-champ-pott">
+            <span className="bw-champ-pott-badge">{pott.avgRating.toFixed(1)}</span>
+            <div className="bw-champ-pott-info">
+              <div className="bw-champ-pott-name">{pott.name}</div>
+              <div className="bw-champ-pott-team">{teamName(pott.managerIdx)} · ⚽ {pott.goals} · 🅰️ {pott.assists}</div>
+            </div>
+            <span className="bw-champ-pott-star">⭐</span>
           </div>
         </div>
       )}
 
-      <div className="tourn-tables">
+      <div className="bw-champ-tourn-tables">
         {topScorers.length > 0 && (
-          <div className="tourn-table">
-            <div className="tourn-table-title">TOP SCORERS</div>
+          <div className="bw-champ-tourn-table">
+            <div className="bw-champ-tourn-table-title">TOP SCORERS</div>
             {topScorers.map(([name, s]) => (
-              <div className="tourn-table-row" key={name}>
-                <span className="tourn-row-name">{name}</span>
-                <span className="tourn-row-team">{teamName(s.managerIdx)}</span>
-                <span className="tourn-row-val">⚽ {s.goals}</span>
+              <div className="bw-champ-tourn-row" key={name}>
+                <span className="bw-champ-tourn-row-name">{name}</span>
+                <span className="bw-champ-tourn-row-team">{teamName(s.managerIdx)}</span>
+                <span className="bw-champ-tourn-row-val">⚽ {s.goals}</span>
               </div>
             ))}
           </div>
         )}
         {topAssisters.length > 0 && (
-          <div className="tourn-table">
-            <div className="tourn-table-title">TOP ASSISTS</div>
+          <div className="bw-champ-tourn-table">
+            <div className="bw-champ-tourn-table-title">TOP ASSISTS</div>
             {topAssisters.map(([name, s]) => (
-              <div className="tourn-table-row" key={name}>
-                <span className="tourn-row-name">{name}</span>
-                <span className="tourn-row-team">{teamName(s.managerIdx)}</span>
-                <span className="tourn-row-val">🅰️ {s.assists}</span>
+              <div className="bw-champ-tourn-row" key={name}>
+                <span className="bw-champ-tourn-row-name">{name}</span>
+                <span className="bw-champ-tourn-row-team">{teamName(s.managerIdx)}</span>
+                <span className="bw-champ-tourn-row-val">🅰️ {s.assists}</span>
               </div>
             ))}
           </div>
@@ -858,7 +937,6 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
   const nextMatchup = getNextMatchup(series);
   const isChampion = series.stage === "champion";
   const champion = series.champion !== null ? managers[series.champion] : null;
-  const championAccent = champion ? kitAccent(champion.primaryColor, champion.secondaryColor) : null;
 
   const isCpuVsCpu = nextMatchup
     ? !!(managers[nextMatchup.homeIdx]?.isComputer && managers[nextMatchup.awayIdx]?.isComputer)
@@ -883,40 +961,51 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
   return (
     <div className="series-screen">
       {isChampion && champion ? (
-        <div className="champion-screen" style={{ "--champ-a": champion.primaryColor, "--champ-b": champion.secondaryColor }}>
-          <div className="champion-flash-bg" />
-          <div className="champion-content">
+        <div className="bw-champ-screen">
+          <div className="bw-champ-stage">
+            <div className="bw-champ-stage-spin" />
+            <div className="bw-champ-stage-glow" />
+            <div className="bw-champ-confetti c1" />
+            <div className="bw-champ-confetti c2" />
+            <div className="bw-champ-confetti c3" />
+            <div className="bw-champ-confetti c4" />
+            <div className="bw-champ-confetti c5" />
+            <div className="bw-champ-trophy">
+              <span className="bw-champ-crown" style={{ background: champion.primaryColor }} />
+              <div className="bw-champ-cup">
+                <div className="bw-champ-cup-bowl" />
+                <div className="bw-champ-cup-handle left" />
+                <div className="bw-champ-cup-handle right" />
+              </div>
+              <div className="bw-champ-cup-stem" />
+              <div className="bw-champ-cup-collar" />
+              <div className="bw-champ-cup-base" />
+            </div>
+            <div className="bw-champ-marquee">
+              <div className="bw-champ-marquee-sub">WINNERS · GRAND FINAL</div>
+              <div className="bw-champ-marquee-main">CHAMPIONS</div>
+            </div>
+          </div>
 
-            {/* Fanfare header */}
-            <div className="champion-trophy">🏆</div>
-            <div className="champion-title">CHAMPION!</div>
-            <div className="champion-name" style={{ color: championAccent }}>
+          <div className="bw-champ-body">
+            <div className="bw-champ-name">
               {champion.teamName || champion.clubName || champion.name}
             </div>
-            <div className="champion-dof">
-              Director of Football: {champion.dofName || champion.name}
-            </div>
-            <div className="champion-sub">
+            <div className="bw-champ-result">
               {(series.format === "tournament" || series.format === "tournament8")
                 ? "Wins the tournament!"
                 : (() => {
                     const [p0, p1] = series.participants;
                     const [w0, w1] = series.wins;
                     const ci = series.champion === p0 ? 0 : 1;
-                    return `Wins the series ${[w0, w1][ci]}–${[w0, w1][1 - ci]}`;
+                    const opponent = managers[p0 === series.champion ? p1 : p0];
+                    const oppName = opponent ? (opponent.teamName || opponent.clubName || opponent.name) : "opponent";
+                    return <>beat {oppName} <strong>{[w0, w1][ci]}–{[w0, w1][1 - ci]}</strong> in the series</>;
                   })()
               }
             </div>
-
-            {/* Kit strip */}
-            <div className="champion-kit">
-              <KitSwatch
-                primary={champion.primaryColor}
-                secondary={champion.secondaryColor}
-                pattern={champion.pattern}
-                uid="champ"
-                size={56}
-              />
+            <div className="bw-champ-dof">
+              Director of Football: {champion.dofName || champion.name}
             </div>
 
             {/* Full squad */}
@@ -927,9 +1016,9 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
 
             {/* Actions */}
             {isHost ? (
-              <div className="champion-actions">
-                <button className="sim-btn secondary" onClick={() => setScreen("squads")}>VIEW ALL SQUADS</button>
-                <button className="sim-btn secondary" onClick={restartGame}>NEW GAME</button>
+              <div className="bw-champ-actions">
+                <button className="bw-champ-btn secondary" onClick={() => setScreen("squads")}>VIEW ALL SQUADS</button>
+                <button className="bw-champ-btn primary" onClick={restartGame}>NEW GAME →</button>
               </div>
             ) : (
               <div className="mp-waiting-screen">
@@ -940,61 +1029,67 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
 
           </div>
         </div>
+      ) : (series.format !== "tournament" && series.format !== "tournament8") ? (
+        <TwoPlayerSeriesHub
+          draft={draft}
+          series={{ ...series, history: series.history || [] }}
+          managers={managers}
+          nextMatchup={nextMatchup}
+          isHost={isHost}
+          isCpuVsCpu={isCpuVsCpu}
+          cpuSimActive={cpuSimActive}
+          setCpuSimActive={setCpuSimActive}
+          playNextMatch={playNextMatch}
+          setScreen={setScreen}
+          seriesCtxForSim={seriesCtxForSim}
+          handleSimDone={handleSimDone}
+        />
       ) : (
-        <>
-          <div className="series-header">
-            <div className="setup-badge">{formatLabel}</div>
+        <div className="bw-series-frame">
+          <div className="bw-banner">
+            <div className="bw-banner-title">{formatLabel}</div>
             {nextMatchup && (
-              <div className="series-next-label">
-                {(series.format === "tournament" || series.format === "tournament8")
-                  ? nextMatchup.label
-                  : nextMatchup.isSeriesTiebreaker
-                    ? `MATCH ${nextMatchup.matchNum} · TIEBREAKER`
-                    : `MATCH ${nextMatchup.matchNum}`}
-              </div>
+              <div className="bw-tourn-title">{nextMatchup.label}</div>
             )}
           </div>
 
-          {(series.format !== "tournament" && series.format !== "tournament8")
-            ? <TwoPlayerStandings series={series} managers={managers} />
-            : <TournamentBracket series={series} managers={managers} />
-          }
+          <div className="bw-series-body">
+            <TournamentBracket series={series} managers={managers} />
 
-          <TournamentStats tournamentStats={draft.tournamentStats} managers={managers} />
+            <TournamentStats tournamentStats={draft.tournamentStats} managers={managers} />
 
-          {nextMatchup && (
-            isHost ? (
-              <div className="series-actions">
-                <button className="sim-btn" onClick={playNextMatch}>
-                  ▶ {nextMatchup.label === "GRAND FINAL" ? "PLAY GRAND FINAL" : nextMatchup.matchNum > 1 ? `PLAY MATCH ${nextMatchup.matchNum} — ${nextMatchup.label}` : `PLAY MATCH 1 — ${nextMatchup.label}`}
-                </button>
-                {isCpuVsCpu && (
-                  <button className="sim-btn cpu-auto-btn" onClick={() => setCpuSimActive(true)}>
-                    ⚡ AUTO-SIMULATE
+            {nextMatchup && (
+              isHost ? (
+                <div className="bw-series-actions">
+                  <button className="bw-cta-arcade" onClick={playNextMatch}>
+                    ▶ {nextMatchup.label === "GRAND FINAL" ? "PLAY GRAND FINAL" : nextMatchup.matchNum > 1 ? `PLAY MATCH ${nextMatchup.matchNum} — ${nextMatchup.label}` : `PLAY MATCH 1 — ${nextMatchup.label}`}
                   </button>
-                )}
-                <button className="sim-btn secondary" onClick={() => setScreen("squads")}>TEAM MANAGEMENT</button>
-              </div>
-            ) : (
-              <div className="mp-waiting-screen">
-                <div className="mp-waiting-spinner" />
-                <p className="mp-waiting-text">Waiting for the host to play the next match…</p>
-              </div>
-            )
-          )}
+                  {isCpuVsCpu && (
+                    <button className="bw-cta-secondary" onClick={() => setCpuSimActive(true)}>
+                      ⚡ AUTO-SIMULATE
+                    </button>
+                  )}
+                  <button className="bw-cta-secondary" onClick={() => setScreen("squads")}>TEAM MANAGEMENT</button>
+                </div>
+              ) : (
+                <div className="mp-waiting-screen">
+                  <div className="mp-waiting-spinner" />
+                  <p className="mp-waiting-text">Waiting for the host to play the next match…</p>
+                </div>
+              )
+            )}
 
-          {cpuSimActive && nextMatchup && (
-            <CpuSimOverlay
-              draft={draft}
-              homeIdx={nextMatchup.homeIdx}
-              awayIdx={nextMatchup.awayIdx}
-              seriesCtx={seriesCtxForSim}
-              onDone={handleSimDone}
-            />
-          )}
-
-          <div className="series-footer" />
-        </>
+            {cpuSimActive && nextMatchup && (
+              <CpuSimOverlay
+                draft={draft}
+                homeIdx={nextMatchup.homeIdx}
+                awayIdx={nextMatchup.awayIdx}
+                seriesCtx={seriesCtxForSim}
+                onDone={handleSimDone}
+              />
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

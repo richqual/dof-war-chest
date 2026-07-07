@@ -1,16 +1,27 @@
 import { useState, useRef, useEffect } from "react";
 import { POSITIONS } from "../data/players";
-import { GROUP_COLORS, FORMATIONS } from "../data/formations";
+import { FORMATIONS } from "../data/formations";
+import { useSpinnableWheel } from "../hooks/useSpinnableWheel";
 
-const SPIN_DURATION = 3400;
-const FULL_SPINS = 8;
 const NUM_LIGHTS = 20;
 
-function posColor(posKey) {
-  if (posKey === "GK") return GROUP_COLORS.GK;
-  if (["RB", "LB", "CB"].includes(posKey)) return GROUP_COLORS.DEF;
-  if (["ST"].includes(posKey)) return GROUP_COLORS.ATT;
-  return GROUP_COLORS.MID;
+// Mowed-pitch stripes — the wedge fill just alternates by index, no role colour.
+const PITCH_STRIPES = ["#1f4d2b", "#173a20"];
+
+// Role is still legible via a small tier dot — colours match the tactics-board pitch dots
+// (lineColors() in SquadScreen.jsx): gold=GK, blue=DEF, green=MID, orange=ATT.
+const TIER_DOTS = {
+  GK:  "var(--bw-line-gk)",
+  DEF: "var(--bw-line-def-text)",
+  MID: "var(--bw-line-mid-text)",
+  ATT: "var(--bw-line-att)",
+};
+
+function tierGroup(posKey) {
+  if (posKey === "GK") return "GK";
+  if (["RB", "LB", "CB", "WB"].includes(posKey)) return "DEF";
+  if (["ST", "RW", "LW"].includes(posKey)) return "ATT";
+  return "MID";
 }
 
 function polar(angleDeg, r) {
@@ -19,23 +30,13 @@ function polar(angleDeg, r) {
 }
 
 export default function PositionWheel({ squad, onConfirm, formation = "4-3-3" }) {
-  const [rotation, setRotation] = useState(0);
-  const [spinning, setSpinning] = useState(false);
   const [resultSlot, setResultSlot] = useState(null);
-  const [done, setDone] = useState(false);
   const [liveLabel, setLiveLabel] = useState(null);
   const [tickBounce, setTickBounce] = useState(null);
 
-  const fallbackRef = useRef(null);
-  const rafRef = useRef(null);
   const rotorRef = useRef(null);
   const lastSegIdxRef = useRef(-1);
   const lastBounceRef = useRef(0);
-
-  useEffect(() => () => {
-    clearTimeout(fallbackRef.current);
-    cancelAnimationFrame(rafRef.current);
-  }, []);
 
   const availSlots = [];
   for (let i = 0; i < 11; i++) {
@@ -48,7 +49,48 @@ export default function PositionWheel({ squad, onConfirm, formation = "4-3-3" })
     const entry = FORMATIONS[formation]?.[slotIdx];
     const posKey = entry?.pos ?? POSITIONS[slotIdx]?.key ?? "";
     const label = entry?.label ?? posKey;
-    return { slotIdx, start: i * sliceDeg, span: sliceDeg, color: posColor(posKey), label };
+    return {
+      slotIdx,
+      start: i * sliceDeg,
+      span: sliceDeg,
+      fill: PITCH_STRIPES[i % 2],
+      tierColor: TIER_DOTS[tierGroup(posKey)],
+      label,
+    };
+  });
+
+  // Which segment sits under the top pointer for a given rotation (clockwise positive).
+  function idxAt(rotation) {
+    const norm = ((rotation % 360) + 360) % 360;
+    return (Math.floor(((360 - norm) % 360) / sliceDeg)) % n;
+  }
+
+  const handleLive = (rot) => {
+    const idx = idxAt(rot);
+    if (idx === lastSegIdxRef.current) return;
+    const now = performance.now();
+    if (now - lastBounceRef.current > 55) {
+      lastBounceRef.current = now;
+      setTickBounce(prev => (prev === "a" ? "b" : "a"));
+    }
+    lastSegIdxRef.current = idx;
+    setLiveLabel(segments[idx]?.label);
+  };
+
+  const handleLanded = (rot) => {
+    const seg = segments[idxAt(rot)];
+    if (seg) {
+      setResultSlot(seg.slotIdx);
+      setLiveLabel(seg.label);
+    }
+    setTickBounce(null);
+  };
+
+  const { spinning, done, idle, onPointerDown, flick } = useSpinnableWheel({
+    rotorRef,
+    onLive: handleLive,
+    onLanded: handleLanded,
+    disabled: n <= 1,
   });
 
   // Auto-confirm when only one slot remains — no spin needed
@@ -58,65 +100,6 @@ export default function PositionWheel({ squad, onConfirm, formation = "4-3-3" })
       return () => clearTimeout(t);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  function getSegAtPointer() {
-    if (!rotorRef.current || n < 1) return null;
-    const matrix = new DOMMatrix(getComputedStyle(rotorRef.current).transform);
-    const angleDeg = Math.atan2(matrix.b, matrix.a) * 180 / Math.PI;
-    const atTop = (((360 - ((angleDeg % 360) + 360) % 360) % 360) / sliceDeg) | 0;
-    return segments[atTop % n] ?? null;
-  }
-
-  function startRaf() {
-    function frame() {
-      const seg = getSegAtPointer();
-      if (seg) {
-        setLiveLabel(seg.label);
-        const idx = segments.indexOf(seg);
-        const now = performance.now();
-        if (idx !== lastSegIdxRef.current && now - lastBounceRef.current > 55) {
-          lastSegIdxRef.current = idx;
-          lastBounceRef.current = now;
-          setTickBounce(prev => (prev === "a" ? "b" : "a"));
-        }
-      }
-      rafRef.current = requestAnimationFrame(frame);
-    }
-    rafRef.current = requestAnimationFrame(frame);
-  }
-
-  function land() {
-    cancelAnimationFrame(rafRef.current);
-    clearTimeout(fallbackRef.current);
-    setSpinning(false);
-    setDone(true);
-    setTickBounce(null);
-    const seg = getSegAtPointer();
-    if (seg) {
-      setResultSlot(seg.slotIdx);
-      setLiveLabel(seg.label);
-    }
-  }
-
-  function spin() {
-    if (spinning || done || n <= 1) return;
-    lastSegIdxRef.current = -1;
-    lastBounceRef.current = 0;
-    const pick = Math.floor(Math.random() * n);
-    const seg = segments[pick];
-    const margin = sliceDeg * 0.15;
-    const theta = seg.start + margin + Math.random() * (seg.span - margin * 2);
-
-    setRotation(prev => {
-      const current = ((prev % 360) + 360) % 360;
-      const targetMod = (360 - theta) % 360;
-      const delta = ((targetMod - current) % 360 + 360) % 360;
-      return prev + FULL_SPINS * 360 + delta;
-    });
-    setSpinning(true);
-    requestAnimationFrame(() => startRaf());
-    fallbackRef.current = setTimeout(land, SPIN_DURATION + 400);
-  }
 
   const resultSeg = done ? segments.find(s => s.slotIdx === resultSlot) : null;
 
@@ -136,11 +119,12 @@ export default function PositionWheel({ squad, onConfirm, formation = "4-3-3" })
     const entry = FORMATIONS[formation]?.[availSlots[0]];
     const posKey = entry?.pos ?? POSITIONS[availSlots[0]]?.key ?? "";
     const label = entry?.label ?? posKey;
-    const col = posColor(posKey);
+    const tierColor = TIER_DOTS[tierGroup(posKey)];
     return (
       <div className="position-wheel-wrap">
         <div className="position-wheel-title">FINAL SLOT</div>
-        <div className="pos-auto-reveal" style={{ background: col.fill, color: col.text }}>
+        <div className="pos-auto-reveal" style={{ background: "#173a20", color: "#fff", borderColor: tierColor }}>
+          <span className="pos-tier-dot" style={{ background: tierColor }} />
           {label}
         </div>
         <div className="spin-hint">Last position — auto-assigning…</div>
@@ -161,46 +145,50 @@ export default function PositionWheel({ squad, onConfirm, formation = "4-3-3" })
           />
         ))}
 
-        <div className="pos-wheel-stage">
-          <div
-            ref={rotorRef}
-            className="pos-wheel-rotor"
-            style={{
-              transform: `rotate(${rotation}deg)`,
-              transition: spinning
-                ? `transform ${SPIN_DURATION}ms cubic-bezier(0.12, 0.8, 0.18, 1)`
-                : "none",
-            }}
-            onTransitionEnd={() => spinning && land()}
-          >
+        <div
+          className={`pos-wheel-stage ${done ? "" : "grabbable"}`}
+          onPointerDown={done ? undefined : onPointerDown}
+        >
+          <div ref={rotorRef} className="pos-wheel-rotor">
             <svg viewBox="-104 -104 208 208" width="260" height="260">
               {segments.map((seg) => {
                 const [x1, y1] = polar(seg.start, 100);
                 const [x2, y2] = polar(seg.start + seg.span, 100);
                 const large = seg.span > 180 ? 1 : 0;
                 const isResult = done && seg.slotIdx === resultSlot;
+                const mid = seg.start + seg.span / 2;
                 return (
                   <g key={seg.slotIdx}>
                     <path
                       d={`M 0 0 L ${x1} ${y1} A 100 100 0 ${large} 1 ${x2} ${y2} Z`}
-                      fill={seg.color.fill}
+                      fill={seg.fill}
                       stroke="#0a0a0a"
                       strokeWidth="1.5"
                       opacity={done && !isResult ? 0.28 : 1}
                     />
+                    <line
+                      x1="0" y1="0" x2={x1} y2={y1}
+                      stroke="rgba(245,197,66,0.5)"
+                      strokeWidth="1"
+                    />
                     {seg.span > 14 && (
-                      <text
-                        transform={`rotate(${seg.start + seg.span / 2}) translate(0 -70) rotate(90)`}
-                        fill="rgba(255,255,255,0.95)"
-                        fontSize={seg.span > 60 ? 11 : seg.span > 35 ? 9.5 : seg.span > 20 ? 8 : 7}
-                        fontWeight="800"
-                        fontFamily="var(--font-head)"
-                        dominantBaseline="middle"
-                        textAnchor="middle"
-                        style={{ paintOrder: "stroke", stroke: "rgba(0,0,0,0.7)", strokeWidth: 3 }}
-                      >
-                        {seg.label}
-                      </text>
+                      <>
+                        <g transform={`rotate(${mid}) translate(0 -84)`}>
+                          <circle r="3.5" fill={seg.tierColor} />
+                        </g>
+                        <text
+                          transform={`rotate(${mid}) translate(0 -70) rotate(90)`}
+                          fill="rgba(255,255,255,0.95)"
+                          fontSize={seg.span > 60 ? 15 : seg.span > 35 ? 13 : seg.span > 20 ? 11 : 9.5}
+                          fontWeight="800"
+                          fontFamily="var(--bw-font-display, var(--font-head))"
+                          dominantBaseline="middle"
+                          textAnchor="middle"
+                          style={{ paintOrder: "stroke", stroke: "rgba(0,0,0,0.7)", strokeWidth: 3 }}
+                        >
+                          {seg.label}
+                        </text>
+                      </>
                     )}
                   </g>
                 );
@@ -212,7 +200,7 @@ export default function PositionWheel({ squad, onConfirm, formation = "4-3-3" })
           {/* Live hub label */}
           <div
             className={`pos-wheel-hub${done ? " hub-final" : spinning ? " hub-rolling" : " hub-idle"}`}
-            style={done ? { background: resultSeg?.color.fill, color: resultSeg?.color.text, borderColor: resultSeg?.color.fill } : {}}
+            style={done ? { background: "#0a0f0b", color: "#fff", borderColor: resultSeg?.tierColor } : {}}
           >
             {spinning || done ? (liveLabel ?? "?") : "?"}
           </div>
@@ -228,18 +216,31 @@ export default function PositionWheel({ squad, onConfirm, formation = "4-3-3" })
         </div>
       </div>
 
+      <div className="pos-wheel-legend">
+        <span><span className="pos-tier-dot" style={{ background: TIER_DOTS.GK }} />GK</span>
+        <span><span className="pos-tier-dot" style={{ background: TIER_DOTS.DEF }} />DEF</span>
+        <span><span className="pos-tier-dot" style={{ background: TIER_DOTS.MID }} />MID</span>
+        <span><span className="pos-tier-dot" style={{ background: TIER_DOTS.ATT }} />ATT</span>
+      </div>
+
+      {idle && (
+        <div className="bw-wheel-drag-hint">
+          <span className="bw-wheel-drag-arrow" aria-hidden="true">↻</span> Grab the wheel &amp; flick it
+        </div>
+      )}
+
       <div className="spin-hint">
         {done
           ? `You're signing a ${resultSeg?.label || ""} — lock it in!`
           : spinning
             ? "Where she stops, nobody knows…"
-            : "Spin to reveal your position slot"}
+            : "Drag the wheel and flick — or tap Spin"}
       </div>
 
       {!done ? (
         <button
           className={`spin-btn${spinning ? " disabled" : ""}`}
-          onClick={spin}
+          onClick={flick}
           disabled={spinning}
         >
           {spinning ? "SPINNING…" : "🎰 SPIN THE WHEEL"}

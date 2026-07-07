@@ -7,6 +7,7 @@ import {
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder,
   getFormArrow,
   buildInitialWarChestDraft, getWarChestPlayersForSlot, autoFillWarChestSlot,
+  appendSeriesHistory,
 } from "./draftUtils";
 
 export { getFormArrow };
@@ -239,6 +240,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
     if (s.format !== "tournament" && s.format !== "tournament8") {
       const newPlayed = (s.played ?? s.wins[0] + s.wins[1]) + 1;
       const maxGames = s.target * 2 - 1;
+      const history = appendSeriesHistory(s, homeIdx, awayIdx, score, winnerIdx);
       if (winnerIdx === null) {
         const newDraws = (s.draws ?? 0) + 1;
         const allPlayed = newPlayed >= maxGames;
@@ -246,7 +248,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
         const champion = allPlayed && !tied
           ? s.participants[s.wins[0] >= s.wins[1] ? 0 : 1]
           : null;
-        next = { ...draft, series: { ...s, draws: newDraws, played: newPlayed, champion, stage: champion !== null ? "champion" : (tied ? "tiebreaker" : "playing") } };
+        next = { ...draft, series: { ...s, draws: newDraws, played: newPlayed, champion, history, stage: champion !== null ? "champion" : (tied ? "tiebreaker" : "playing") } };
       } else {
         const pos = s.participants.indexOf(winnerIdx);
         if (pos < 0) return;
@@ -254,7 +256,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
         const hitTarget = wins.some(w => w >= s.target);
         const allPlayed = newPlayed > maxGames || (newPlayed >= maxGames && wins[0] !== wins[1]);
         const champion = hitTarget || allPlayed ? s.participants[wins[0] >= wins[1] ? 0 : 1] : null;
-        next = { ...draft, series: { ...s, wins, played: newPlayed, champion, stage: champion !== null ? "champion" : "playing" } };
+        next = { ...draft, series: { ...s, wins, played: newPlayed, champion, history, stage: champion !== null ? "champion" : "playing" } };
       }
     } else if (s.format === "tournament8") {
       const qIdx = (s.quarters || []).findIndex(q =>

@@ -202,13 +202,13 @@ function HostGameConfig({ onStart, slots, initialGameMode = "classic" }) {
             <span className="option-label">Hide player ratings during draft</span>
           </label>
 
-          <p className="mp-hint" style={{ marginTop: "0.5rem", fontSize: "0.75rem" }}>
+          <p className="bw-mp-hint" style={{ marginTop: "0.5rem", fontSize: "0.75rem" }}>
             Everyone picks their chest and builds their squad simultaneously — duplicate players allowed.
           </p>
         </>
       )}
 
-      <button className="start-btn active" onClick={handleStart}>
+      <button className="bw-cta-arcade" onClick={handleStart}>
         START GAME →
       </button>
     </div>
@@ -232,9 +232,11 @@ export default function MultiplayerWaitingRoom({ gameDoc, mySlotIdx, isHost, onU
   const [secondaryColor, setSecondaryColor] = useState(gameDoc?.slots?.[mySlotIdx]?.secondaryColor || "#ffffff");
   const [formation, setFormation] = useState(gameDoc?.slots?.[mySlotIdx]?.formation || "4-3-3");
   const [saving, setSaving] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const slots = gameDoc?.slots || [];
   const roomCode = gameDoc?.roomCode || "------";
+  const hostDeviceId = gameDoc?.hostDeviceId;
   const mySlot = slots[mySlotIdx] ?? {};
   const myReady = !!(mySlot.clubName && mySlot.displayName);
 
@@ -256,176 +258,185 @@ export default function MultiplayerWaitingRoom({ gameDoc, mySlotIdx, isHost, onU
     setEditing(false);
   }
 
+  function copyRoomCode() {
+    navigator.clipboard.writeText(roomCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1200);
+  }
+
   return (
     <div className="setup-screen">
-      <div className="setup-card setup-card-wide">
-
-        <div className="setup-header">
-          <h1 className="setup-title">Waiting Room</h1>
-          <p className="setup-sub">Share the code with your mates</p>
+      <div className="bw-frame">
+        <div className="bw-banner bw-banner-row">
+          <span className="bw-banner-title">THE LOBBY</span>
+          <span className="bw-banner-meta">{myReady && !isHost ? "You're ready!" : "Waiting for players…"}</span>
         </div>
 
-        {/* Room code */}
-        <div className="mp-room-code-box">
-          <div className="mp-room-code-label">ROOM CODE</div>
-          <div className="mp-room-code">{roomCode}</div>
-          <button
-            className="mp-copy-btn"
-            onClick={() => navigator.clipboard.writeText(roomCode)}
-          >
-            COPY
-          </button>
-        </div>
+        <div className="bw-body">
+          {/* Room code */}
+          <div className="bw-mp-code-block">
+            <div className="bw-field-label bw-mp-code-label">ROOM CODE · TAP TO SHARE</div>
+            <button className="bw-mp-code-row" onClick={copyRoomCode}>
+              {roomCode.split("").map((c, i) => (
+                <span key={i} className="bw-mp-code-tile">{c}</span>
+              ))}
+            </button>
+            {copied && <div className="bw-mp-code-copied">Copied!</div>}
+          </div>
 
-        {/* Player slots */}
-        <div className="mp-slots">
-          {slots.map((slot, i) => {
-            const isMine = i === mySlotIdx;
-            const joined = slot.deviceId !== null;
-            const ready = !!(slot.clubName && slot.displayName);
-            return (
-              <div key={i} className={`mp-slot ${isMine ? "mp-slot-mine" : ""} ${ready ? "mp-slot-ready" : ""}`}>
-                <div className="mp-slot-number">#{i + 1}</div>
-                {joined ? (
-                  <>
+          {/* Player slots */}
+          <div className="bw-mp-managers">
+            <div className="bw-field-label">MANAGERS · {filledSlots} / {slots.length}</div>
+            <div className="bw-mp-manager-list">
+              {slots.map((slot, i) => {
+                const isMine = i === mySlotIdx;
+                const joined = slot.deviceId !== null;
+                const ready = !!(slot.clubName && slot.displayName);
+                if (!joined) {
+                  return (
+                    <div key={i} className="bw-mp-manager-row bw-mp-manager-empty">
+                      <span className="bw-mp-manager-swatch-empty" />
+                      <span className="bw-mp-manager-waiting-text">Waiting for player {i + 1}…</span>
+                      <span className="bw-mp-manager-dot" />
+                    </div>
+                  );
+                }
+                return (
+                  <div key={i} className={`bw-mp-manager-row ${isMine ? "mine" : ""}`}>
                     {ready ? (
-                      <KitSwatch
-                        primary={slot.primaryColor}
-                        secondary={slot.secondaryColor}
-                        pattern={slot.pattern || "plain"}
-                        size={36}
+                      <span
+                        className="bw-mp-manager-swatch"
+                        style={{ background: slot.primaryColor, boxShadow: `inset 0 0 0 2px ${slot.secondaryColor}` }}
                       />
                     ) : (
-                      <div className="mp-slot-kit-placeholder" />
+                      <span className="bw-mp-manager-swatch-empty" />
                     )}
-                    <div className="mp-slot-info">
-                      <div className="mp-slot-name">{slot.clubName || "—"}</div>
-                      <div className="mp-slot-manager">{slot.displayName || "Setting up..."}</div>
+                    <div className="bw-mp-manager-info">
+                      <span className="bw-mp-manager-name">{slot.displayName || "Setting up..."}</span>
+                      {slot.clubName && <span className="bw-mp-manager-club"> · {slot.clubName}</span>}
                     </div>
-                    <div className="mp-slot-status">{ready ? "✓ Ready" : "..."}</div>
-                  </>
-                ) : (
-                  <div className="mp-slot-empty">Waiting for player...</div>
-                )}
-                {isMine && !editing && (
-                  <button className="mp-slot-edit-btn" onClick={() => setEditing(true)}>
-                    {ready ? "Edit" : "Set up"}
-                  </button>
-                )}
+                    {slot.deviceId === hostDeviceId
+                      ? <span className="bw-badge-pill bw-badge-pill-human bw-mp-host-badge">HOST</span>
+                      : ready
+                        ? <span className="bw-mp-manager-check">✓</span>
+                        : <span className="bw-mp-manager-status">...</span>}
+                    {isMine && !editing && (
+                      <button className="bw-mp-manager-edit" onClick={() => setEditing(true)}>
+                        {ready ? "Edit" : "Set up"}
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* My slot editor */}
+          {editing && (
+            <div className="bw-mp-editor">
+              <div className="bw-field-label">YOUR CLUB</div>
+
+              <div className="bw-field">
+                <div className="bw-field-label">YOUR NAME</div>
+                <input
+                  className="bw-input"
+                  type="text"
+                  maxLength={20}
+                  placeholder="e.g. Rich"
+                  value={displayName}
+                  onChange={e => setDisplayName(e.target.value)}
+                />
               </div>
-            );
-          })}
+
+              <div className="bw-field">
+                <div className="bw-field-label">CLUB NAME</div>
+                <input
+                  className="bw-input"
+                  type="text"
+                  maxLength={24}
+                  placeholder="e.g. FC United"
+                  value={clubName}
+                  onChange={e => setClubName(e.target.value)}
+                />
+              </div>
+
+              {!isWarchest && (
+                <div className="bw-field">
+                  <div className="bw-field-label">FORMATION</div>
+                  <select
+                    className="bw-select"
+                    value={formation}
+                    onChange={e => setFormation(e.target.value)}
+                  >
+                    {FORMATIONS.map(f => <option key={f} value={f}>{f}</option>)}
+                  </select>
+                </div>
+              )}
+
+              <div className="bw-mp-color-row">
+                <div className="bw-field-label">PRIMARY · SECONDARY</div>
+                <div className="bw-mp-color-swatches">
+                  {COLORS.map(c => (
+                    <button
+                      key={c}
+                      className={`bw-mp-color-swatch ${primaryColor === c ? "selected" : ""}`}
+                      style={{ background: c, border: c === "#ffffff" || c === "#f5f5f5" ? "1px solid var(--bw-border2)" : "none" }}
+                      onClick={() => setPrimaryColor(c)}
+                    />
+                  ))}
+                </div>
+                <div className="bw-mp-color-swatches">
+                  {COLORS.map(c => (
+                    <button
+                      key={c}
+                      className={`bw-mp-color-swatch ${secondaryColor === c ? "selected" : ""}`}
+                      style={{ background: c, border: c === "#ffffff" || c === "#f5f5f5" ? "1px solid var(--bw-border2)" : "none" }}
+                      onClick={() => setSecondaryColor(c)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="bw-mp-kit-preview">
+                <KitSwatch primary={primaryColor} secondary={secondaryColor} pattern="plain" size={64} />
+              </div>
+
+              <button
+                className="bw-cta-primary"
+                onClick={saveSlot}
+                disabled={saving || !clubName.trim() || !displayName.trim()}
+              >
+                {saving ? "SAVING..." : "CONFIRM →"}
+              </button>
+              <button className="bw-back-link bw-mp-back" onClick={() => setEditing(false)}>← cancel</button>
+            </div>
+          )}
+
+          {/* Host controls */}
+          {isHost && !editing && (
+            <div className="bw-mp-host-controls">
+              {!canStart && (
+                <p className="bw-mp-hint">
+                  {filledSlots < 2
+                    ? "Waiting for at least one more player to join..."
+                    : "Waiting for all players to set up their club..."}
+                </p>
+              )}
+
+              {canStart && <HostGameConfig onStart={onStartGame} slots={slots} initialGameMode={initialGameMode} />}
+            </div>
+          )}
+
+          {!isHost && !editing && (
+            <p className="bw-mp-hint" style={{ marginTop: "1rem" }}>
+              {myReady ? "You're ready! Waiting for the host to start..." : "Set up your club above to get ready."}
+            </p>
+          )}
+
+          <button className="bw-back-link bw-mp-back" style={{ marginTop: "6px" }} onClick={onLeave}>
+            ✕ Leave room
+          </button>
         </div>
-
-        {/* My slot editor */}
-        {editing && (
-          <div className="mp-slot-editor">
-            <div className="mp-editor-title">YOUR CLUB</div>
-
-            <div className="setup-row">
-              <span className="setup-row-label">YOUR NAME</span>
-              <input
-                className="mp-text-input"
-                type="text"
-                maxLength={20}
-                placeholder="e.g. Rich"
-                value={displayName}
-                onChange={e => setDisplayName(e.target.value)}
-              />
-            </div>
-
-            <div className="setup-row">
-              <span className="setup-row-label">CLUB NAME</span>
-              <input
-                className="mp-text-input"
-                type="text"
-                maxLength={24}
-                placeholder="e.g. FC United"
-                value={clubName}
-                onChange={e => setClubName(e.target.value)}
-              />
-            </div>
-
-            {!isWarchest && (
-              <div className="setup-row">
-                <span className="setup-row-label">FORMATION</span>
-                <select
-                  className="setup-row-select"
-                  value={formation}
-                  onChange={e => setFormation(e.target.value)}
-                >
-                  {FORMATIONS.map(f => <option key={f} value={f}>{f}</option>)}
-                </select>
-              </div>
-            )}
-
-            <div className="mp-color-row">
-              <span className="setup-row-label">PRIMARY</span>
-              <div className="mp-color-swatches">
-                {COLORS.map(c => (
-                  <button
-                    key={c}
-                    className={`mp-color-swatch ${primaryColor === c ? "mp-color-selected" : ""}`}
-                    style={{ background: c, border: c === "#ffffff" || c === "#f5f5f5" ? "1px solid #555" : "none" }}
-                    onClick={() => setPrimaryColor(c)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="mp-color-row">
-              <span className="setup-row-label">SECONDARY</span>
-              <div className="mp-color-swatches">
-                {COLORS.map(c => (
-                  <button
-                    key={c}
-                    className={`mp-color-swatch ${secondaryColor === c ? "mp-color-selected" : ""}`}
-                    style={{ background: c, border: c === "#ffffff" || c === "#f5f5f5" ? "1px solid #555" : "none" }}
-                    onClick={() => setSecondaryColor(c)}
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="mp-kit-preview">
-              <KitSwatch primary={primaryColor} secondary={secondaryColor} pattern="plain" size={64} />
-            </div>
-
-            <button
-              className="start-btn active"
-              onClick={saveSlot}
-              disabled={saving || !clubName.trim() || !displayName.trim()}
-            >
-              {saving ? "SAVING..." : "CONFIRM →"}
-            </button>
-            <button className="mp-back-link" onClick={() => setEditing(false)}>← cancel</button>
-          </div>
-        )}
-
-        {/* Host controls */}
-        {isHost && !editing && (
-          <div className="mp-host-controls">
-            {!canStart && (
-              <p className="mp-hint">
-                {filledSlots < 2
-                  ? "Waiting for at least one more player to join..."
-                  : "Waiting for all players to set up their club..."}
-              </p>
-            )}
-
-            {canStart && <HostGameConfig onStart={onStartGame} slots={slots} initialGameMode={initialGameMode} />}
-          </div>
-        )}
-
-        {!isHost && !editing && (
-          <p className="mp-hint" style={{ marginTop: "1.5rem" }}>
-            {myReady ? "You're ready! Waiting for the host to start..." : "Set up your club above to get ready."}
-          </p>
-        )}
-
-        <button className="mp-back-link" style={{ marginTop: "1rem" }} onClick={onLeave}>
-          ✕ Leave room
-        </button>
       </div>
     </div>
   );

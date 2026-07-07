@@ -8,40 +8,6 @@ function ordinal(n) {
   return `${n}TH`;
 }
 
-/* Scatter ball positions inside the bowl */
-function makeBallPositions(n) {
-  const BALL = 58;
-  const PAD  = 10;
-  const COLS = n <= 4 ? 2 : n <= 6 ? 3 : 4;
-  const ROWS = Math.ceil(n / COLS);
-  const JITTER = 6;
-  const STEP = BALL + 10;
-
-  const slots = Array.from({ length: n }, (_, i) => ({
-    col: i % COLS,
-    row: Math.floor(i / COLS),
-  }));
-  // shuffle
-  for (let i = slots.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [slots[i], slots[j]] = [slots[j], slots[i]];
-  }
-
-  return {
-    positions: slots.map(() => ({
-      x: Math.random() * JITTER - JITTER / 2,
-      y: Math.random() * JITTER - JITTER / 2,
-    })),
-    cols: COLS,
-    rows: ROWS,
-    step: STEP,
-    pad: PAD,
-    ball: BALL,
-    bowlW: COLS * STEP + PAD * 2,
-    bowlH: ROWS * STEP + PAD * 2,
-  };
-}
-
 /* Compute pick position in a given display round (snake draft) */
 function pickPosition(managerId, displayRound, initialOrder, n) {
   const forwardPos = initialOrder.indexOf(managerId) + 1; // 1-indexed position in R1
@@ -54,10 +20,9 @@ export default function OrderDrawScreen({ draft, onStart }) {
   const { managers, currentOrder } = draft;
   const n = managers.length;
 
-  // Stable scattered positions (don't recompute on re-render)
-  const [layout] = useState(() => makeBallPositions(n));
-
-  // availableBalls: indices not yet drawn
+  // availableBalls: indices not yet drawn (purely theatrical — the pick each
+  // manager receives is already fixed by currentOrder; which ball is clicked
+  // never changes the outcome, it just choreographs the reveal)
   const [availableBalls, setAvailableBalls] = useState(() =>
     Array.from({ length: n }, (_, i) => i)
   );
@@ -114,6 +79,12 @@ export default function OrderDrawScreen({ draft, onStart }) {
     }, 2500);
   }
 
+  function drawNextBall() {
+    if (phase !== "waiting" || !isHumanTurn || availableBalls.length === 0) return;
+    const randIdx = Math.floor(Math.random() * availableBalls.length);
+    triggerDraw(availableBalls[randIdx]);
+  }
+
   // Skip to end: instantly assign all remaining picks and go to summary
   function skipToEnd() {
     // Clear all pending timers
@@ -132,9 +103,6 @@ export default function OrderDrawScreen({ draft, onStart }) {
 
     const newDraws = [...completedDraws];
     let ballPool = [...remaining];
-    const startStep = revealInfo
-      ? pickStep  // if mid-draw, current pick not yet committed
-      : completedDraws.length;
 
     // If we're mid-reveal, include that pick too
     if (revealInfo && phase !== "waiting") {
@@ -156,53 +124,55 @@ export default function OrderDrawScreen({ draft, onStart }) {
     setPhase("summary");
   }
 
-  const drawnSet     = new Set(completedDraws.map(d => d.ballIdx));
   const roundsToShow = n <= 2 ? 2 : 4;
 
   /* ── SUMMARY ─────────────────────────────────────────────────── */
   if (phase === "summary") {
     return (
-      <div className="order-draw-screen">
-        <div className="order-draw-box order-draw-box-wide">
-          <div className="order-draw-title">DRAFT ORDER SET</div>
-
-          <div className="order-draw-list">
-            {currentOrder.map((mIdx, i) => {
-              const m = managers[mIdx];
-              return (
-                <div key={i} className="order-draw-row visible">
-                  <span className="order-draw-num">{ordinal(i + 1)}</span>
-                  <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern || "plain"} uid={`s-${i}`} size={22} />
-                  <span className="order-draw-club">{m.clubName || m.name}</span>
-                  {m.isComputer && <span className="cpu-tag">CPU</span>}
-                </div>
-              );
-            })}
+      <div className="setup-screen">
+        <div className="bw-frame">
+          <div className="bw-banner">
+            <div className="bw-banner-title">DRAFT ORDER SET</div>
           </div>
-
-          {managers.some(m => !m.isComputer) && (
-            <div className="draw-schedule">
-              <div className="draw-schedule-title">YOUR PICK SCHEDULE</div>
-              {managers.filter(m => !m.isComputer).map(m => (
-                <div key={m.id} className="draw-schedule-row">
-                  <div className="draw-schedule-club">
-                    <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern || "plain"} uid={`sc-${m.id}`} size={18} />
-                    <span>{m.clubName || m.name}</span>
+          <div className="bw-body">
+            <div className="bw-pick-order-list">
+              {currentOrder.map((mIdx, i) => {
+                const m = managers[mIdx];
+                return (
+                  <div key={i} className="bw-pick-order-row">
+                    <span className="bw-pick-order-num">{ordinal(i + 1)}</span>
+                    <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern || "plain"} uid={`s-${i}`} size={20} />
+                    <span className="bw-pick-order-club">{m.clubName || m.name}</span>
+                    {m.isComputer && <span className="bw-badge-pill bw-badge-pill-cpu">CPU</span>}
                   </div>
-                  <div className="draw-schedule-rounds">
-                    {Array.from({ length: roundsToShow }, (_, r) => (
-                      <div key={r} className="draw-rnd-tag">
-                        <span className="draw-rnd-label">R{r + 1}</span>
-                        <span className="draw-rnd-pos">{ordinal(pickPosition(m.id, r + 1, currentOrder, n))}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
-          )}
 
-          <button className="tt-continue-btn order-draw-go" onClick={onStart}>▶ START DRAFT</button>
+            {managers.some(m => !m.isComputer) && (
+              <div className="bw-draw-schedule">
+                <div className="bw-field-label">YOUR PICK SCHEDULE</div>
+                {managers.filter(m => !m.isComputer).map(m => (
+                  <div key={m.id} className="bw-draw-schedule-row">
+                    <div className="bw-draw-schedule-club">
+                      <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern || "plain"} uid={`sc-${m.id}`} size={18} />
+                      <span>{m.clubName || m.name}</span>
+                    </div>
+                    <div className="bw-draw-schedule-rounds">
+                      {Array.from({ length: roundsToShow }, (_, r) => (
+                        <div key={r} className="bw-draw-rnd-tag">
+                          <span className="bw-draw-rnd-label">R{r + 1}</span>
+                          <span className="bw-draw-rnd-pos">{ordinal(pickPosition(m.id, r + 1, currentOrder, n))}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <button className="bw-cta-arcade" style={{ marginTop: 14 }} onClick={onStart}>▶ START DRAFT</button>
+          </div>
         </div>
       </div>
     );
@@ -210,103 +180,80 @@ export default function OrderDrawScreen({ draft, onStart }) {
 
   /* ── PICKING SCREEN ──────────────────────────────────────────── */
   return (
-    <div className="order-draw-screen">
-      <div className="order-draw-box">
-        <div className="order-draw-title">DRAFT ORDER DRAW</div>
+    <div className="setup-screen">
+      <div className="bw-frame">
+        <div className="bw-banner bw-banner-row">
+          <span className="bw-banner-title">THE DRAW</span>
+          <span className="bw-banner-meta">Ball {Math.min(pickStep + 1, n)} of {n}</span>
+        </div>
 
-        {/* Current team */}
-        {curManager && (
-          <div className="draw-current-team">
-            <KitSwatch primary={curManager.primaryColor} secondary={curManager.secondaryColor} pattern={curManager.pattern || "plain"} uid="cur" size={26} />
-            <div className="draw-current-info">
-              <span className="draw-current-name">{curManager.clubName || curManager.name}</span>
-              {curManager.isComputer && <span className="cpu-tag">CPU</span>}
-            </div>
-          </div>
-        )}
-
-        {/* Instruction */}
-        <div className="draw-instruction">
-          {phase === "waiting"  && isHumanTurn  && "Pick a ball from the bowl"}
-          {phase === "waiting"  && !isHumanTurn && "CPU is drawing…"}
-          {phase === "drawing"  && "Drawing…"}
-          {phase === "revealed" && revealInfo && (
-            <span>draws <span className="draw-reveal-pos">{ordinal(revealInfo.pos)} PICK!</span></span>
+        <div className="bw-draw-subtitle">
+          {phase === "waiting" && isHumanTurn && "Pick a ball from the bowl"}
+          {phase === "waiting" && !isHumanTurn && "CPU is drawing…"}
+          {(phase === "drawing" || phase === "revealed") && revealInfo && (
+            <>Drawing the <strong>{ordinal(revealInfo.pos)} pick</strong>…</>
           )}
         </div>
 
-        {/* Ball bowl */}
-        <div className="draw-bowl-wrap">
-          <div
-            className="draw-bowl"
-            style={{ width: layout.bowlW, height: layout.bowlH }}
-          >
-            {Array.from({ length: n }, (_, i) => {
-              const isDrawn    = drawnSet.has(i);
-              const isCurrent  = revealInfo?.ballIdx === i;
-              const isSpinning = isCurrent && phase === "drawing";
-              const isRevealed = isCurrent && phase === "revealed";
-              const isAvail    = availableBalls.includes(i);
-              const canClick   = phase === "waiting" && isHumanTurn && isAvail;
+        <div className="bw-draw-stage">
+          <div className="bw-draw-glow" />
+          <div className={`bw-draw-hero ${phase === "drawing" ? "spinning" : ""}`}>
+            <div className="bw-draw-hero-ball">
+              <div className="bw-draw-hero-window">
+                {phase === "revealed" && revealInfo ? ordinal(revealInfo.pos) : "?"}
+              </div>
+            </div>
+          </div>
+          {phase === "revealed" && revealInfo && (
+            <div className="bw-draw-result-banner">
+              <span className="bw-draw-result-pill">{ordinal(revealInfo.pos)} PICK</span>
+              <span className="bw-draw-result-name">{managers[revealInfo.mIdx].clubName || managers[revealInfo.mIdx].name}</span>
+            </div>
+          )}
+        </div>
 
-              const col = i % layout.cols;
-              const row = Math.floor(i / layout.cols);
-              const left = layout.pad + col * layout.step + layout.positions[i].x;
-              const top  = layout.pad + row  * layout.step + layout.positions[i].y;
+        <div className="bw-body">
+          <div className="bw-field-label" style={{ textAlign: "center" }}>STILL IN THE BOWL</div>
+          <div className="bw-draw-bowl-row">
+            {availableBalls.map(ballIdx => (
+              <div key={ballIdx} className="bw-draw-mini-ball" />
+            ))}
+          </div>
 
-              let label = "?";
-              if (isRevealed && revealInfo) label = ordinal(revealInfo.pos);
-              else if (isDrawn) {
-                const cd = completedDraws.find(d => d.ballIdx === i);
-                label = cd ? ordinal(cd.pos) : "?";
-              }
-
+          <div className="bw-field-label" style={{ marginTop: 16, textAlign: "center" }}>PICK ORDER</div>
+          <div className="bw-pick-order-list">
+            {currentOrder.map((mIdx, i) => {
+              const pos = i + 1;
+              const done = completedDraws.some(d => d.pos === pos);
+              const isNow = revealInfo?.pos === pos;
+              const m = managers[mIdx];
               return (
-                <div
-                  key={i}
-                  className={[
-                    "draw-ball",
-                    canClick   ? "draw-ball-available"  : "",
-                    isSpinning ? "draw-ball-spinning"   : "",
-                    isRevealed ? "draw-ball-revealed"   : "",
-                    isDrawn && !isCurrent ? "draw-ball-done" : "",
-                  ].filter(Boolean).join(" ")}
-                  style={{ left, top, width: layout.ball, height: layout.ball }}
-                  onClick={canClick ? () => triggerDraw(i) : undefined}
-                >
-                  {label}
+                <div key={i} className={`bw-pick-order-row ${done ? "done" : isNow ? "now" : "pending"}`}>
+                  <span className="bw-pick-order-num">{ordinal(pos)}</span>
+                  {(done || isNow) ? (
+                    <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern || "plain"} uid={`po-${i}`} size={16} />
+                  ) : (
+                    <span className="bw-pick-order-swatch-placeholder" />
+                  )}
+                  <span className={`bw-pick-order-club ${!done && !isNow ? "pending" : ""}`}>
+                    {done || isNow ? (m.clubName || m.name) : "To be drawn"}
+                  </span>
+                  {done && <span className="bw-pick-order-check">✓</span>}
+                  {isNow && <span className="bw-pick-order-now-tag">NOW</span>}
                 </div>
               );
             })}
           </div>
-          {/* Elliptical bowl rim overlay */}
-          <div className="draw-bowl-rim" style={{ width: layout.bowlW + 16, height: 18 }} />
+
+          {isHumanTurn && phase === "waiting" && (
+            <button className="bw-cta-arcade" style={{ marginTop: 12 }} onClick={drawNextBall}>
+              DRAW NEXT BALL
+            </button>
+          )}
+          <button className="bw-cta-secondary" style={{ marginTop: 8 }} onClick={skipToEnd}>
+            ⏭ SKIP TO END
+          </button>
         </div>
-
-        {/* Skip to end */}
-        <button className="sim-btn secondary order-draw-skip" onClick={skipToEnd}>
-          ⏭ SKIP TO END
-        </button>
-
-        {/* Results so far */}
-        {completedDraws.length > 0 && (
-          <div className="draw-results">
-            <div className="draw-results-label">DRAWN SO FAR</div>
-            {[...completedDraws]
-              .sort((a, b) => a.pos - b.pos)
-              .map(({ mIdx, pos }) => {
-                const m = managers[mIdx];
-                return (
-                  <div key={mIdx} className="draw-result-row">
-                    <span className="order-draw-num">{ordinal(pos)}</span>
-                    <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern || "plain"} uid={`r-${mIdx}`} size={16} />
-                    <span className="order-draw-club">{m.clubName || m.name}</span>
-                    {m.isComputer && <span className="cpu-tag">CPU</span>}
-                  </div>
-                );
-              })}
-          </div>
-        )}
       </div>
     </div>
   );

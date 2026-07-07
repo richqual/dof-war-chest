@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { WAR_CHEST_SLOTS } from "../hooks/draftUtils";
 import { formatValue, getRatingBg, getRatingColor, normalizeSearch } from "../data/players";
-import KitSwatch from "./KitSwatch";
+import KitSwatch, { readableTextOn, kitAccent } from "./KitSwatch";
 import SquadTimer from "./SquadTimer";
 
 function formatChest(v) {
@@ -11,13 +11,13 @@ function formatChest(v) {
 }
 
 function posGroupColor(pos) {
-  if (pos === "GK") return { bg: "#f97316", fg: "#fff" };
-  if (["RB", "LB", "CB"].includes(pos)) return { bg: "#3b82f6", fg: "#fff" };
-  if (["ST", "RW", "LW"].includes(pos)) return { bg: "#ef4444", fg: "#fff" };
-  return { bg: "#16a34a", fg: "#fff" };
+  if (pos === "GK") return { bg: "var(--bw-line-gk)", fg: "var(--bw-line-gk-ink)" };
+  if (["RB", "LB", "CB"].includes(pos)) return { bg: "var(--bw-line-def)", fg: "var(--bw-line-def-text)" };
+  if (["ST", "RW", "LW"].includes(pos)) return { bg: "#4a1f0a", fg: "var(--bw-line-att)" };
+  return { bg: "var(--bw-line-mid)", fg: "var(--bw-line-mid-text)" };
 }
 
-const SLOT_COLORS = ["#f97316", "#3b82f6", "#16a34a", "#a855f7", "#ec4899"];
+const SLOT_COLORS = ["var(--bw-line-gk)", "var(--bw-line-def-text)", "var(--bw-line-mid-text)", "#c084fc", "#f472b6"];
 
 export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlayers, deadline }) {
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -74,36 +74,44 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
         })
     : [];
 
-  const totalManagers = draft.managers.length;
   const isLastHuman = (() => {
     const remainingHumans = draft.managers.slice(managerIdx + 1).filter(m => !m.isComputer);
     return remainingHumans.length === 0;
   })();
 
+  const kitPrimary = manager.primaryColor || "#1a3a6b";
+  const kitSecondary = manager.secondaryColor || "#ffffff";
+  const kitTheme = {
+    "--kit-primary": kitPrimary,
+    "--kit-secondary": kitSecondary,
+    "--kit-text": readableTextOn(kitPrimary),
+    "--kit-accent": kitAccent(kitPrimary, kitSecondary),
+  };
+
   return (
-    <div className="draft-screen">
+    <div className="draft-screen" style={kitTheme}>
       <div className="draft-header">
         {deadline && (
           <div style={{ display: "flex", justifyContent: "center", marginBottom: "6px" }}>
             <SquadTimer deadline={deadline} />
           </div>
         )}
-        <div className="wc-draft-header-inner">
-          <div className="wc-draft-kit-row">
+        <div className="bw-wcd-header-inner">
+          <div className="bw-wcd-kit-row">
             <KitSwatch primary={manager.primaryColor} secondary={manager.secondaryColor} pattern={manager.pattern} size={32} />
             <div>
-              <div className="wc-draft-club">{manager.clubName}</div>
+              <div className="bw-wcd-club">{manager.clubName}</div>
               {humanManagerCount > 1 && (
-                <div className="wc-draft-turn-badge">Pick {currentHumanOrder} of {humanManagerCount}</div>
+                <div className="bw-wcd-turn-badge">Pick {currentHumanOrder} of {humanManagerCount}</div>
               )}
             </div>
           </div>
           {humanManagerCount > 1 && (
-            <div className="wc-draft-order-row">
+            <div className="bw-wcd-order-row">
               {humanManagers.map((m, i) => (
                 <span
                   key={i}
-                  className={`wc-draft-order-pip ${draft.managers.indexOf(m) < managerIdx ? "wc-order-done" : draft.managers.indexOf(m) === managerIdx ? "wc-order-current" : "wc-order-upcoming"}`}
+                  className={`bw-wcd-order-pip ${draft.managers.indexOf(m) < managerIdx ? "done" : draft.managers.indexOf(m) === managerIdx ? "current" : "upcoming"}`}
                   title={m.clubName}
                 >
                   <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern} size={14} />
@@ -111,21 +119,21 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
               ))}
             </div>
           )}
-          <div className="wc-budget-remaining">{formatChest(remaining)}</div>
-          <div className="wc-budget-labels">
-            <div className="wc-budget-label">remaining of {formatChest(budget)}</div>
+          <div className="bw-wcd-budget-remaining">{formatChest(remaining)}</div>
+          <div className="bw-wcd-budget-labels">
+            <div className="bw-wcd-budget-label">remaining of {formatChest(budget)}</div>
             {emptySlots > 0 && (
-              <div className="wc-budget-avg">{formatChest(avgPerSlot)} avg per slot</div>
+              <div className="bw-wcd-budget-avg">{formatChest(avgPerSlot)} avg per slot</div>
             )}
           </div>
         </div>
-        <div className="wc-budget-bar-track">
-          <div className="wc-budget-bar-fill" style={{ width: `${pct}%` }} />
+        <div className="bw-wcd-bar-track">
+          <div className="bw-wcd-bar-fill" style={{ width: `${pct}%` }} />
         </div>
       </div>
 
       <div className="draft-main">
-        <div className="wc-squad-slots">
+        <div className="bw-wcd-slots">
           {WAR_CHEST_SLOTS.map((slotDef, idx) => {
             const player = manager.squad[idx];
             const isActive = activeSlot === idx;
@@ -133,22 +141,22 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
             return (
               <button
                 key={idx}
-                className={`wc-slot ${isActive ? "wc-slot-active" : ""} ${player ? "wc-slot-filled" : "wc-slot-empty"}`}
+                className={`bw-wcd-slot ${isActive ? "active" : ""} ${player ? "filled" : "empty"}`}
                 onClick={() => handleSlotClick(idx)}
                 style={{ "--slot-color": slotColor }}
               >
-                <div className="wc-slot-label" style={{ color: slotColor }}>{slotDef.label.toUpperCase()}</div>
+                <div className="bw-wcd-slot-label" style={{ color: slotColor }}>{slotDef.label.toUpperCase()}</div>
                 {player ? (
-                  <div className="wc-slot-player">
-                    <span className="wc-slot-player-name">{player.name}</span>
-                    <span className="wc-slot-player-meta">
-                      <span className="wc-slot-pos-badge" style={{ background: posGroupColor(player.pos).bg, color: posGroupColor(player.pos).fg }}>{player.pos}</span>
-                      <span className="wc-slot-rating">{player.rating}</span>
-                      <span className="wc-slot-cost">{formatValue(player.value)}</span>
+                  <div className="bw-wcd-slot-player">
+                    <span className="bw-wcd-slot-player-name">{player.name}</span>
+                    <span className="bw-wcd-slot-player-meta">
+                      <span className="bw-wcd-slot-pos-badge" style={{ background: posGroupColor(player.pos).bg, color: posGroupColor(player.pos).fg }}>{player.pos}</span>
+                      <span className="bw-wcd-slot-rating">{player.rating}</span>
+                      <span className="bw-wcd-slot-cost">{formatValue(player.value)}</span>
                     </span>
                   </div>
                 ) : (
-                  <div className="wc-slot-placeholder">
+                  <div className="bw-wcd-slot-placeholder">
                     {isActive ? "▲ pick a player above" : `+ add ${slotDef.label.toLowerCase()}`}
                   </div>
                 )}
@@ -158,28 +166,31 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
         </div>
 
         {activeSlot !== null && (
-          <div className="wc-player-panel">
-            <div className="wc-player-panel-header">
+          <div className="bw-wcd-panel">
+            <div className="bw-wcd-panel-header">
               <span>{WAR_CHEST_SLOTS[activeSlot].label.toUpperCase()}</span>
-              <button className="wc-panel-close" onClick={() => setActiveSlot(null)}>✕</button>
+              <button className="bw-wcd-panel-close" onClick={() => setActiveSlot(null)}>✕</button>
             </div>
-            <input
-              className="wc-search"
-              placeholder="Search player or club..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              autoFocus
-            />
+            <div className="bw-search-box">
+              <span className="bw-search-icon">⌕</span>
+              <input
+                className="bw-search-input"
+                placeholder="Search player or club..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                autoFocus
+              />
+            </div>
             {boundsMax > boundsMin && (
-              <div className="wc-price-filter">
-                <div className="wc-price-filter-labels">
+              <div className="bw-wcd-price-filter">
+                <div className="bw-wcd-price-filter-labels">
                   <span>{formatValue(priceMin)}</span>
                   <span>{formatValue(priceMax)}</span>
                 </div>
-                <div className="wc-price-slider">
-                  <div className="wc-price-slider-track" />
+                <div className="bw-wcd-price-slider">
+                  <div className="bw-wcd-price-slider-track" />
                   <div
-                    className="wc-price-slider-fill"
+                    className="bw-wcd-price-slider-fill"
                     style={{
                       left: `${((priceMin - boundsMin) / (boundsMax - boundsMin)) * 100}%`,
                       right: `${100 - ((priceMax - boundsMin) / (boundsMax - boundsMin)) * 100}%`,
@@ -187,7 +198,7 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
                   />
                   <input
                     type="range"
-                    className="wc-price-slider-input"
+                    className="bw-wcd-price-slider-input"
                     min={boundsMin}
                     max={boundsMax}
                     value={priceMin}
@@ -195,7 +206,7 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
                   />
                   <input
                     type="range"
-                    className="wc-price-slider-input"
+                    className="bw-wcd-price-slider-input"
                     min={boundsMin}
                     max={boundsMax}
                     value={priceMax}
@@ -204,56 +215,58 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
                 </div>
               </div>
             )}
-            <div className="wc-player-list">
+            <div className="bw-wcd-player-list">
               {activePlayers.length === 0 && (
-                <div className="wc-no-players">No players available</div>
+                <div className="bw-no-players">No players available</div>
               )}
               {activePlayers.map(p => (
                 <button
                   key={p.id}
-                  className={`wc-player-row ${!p.affordable ? "wc-player-row-unaffordable" : ""}`}
+                  className={`bw-player-row ${p.affordable ? "affordable" : "unaffordable"}`}
                   onClick={() => p.affordable && handlePick(p)}
                   disabled={!p.affordable}
                   title={!p.affordable ? `Too expensive (need ${formatValue(p.value)})` : ""}
                 >
-                  <div className="wc-player-row-main">
-                    <span className="wc-pr-name">{p.name}</span>
-                    <span className="wc-pr-club">{p.club} · {p.years}</span>
+                  <div
+                    className="bw-player-rating"
+                    style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}
+                  >
+                    {p.rating}
                   </div>
-                  <div className="wc-player-row-right">
-                    <span
-                      className="wc-pr-pos"
-                      style={{ background: posGroupColor(p.pos).bg, color: posGroupColor(p.pos).fg }}
-                    >{p.pos}</span>
-                    <span
-                      className="wc-pr-rating"
-                      style={{ background: getRatingBg(p.rating), color: getRatingColor(p.rating) }}
-                    >{p.rating}</span>
-                    <span className={`wc-pr-value ${!p.affordable ? "wc-pr-value-red" : ""}`}>
-                      {formatValue(p.value)}
-                    </span>
-                    {p.affordable && <span className="wc-pr-pick">PICK</span>}
+                  <div className="bw-player-info">
+                    <div className="bw-player-name-row">
+                      <span className="bw-player-name">{p.name}</span>
+                      <span
+                        className="bw-player-tag"
+                        style={{ background: posGroupColor(p.pos).bg, color: posGroupColor(p.pos).fg }}
+                      >{p.pos}</span>
+                    </div>
+                    <div className="bw-player-club">{p.club} · {p.years}</div>
                   </div>
+                  <div className="bw-player-value">{formatValue(p.value)}</div>
+                  {p.affordable ? (
+                    <div className="bw-player-sign-btn">PICK</div>
+                  ) : (
+                    <div className="bw-player-over-btn">{formatValue(p.value - remaining)} OVER</div>
+                  )}
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        <div className="wc-done-row">
-          <button
-            className={`start-btn ${canProceed ? "active" : ""}`}
-            style={{ width: "100%", marginTop: "1rem" }}
-            onClick={canProceed ? onDone : undefined}
-            disabled={!canProceed}
-          >
-            {!requiredFilled
-              ? "FILL GK · DEF · MID TO CONTINUE"
-              : !allFilled
-                ? "FILL ALL 5 SLOTS TO CONTINUE"
-                : (isLastHuman ? "DONE — VIEW SQUADS →" : "DONE — PASS TO NEXT PLAYER →")}
-          </button>
-        </div>
+        <button
+          className="bw-cta-primary"
+          style={{ marginTop: "1rem" }}
+          onClick={canProceed ? onDone : undefined}
+          disabled={!canProceed}
+        >
+          {!requiredFilled
+            ? "FILL GK · DEF · MID TO CONTINUE"
+            : !allFilled
+              ? "FILL ALL 5 SLOTS TO CONTINUE"
+              : (isLastHuman ? "DONE — VIEW SQUADS →" : "DONE — PASS TO NEXT PLAYER →")}
+        </button>
       </div>
     </div>
   );

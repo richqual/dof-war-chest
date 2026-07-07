@@ -137,16 +137,14 @@ function ClubEditorForm({ club, onChange, index, hideFormation = false, profileD
   return (
     <>
       {profileDefaults && (
-        <div style={{ display: "flex", justifyContent: "flex-end" }}>
-          <button className="profile-autofill-btn" type="button" onClick={applyProfile}>
-            ⚽ USE MY SAVED CLUB
-          </button>
-        </div>
+        <button className="bw-autofill-btn" type="button" onClick={applyProfile}>
+          ⚽ USE MY SAVED CLUB
+        </button>
       )}
-      <div className="club-setup-field">
-        <label className="field-label-sm">DIRECTOR OF FOOTBALL</label>
+      <div className="bw-field">
+        <div className="bw-field-label">DIRECTOR OF FOOTBALL</div>
         <input
-          className="name-input creator-name-input"
+          className="bw-input"
           value={club.dofName}
           onChange={e => onChange({ ...club, dofName: e.target.value })}
           placeholder="DoF name…"
@@ -154,10 +152,10 @@ function ClubEditorForm({ club, onChange, index, hideFormation = false, profileD
         />
       </div>
 
-      <div className="club-setup-field">
-        <label className="field-label-sm">CLUB NAME</label>
+      <div className="bw-field">
+        <div className="bw-field-label">CLUB NAME</div>
         <input
-          className="name-input creator-name-input"
+          className="bw-input"
           value={club.clubName}
           onChange={e => onChange({ ...club, clubName: e.target.value })}
           placeholder="Club name…"
@@ -165,63 +163,61 @@ function ClubEditorForm({ club, onChange, index, hideFormation = false, profileD
         />
       </div>
 
-      <div className="club-setup-field">
-        <div className="kit-formation-row">
-          <div className="kit-formation-col">
-            <label className="field-label-sm">KIT DESIGN</label>
-            <div className="kit-row">
-              <KitSwatch
-                primary={club.primaryColor || defaults.primary}
-                secondary={club.secondaryColor || defaults.secondary}
-                pattern={club.pattern || "plain"}
-                uid={`c${index}`}
-                size={64}
-              />
-              <div className="colour-pair">
-                <input type="color" className="colour-input"
-                  value={club.primaryColor || defaults.primary}
-                  onChange={e => onChange({ ...club, primaryColor: e.target.value })} />
-                <input type="color" className="colour-input"
-                  value={club.secondaryColor || defaults.secondary}
-                  onChange={e => onChange({ ...club, secondaryColor: e.target.value })} />
-              </div>
-              <div className="pattern-btns">
-                {(() => {
-                  const PATTERNS = [
-                    { key: "plain", label: "Plain" },
-                    { key: "stripes", label: "Stripes" },
-                    { key: "hoops", label: "Hoops" },
-                  ];
-                  const cur = club.pattern || "plain";
-                  const idx = PATTERNS.findIndex(p => p.key === cur);
-                  const next = PATTERNS[(idx + 1) % PATTERNS.length];
-                  return (
-                    <button
-                      className="pattern-btn active"
-                      onClick={() => onChange({ ...club, pattern: next.key })}
-                      title={`Switch to ${next.label}`}
-                    >🔄</button>
-                  );
-                })()}
-              </div>
+      <div className="bw-field">
+        <div className="bw-field-label">KIT DESIGN</div>
+        <div className="bw-kit-row">
+          <KitSwatch
+            primary={club.primaryColor || defaults.primary}
+            secondary={club.secondaryColor || defaults.secondary}
+            pattern={club.pattern || "plain"}
+            uid={`c${index}`}
+            size={64}
+          />
+          <div className="bw-kit-controls">
+            <div className="bw-kit-sublabel">PRIMARY · SECONDARY</div>
+            <div className="bw-kit-swatches">
+              <input type="color" className="bw-colour-input"
+                value={club.primaryColor || defaults.primary}
+                onChange={e => onChange({ ...club, primaryColor: e.target.value })} />
+              <input type="color" className="bw-colour-input"
+                value={club.secondaryColor || defaults.secondary}
+                onChange={e => onChange({ ...club, secondaryColor: e.target.value })} />
+              {(() => {
+                const PATTERNS = [
+                  { key: "plain", label: "Plain" },
+                  { key: "stripes", label: "Stripes" },
+                  { key: "hoops", label: "Hoops" },
+                ];
+                const cur = club.pattern || "plain";
+                const idx = PATTERNS.findIndex(p => p.key === cur);
+                const next = PATTERNS[(idx + 1) % PATTERNS.length];
+                return (
+                  <button
+                    className="bw-pattern-btn"
+                    onClick={() => onChange({ ...club, pattern: next.key })}
+                    title={`Switch to ${next.label}`}
+                  >🔄</button>
+                );
+              })()}
             </div>
           </div>
-          {!hideFormation && (
-            <div className="kit-formation-col kit-formation-col--formation">
-              <label className="field-label-sm">FORMATION</label>
-              <select
-                className="formation-select"
-                value={club.formation || "4-3-3"}
-                onChange={e => onChange({ ...club, formation: e.target.value })}
-              >
-                {FORMATION_LIST.map(f => (
-                  <option key={f} value={f}>{f}</option>
-                ))}
-              </select>
-            </div>
-          )}
         </div>
       </div>
+
+      {!hideFormation && (
+        <div className="bw-field">
+          <div className="bw-field-label">FORMATION</div>
+          <select
+            className="bw-select"
+            value={club.formation || "4-3-3"}
+            onChange={e => onChange({ ...club, formation: e.target.value })}
+          >
+            {FORMATION_LIST.map(f => (
+              <option key={f} value={f}>{f}</option>
+            ))}
+          </select>
+        </div>
+      )}
     </>
   );
 }
@@ -230,22 +226,22 @@ function ClubEditorForm({ club, onChange, index, hideFormation = false, profileD
 
 function HumanSummaryCard({ index, club, hideFormation = false }) {
   return (
-    <div className="club-overview-card">
-      <div className="club-setup-header">
-        <span className="club-setup-num">CLUB {index + 1}</span>
-        <span className="human-badge">HUMAN</span>
+    <div className="bw-club-card">
+      <div className="bw-club-card-header">
+        <span className="bw-club-card-num">CLUB {index + 1}</span>
+        <span className="bw-badge-pill bw-badge-pill-human">HUMAN</span>
       </div>
-      <div className="overview-preview">
+      <div className="bw-club-card-preview">
         <KitSwatch
           primary={club.primaryColor}
           secondary={club.secondaryColor}
           pattern={club.pattern || "plain"}
           uid={`ov${index}`}
         />
-        <div className="overview-info">
-          <div className="overview-club-name">{club.clubName || "—"}</div>
-          <div className="overview-meta">{club.dofName || "—"}</div>
-          {!hideFormation && <div className="overview-meta">{club.formation || "4-3-3"}</div>}
+        <div>
+          <div className="bw-club-card-name">{club.clubName || "—"}</div>
+          <div className="bw-club-card-meta">{club.dofName || "—"}</div>
+          {!hideFormation && <div className="bw-club-card-meta">{club.formation || "4-3-3"}</div>}
         </div>
       </div>
     </div>
@@ -256,25 +252,25 @@ function HumanSummaryCard({ index, club, hideFormation = false }) {
 
 function CpuSummaryCard({ index, club, onEdit, hideFormation = false }) {
   return (
-    <div className="club-overview-card cpu-locked">
-      <div className="club-setup-header">
-        <span className="club-setup-num">CLUB {index + 1}</span>
-        <div className="club-setup-header-right">
-          <span className="cpu-badge">CPU</span>
-          <button className="cpu-edit-btn" onClick={onEdit}>✎ EDIT</button>
+    <div className="bw-club-card cpu">
+      <div className="bw-club-card-header">
+        <span className="bw-club-card-num">CLUB {index + 1}</span>
+        <div className="bw-club-card-header-right">
+          <span className="bw-badge-pill bw-badge-pill-cpu">CPU</span>
+          <button className="bw-club-edit-btn" onClick={onEdit}>✎ EDIT</button>
         </div>
       </div>
-      <div className="overview-preview">
+      <div className="bw-club-card-preview">
         <KitSwatch
           primary={club.primaryColor}
           secondary={club.secondaryColor}
           pattern={club.pattern || "plain"}
           uid={`cpu${index}`}
         />
-        <div className="overview-info">
-          <div className="overview-club-name">{club.clubName}</div>
-          <div className="overview-meta">{club.dofName}</div>
-          {!hideFormation && <div className="overview-meta">{club.formation}</div>}
+        <div>
+          <div className="bw-club-card-name">{club.clubName}</div>
+          <div className="bw-club-card-meta">{club.dofName}</div>
+          {!hideFormation && <div className="bw-club-card-meta">{club.formation}</div>}
         </div>
       </div>
     </div>
@@ -286,14 +282,16 @@ function CpuSummaryCard({ index, club, onEdit, hideFormation = false }) {
 function CpuEditorStep({ index, club, onChange, onDone, otherColors = [], hideFormation = false }) {
   const valid = club.dofName.trim() && club.clubName.trim();
   return (
-    <div className="setup-card setup-card-wide">
-      <button className="creator-back-link" onClick={onDone}>← BACK TO OVERVIEW</button>
-
-      <div className="creator-step-header">
-        <span className="club-setup-num">CLUB {index + 1}</span>
-        <div className="creator-step-header-right">
+    <div className="bw-frame">
+      <div className="bw-topbar">
+        <button className="bw-back-link" onClick={onDone}>← BACK TO OVERVIEW</button>
+        <span className="bw-screen-badge">CLUB {index + 1}</span>
+      </div>
+      <div className="bw-body">
+        <div className="bw-field-row">
+          <span className="bw-badge-pill bw-badge-pill-cpu">CPU — EDITING</span>
           <button
-            className="randomise-all-btn"
+            className="bw-dice-btn"
             onClick={() => {
               const identity = randomCpuIdentity([], otherColors);
               onChange({ ...club, ...identity, isComputer: true });
@@ -302,19 +300,18 @@ function CpuEditorStep({ index, club, onChange, onDone, otherColors = [], hideFo
           >
             🎲
           </button>
-          <span className="cpu-badge">CPU — EDITING</span>
         </div>
+
+        <ClubEditorForm club={club} onChange={onChange} index={index} hideFormation={hideFormation} />
+
+        <button
+          className="bw-cta-primary"
+          onClick={onDone}
+          disabled={!valid}
+        >
+          ✓ SAVE &amp; BACK TO OVERVIEW
+        </button>
       </div>
-
-      <ClubEditorForm club={club} onChange={onChange} index={index} hideFormation={hideFormation} />
-
-      <button
-        className={`start-btn ${valid ? "active" : ""}`}
-        onClick={onDone}
-        disabled={!valid}
-      >
-        ✓ SAVE &amp; BACK TO OVERVIEW
-      </button>
     </div>
   );
 }
@@ -375,25 +372,30 @@ export default function ClubCreatorScreen({ config, onStart, onBack, profileDefa
 
     return (
       <div className="setup-screen">
-        <div className="setup-card setup-card-wide">
-          {step > 0 && (
-            <button className="creator-back-link" onClick={() => setStep(s => s - 1)}>
+        <div className="bw-frame">
+          <div className="bw-topbar">
+            <button className="bw-back-link" onClick={() => step > 0 ? setStep(s => s - 1) : onBack()}>
               ← BACK
             </button>
-          )}
-          {step === 0 && (
-            <button className="creator-back-link" onClick={onBack}>
-              ← BACK
-            </button>
-          )}
-
-          <div className="creator-step-header">
-            <span className="creator-step-label">
+            <span className="bw-screen-badge">
               {numHumans > 1 ? `CLUB ${step + 1} OF ${numHumans}` : "YOUR CLUB"}
             </span>
-            <div className="creator-step-header-right">
+          </div>
+          <div className="bw-body">
+            {numHumans > 1 && (
+              <div className="bw-step-dots">
+                {Array.from({ length: numHumans }, (_, i) => (
+                  <span key={i} className={`bw-step-dot ${i === step ? "active" : i < step ? "done" : ""}`} />
+                ))}
+              </div>
+            )}
+
+            <div className="bw-field-row">
+              <span className="bw-badge-pill bw-badge-pill-human">
+                {numHumans > 1 ? `PLAYER ${step + 1}` : "PLAYER"}
+              </span>
               <button
-                className="randomise-all-btn"
+                className="bw-dice-btn"
                 onClick={() => {
                   const identity = randomHumanIdentity(club.clubName);
                   updateClub(step, { ...club, ...identity, isComputer: false });
@@ -402,31 +404,22 @@ export default function ClubCreatorScreen({ config, onStart, onBack, profileDefa
               >
                 🎲
               </button>
-              <span className="player-badge">
-                {numHumans > 1 ? `PLAYER ${step + 1}` : "PLAYER"}
-              </span>
             </div>
+
+            <ClubEditorForm club={club} onChange={updated => updateClub(step, updated)} index={step} hideFormation={hideFormation} profileDefaults={step === 0 ? profileDefaults : null} />
+
+            <button
+              className="bw-cta-primary"
+              onClick={() => { if (valid) setStep(s => s + 1); }}
+              disabled={!valid}
+            >
+              {isLast ? "REVIEW CLUBS →" : "NEXT CLUB →"}
+            </button>
+
+            {!valid && (club.dofName.trim() || club.clubName.trim()) && (
+              <p className="bw-validation">Enter a DoF name and club name to continue.</p>
+            )}
           </div>
-
-          <div className="creator-step-dots">
-            {Array.from({ length: numHumans }, (_, i) => (
-              <span key={i} className={`creator-dot ${i === step ? "active" : i < step ? "done" : ""}`} />
-            ))}
-          </div>
-
-          <ClubEditorForm club={club} onChange={updated => updateClub(step, updated)} index={step} hideFormation={hideFormation} profileDefaults={step === 0 ? profileDefaults : null} />
-
-          <button
-            className={`start-btn ${valid ? "active" : ""}`}
-            onClick={() => { if (valid) setStep(s => s + 1); }}
-            disabled={!valid}
-          >
-            {isLast ? "REVIEW CLUBS →" : "NEXT CLUB →"}
-          </button>
-
-          {!valid && (club.dofName.trim() || club.clubName.trim()) && (
-            <p className="setup-validation">Enter a DoF name and club name to continue.</p>
-          )}
         </div>
       </div>
     );
@@ -443,30 +436,30 @@ export default function ClubCreatorScreen({ config, onStart, onBack, profileDefa
 
   return (
     <div className="setup-screen">
-      <div className="setup-card setup-card-wide">
-        <button className="creator-back-link" onClick={() => setStep(numHumans - 1)}>
-          ← BACK
-        </button>
-
-        <div className="creator-step-header">
-          <span className="creator-step-label">ALL CLUBS</span>
+      <div className="bw-frame">
+        <div className="bw-topbar">
+          <button className="bw-back-link" onClick={() => setStep(numHumans - 1)}>
+            ← BACK
+          </button>
+          <span className="bw-screen-badge">ALL CLUBS</span>
         </div>
+        <div className="bw-body">
+          <div className="bw-clubs-grid">
+            {clubs.map((club, i) =>
+              club.isComputer
+                ? <CpuSummaryCard key={i} index={i} club={club} onEdit={() => setEditingCpuIdx(i)} hideFormation={hideFormation} />
+                : <HumanSummaryCard key={i} index={i} club={club} hideFormation={hideFormation} />
+            )}
+          </div>
 
-        <div className="clubs-grid">
-          {clubs.map((club, i) =>
-            club.isComputer
-              ? <CpuSummaryCard key={i} index={i} club={club} onEdit={() => setEditingCpuIdx(i)} hideFormation={hideFormation} />
-              : <HumanSummaryCard key={i} index={i} club={club} hideFormation={hideFormation} />
-          )}
+          <button
+            className="bw-cta-primary"
+            onClick={handleStart}
+            disabled={!humanValid}
+          >
+            ▶ BEGIN DRAFT
+          </button>
         </div>
-
-        <button
-          className={`start-btn ${humanValid ? "active" : ""}`}
-          onClick={handleStart}
-          disabled={!humanValid}
-        >
-          ▶ BEGIN DRAFT
-        </button>
       </div>
     </div>
   );

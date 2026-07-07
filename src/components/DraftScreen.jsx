@@ -284,17 +284,17 @@ export default function DraftScreen({
   return (
     <div className="draft-screen" style={kitTheme}>
       {pendingPlayer && (
-        <div className="menu-overlay" onClick={() => setPendingPlayer(null)}>
-          <div className="menu-box" onClick={e => e.stopPropagation()}>
-            <div className="menu-title">CONFIRM SIGNING</div>
-            <div className="confirm-player-name">{pendingPlayer.nation} {pendingPlayer.name}</div>
-            <div className="confirm-player-detail">{pendingPlayer.pos} · {pendingPlayer.club} · {pendingPlayer.years}</div>
-            <div className="confirm-player-cost">£{pendingPlayer.value}m</div>
-            <div className="confirm-btns">
-              <button className="menu-item" onClick={() => { handlePickPlayer(pendingPlayer); setPendingPlayer(null); }}>
+        <div className="bw-modal-overlay" onClick={() => setPendingPlayer(null)}>
+          <div className="bw-modal-box" onClick={e => e.stopPropagation()}>
+            <div className="bw-modal-title">CONFIRM SIGNING</div>
+            <div className="bw-confirm-name">{pendingPlayer.nation} {pendingPlayer.name}</div>
+            <div className="bw-confirm-detail">{pendingPlayer.pos} · {pendingPlayer.club} · {pendingPlayer.years}</div>
+            <div className="bw-confirm-cost">£{pendingPlayer.value}m</div>
+            <div className="bw-confirm-btns">
+              <button className="bw-cta-primary" onClick={() => { handlePickPlayer(pendingPlayer); setPendingPlayer(null); }}>
                 ✓ CONFIRM SIGNING
               </button>
-              <button className="menu-item" onClick={() => setPendingPlayer(null)}>
+              <button className="bw-cta-secondary" onClick={() => setPendingPlayer(null)}>
                 ✕ CANCEL
               </button>
             </div>
@@ -311,9 +311,9 @@ export default function DraftScreen({
       )}
 
       {showArchetypeLegend && (
-        <div className="menu-overlay" onClick={() => setShowArchetypeLegend(false)}>
-          <div className="menu-box archetype-legend-box" onClick={e => e.stopPropagation()}>
-            <div className="menu-title">ARCHETYPES & ERAS</div>
+        <div className="bw-modal-overlay" onClick={() => setShowArchetypeLegend(false)}>
+          <div className="bw-modal-box archetype-legend-box" onClick={e => e.stopPropagation()}>
+            <div className="bw-modal-title">ARCHETYPES & ERAS</div>
             <div className="legend-section-label">ARCHETYPES</div>
             {[
               { name: "Warrior",          desc: "Wins the ball, wins the battle. Tough, combative, never gives up." },
@@ -350,34 +350,32 @@ export default function DraftScreen({
                 <span className="legend-name" style={{ color: e.color }}>{e.label} <span style={{ color: "#888", fontSize: 11 }}>{e.years}</span></span>
               </div>
             ))}
-            <button className="menu-item" style={{ marginTop: 14 }} onClick={() => setShowArchetypeLegend(false)}>CLOSE</button>
+            <button className="bw-cta-secondary" style={{ marginTop: 14 }} onClick={() => setShowArchetypeLegend(false)}>CLOSE</button>
           </div>
         </div>
       )}
 
       {/* Header */}
       <div className="draft-header">
-        <div className="manager-tabs">
+        <div className="bw-team-bar">
           {/* Active club */}
           {activeManager && (
-            <span
-              className={`manager-tab active${viewingSquadIdx === activeManagerIdx ? " squad-open" : ""}`}
-              style={{ background: activeManager.primaryColor, color: readableTextOn(activeManager.primaryColor), borderColor: activeManager.secondaryColor }}
+            <button
+              className="bw-team-name"
               onClick={() => setViewingSquadIdx(v => v === activeManagerIdx ? null : activeManagerIdx)}
               title="View squad"
             >
-              <span className="tab-kit-dot" style={{ background: activeManager.primaryColor, boxShadow: `inset 0 0 0 1px ${activeManager.secondaryColor}` }} />
-              {activeManager.clubName || activeManager.name}
-              {activeManager.isComputer && <span className="cpu-tag">CPU</span>}
-              <span className="tab-squad-hint">▤</span>
-            </span>
+              <span className="bw-team-name-label">{activeManager.clubName || activeManager.name}</span>
+              {activeManager.isComputer && <span className="bw-team-cpu-tag">CPU</span>}
+              <span className="bw-team-squad-btn">▤</span>
+            </button>
           )}
           {/* Clickable kit swatches for other clubs */}
-          <div className="manager-tabs-others">
+          <div className="bw-team-others">
             {managers.map((m, i) => i === activeManagerIdx ? null : (
               <span
                 key={i}
-                className={`manager-tab-mini${viewingSquadIdx === i ? " squad-open" : ""}`}
+                className={`bw-team-mini${viewingSquadIdx === i ? " squad-open" : ""}`}
                 title={`${m.clubName || m.name}${m.isComputer ? " (CPU)" : ""} — view squad`}
                 onClick={() => setViewingSquadIdx(v => v === i ? null : i)}
               >
@@ -389,8 +387,8 @@ export default function DraftScreen({
       </div>
 
       {/* Turn banner */}
-      <div className="turn-banner">
-        <div className="turn-left">
+      <div className="bw-signing-row">
+        <div className="bw-signing-left">
           <KitSwatch
             primary={kitPrimary}
             secondary={kitSecondary}
@@ -398,22 +396,21 @@ export default function DraftScreen({
             uid="banner"
             size={28}
           />
-          <span className="turn-name">{activeManager?.dofName || activeManager?.name}</span>
-          <span className="turn-club">({activeManager?.clubName})</span>
-          <span className="turn-pos">signing: <strong>{needsSlotDraw ? "?" : currentPos.label}</strong></span>
+          <span className="bw-signing-name">{activeManager?.dofName || activeManager?.name}</span>
+          <span className="bw-signing-meta">signing: <strong>{needsSlotDraw ? "?" : currentPos.label}</strong></span>
         </div>
-        <div className="turn-right">
+        <div className="bw-signing-right">
           {pendingCarryover > 0 && currentBudget === null && (
-            <span className="carryover-badge">Carryover: £{pendingCarryover}m</span>
+            <span className="bw-signing-carryover">Carryover: £{pendingCarryover}m</span>
           )}
           {currentBudget !== null && (
-            <span className="budget-badge">Budget: £{currentBudget}m</span>
+            <span className="bw-signing-budget">£{currentBudget}m</span>
           )}
         </div>
       </div>
 
       {/* Position progress */}
-      <div className="pos-progress">
+      <div className="bw-pos-strip">
         {draft.positionMode === "random" ? (
           <>
             {/* Random mode: show individual position slots based on what's been filled */}
@@ -425,20 +422,20 @@ export default function DraftScreen({
               return (
                 <span
                   key={i}
-                  className={`pos-chip ${isDone ? "done" : isCurrent ? "current" : "todo"}`}
+                  className={`bw-pos-chip ${isDone ? "done" : isCurrent ? "current" : "todo"}`}
                 >
                   {posLabel}
                 </span>
               );
             })}
             {/* Subs divider + chips */}
-            <span className="pos-chip-divider" />
+            <span className="bw-pos-chip-divider" />
             {POSITIONS.slice(11).map((p, i) => {
               const absIdx = 11 + i;
               const label = p.key === "GKSUB" ? "GKS" : p.key === "DEFSUB" ? "DEF" : p.key === "MIDSUB" ? "MID" : p.key === "ATTSUB" ? "ATT" : p.key;
               const state = absIdx < positionIndex ? "done" : absIdx === positionIndex ? "current" : "todo";
               return (
-                <span key={absIdx} className={`pos-chip sub ${state}`}>
+                <span key={absIdx} className={`bw-pos-chip sub ${state}`}>
                   {label}
                 </span>
               );
@@ -450,18 +447,18 @@ export default function DraftScreen({
               const entry = FORMATIONS[activeManager?.formation]?.[i];
               const posLabel = entry?.label ?? entry?.pos ?? POSITIONS[i].key;
               return (
-                <span key={i} className={`pos-chip ${i < positionIndex ? "done" : i === positionIndex ? "current" : "todo"}`}>
+                <span key={i} className={`bw-pos-chip ${i < positionIndex ? "done" : i === positionIndex ? "current" : "todo"}`}>
                   {posLabel}
                 </span>
               );
             })}
-            <span className="pos-chip-divider" />
+            <span className="bw-pos-chip-divider" />
             {POSITIONS.slice(11).map((p, i) => {
               const absIdx = 11 + i;
               const label = p.key === "GKSUB" ? "GKS" : p.key === "DEFSUB" ? "DEF" : p.key === "MIDSUB" ? "MID" : p.key === "ATTSUB" ? "ATT" : p.key;
               const state = absIdx < positionIndex ? "done" : absIdx === positionIndex ? "current" : "todo";
               return (
-                <span key={absIdx} className={`pos-chip sub ${state}`}>
+                <span key={absIdx} className={`bw-pos-chip sub ${state}`}>
                   {label}
                 </span>
               );
@@ -471,14 +468,14 @@ export default function DraftScreen({
       </div>
 
       {/* Draft order strip — collapsible */}
-      <div className="order-strip-wrap">
-        <button className="order-strip-toggle" onClick={() => setShowOrder(s => !s)}>
+      <div className="bw-order-wrap">
+        <button className="bw-order-toggle" onClick={() => setShowOrder(s => !s)}>
           DRAFT ORDER {showOrder ? "▲" : "▼"}
         </button>
         {showOrder && (
-          <div className="order-strip">
+          <div className="bw-order-list">
             {currentOrder.map((pi, i) => (
-              <span key={i} className={`order-chip ${i === turnIndex ? "now" : i < turnIndex ? "done" : "waiting"}`}>
+              <span key={i} className={`bw-order-chip ${i === turnIndex ? "now" : i < turnIndex ? "done" : "waiting"}`}>
                 {managers[pi].clubName || managers[pi].name}
               </span>
             ))}
@@ -489,23 +486,23 @@ export default function DraftScreen({
       {/* Main area */}
       <div className="draft-main">
         {!myTurn && !isCpuTurn ? (
-          <div className="cpu-turn-area">
-            <div className="cpu-turn-badge" style={{ background: "rgba(255,255,255,0.08)", color: "var(--text2)" }}>THEIR TURN</div>
-            <div className="cpu-turn-name">{activeManager?.clubName || activeManager?.name}</div>
-            <div className="cpu-turn-status">
+          <div className="bw-cpu-area">
+            <span className="bw-badge-pill bw-badge-pill-cpu">THEIR TURN</span>
+            <div className="bw-cpu-name">{activeManager?.clubName || activeManager?.name}</div>
+            <div className="bw-cpu-status">
               {needsSlotDraw
                 ? "Drawing their position..."
                 : currentBudget === null
                   ? "Spinning their transfer budget..."
                   : `Budget £${currentBudget}m — picking their ${currentPos.label}...`}
             </div>
-            <div className="cpu-turn-dots"><span>●</span><span>●</span><span>●</span></div>
+            <div className="bw-cpu-dots"><span>●</span><span>●</span><span>●</span></div>
           </div>
         ) : isCpuTurn ? (
-          <div className="cpu-turn-area">
-            <div className="cpu-turn-badge">CPU TURN</div>
-            <div className="cpu-turn-name">{activeManager?.clubName || activeManager?.name}</div>
-            <div className="cpu-turn-status">
+          <div className="bw-cpu-area">
+            <span className="bw-badge-pill bw-badge-pill-human">CPU TURN</span>
+            <div className="bw-cpu-name">{activeManager?.clubName || activeManager?.name}</div>
+            <div className="bw-cpu-status">
               {needsSlotDraw
                 ? "Drawing position…"
                 : isRandomStarter && draft.currentSlot !== null && draft.currentSlot !== undefined
@@ -522,15 +519,15 @@ export default function DraftScreen({
                     ? "Spinning transfer budget…"
                     : `Budget £${currentBudget}m — scouting for a ${currentPos.label}…`}
             </div>
-            <div className="cpu-turn-dots"><span>●</span><span>●</span><span>●</span></div>
+            <div className="bw-cpu-dots"><span>●</span><span>●</span><span>●</span></div>
             {skipCpuTurns && (
-              <button className="sim-btn secondary" style={{ marginTop: "1.2rem", fontSize: "13px" }} onClick={skipCpuTurns}>
+              <button className="bw-cta-secondary" style={{ marginTop: "1.2rem", width: "auto" }} onClick={skipCpuTurns}>
                 ⏭ SKIP CPU
               </button>
             )}
           </div>
         ) : needsSlotDraw ? (
-          <div className="roll-area">
+          <div className="bw-roll-area">
             <PositionWheel
               squad={activeManager?.squad}
               onConfirm={confirmSlot}
@@ -538,219 +535,190 @@ export default function DraftScreen({
             />
           </div>
         ) : currentBudget === null ? (
-          <div className="roll-area">
-            <div className="roll-sub">Spin your transfer budget for <strong>{currentPos.label}</strong></div>
+          <div className="bw-roll-area">
+            <div className="bw-roll-sub">Spin your transfer budget for <strong>{currentPos.label}</strong></div>
             <SpinWheel carryover={pendingCarryover} onConfirm={confirmBudget} difficulty={draft.difficulty} />
           </div>
         ) : (
-          <div className="player-list-area">
-            <div className="filter-bar">
-              <div className="filter-dropdowns-row">
-              {showPosChips && (
-                <div className="filter-dropdown">
-                  <button
-                    className={`filter-dropdown-btn${showPosDropdown ? " open" : filterPos.size < OUTFIELD_POS.length ? " partial" : ""}`}
-                    onClick={() => { setShowPosDropdown(s => !s); setShowLeagueDropdown(false); setShowEraDropdown(false); setShowTierDropdown(false); setShowArchetypeDropdown(false); }}
-                  >
-                    POSITION {filterPos.size < OUTFIELD_POS.length ? `(${[...filterPos].join(", ")})` : ""}
-                  </button>
-                  {showPosDropdown && (
-                    <div className="filter-dropdown-menu">
-                      {OUTFIELD_POS.map(pos => (
-                        <label key={pos} className="filter-checkbox">
-                          <input
-                            type="checkbox"
-                            checked={filterPos.has(pos)}
-                            onChange={() => togglePos(pos)}
-                          />
-                          {pos}
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-              <div className="filter-dropdown">
-                <button
-                  className={`filter-dropdown-btn${showLeagueDropdown ? " open" : filterLeague.size < 5 ? " partial" : ""}`}
-                  onClick={() => { setShowLeagueDropdown(s => !s); setShowPosDropdown(false); setShowEraDropdown(false); setShowTierDropdown(false); setShowArchetypeDropdown(false); }}
-                >
-                  LEAGUES {filterLeague.size < 6 ? `(${filterLeague.size}/6)` : ""}
-                </button>
-                {showLeagueDropdown && (
-                  <div className="filter-dropdown-menu">
-                    {[
-                      { value: "premier_league", label: "Premier League" },
-                      { value: "la_liga", label: "La Liga" },
-                      { value: "serie_a", label: "Serie A" },
-                      { value: "bundesliga", label: "Bundesliga" },
-                      { value: "ligue_1", label: "Ligue 1" },
-                      { value: "legends", label: "⚜️ Legends" }
-                    ].map(league => (
-                      <label key={league.value} className="filter-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={filterLeague.has(league.value)}
-                          onChange={() => toggleLeague(league.value)}
-                        />
-                        {league.label}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="filter-dropdown">
-                <button
-                  className={`filter-dropdown-btn${showEraDropdown ? " open" : filterEra.size < 3 ? " partial" : ""}`}
-                  onClick={() => { setShowEraDropdown(s => !s); setShowPosDropdown(false); setShowLeagueDropdown(false); setShowTierDropdown(false); setShowArchetypeDropdown(false); }}
-                >
-                  ERAS {filterEra.size < 3 ? `(${filterEra.size}/3)` : ""}
-                </button>
-                {showEraDropdown && (
-                  <div className="filter-dropdown-menu">
-                    {[
-                      { value: "classic", label: "Classic 98–08" },
-                      { value: "golden", label: "Golden 08–16" },
-                      { value: "modern", label: "Modern 16–" }
-                    ].map(era => (
-                      <label key={era.value} className="filter-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={filterEra.has(era.value)}
-                          onChange={() => toggleEra(era.value)}
-                        />
-                        {era.label}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="filter-dropdown">
-                <button
-                  className={`filter-dropdown-btn${showTierDropdown ? " open" : filterTiers.size < 5 ? " partial" : ""}`}
-                  onClick={() => { setShowTierDropdown(s => !s); setShowPosDropdown(false); setShowLeagueDropdown(false); setShowEraDropdown(false); setShowArchetypeDropdown(false); }}
-                >
-                  TIERS {filterTiers.size < 5 ? `(${filterTiers.size}/5)` : ""}
-                </button>
-                {showTierDropdown && (
-                  <div className="filter-dropdown-menu">
-                    {[
-                      { value: "T1", label: "T1 — Elite" },
-                      { value: "T2", label: "T2 — World Class" },
-                      { value: "T3", label: "T3 — Star" },
-                      { value: "T4", label: "T4 — Quality" },
-                      { value: "T5", label: "T5 — Solid" },
-                    ].map(tier => (
-                      <label key={tier.value} className="filter-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={filterTiers.has(tier.value)}
-                          onChange={() => toggleTier(tier.value)}
-                        />
-                        {tier.label}
-                      </label>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="filter-dropdown">
-                <button
-                  className={`filter-dropdown-btn${showArchetypeDropdown ? " open" : filterArchetypes.size < relevantArchetypes.length ? " partial" : ""}`}
-                  onClick={() => { setShowArchetypeDropdown(s => !s); setShowPosDropdown(false); setShowTierDropdown(false); setShowLeagueDropdown(false); setShowEraDropdown(false); }}
-                >
-                  TYPE {filterArchetypes.size < relevantArchetypes.length ? `(${filterArchetypes.size}/${relevantArchetypes.length})` : ""}
-                </button>
-                {showArchetypeDropdown && (
-                  <div className="filter-dropdown-menu">
-                    {relevantArchetypes.map(archetype => {
-                      const arc = ARCHETYPE_COLOR[archetype] || { fg: "#aaa" };
-                      return (
-                        <label key={archetype} className="filter-checkbox">
-                          <input
-                            type="checkbox"
-                            checked={filterArchetypes.has(archetype)}
-                            onChange={() => toggleArchetype(archetype)}
-                          />
-                          <span style={{ color: arc.fg }}>{archetype}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-              <div className="filter-sort-row">
+          <div className="bw-picker">
+            <div className="bw-picker-filters">
+              <div className="bw-search-box">
+                <span className="bw-search-icon">⌕</span>
                 <input
-                  className="player-name-search"
+                  className="bw-search-input"
                   type="text"
                   placeholder="Search player or club…"
                   value={nameSearch}
                   onChange={e => setNameSearch(e.target.value)}
                 />
               </div>
-              <div className="filter-sort-row">
-                <span className="filter-sort-label">SORT</span>
-                {[
-                  { key: "tier", label: "TIER" },
-                  { key: "az", label: "A–Z" },
-                  { key: "value", label: "VALUE" },
-                ].map(s => (
+
+              <div className="bw-filter-chips">
+                {showPosChips && (
+                  <div className="bw-filter-chip-wrap">
+                    <button
+                      className={`bw-filter-chip ${filterPos.size < OUTFIELD_POS.length ? "active" : ""}`}
+                      onClick={() => { setShowPosDropdown(s => !s); setShowLeagueDropdown(false); setShowEraDropdown(false); setShowTierDropdown(false); setShowArchetypeDropdown(false); }}
+                    >
+                      Position {filterPos.size < OUTFIELD_POS.length ? `· ${[...filterPos].join(", ")}` : ""}
+                    </button>
+                    {showPosDropdown && (
+                      <div className="bw-filter-menu">
+                        {OUTFIELD_POS.map(pos => (
+                          <label key={pos} className="bw-filter-checkbox">
+                            <input type="checkbox" checked={filterPos.has(pos)} onChange={() => togglePos(pos)} />
+                            {pos}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <div className="bw-filter-chip-wrap">
                   <button
-                    key={s.key}
-                    className={`sort-btn${sortBy === s.key ? " active" : ""}`}
-                    onClick={() => {
-                      if (sortBy === s.key) setSortDir(d => d === "asc" ? "desc" : "asc");
-                      else { setSortBy(s.key); setSortDir("asc"); }
-                    }}
+                    className={`bw-filter-chip ${filterLeague.size < 6 ? "active" : ""}`}
+                    onClick={() => { setShowLeagueDropdown(s => !s); setShowPosDropdown(false); setShowEraDropdown(false); setShowTierDropdown(false); setShowArchetypeDropdown(false); }}
                   >
-                    {s.label}{sortBy === s.key ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                    Leagues {filterLeague.size < 6 ? `(${filterLeague.size}/6)` : ""}
                   </button>
-                ))}
+                  {showLeagueDropdown && (
+                    <div className="bw-filter-menu">
+                      {[
+                        { value: "premier_league", label: "Premier League" },
+                        { value: "la_liga", label: "La Liga" },
+                        { value: "serie_a", label: "Serie A" },
+                        { value: "bundesliga", label: "Bundesliga" },
+                        { value: "ligue_1", label: "Ligue 1" },
+                        { value: "legends", label: "⚜️ Legends" }
+                      ].map(league => (
+                        <label key={league.value} className="bw-filter-checkbox">
+                          <input type="checkbox" checked={filterLeague.has(league.value)} onChange={() => toggleLeague(league.value)} />
+                          {league.label}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="bw-filter-chip-wrap">
+                  <button
+                    className={`bw-filter-chip ${filterEra.size < 3 ? "active" : ""}`}
+                    onClick={() => { setShowEraDropdown(s => !s); setShowPosDropdown(false); setShowLeagueDropdown(false); setShowTierDropdown(false); setShowArchetypeDropdown(false); }}
+                  >
+                    Eras {filterEra.size < 3 ? `(${filterEra.size}/3)` : ""}
+                  </button>
+                  {showEraDropdown && (
+                    <div className="bw-filter-menu">
+                      {[
+                        { value: "classic", label: "Classic 98–08" },
+                        { value: "golden", label: "Golden 08–16" },
+                        { value: "modern", label: "Modern 16–" }
+                      ].map(era => (
+                        <label key={era.value} className="bw-filter-checkbox">
+                          <input type="checkbox" checked={filterEra.has(era.value)} onChange={() => toggleEra(era.value)} />
+                          {era.label}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="bw-filter-chip-wrap">
+                  <button
+                    className={`bw-filter-chip ${filterTiers.size < 5 ? "active" : ""}`}
+                    onClick={() => { setShowTierDropdown(s => !s); setShowPosDropdown(false); setShowLeagueDropdown(false); setShowEraDropdown(false); setShowArchetypeDropdown(false); }}
+                  >
+                    Tiers {filterTiers.size < 5 ? `(${filterTiers.size}/5)` : ""}
+                  </button>
+                  {showTierDropdown && (
+                    <div className="bw-filter-menu">
+                      {[
+                        { value: "T1", label: "T1 — Elite" },
+                        { value: "T2", label: "T2 — World Class" },
+                        { value: "T3", label: "T3 — Star" },
+                        { value: "T4", label: "T4 — Quality" },
+                        { value: "T5", label: "T5 — Solid" },
+                      ].map(tier => (
+                        <label key={tier.value} className="bw-filter-checkbox">
+                          <input type="checkbox" checked={filterTiers.has(tier.value)} onChange={() => toggleTier(tier.value)} />
+                          {tier.label}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="bw-filter-chip-wrap">
+                  <button
+                    className={`bw-filter-chip ${filterArchetypes.size < relevantArchetypes.length ? "active" : ""}`}
+                    onClick={() => { setShowArchetypeDropdown(s => !s); setShowPosDropdown(false); setShowTierDropdown(false); setShowLeagueDropdown(false); setShowEraDropdown(false); }}
+                  >
+                    Type {filterArchetypes.size < relevantArchetypes.length ? `(${filterArchetypes.size}/${relevantArchetypes.length})` : ""}
+                  </button>
+                  {showArchetypeDropdown && (
+                    <div className="bw-filter-menu">
+                      {relevantArchetypes.map(archetype => (
+                        <label key={archetype} className="bw-filter-checkbox">
+                          <input type="checkbox" checked={filterArchetypes.has(archetype)} onChange={() => toggleArchetype(archetype)} />
+                          {archetype}
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
-              <div className="filter-badge-controls">
-                <button
-                  className={`sort-btn${hideBadges ? " active" : ""}`}
-                  onClick={() => setHideBadges(h => !h)}
-                  title="Toggle era & archetype badges"
-                >
-                  {hideBadges ? "BADGES OFF" : "BADGES ON"}
-                </button>
-                <button
-                  className="sort-btn legend-btn"
-                  onClick={() => setShowArchetypeLegend(true)}
-                  title="Archetype & era legend"
-                >
-                  ?
-                </button>
+              <div className="bw-sort-controls-row">
+                <div className="bw-sort-group">
+                  <span className="bw-sort-label">SORT</span>
+                  <div className="bw-sort-seg">
+                    {[
+                      { key: "tier", label: "TIER" },
+                      { key: "az", label: "A–Z" },
+                      { key: "value", label: "VALUE" },
+                    ].map(s => (
+                      <button
+                        key={s.key}
+                        className={`bw-sort-seg-btn ${sortBy === s.key ? "active" : ""}`}
+                        onClick={() => {
+                          if (sortBy === s.key) setSortDir(d => d === "asc" ? "desc" : "asc");
+                          else { setSortBy(s.key); setSortDir("asc"); }
+                        }}
+                      >
+                        {s.label}{sortBy === s.key ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <span className="bw-affordable-count">
+                  <strong>{affordable.length}</strong> affordable · {available.length} total
+                </span>
               </div>
 
-              <span className="affordable-count">
-                {affordable.length} affordable / {available.length} total
-              </span>
-              </div>{/* filter-dropdowns-row */}
+              <div className="bw-badge-controls-row">
+                <button className={`bw-chip-ghost ${hideBadges ? "active" : ""}`} onClick={() => setHideBadges(h => !h)} title="Toggle archetype tags">
+                  {hideBadges ? "TAGS OFF" : "TAGS ON"}
+                </button>
+                <button className="bw-chip-ghost" onClick={() => setShowArchetypeLegend(true)} title="Archetype & era legend">?</button>
+              </div>
             </div>
 
-            <div className="player-list">
+            <div className="bw-player-list">
               {affordable.length === 0 && currentBudget !== null && (
                 genuinelyNoAfford ? (
-                  <div className="no-afford-respin">
-                    <div className="no-afford-title">⚠ NO AFFORDABLE PLAYERS</div>
-                    <div className="no-afford-msg">
+                  <div className="bw-no-afford">
+                    <div className="bw-no-afford-title">⚠ NO AFFORDABLE PLAYERS</div>
+                    <div className="bw-no-afford-msg">
                       £{currentBudget}m isn't enough for anyone available. Re-spin for a new budget —
                       but this money is lost and <strong>no carryover</strong> after this pick.
                     </div>
-                    <button className="respin-btn" onClick={respin}>↺ RE-SPIN (NO CARRYOVER)</button>
+                    <button className="bw-cta-secondary" onClick={respin}>↺ RE-SPIN (NO CARRYOVER)</button>
                   </div>
                 ) : (
-                  <div className="no-afford-filters">
-                    <div className="no-afford-filters-title">FILTERS HIDING AFFORDABLE PLAYERS</div>
-                    <div className="no-afford-msg">
-                      There's someone affordable in your budget, but your current filters are hiding them.
-                    </div>
-                    <button className="clear-filters-btn" onClick={clearFilters}>✕ CLEAR FILTERS</button>
+                  <div className="bw-no-results">
+                    <div className="bw-no-results-title">No players match — widen your filters</div>
+                    <button className="bw-chip-ghost" onClick={clearFilters}>✕ Reset filters</button>
                   </div>
                 )
               )}
@@ -759,15 +727,15 @@ export default function DraftScreen({
               ))}
               {tooExpensive.length > 0 && (
                 <>
-                  <div className="section-divider">OUT OF BUDGET</div>
+                  <div className="bw-section-divider">OUT OF BUDGET</div>
                   {tooExpensive.map(p => (
-                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} />
+                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} budget={currentBudget} />
                   ))}
                 </>
               )}
               {takenPlayers.length > 0 && (
                 <>
-                  <div className="section-divider">ALREADY SIGNED</div>
+                  <div className="bw-section-divider">ALREADY SIGNED</div>
                   {takenPlayers.map(p => (
                     <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} takenBy={p.ownedBy} />
                   ))}

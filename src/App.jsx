@@ -994,10 +994,13 @@ function AppInner({ onMultiplayer, auth }) {
     );
   }
 
-  return <>{globalMenu}<SetupScreen onStart={startGame} /></>;
+  // Defensive fallback: unreachable in normal flow (the setup block above
+  // returns for every !draft / screen==="setup" case). Render just the menu
+  // rather than a stale setup form.
+  return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "2.21.2";
+const APP_VERSION = "3.9.23";
 
 function AppFooter() {
   return (

@@ -57,29 +57,33 @@ Once every squad is drafted, the teams face off to settle whose spins, and whose
 
 export default function AboutScreen({ onBack }) {
   return (
-    <div className="setup-screen">
-      <div className="about-card">
-        <div className="about-header">
-          <button className="about-back-btn" onClick={onBack}>← BACK</button>
-          <h1 className="setup-title about-title">The Transfer Wheel</h1>
-          <p className="setup-sub">A few questions about what this game is, and how it ended up on your phone.</p>
+    <div className="bw-about-screen">
+      <div className="bw-draft-topbar">
+        <button className="bw-back-link" onClick={onBack}>← BACK</button>
+        <span className="bw-screen-badge">ABOUT</span>
+      </div>
+
+      <div className="bw-about-body">
+        <div className="bw-about-header">
+          <h1 className="bw-about-title">The Transfer Wheel</h1>
+          <p className="bw-about-sub">A few questions about what this game is, and how it ended up on your phone.</p>
         </div>
 
-        <div className="about-sections">
+        <div className="bw-about-sections">
           {sections.map(({ q, a }) => (
-            <div key={q} className="about-section">
-              <h2 className="about-q">{q}</h2>
+            <div key={q} className="bw-about-section">
+              <h2 className="bw-about-q">{q}</h2>
               {a.split("\n\n").map((para, i) => (
-                <p key={i} className="about-p">{para}</p>
+                <p key={i} className="bw-about-p">{para}</p>
               ))}
             </div>
           ))}
         </div>
 
-        <div className="about-support">
-          <p className="about-support-label">Enjoyed it? Help keep the lights on.</p>
+        <div className="bw-about-support">
+          <p className="bw-about-support-label">Enjoyed it? Help keep the lights on.</p>
           <a
-            className="about-bmac-btn"
+            className="bw-about-bmac-btn"
             href={BMAC_URL}
             target="_blank"
             rel="noreferrer"

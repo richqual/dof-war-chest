@@ -2,19 +2,21 @@ import { useState } from "react";
 import { POSITIONS, getRatingBg, getRatingColor, formatValue, ERA_LABELS, ERA_COLORS, ERA_BG } from "../data/players";
 import { FORMATIONS, FORMATION_LIST } from "../data/formations";
 
-function posGroupColor(pos) {
-  if (pos === "GK") return { bg: "#f97316", fg: "#fff" };
-  if (["RB","LB","CB","WB"].includes(pos)) return { bg: "#3b82f6", fg: "#fff" };
-  if (["ST","RW","LW"].includes(pos)) return { bg: "#ef4444", fg: "#fff" };
-  return { bg: "#16a34a", fg: "#fff" }; // DM, CM, RM, LM, CAM
-}
 import { TIER_LABELS, TIER_COLORS, TIER_BG } from "../data/managers";
 import { ARCHETYPE_COLOR } from "./PlayerCard";
 import { getFormArrow } from "../hooks/useDraftState";
-import KitSwatch, { kitAccent } from "./KitSwatch";
+import KitSwatch, { kitAccent, readableTextOn } from "./KitSwatch";
 
 
 const TACTICS = ["defensive", "balanced", "attacking"];
+const TACTICS_LABEL = { defensive: "DEF", balanced: "BALANCED", attacking: "ATT" };
+
+function lineColors(pos) {
+  if (pos === "GK") return { bg: "var(--bw-line-gk)", text: "var(--bw-line-gk-ink)", label: "var(--bw-line-gk)", size: 40 };
+  if (["RB", "LB", "CB", "WB"].includes(pos)) return { bg: "var(--bw-line-def)", text: "#fff", label: "var(--bw-line-def-text)", size: 38 };
+  if (["ST", "RW", "LW"].includes(pos)) return { bg: "var(--bw-line-att)", text: "#fff", label: "var(--bw-line-att)", size: 40 };
+  return { bg: "var(--bw-line-mid)", text: "#fff", label: "var(--bw-line-mid-text)", size: 40 }; // DM, CM, RM, LM, CAM
+}
 
 function cohesionPct(squad, fm) {
   if (!fm?.preferredArchetypes?.length) return null;
@@ -29,48 +31,38 @@ function squadRating(squad) {
   return Math.round(starters.reduce((s, p) => s + p.rating, 0) / starters.length);
 }
 
-function FormationDiagram({ squad, formation, swapSlot, onSlotClick }) {
+function SquadPitch({ squad, formation, swapSlot, onSlotClick }) {
   const coords = FORMATIONS[formation];
   return (
-    <div className="formation-pitch">
-      <svg viewBox="0 0 100 100" className="pitch-svg">
-        {/* Pitch markings */}
-        <rect x="5" y="5" width="90" height="90" fill="none" stroke="#ffffff22" strokeWidth="0.5" />
-        <line x1="5" y1="50" x2="95" y2="50" stroke="#ffffff22" strokeWidth="0.4" />
-        <circle cx="50" cy="50" r="12" fill="none" stroke="#ffffff22" strokeWidth="0.4" />
-        <rect x="28" y="5" width="44" height="18" fill="none" stroke="#ffffff22" strokeWidth="0.4" />
-        <rect x="28" y="77" width="44" height="18" fill="none" stroke="#ffffff22" strokeWidth="0.4" />
-        <rect x="38" y="5" width="24" height="8" fill="none" stroke="#ffffff22" strokeWidth="0.4" />
-        <rect x="38" y="87" width="24" height="8" fill="none" stroke="#ffffff22" strokeWidth="0.4" />
-      </svg>
-      <div className="pitch-players">
-        {coords.map((coord, i) => {
-          const player = squad[i];
-          const isSwapping = swapSlot === i;
-          return (
-            <div
-              key={i}
-              className={`pitch-dot ${isSwapping ? "swapping" : ""} ${!player ? "empty" : ""}`}
-              style={{ left: `${coord.x}%`, top: `${coord.y}%` }}
-              onClick={() => onSlotClick(i)}
-              title={player ? `${player.name} (${player.rating})` : coord.pos}
-            >
-              <div className="pitch-dot-inner">
-                {player ? (
-                  <>
-                    <div className="dot-rating" style={(() => { const c = posGroupColor(player.pos); return { background: c.bg, color: c.fg }; })()}>
-                      {player.pos}
-                    </div>
-                    <div className="dot-name">{player.name.split(" ").pop()}</div>
-                  </>
-                ) : (
-                  <div className="dot-empty">{coord.pos}</div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+    <div className="bw-pitch">
+      <div className="bw-pitch-stripes" />
+      <div className="bw-pitch-halfway" />
+      <div className="bw-pitch-circle" />
+      {coords.map((coord, i) => {
+        const player = squad[i];
+        const isSwapping = swapSlot === i;
+        const lc = lineColors(coord.pos);
+        return (
+          <div
+            key={i}
+            className={`bw-pitch-slot${isSwapping ? " swapping" : ""}${!player ? " empty" : ""}`}
+            style={{ left: `${coord.x}%`, top: `${coord.y}%` }}
+            onClick={() => onSlotClick(i)}
+            title={player ? `${player.name} (${player.rating})` : coord.pos}
+          >
+            {player ? (
+              <>
+                <div className="bw-pitch-token" style={{ width: lc.size, height: lc.size, background: lc.bg, color: lc.text }}>
+                  {coord.pos}
+                </div>
+                <div className="bw-pitch-token-name">{player.name.split(" ").pop()}</div>
+              </>
+            ) : (
+              <div className="bw-pitch-token bw-pitch-token-empty">{coord.pos}</div>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -196,6 +188,7 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
   const [showValues, setShowValues] = useState(false);
   const [mgrMinimized, setMgrMinimized] = useState(false);
   const [showPitch, setShowPitch] = useState(true);
+  const [showBench, setShowBench] = useState(false);
   const [selectingCaptain, setSelectingCaptain] = useState(false);
   const [exporting, setExporting] = useState(false);
 
@@ -258,14 +251,24 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
     wildcard:   "are impossible to predict — anything could happen, and usually does.",
   };
 
+  const kitPrimary = manager.primaryColor || "#1a3a6b";
+  const kitSecondary = manager.secondaryColor || "#132a4e";
+  const kitTheme = {
+    "--kit-primary": kitPrimary,
+    "--kit-secondary": kitSecondary,
+    "--kit-text": readableTextOn(kitPrimary),
+  };
+  const filledBenchCount = bench.filter(Boolean).length;
+
   return (
-    <div className="squad-detail">
-      <div className="squad-detail-header">
-        <button className="back-btn" onClick={onBack}>← BACK</button>
-        <div className="squad-title-area">
+    <div className="bw-squad-detail" style={kitTheme}>
+      <div className="bw-squad-header">
+        <div className="bw-squad-header-team">
+          <button className="bw-squad-back" onClick={onBack} title="Back">←</button>
+          <KitSwatch primary={manager.primaryColor} secondary={manager.secondaryColor} pattern={manager.pattern} uid={`sqd${managerIdx}`} size={13} />
           {editingName ? (
             <input
-              className="team-name-input"
+              className="bw-squad-name-input"
               value={nameInput}
               onChange={e => setNameInput(e.target.value)}
               onBlur={() => { setTeamName(managerIdx, nameInput); setEditingName(false); }}
@@ -274,120 +277,109 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
               maxLength={24}
             />
           ) : (
-            <span className="squad-team-name" onClick={() => setEditingName(true)}>
-              {manager.teamName || manager.name} <span className="edit-hint">✎</span>
+            <span className="bw-squad-team-name" onClick={() => setEditingName(true)} title="Click to rename">
+              {manager.teamName || manager.name}
             </span>
           )}
-          <span className="ovr-badge">OVR {squadRating(manager.squad)}</span>
-          <span className="ovr-badge value-badge">{formatValue(totalSquadValue)}</span>
         </div>
-        <div className="squad-actions">
-          <button className="sort-btn" onClick={exportSquad} disabled={exporting}>{exporting ? "…" : "EXPORT"}</button>
-          {allManagers.length >= 2 && onSimulate && (
-            <button className="action-btn primary" onClick={() => {
-              const awayIdx = managers ? managers.findIndex((_, i) => i !== managerIdx) : (managerIdx + 1) % allManagers.length;
-              onSimulate(managerIdx, awayIdx);
-            }}>SIMULATE</button>
-          )}
+        <div className="bw-squad-header-right">
+          <span className="bw-squad-value">{formatValue(totalSquadValue)}</span>
+          <span className="bw-squad-ovr">{squadRating(manager.squad)}</span>
         </div>
       </div>
 
-      {fm && (
-        <div className="mgr-squad-banner">
-          <div className="mgr-squad-banner-top">
-            <div className="mgr-squad-name">{fm.name}</div>
-            <div style={{ flex: 1 }} />
-            <span className="mgr-section-label">THE GAFFER</span>
-            <button className="sort-btn" onClick={() => setMgrMinimized(m => !m)}>
-              {mgrMinimized ? "▼ MORE" : "▲ LESS"}
-            </button>
-          </div>
-          {!mgrMinimized && (
-            <>
-              <div className="mgr-squad-badges">
-                <span
-                  className="era-badge"
-                  style={{ background: ERA_BG[fm.era], color: ERA_COLORS[fm.era], border: `1px solid ${ERA_COLORS[fm.era]}55` }}
-                >
-                  {ERA_LABELS[fm.era]}
-                </span>
-                <span
-                  className="mgr-tier-badge"
-                  style={{ background: TIER_BG[fm.tier], color: TIER_COLORS[fm.tier], border: `1px solid ${TIER_COLORS[fm.tier]}88` }}
-                >
-                  {TIER_LABELS[fm.tier]}
-                </span>
+      <div className="bw-squad-actions">
+        <button className="bw-squad-action-btn" onClick={exportSquad} disabled={exporting}>{exporting ? "…" : "EXPORT"}</button>
+        {allManagers.length >= 2 && onSimulate && (
+          <button className="bw-squad-action-btn primary" onClick={() => {
+            const awayIdx = managers ? managers.findIndex((_, i) => i !== managerIdx) : (managerIdx + 1) % allManagers.length;
+            onSimulate(managerIdx, awayIdx);
+          }}>SIMULATE</button>
+        )}
+      </div>
+
+      <div className="bw-squad-body">
+        <div className="bw-squad-left">
+          {fm && (
+            <div className="bw-gaffer-block">
+              <div className="bw-gaffer-top">
+                <div className="bw-gaffer-name">{fm.name}</div>
+                <button className="bw-gaffer-toggle" onClick={() => setMgrMinimized(m => !m)}>
+                  {mgrMinimized ? "▼ THE GAFFER" : "THE GAFFER"}
+                </button>
               </div>
-              <div className="mgr-squad-club">{fm.club} · {fm.years}</div>
-              <div className="mgr-squad-style">{fm.styleLabel}</div>
-              <div className="mgr-squad-tactical">
-                Your team {STYLE_TACTICAL_LINE[fm.style] || fm.flavourText}
-              </div>
-              <div className="mgr-squad-flavour">"{fm.flavourText}"</div>
-              {fm.preferredArchetypes?.length > 0 && (
-                <div className="mgr-archetype-tip">
-                  <span className="archetype-tip-label">FAVOURS</span>
-                  {fm.preferredArchetypes.map(a => {
-                    const arc = ARCHETYPE_COLOR[a] || { bg: "#222", fg: "#aaa" };
-                    return (
-                      <span key={a} className="archetype-badge" style={{ background: arc.bg, color: arc.fg, border: `1px solid ${arc.fg}44` }}>
-                        {a}
-                      </span>
-                    );
-                  })}
-                </div>
+              {!mgrMinimized && (
+                <>
+                  <div className="bw-gaffer-chips">
+                    <span className="bw-gaffer-chip" style={{ background: ERA_BG[fm.era], color: ERA_COLORS[fm.era] }}>
+                      {ERA_LABELS[fm.era]}
+                    </span>
+                    <span className="bw-gaffer-chip" style={{ background: TIER_BG[fm.tier], color: TIER_COLORS[fm.tier] }}>
+                      {TIER_LABELS[fm.tier]}
+                    </span>
+                    <span className="bw-gaffer-chip">{fm.club}</span>
+                  </div>
+                  <div className="bw-gaffer-tagline">{fm.styleLabel}</div>
+                  <div className="bw-gaffer-quote">
+                    "{STYLE_TACTICAL_LINE[fm.style] ? `Your team ${STYLE_TACTICAL_LINE[fm.style]}` : fm.flavourText}"
+                  </div>
+                  {fm.preferredArchetypes?.length > 0 && (
+                    <div className="bw-gaffer-traits">
+                      {fm.preferredArchetypes.map(a => (
+                        <span key={a} className="bw-gaffer-trait">{a}</span>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
-            </>
+              {(() => {
+                const pct = cohesionPct(manager.squad, fm);
+                if (pct === null) return null;
+                const color = pct >= 70 ? "#6bbb6b" : pct >= 40 ? "#f0c040" : "#ff6b6b";
+                return (
+                  <div className="bw-cohesion-row">
+                    <span className="bw-cohesion-label">COHESION</span>
+                    <div className="bw-cohesion-track">
+                      <div className="bw-cohesion-fill" style={{ width: `${pct}%`, background: color }} />
+                    </div>
+                    <span className="bw-cohesion-pct" style={{ color }}>{pct}%</span>
+                  </div>
+                );
+              })()}
+            </div>
           )}
-          {(() => {
-            const pct = cohesionPct(manager.squad, fm);
-            if (pct === null) return null;
-            const color = pct >= 70 ? "#6bbb6b" : pct >= 40 ? "#f0c040" : "#ff6b6b";
-            return (
-              <div className="mgr-cohesion-bar">
-                <span className="cohesion-label">SQUAD COHESION</span>
-                <span className="cohesion-pct" style={{ color }}>{pct}%</span>
-                <div className="cohesion-track">
-                  <div className="cohesion-fill" style={{ width: `${pct}%`, background: color }} />
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-      )}
-      <div className="squad-layout">
-        {/* Tactics bar always on top */}
-        <div className="squad-right">
-          <div className="tactics-bar">
-            <span className="tactics-label">TACTICS</span>
-            {TACTICS.map(t => (
-              <button
-                key={t}
-                data-t={t}
-                className={`tactics-btn ${(manager.tactics || "balanced") === t ? "active" : ""}`}
-                onClick={() => setTactics && setTactics(managerIdx, t)}
-              >
-                {t.toUpperCase()}
-              </button>
-            ))}
-            <span className="tactics-divider" />
-            <button className="sort-btn" onClick={() => setShowPitch(p => !p)}>
-              {showPitch ? "▲ HIDE PITCH" : "▼ SHOW PITCH"}
-            </button>
-            <select
-              className="formation-select"
-              value={formation}
-              onChange={e => setFormation(e.target.value)}
-            >
-              {FORMATION_LIST.map(f => (
-                <option key={f} value={f}>{f}</option>
+
+          <div className="bw-tactics-row">
+            <div className="bw-tactics-toggle">
+              {TACTICS.map(t => (
+                <button
+                  key={t}
+                  className={`bw-tactics-seg ${(manager.tactics || "balanced") === t ? "active" : ""}`}
+                  onClick={() => setTactics && setTactics(managerIdx, t)}
+                >
+                  {TACTICS_LABEL[t]}
+                </button>
               ))}
-            </select>
+            </div>
+            <div className="bw-tactics-actions">
+              <button className="bw-tactics-ghost-btn" onClick={() => setShowPitch(p => !p)}>
+                {showPitch ? "HIDE PITCH ▴" : "SHOW PITCH ▾"}
+              </button>
+              <select
+                className="bw-formation-select"
+                value={formation}
+                onChange={e => setFormation(e.target.value)}
+              >
+                {FORMATION_LIST.map(f => (
+                  <option key={f} value={f}>{f}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {showPitch && (
-            <div className="squad-pitch-row">
-              <FormationDiagram
+            <div className="bw-pitch-wrap">
+              <SquadPitch
                 squad={starters}
                 formation={formation}
                 swapSlot={swapSlot}
@@ -397,117 +389,129 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
           )}
 
           {swapSlot !== null && (
-            <div className="swap-hint-bar">
-              Select a player to swap with · <button className="cancel-swap" onClick={() => setSwapSlot(null)}>Cancel</button>
+            <div className="bw-swap-hint-bar">
+              Select a player to swap with
+              <button className="bw-swap-cancel" onClick={() => setSwapSlot(null)}>Cancel</button>
             </div>
           )}
+        </div>
 
-          <div className="starting-xi-section">
-            <div className="section-title-row">
-              <span className="section-title">STARTING XI</span>
-              <div className="xi-controls">
-                <button className={`sort-btn${hideBadges ? " active" : ""}`} onClick={() => setHideBadges(h => !h)}>
-                  {hideBadges ? "BADGES OFF" : "BADGES ON"}
+        <div className="bw-squad-right-col">
+          <div className="bw-xi-section">
+            <div className="bw-xi-header">
+              <span className="bw-xi-label">STARTING XI</span>
+              <div className="bw-xi-controls">
+                <button className={`bw-xi-ctrl-chip${hideBadges ? " active" : ""}`} onClick={() => setHideBadges(h => !h)}>
+                  {hideBadges ? "BADGES OFF" : "BADGES"}
                 </button>
-                <button className={`sort-btn${showValues ? " active" : ""}`} onClick={() => setShowValues(v => !v)}>
-                  {showValues ? "VALUES ON" : "VALUES OFF"}
+                <button className={`bw-xi-ctrl-chip${showValues ? " active" : ""}`} onClick={() => setShowValues(v => !v)}>
+                  {showValues ? "VALUES ON" : "VALUES"}
                 </button>
                 <button
-                  className={`sort-btn${selectingCaptain ? " active" : ""}`}
+                  className={`bw-xi-ctrl-chip${selectingCaptain ? " active" : ""}`}
                   onClick={() => setSelectingCaptain(s => !s)}
                 >
                   {selectingCaptain
-                    ? "TAP A PLAYER..."
+                    ? "TAP A PLAYER…"
                     : captainId
                       ? `(C) ${starters.find(p => p?.id === captainId)?.name || "Captain"}`
                       : "SET CAPTAIN"}
                 </button>
               </div>
             </div>
-            <div className="starting-xi-list">
-              {starters.map((p, i) => p ? (
-                <div
-                  key={i}
-                  className={`xi-row ${swapSlot === i ? "swapping" : ""}${selectingCaptain ? " captain-selectable" : ""}`}
-                  onClick={() => {
-                    if (selectingCaptain) { setCaptain(p.id); setSelectingCaptain(false); }
-                    else handleSlotClick(i);
-                  }}
-                >
-                  <span className="xi-pos">{FORMATIONS[formation][i]?.pos ?? POSITIONS[i].key}</span>
-                  <span className="xi-nation">{p.nation}</span>
-                  <span className={`xi-name${captainId === p.id ? " xi-captain" : ""}`}>
-                    {p.name}
-                    {captainId === p.id && <span className="captain-badge">(C)</span>}
-                  </span>
-                  <span className="xi-form">{draft?.playerForm && draft.playerForm.has(p.id) ? getFormArrow(draft.playerForm.get(p.id)) : ""}</span>
-                  <span className="xi-club">{p.club}</span>
-                  {!hideBadges && p.archetype && (() => {
-                    const arc = ARCHETYPE_COLOR[p.archetype] || { bg: "#222", fg: "#aaa" };
-                    const preferred = fm?.preferredArchetypes?.includes(p.archetype);
-                    return (
-                      <span
-                        className="xi-archetype"
-                        style={{ background: arc.bg, color: arc.fg, border: `1px solid ${preferred ? arc.fg : arc.fg + "44"}`, opacity: preferred ? 1 : 0.55 }}
-                        title={preferred ? "Matches manager preference" : ""}
-                      >
-                        {p.archetype}
-                      </span>
-                    );
-                  })()}
-                  {showValues && <span className="xi-value">{formatValue(p.value)}</span>}
-                  {(() => {
-                    const formBonus = draft?.playerForm?.get(p.id) ?? 0;
-                    const effRating = formBonus !== 0 ? Math.max(0, p.rating + formBonus) : p.rating;
-                    const bg = formBonus > 0 ? "#16a34a" : formBonus < 0 ? "#dc2626" : getRatingBg(p.rating);
-                    const fg = formBonus !== 0 ? "#fff" : getRatingColor(p.rating);
-                    return <span className="xi-rating" style={{ background: bg, color: fg }}>{effRating}</span>;
-                  })()}
-                </div>
-              ) : null)}
+            <div className="bw-xi-list">
+              {starters.map((p, i) => {
+                if (!p) return null;
+                const pos = FORMATIONS[formation][i]?.pos ?? POSITIONS[i].key;
+                const lc = lineColors(pos);
+                return (
+                  <div
+                    key={i}
+                    className={`bw-xi-row ${swapSlot === i ? "swapping" : ""}${selectingCaptain ? " captain-selectable" : ""}`}
+                    onClick={() => {
+                      if (selectingCaptain) { setCaptain(p.id); setSelectingCaptain(false); }
+                      else handleSlotClick(i);
+                    }}
+                  >
+                    <span className="bw-xi-pos" style={{ color: lc.label }}>{pos}</span>
+                    <div className="bw-xi-info">
+                      <div className="bw-xi-name-row">
+                        {p.nation} {p.name}
+                        {captainId === p.id && <span className="bw-xi-captain-tag">(C)</span>}
+                      </div>
+                      <div className="bw-xi-meta">{p.club}{p.archetype ? ` · ${p.archetype}` : ""}</div>
+                    </div>
+                    <span className="bw-xi-form">{draft?.playerForm && draft.playerForm.has(p.id) ? getFormArrow(draft.playerForm.get(p.id)) : ""}</span>
+                    {!hideBadges && p.archetype && (() => {
+                      const arc = ARCHETYPE_COLOR[p.archetype] || { bg: "#222", fg: "#aaa" };
+                      const preferred = fm?.preferredArchetypes?.includes(p.archetype);
+                      return (
+                        <span
+                          className="bw-xi-archetype"
+                          style={{ background: arc.bg, color: arc.fg, border: `1px solid ${preferred ? arc.fg : arc.fg + "44"}`, opacity: preferred ? 1 : 0.55 }}
+                          title={preferred ? "Matches manager preference" : ""}
+                        >
+                          {p.archetype}
+                        </span>
+                      );
+                    })()}
+                    {showValues && <span className="bw-xi-value">{formatValue(p.value)}</span>}
+                    {(() => {
+                      const formBonus = draft?.playerForm?.get(p.id) ?? 0;
+                      const effRating = formBonus !== 0 ? Math.max(0, p.rating + formBonus) : p.rating;
+                      const bg = formBonus > 0 ? "#16a34a" : formBonus < 0 ? "#dc2626" : getRatingBg(p.rating);
+                      const fg = formBonus !== 0 ? "#fff" : getRatingColor(p.rating);
+                      return <span className="bw-xi-rating" style={{ background: bg, color: fg }}>{effRating}</span>;
+                    })()}
+                  </div>
+                );
+              })}
             </div>
-          </div>
 
-          <div className="bench-section">
-            <div className="section-title">BENCH</div>
-            <div className="bench-list">
-              {bench.map((p, i) => (
-                <div
-                  key={i}
-                  className={`bench-item ${swapSlot === i + 11 ? "swapping" : ""} ${!p ? "empty" : ""}`}
-                  onClick={() => handleBenchClick(i)}
-                >
-                  {p ? (
-                    <>
-                      <span className="bench-pos">SUB</span>
-                      <span className="bench-nation">{p.nation}</span>
-                      <span className="bench-name">{p.name}</span>
-                      <span className="bench-form">{draft?.playerForm && draft.playerForm.has(p.id) ? getFormArrow(draft.playerForm.get(p.id)) : ""}</span>
-                      <span className="bench-club">{p.club}</span>
-                      {!hideBadges && p.archetype && (() => {
-                        const arc = ARCHETYPE_COLOR[p.archetype] || { bg: "#222", fg: "#aaa" };
-                        const preferred = fm?.preferredArchetypes?.includes(p.archetype);
-                        return (
-                          <span className="xi-archetype" style={{ background: arc.bg, color: arc.fg, border: `1px solid ${preferred ? arc.fg : arc.fg + "44"}`, opacity: preferred ? 1 : 0.55 }}>
-                            {p.archetype}
-                          </span>
-                        );
-                      })()}
-                      {(() => {
-                        const formBonus = draft?.playerForm?.get(p.id) ?? 0;
-                        const effRating = formBonus !== 0 ? Math.max(0, p.rating + formBonus) : p.rating;
-                        const bg = formBonus > 0 ? "#16a34a" : formBonus < 0 ? "#dc2626" : getRatingBg(p.rating);
-                        const fg = formBonus !== 0 ? "#fff" : getRatingColor(p.rating);
-                        return <span className="bench-rating" style={{ background: bg, color: fg }}>{effRating}</span>;
-                      })()}
-                      {showValues && <span className="bench-value">{formatValue(p.value)}</span>}
-                    </>
-                  ) : (
-                    <span className="bench-empty">Sub {i + 1} — empty</span>
-                  )}
-                </div>
-              ))}
-            </div>
+            <button className="bw-bench-toggle" onClick={() => setShowBench(b => !b)}>
+              {showBench ? "HIDE BENCH ▴" : `SHOW BENCH · ${filledBenchCount} MORE ▾`}
+            </button>
+
+            {showBench && (
+              <div className="bw-bench-list">
+                {bench.map((p, i) => (
+                  <div
+                    key={i}
+                    className={`bw-bench-row ${swapSlot === i + 11 ? "swapping" : ""} ${!p ? "empty" : ""}`}
+                    onClick={() => handleBenchClick(i)}
+                  >
+                    {p ? (
+                      <>
+                        <span className="bw-bench-pos">SUB</span>
+                        <div className="bw-bench-info">
+                          <strong>{p.nation} {p.name}</strong> <span className="bw-bench-meta">· {p.club}</span>
+                        </div>
+                        <span className="bw-xi-form">{draft?.playerForm && draft.playerForm.has(p.id) ? getFormArrow(draft.playerForm.get(p.id)) : ""}</span>
+                        {!hideBadges && p.archetype && (() => {
+                          const arc = ARCHETYPE_COLOR[p.archetype] || { bg: "#222", fg: "#aaa" };
+                          const preferred = fm?.preferredArchetypes?.includes(p.archetype);
+                          return (
+                            <span className="bw-xi-archetype" style={{ background: arc.bg, color: arc.fg, border: `1px solid ${preferred ? arc.fg : arc.fg + "44"}`, opacity: preferred ? 1 : 0.55 }}>
+                              {p.archetype}
+                            </span>
+                          );
+                        })()}
+                        {(() => {
+                          const formBonus = draft?.playerForm?.get(p.id) ?? 0;
+                          const effRating = formBonus !== 0 ? Math.max(0, p.rating + formBonus) : p.rating;
+                          const bg = formBonus > 0 ? "#16a34a" : formBonus < 0 ? "#dc2626" : "var(--bw-rating-bg)";
+                          const fg = formBonus !== 0 ? "#fff" : "var(--bw-rating-text)";
+                          return <span className="bw-bench-rating" style={{ background: bg, color: fg }}>{effRating}</span>;
+                        })()}
+                        {showValues && <span className="bw-xi-value">{formatValue(p.value)}</span>}
+                      </>
+                    ) : (
+                      <span className="bw-bench-empty">Sub {i + 1} — empty</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -556,22 +560,25 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
   }
 
   return (
-    <div className="squads-screen">
-      <div className="squads-header">
+    <div className="bw-draft-screen">
+      <div className="bw-draft-topbar">
         {onBackToSeries && !seriesOver && (
-          <button className="back-btn" style={{ marginBottom: "0.5rem" }} onClick={onBackToSeries}>← TO TOURNAMENT</button>
+          <button className="bw-back-link" onClick={onBackToSeries}>TO TOURNAMENT</button>
         )}
         {onManagerDraft && (
-          <button className="mgr-go-btn" style={{ marginBottom: "1rem" }} onClick={onManagerDraft}>
+          <button className="bw-cta-arcade bw-draft-mgr-btn" onClick={onManagerDraft}>
             ⚙ START THE MERRY-GO-ROUND
           </button>
         )}
-        <div className="trophy-icon">🏆</div>
-        <h2 className="squads-title">DRAFT COMPLETE</h2>
-        <p className="squads-sub">Select a squad to adjust your starting XI and tactics</p>
       </div>
 
-      <div className="squad-cards">
+      <div className="bw-draft-banner">
+        <div className="bw-draft-trophy">🏆</div>
+        <h2 className="bw-draft-title">DRAFT COMPLETE</h2>
+        <p className="bw-draft-sub">Select a squad to adjust your starting XI and tactics</p>
+      </div>
+
+      <div className="bw-draft-cards">
         {managers.map((m, i) => {
           const ovr = squadRating(m.squad);
           const starters = m.squad.slice(0, 11).filter(Boolean);
@@ -580,29 +587,29 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
           const squadVal = m.squad.filter(Boolean).reduce((s, p) => s + (p.value || 0), 0);
           const accent = kitAccent(m.primaryColor, m.secondaryColor);
           return (
-            <div key={i} className="squad-summary-card" onClick={() => setViewIdx(i)}
+            <div key={i} className="bw-draft-card" onClick={() => setViewIdx(i)}
               style={{ borderColor: m.primaryColor }}>
-              <div className="squad-card-kit-header" style={{ background: m.primaryColor, borderBottom: `2px solid ${m.secondaryColor}` }}>
+              <div className="bw-draft-card-kit-header" style={{ background: m.primaryColor, borderBottom: `2px solid ${m.secondaryColor}` }}>
                 <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern} uid={`sc${i}`} size={28} />
-                <span className="squad-card-club" style={{ color: accent === m.primaryColor ? m.secondaryColor : accent }}>
+                <span className="bw-draft-card-club" style={{ color: accent === m.primaryColor ? m.secondaryColor : accent }}>
                   {m.teamName || m.clubName || m.name}
                 </span>
               </div>
-              <div className="squad-card-body">
-                <div className="squad-card-info">
+              <div className="bw-draft-card-body">
+                <div className="bw-draft-card-info">
                   {m.footballManager && (
-                    <div className="squad-card-mgr">⚙ {m.footballManager.name}</div>
+                    <div className="bw-draft-card-mgr">⚙ {m.footballManager.name}</div>
                   )}
                   {captain
-                    ? <div className="squad-card-captain">© {captain.nation} {captain.name}</div>
-                    : <div className="squad-card-captain squad-best--unset">© Captain not set</div>
+                    ? <div className="bw-draft-card-captain">© {captain.nation} {captain.name}</div>
+                    : <div className="bw-draft-card-captain bw-draft-card-captain--unset">© Captain not set</div>
                   }
-                  <div className="squad-card-value">Value: {formatValue(squadVal)}</div>
+                  <div className="bw-draft-card-value">Value: {formatValue(squadVal)}</div>
                 </div>
-                <div className="squad-card-ovr-box">
-                  <span className="squad-card-ovr">{ovr}</span>
-                  <span className="squad-card-ovr-label">OVR</span>
-                  <div className="squad-link">VIEW →</div>
+                <div className="bw-draft-card-ovr-box">
+                  <span className="bw-draft-card-ovr">{ovr}</span>
+                  <span className="bw-draft-card-ovr-label">OVR</span>
+                  <div className="bw-draft-link">VIEW →</div>
                 </div>
               </div>
             </div>
@@ -611,9 +618,9 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
       </div>
 
       {!inSeries && managers.length >= 2 && (
-        <div className="match-section">
-          <div className="section-title-white">SIMULATE MATCH</div>
-          <div className="matchup-grid">
+        <div className="bw-draft-match-section">
+          <div className="bw-draft-section-title">SIMULATE MATCH</div>
+          <div className="bw-draft-matchup-grid">
             {managers.flatMap((home, hi) =>
               managers
                 .map((away, ai) => ({ away, ai }))
@@ -621,7 +628,7 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
                 .map(({ away, ai }) => (
                   <button
                     key={`${hi}-${ai}`}
-                    className="matchup-btn"
+                    className="bw-draft-matchup-btn"
                     onClick={() => setScreen("match", { homeIdx: hi, awayIdx: ai })}
                   >
                     {home.teamName || home.name} vs {away.teamName || away.name}
@@ -632,19 +639,19 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
         </div>
       )}
 
-      <div className="squads-footer">
+      <div className="bw-draft-footer">
         {onBackToSeries && !seriesOver && (
-          <button className="sim-btn secondary" onClick={onBackToSeries}>← TO TOURNAMENT</button>
+          <button className="bw-cta-secondary" onClick={onBackToSeries}>TO TOURNAMENT</button>
         )}
         {(!onBackToSeries || seriesOver) && (
-          <button className="restart-btn" onClick={restartGame}>NEW GAME</button>
+          <button className="bw-cta-secondary" onClick={restartGame}>NEW GAME</button>
         )}
         {onSaveSquad && (
           <button
-            className="sim-btn secondary"
+            className="bw-cta-secondary"
             onClick={onSaveSquad}
             disabled={saveState?.saving || saveState?.saved}
-            style={{ marginTop: "0.5rem" }}
+            style={{ marginTop: "8px" }}
           >
             {saveState?.saved ? "✓ SQUAD SAVED" : saveState?.saving ? "SAVING…" : "💾 SAVE MY SQUAD"}
           </button>

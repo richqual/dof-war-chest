@@ -185,6 +185,7 @@ export function buildSeries(n, format) {
       target: FORMAT_TARGETS[format] || 4,
       stage: "playing",
       champion: null,
+      history: [],
     };
   }
   if (n === 4 && format === "tournament") {
@@ -208,6 +209,17 @@ export function buildSeries(n, format) {
     };
   }
   return null;
+}
+
+// Appends a completed leg to a two-player series' fixture history, always
+// oriented to participants[0]'s perspective so the fixtures strip can render
+// consistently regardless of which side was "home" that particular leg.
+export function appendSeriesHistory(s, homeIdx, awayIdx, score, winnerIdx) {
+  const [p0] = s.participants;
+  const p0Goals = homeIdx === p0 ? (score?.home ?? null) : (score?.away ?? null);
+  const p1Goals = homeIdx === p0 ? (score?.away ?? null) : (score?.home ?? null);
+  const winnerPos = winnerIdx === null ? null : s.participants.indexOf(winnerIdx);
+  return [...(s.history || []), { p0Goals, p1Goals, winnerPos }];
 }
 
 export function shuffle(arr) {

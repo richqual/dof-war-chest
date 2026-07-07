@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import KitSwatch, { readableTextOn, teamAccent } from "./KitSwatch";
 import { TIER_SIM_MODIFIER } from "../data/managers";
 import { FORMATIONS } from "../data/formations";
-import { getRatingBg, getRatingColor } from "../data/players";
 
 function teamStrength(squad) {
   const starters = squad.slice(0, 11).filter(Boolean);
@@ -1620,84 +1619,65 @@ const SPEEDS = [
 ];
 
 function ratingClass(r) {
-  if (r >= 8.5) return "mr-elite";
-  if (r >= 7.5) return "mr-good";
-  if (r >= 6.5) return "mr-ok";
-  return "mr-poor";
+  if (r >= 8.5) return "elite";
+  if (r >= 7.5) return "good";
+  if (r >= 6.5) return "ok";
+  return "poor";
 }
 
 function PlayerRatingRow({ r }) {
   return (
-    <div className={`mr-row ${r.motm ? "motm" : ""} ${r.subOffMin != null ? "mr-subbed-off" : ""}`}>
-      <span className="mr-pos">{r.pos}</span>
-      <span className="mr-name">
+    <div className={`bw-mr-row ${r.motm ? "motm" : ""} ${r.subOffMin != null ? "subbed-off" : ""}`}>
+      <span className="bw-mr-pos">{r.pos}</span>
+      <span className="bw-mr-name">
         {r.name}
-        {r.goals > 0 && <span className="mr-marks"> {"⚽".repeat(r.goals)}</span>}
-        {r.assists > 0 && <span className="mr-marks mr-assist"> {"🅰️".repeat(r.assists)}</span>}
-        {r.red ? <span className="mr-marks"> 🟥</span> : r.yellow ? <span className="mr-marks"> 🟨</span> : null}
-        {r.subOffMin != null && <span className="mr-marks mr-sub-mark mr-sub-off-mark"> ↓{r.subOffMin}′</span>}
-        {r.subOnMin != null && <span className="mr-marks mr-sub-mark mr-sub-on-mark"> ↑{r.subOnMin}′</span>}
-        {r.motm && <span className="mr-marks"> ⭐</span>}
+        {r.goals > 0 && <span className="bw-mr-marks"> {"⚽".repeat(r.goals)}</span>}
+        {r.assists > 0 && <span className="bw-mr-marks"> {"🅰️".repeat(r.assists)}</span>}
+        {r.red ? <span className="bw-mr-marks"> 🟥</span> : r.yellow ? <span className="bw-mr-marks"> 🟨</span> : null}
+        {r.subOffMin != null && <span className="bw-mr-marks bw-mr-sub-mark bw-mr-sub-off"> ↓{r.subOffMin}′</span>}
+        {r.subOnMin != null && <span className="bw-mr-marks bw-mr-sub-mark bw-mr-sub-on"> ↑{r.subOnMin}′</span>}
+        {r.motm && <span className="bw-mr-marks"> ⭐</span>}
       </span>
-      <span className={`mr-val ${ratingClass(r.rating)}`}>{r.rating.toFixed(1)}</span>
+      <span className={`bw-mr-val ${ratingClass(r.rating)}`}>{r.rating.toFixed(1)}</span>
     </div>
   );
 }
 
+function pitchLineColors(pos) {
+  if (pos === "GK") return { bg: "var(--bw-line-gk)", text: "var(--bw-line-gk-ink)" };
+  if (["RB", "LB", "CB", "WB", "DEF"].includes(pos)) return { bg: "var(--bw-line-def)", text: "#fff" };
+  if (["ST", "RW", "LW", "ATT"].includes(pos)) return { bg: "var(--bw-line-att)", text: "#fff" };
+  return { bg: "var(--bw-line-mid)", text: "#fff" }; // DM, CM, RM, LM, CAM, MID
+}
+
 function PreMatchPitch({ manager, accent, formation, variant = "grass" }) {
   const coords = FORMATIONS[formation] || FORMATIONS["4-3-3"];
-  const lineColor = variant === "clay" ? "#ffffff33" : variant === "concrete" ? "#ffffff25" : "#ffffff22";
   return (
-    <div className="pre-pitch-wrap">
-      <div className={`formation-pitch pre-match-pitch ${variant !== "grass" ? `pitch-${variant}` : ""}`}>
-        <svg viewBox="0 0 100 100" className="pitch-svg">
-          {variant === "clay" ? (
-            <>
-              <rect x="5" y="5" width="90" height="90" fill="none" stroke={lineColor} strokeWidth="0.5" />
-              <line x1="5" y1="50" x2="95" y2="50" stroke={lineColor} strokeWidth="0.4" />
-              {/* Top goal D — semi-circle curving into pitch */}
-              <path d="M 28 5 A 24 24 0 0 0 72 5" fill="none" stroke={lineColor} strokeWidth="0.4" />
-              {/* Bottom goal D — semi-circle curving into pitch */}
-              <path d="M 28 95 A 24 24 0 0 1 72 95" fill="none" stroke={lineColor} strokeWidth="0.4" />
-              {/* Goal lines (small goal markers) */}
-              <line x1="42" y1="5" x2="58" y2="5" stroke={lineColor} strokeWidth="1.2" />
-              <line x1="42" y1="95" x2="58" y2="95" stroke={lineColor} strokeWidth="1.2" />
-            </>
-          ) : (
-            <>
-              <rect x="5" y="5" width="90" height="90" fill="none" stroke={lineColor} strokeWidth="0.5" />
-              <line x1="5" y1="50" x2="95" y2="50" stroke={lineColor} strokeWidth="0.4" />
-              <circle cx="50" cy="50" r="12" fill="none" stroke={lineColor} strokeWidth="0.4" />
-              <rect x="28" y="5" width="44" height="18" fill="none" stroke={lineColor} strokeWidth="0.4" />
-              <rect x="28" y="77" width="44" height="18" fill="none" stroke={lineColor} strokeWidth="0.4" />
-              <rect x="38" y="5" width="24" height="8" fill="none" stroke={lineColor} strokeWidth="0.4" />
-              <rect x="38" y="87" width="24" height="8" fill="none" stroke={lineColor} strokeWidth="0.4" />
-            </>
-          )}
-        </svg>
-        <div className="pitch-players">
-          {coords.map((coord, i) => {
-            const player = manager.squad[i];
-            return (
-              <div key={i} className="pitch-dot" style={{ left: `${coord.x}%`, top: `${coord.y}%`, cursor: "default" }}>
-                <div className="pitch-dot-inner">
-                  {player ? (
-                    <>
-                      <div className="dot-rating" style={{ background: getRatingBg(player.rating), color: getRatingColor(player.rating), borderColor: `${accent}55` }}>
-                        {player.pos}
-                      </div>
-                      <div className="dot-name">{player.name.split(" ").pop()}</div>
-                    </>
-                  ) : (
-                    <div className="dot-empty">{coord.pos}</div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+    <div className="bw-match-pitch-wrap">
+      <div className={`bw-match-pitch ${variant === "clay" ? "clay" : ""}`}>
+        <div className="bw-match-pitch-stripes" />
+        <div className="bw-match-pitch-halfway" />
+        <div className="bw-match-pitch-circle" />
+        {coords.map((coord, i) => {
+          const player = manager.squad[i];
+          const lc = pitchLineColors(coord.pos);
+          return (
+            <div key={i} className="bw-match-pitch-slot" style={{ left: `${coord.x}%`, top: `${coord.y}%` }}>
+              {player ? (
+                <>
+                  <div className="bw-match-pitch-token" style={{ background: lc.bg, color: lc.text }}>
+                    {coord.pos}
+                  </div>
+                  <div className="bw-match-pitch-token-name">{player.name.split(" ").pop()}</div>
+                </>
+              ) : (
+                <div className="bw-match-pitch-token bw-match-pitch-token-empty">{coord.pos}</div>
+              )}
+            </div>
+          );
+        })}
       </div>
-      {formation !== "1-2-1" && <div className="pre-pitch-formation" style={{ color: accent }}>{formation}</div>}
+      {formation !== "1-2-1" && <div className="bw-match-pitch-formation" style={{ color: accent }}>{formation}</div>}
     </div>
   );
 }
@@ -1708,33 +1688,33 @@ function LineupPanel({ homeManager, awayManager, homeName, awayName, warChest = 
     { mgr: awayManager, name: awayName, uid: "la" },
   ];
   return (
-    <div className="lineup-overlay" onClick={onClose}>
-      <div className="lineup-panel" onClick={e => e.stopPropagation()}>
-        <div className="lineup-head">
-          <span className="lineup-title">LINE-UPS</span>
-          <button className="lineup-close" onClick={onClose}>✕</button>
+    <div className="bw-lineup-overlay" onClick={onClose}>
+      <div className="bw-lineup-panel" onClick={e => e.stopPropagation()}>
+        <div className="bw-lineup-head">
+          <span className="bw-lineup-title">LINE-UPS</span>
+          <button className="bw-lineup-close" onClick={onClose}>✕</button>
         </div>
-        <div className="lineup-cols">
+        <div className="bw-lineup-cols">
           {teams.map(({ mgr, name, uid }) => (
-            <div className="lineup-col" key={uid}>
-              <div className="lineup-team" style={{ color: teamAccent(mgr.primaryColor, mgr.secondaryColor) }}>
-                <KitSwatch primary={mgr.primaryColor} secondary={mgr.secondaryColor} pattern={mgr.pattern} uid={uid} size={26} />
+            <div className="bw-lineup-col" key={uid}>
+              <div className="bw-lineup-team" style={{ color: teamAccent(mgr.primaryColor, mgr.secondaryColor) }}>
+                <KitSwatch primary={mgr.primaryColor} secondary={mgr.secondaryColor} pattern={mgr.pattern} uid={uid} size={22} />
                 <span>{name}</span>
               </div>
               {mgr.squad.slice(0, warChest ? 5 : 11).map((p, i) => (
-                <div className="lineup-row" key={i}>
-                  <span className="lineup-pos">{p ? p.pos : "–"}</span>
-                  <span className="lineup-name">{p ? p.name : "(empty)"}</span>
-                  <span className="lineup-rating">{p ? p.rating : ""}</span>
+                <div className="bw-lineup-row" key={i}>
+                  <span className="bw-lineup-pos" style={{ color: p ? pitchLineColors(p.pos).bg : "var(--bw-text-low)" }}>{p ? p.pos : "–"}</span>
+                  <span className="bw-lineup-name">{p ? p.name : "(empty)"}</span>
+                  {p && <span className="bw-lineup-rating">{p.rating}</span>}
                 </div>
               ))}
               {!warChest && mgr.squad.slice(11, 16).some(Boolean) && <>
-                <div className="lineup-subs-label">SUBSTITUTES</div>
+                <div className="bw-lineup-subs-label">SUBSTITUTES</div>
                 {mgr.squad.slice(11, 16).map((p, i) => (
-                  <div className="lineup-row sub" key={i}>
-                    <span className="lineup-pos">{p ? p.pos : "–"}</span>
-                    <span className="lineup-name">{p ? p.name : "(empty)"}</span>
-                    <span className="lineup-rating">{p ? p.rating : ""}</span>
+                  <div className="bw-lineup-row sub" key={i}>
+                    <span className="bw-lineup-pos" style={{ color: p ? pitchLineColors(p.pos).bg : "var(--bw-text-low)" }}>{p ? p.pos : "–"}</span>
+                    <span className="bw-lineup-name">{p ? p.name : "(empty)"}</span>
+                    {p && <span className="bw-lineup-rating">{p.rating}</span>}
                   </div>
                 ))}
               </>}
@@ -1908,25 +1888,18 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
     return "▸";
   }
 
-  function eventClass(e) {
-    if (e.type === "goal") return "event-goal";
-    if (e.type === "yellow") return "event-yellow";
-    if (e.type === "red") return "event-red";
-    if (e.type === "miss") return "event-miss";
-    if (e.type === "pens") return "event-pens";
-    if (e.type === "pen_goal") return "event-goal event-pen";
-    if (e.type === "pen_miss") return "event-miss event-pen";
-    if (e.type === "injury") return "event-injury";
-    if (e.type === "sub") return "event-sub";
-    return "event-commentary";
+  function eventCategory(e) {
+    if (e.type === "goal" || e.type === "pen_goal") return "goal";
+    if (["red", "miss", "pens", "pen_miss", "injury"].includes(e.type)) return "big";
+    return "";
+  }
+  function isNotable(e) {
+    return ["goal", "pen_goal", "miss", "red", "pens", "pen_miss", "injury"].includes(e.type);
   }
 
-  function eventStyle(e, isLatest) {
+  function eventStyle(e) {
     const style = {};
-    if (e.team === "home" || e.team === "away") {
-      style["--team-accent"] = e.team === "home" ? homeAccent : awayAccent;
-    }
-    if (isLatest && (e.type === "goal" || e.type === "pen_goal")) {
+    if (e.type === "goal" || e.type === "pen_goal") {
       const mgr = e.team === "home" ? homeManager : awayManager;
       style["--flash-a"] = mgr.primaryColor;
       style["--flash-b"] = mgr.secondaryColor;
@@ -1936,26 +1909,45 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
     return style;
   }
 
+  const currentMin = visibleEvents.length ? visibleEvents[visibleEvents.length - 1].min : 0;
+  const latestEvent = visibleEvents.length ? visibleEvents[visibleEvents.length - 1] : null;
+  const showMoment = simulating && latestEvent && isNotable(latestEvent);
+
+  let winnerSide = null;
+  const drewMatch = done && result && !result.penWinner && result.score.home === result.score.away;
+  if (done && result) {
+    if (result.penWinner) winnerSide = result.penWinner;
+    else if (result.score.home !== result.score.away) winnerSide = result.score.home > result.score.away ? "home" : "away";
+  }
+  const motmPlayer = done && result ? [...result.ratings.home, ...result.ratings.away].find(r => r.motm) : null;
+
+  const winText = drewMatch ? "DRAW" : winnerSide === "home" ? `${homeName} WIN` : winnerSide === "away" ? `${awayName} WIN` : "";
+  const ftStats = done && result ? [
+    { label: "SHOTS", h: result.stats.hShots, a: result.stats.aShots },
+    { label: "ON TARGET", h: result.stats.hOnTarget, a: result.stats.aOnTarget },
+    { label: "POSSESSION", h: `${result.stats.hPoss}%`, a: `${result.stats.aPoss}%`, hf: result.stats.hPoss, af: result.stats.aPoss },
+    { label: "FOULS", h: result.stats.hFouls, a: result.stats.aFouls },
+    { label: "YELLOWS", h: result.stats.hCards, a: result.stats.aCards },
+    { label: "REDS", h: result.stats.hReds, a: result.stats.aReds },
+  ] : [];
+  const motmSubParts = [];
+  if (motmPlayer?.goals) motmSubParts.push(`${motmPlayer.goals} goal${motmPlayer.goals > 1 ? "s" : ""}`);
+  if (motmPlayer?.assists) motmSubParts.push(`${motmPlayer.assists} assist${motmPlayer.assists > 1 ? "s" : ""}`);
+  const motmSub = motmSubParts.length ? motmSubParts.join(" · ") : "Player of the match";
+
   return (
-    <div className="match-screen">
-      <div className="match-header">
-        {!simulating && !seriesContext && isHost && <button className="back-btn" onClick={onBack}>← BACK</button>}
-        <span className="match-title">LIVE MATCH</span>
-        <button className="lineup-btn" onClick={() => setShowLineups(true)}>LINE-UPS</button>
-        <div className="speed-controls">
+    <div className="bw-match-screen">
+      <div className="bw-match-header">
+        <span className="bw-match-header-label">LIVE MATCH</span>
+        <div className="bw-match-header-controls">
+          {!simulating && !seriesContext && isHost && <button className="bw-match-back" onClick={onBack}>← BACK</button>}
+          <button className="bw-match-lineups-btn" onClick={() => setShowLineups(true)}>LINE-UPS</button>
           {simulating && !penPaused && (
-            <button
-              className={`speed-btn pause-toggle ${paused ? "active" : ""}`}
-              onClick={togglePause}
-            >
-              {paused ? "▶ RESUME" : "⏸ PAUSE"}
+            <button className={`bw-match-pause ${paused ? "active" : ""}`} onClick={togglePause}>
+              {paused ? "▶" : "❚❚"}
             </button>
           )}
-          <select
-            className="speed-select"
-            value={speedIdx}
-            onChange={e => changeSpeed(Number(e.target.value))}
-          >
+          <select className="bw-match-speed" value={speedIdx} onChange={e => changeSpeed(Number(e.target.value))}>
             {SPEEDS.map((s, i) => (
               <option key={s.label} value={i}>{s.label}</option>
             ))}
@@ -1963,52 +1955,40 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
         </div>
       </div>
 
-      <div className="scoreboard">
-        {seriesContext && (
-          <div className="series-banner">
-            <span className="series-banner-label">{seriesContext.label}</span>
-            {seriesContext.standing && (
-              <span className="series-banner-standing">{seriesContext.standing}</span>
-            )}
+      <div className="bw-match-scoreboard">
+        {seriesContext && <div className="bw-match-series-label">{seriesContext.label}</div>}
+        {done && winText && <div className={`bw-match-ft-win ${drewMatch ? "draw" : ""}`}>{winText}</div>}
+        {!done && seriesContext?.standing && <div className="bw-match-series-standing">{seriesContext.standing}</div>}
+        <div className="bw-match-score-row">
+          <div className="bw-match-team home">
+            <span className="bw-match-team-name" style={{ color: homeAccent }}>{homeName}</span>
+            <KitSwatch primary={homeManager.primaryColor} secondary={homeManager.secondaryColor} pattern={homeManager.pattern} uid="mh" size={14} />
           </div>
-        )}
-        <div className="sb-teams">
-          <div className="sb-team-row">
-            <KitSwatch primary={homeManager.primaryColor} secondary={homeManager.secondaryColor} pattern={homeManager.pattern} uid="mh" size={28} />
-            <div className="sb-name" style={{ color: homeAccent }}>{homeName}</div>
-            <div className="sb-score">{simulating || done ? currentScore.home : "–"}</div>
-          </div>
-          <div className="sb-team-row">
-            <KitSwatch primary={awayManager.primaryColor} secondary={awayManager.secondaryColor} pattern={awayManager.pattern} uid="ma" size={28} />
-            <div className="sb-name" style={{ color: awayAccent }}>{awayName}</div>
-            <div className="sb-score">{simulating || done ? currentScore.away : "–"}</div>
-          </div>
-        </div>
-        <div className="sb-status">
-          {penPaused ? <span className="sim-paused">PENS</span>
-            : simulating ? (paused ? <span className="sim-paused">PAUSED</span> : <span className="sim-live">LIVE</span>)
-            : done ? "FT" : "VS"}
-        </div>
-        {(simulating || done) && (
-          <div className="poss-bar-row">
-            <span className="poss-pct home" style={{ color: homeAccent }}>{currentPoss.h}%</span>
-            <div className="poss-bar">
-              <div className="poss-bar-fill" style={{ flex: currentPoss.h, background: homeAccent }} />
-              <div className="poss-bar-fill" style={{ flex: currentPoss.a, background: awayAccent }} />
+          <div className="bw-match-score-center">
+            <span className="bw-match-score">{simulating || done ? currentScore.home : "–"}</span>
+            <div className="bw-match-status-mid">
+              {penPaused ? <span className="bw-match-status-word">PENS</span>
+                : simulating ? (paused
+                    ? <span className="bw-match-status-word paused">PAUSED</span>
+                    : <><span className="bw-match-min-badge">{currentMin}&#39;</span><div className="bw-match-live-row"><span className="bw-match-live-dot" /><span className="bw-match-live-label">LIVE</span></div></>)
+                : done ? <span className="bw-match-status-word">FT</span>
+                : <span className="bw-match-status-word">VS</span>}
             </div>
-            <span className="poss-pct away" style={{ color: awayAccent }}>{currentPoss.a}%</span>
+            <span className="bw-match-score">{simulating || done ? currentScore.away : "–"}</span>
           </div>
-        )}
+          <div className="bw-match-team away">
+            <KitSwatch primary={awayManager.primaryColor} secondary={awayManager.secondaryColor} pattern={awayManager.pattern} uid="ma" size={14} />
+            <span className="bw-match-team-name" style={{ color: awayAccent }}>{awayName}</span>
+          </div>
+        </div>
+
         {penPaused && simulating && isHost && (
-          <button
-            className="sim-btn continue-btn sb-continue-btn pen-start-btn"
-            onClick={() => { setPenPaused(false); runFeed(speedRef.current); }}
-          >
+          <button className="bw-match-cta pens" onClick={() => { setPenPaused(false); runFeed(speedRef.current); }}>
             ⚽ BEGIN PENALTY SHOOTOUT →
           </button>
         )}
         {done && onMatchResult && isHost && (
-          <button className="sim-btn continue-btn sb-continue-btn" onClick={() => {
+          <button className="bw-match-cta" onClick={() => {
             const legCtx = seriesContext?.legContext;
             const isDraw = !result.penWinner && result.score.home === result.score.away && isRegularSeriesMatch;
             if (isDraw) {
@@ -2025,224 +2005,211 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
               onMatchResult(side === "home" ? homeIdx : awayIdx, result.score, result.ratings, result.events, result.matchInjuries);
             }
           }}>
-            {seriesContext?.isGrandFinal ? "SEE THE RESULT →" : seriesContext ? "CONTINUE TOURNAMENT →" : draft?.warChest ? "BACK TO SQUADS →" : "CONTINUE SERIES →"}
+            {seriesContext?.isGrandFinal ? "SEE THE RESULT →" : seriesContext ? "CONTINUE TOURNAMENT →" : draft?.warChest ? "BACK TO SQUADS →" : "BACK TO SERIES →"}
           </button>
         )}
         {done && !isHost && (
-          <p className="mp-waiting-text" style={{ textAlign: "center", padding: "0.5rem 0", margin: 0 }}>
-            Waiting for host to continue...
-          </p>
+          <p className="bw-match-waiting">Waiting for host to continue...</p>
         )}
       </div>
 
-      <div className="match-body">
-      {!simulating && !done && (
-        <div className="sim-start-area">
-          {/* Pre-match narrative */}
-          {seriesContext && (() => {
-            const narrative = generatePreMatchNarrative(draft, homeIdx, awayIdx, seriesContext);
-            return narrative ? (
-              <div className="pre-match-narrative">
-                <div className="pre-match-narrative-label">MATCH PREVIEW</div>
-                <p className="pre-match-narrative-text">{narrative}</p>
-              </div>
-            ) : null;
-          })()}
-
-          {/* Kick Off button above formations */}
-          <div className="pre-kickoff-top">
-            {isHost ? (
-              <button className="sim-btn pre-kickoff-btn" onClick={startSim}>▶ KICK OFF</button>
-            ) : (
-              <div className="mp-waiting-screen" style={{ minHeight: "60px", padding: "0.75rem" }}>
-                <div className="mp-waiting-spinner" />
-                <p className="mp-waiting-text">Waiting for host to kick off...</p>
-              </div>
-            )}
-          </div>
-
-          {/* Formations side-by-side */}
-          <div className="pre-formations-row">
-            {/* Home */}
-            <div className="pre-team-col">
-              <div className="pre-team-name" style={{ color: homeAccent }}>{homeName}</div>
-              {homeManager.footballManager && (
-                <div className="pre-team-mgr">
-                  <div className="pre-mgr-name" style={{ color: homeAccent }}>{homeManager.footballManager.name}</div>
-                  <div className="pre-mgr-style">{homeManager.footballManager.styleLabel}</div>
-                </div>
-              )}
-              <div className="pre-stat-inline">
-                <span className="pre-stat-val">{Math.round(teamStrength(homeManager.squad))}</span>
-                <span className="pre-stat-label">AVG</span>
-              </div>
-              <PreMatchPitch manager={homeManager} accent={homeAccent} formation={draft?.warChest ? "1-2-1" : (homeManager.formation || "4-3-3")} variant={draft?.warChest ? "clay" : "grass"} />
-              {/* Home absences */}
-              {draft.playerAbsences && (() => {
-                const absent = Object.entries(draft.playerAbsences).filter(([, a]) => a.mgrIdx === homeIdx);
-                return absent.length > 0 ? (
-                  <div className="pre-absence-side" style={{ color: homeAccent }}>
-                    {absent.map(([name, a]) => (
-                      <div key={name} className="pre-absence-row">
-                        {a.type === "suspension" ? "🟥" : "🚑"} {name}
-                      </div>
-                    ))}
-                  </div>
-                ) : null;
-              })()}
+      {(simulating || done) && (
+        <div className="bw-match-momentum">
+          <div className="bw-match-momentum-label">POSSESSION</div>
+          <div className="bw-match-momentum-row">
+            <span className="bw-match-momentum-pct home" style={{ color: homeAccent }}>{currentPoss.h}%</span>
+            <div className="bw-match-momentum-track">
+              <div className="bw-match-momentum-fill" style={{ flex: currentPoss.h, background: homeAccent }} />
+              <div className="bw-match-momentum-fill" style={{ flex: currentPoss.a, background: awayAccent }} />
             </div>
-
-            {/* Centre: VS */}
-            <div className="pre-centre-col">
-              <div className="pre-stat-label-mid">VS</div>
-            </div>
-
-            {/* Away */}
-            <div className="pre-team-col pre-team-col--away">
-              <div className="pre-team-name" style={{ color: awayAccent }}>{awayName}</div>
-              {awayManager.footballManager && (
-                <div className="pre-team-mgr">
-                  <div className="pre-mgr-name" style={{ color: awayAccent }}>{awayManager.footballManager.name}</div>
-                  <div className="pre-mgr-style">{awayManager.footballManager.styleLabel}</div>
-                </div>
-              )}
-              <div className="pre-stat-inline">
-                <span className="pre-stat-val">{Math.round(teamStrength(awayManager.squad))}</span>
-                <span className="pre-stat-label">AVG</span>
-              </div>
-              <PreMatchPitch manager={awayManager} accent={awayAccent} formation={draft?.warChest ? "1-2-1" : (awayManager.formation || "4-3-3")} variant={draft?.warChest ? "clay" : "grass"} />
-              {draft.playerAbsences && (() => {
-                const absent = Object.entries(draft.playerAbsences).filter(([, a]) => a.mgrIdx === awayIdx);
-                return absent.length > 0 ? (
-                  <div className="pre-absence-side" style={{ color: awayAccent }}>
-                    {absent.map(([name, a]) => (
-                      <div key={name} className="pre-absence-row">
-                        {a.type === "suspension" ? "🟥" : "🚑"} {name}
-                      </div>
-                    ))}
-                  </div>
-                ) : null;
-              })()}
-            </div>
+            <span className="bw-match-momentum-pct away" style={{ color: awayAccent }}>{currentPoss.a}%</span>
           </div>
         </div>
       )}
 
-      <div className="event-feed" ref={feedRef}>
-        {/* Newest first — each event pushes the history down, CM-style */}
-        {visibleEvents.map((e, i) => ({ e, i })).reverse().map(({ e, i }) => {
-          const isLatest = simulating && i === visibleEvents.length - 1;
-          return (
-            <div
-              key={i}
-              className={`event-row ${eventClass(e)} ${isLatest ? "latest" : ""}`}
-              style={eventStyle(e, isLatest)}
-            >
-              <span className="event-min">
-                {(e.type === "pen_goal" || e.type === "pen_miss") ? "PEN" : `${e.min}′`}
-              </span>
-              <span className="event-icon">{eventIcon(e)}</span>
-              <span className="event-text">{e.text}</span>
-              {e.penScore && <span className="event-score event-pen-score">{e.penScore}</span>}
-              {!e.penScore && e.score && <span className="event-score">{e.score}</span>}
-            </div>
-          );
-        })}
-      </div>
+      <div className="bw-match-body">
+        {!simulating && !done && (
+          <div className="bw-match-pre">
+            {seriesContext && (() => {
+              const narrative = generatePreMatchNarrative(draft, homeIdx, awayIdx, seriesContext);
+              return narrative ? (
+                <div className="bw-match-pre-narrative">
+                  <div className="bw-match-pre-narrative-label">MATCH PREVIEW</div>
+                  <p className="bw-match-pre-narrative-text">{narrative}</p>
+                </div>
+              ) : null;
+            })()}
 
-      {done && result && (
-        <div className={`match-summary ${summaryCollapsed ? "summary-collapsed" : ""}`}>
-          <div className="summary-header" onClick={() => setSummaryCollapsed(c => !c)}>
-            <div className="summary-header-left">
-              <span className="summary-title">FULL TIME</span>
-              <span className="summary-score-inline">{homeName} {result.score.home}–{result.score.away} {awayName}</span>
-            </div>
-            <span className="summary-toggle">{summaryCollapsed ? "▲" : "▼"}</span>
-          </div>
-          {!summaryCollapsed && <div className="summary-cols">
-            <div className="summary-main">
-              {result.penWinner && (
-                <div className="pen-note">
-                  ({result.penWinner === "home" ? homeName : awayName} win on penalties)
+            <div className="bw-match-kickoff-wrap">
+              {isHost ? (
+                <button className="bw-match-kickoff-btn" onClick={startSim}>▶ KICK OFF</button>
+              ) : (
+                <div className="mp-waiting-screen" style={{ minHeight: "60px", padding: "0.75rem" }}>
+                  <div className="mp-waiting-spinner" />
+                  <p className="mp-waiting-text">Waiting for host to kick off...</p>
                 </div>
               )}
-
-              <p className="match-report">{result.summary}</p>
-
-              <div className="motm-row">
-                <span className="motm-label">POTM</span>
-                <span className="motm-name">⭐ {result.motm}</span>
-              </div>
-
-              <div className="stats-grid">
-                <div className="stat-row">
-                  <span className="stat-home">{result.stats.hShots}</span>
-                  <span className="stat-label">SHOTS</span>
-                  <span className="stat-away">{result.stats.aShots}</span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-home">{result.stats.hOnTarget}</span>
-                  <span className="stat-label">ON TARGET</span>
-                  <span className="stat-away">{result.stats.aOnTarget}</span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-home">{result.stats.hPoss}%</span>
-                  <span className="stat-label">POSSESSION</span>
-                  <span className="stat-away">{result.stats.aPoss}%</span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-home">{result.stats.hFouls}</span>
-                  <span className="stat-label">FOULS</span>
-                  <span className="stat-away">{result.stats.aFouls}</span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-home">{result.stats.hCards}</span>
-                  <span className="stat-label">YELLOW CARDS</span>
-                  <span className="stat-away">{result.stats.aCards}</span>
-                </div>
-                <div className="stat-row">
-                  <span className="stat-home">{result.stats.hReds}</span>
-                  <span className="stat-label">RED CARDS</span>
-                  <span className="stat-away">{result.stats.aReds}</span>
-                </div>
-              </div>
-
-              <div className="post-match-btns">
-                {!onMatchResult && (
-                  <button className="sim-btn secondary" onClick={startSim}>REPLAY</button>
-                )}
-              </div>
             </div>
 
-            <div className="summary-ratings">
-              <div className="ratings-title">PLAYER RATINGS</div>
-              <div className="ratings-cols">
-                {[
-                  { rs: result.ratings.home, accent: homeAccent, name: homeName, reaction: result.homeReaction },
-                  { rs: result.ratings.away, accent: awayAccent, name: awayName, reaction: result.awayReaction },
-                ].map(({ rs, accent, name, reaction }) => (
-                  <div className="ratings-col" key={name}>
-                    <div className="ratings-team" style={{ color: accent }}>{name}</div>
-                    {rs.map((r, i) => [
-                      r.subOnMin != null && (i === 0 || rs[i - 1].subOnMin == null) && (
-                        <div className="ratings-subs-label" key={`${r.name}-sub-label`}>SUBSTITUTES</div>
-                      ),
-                      <PlayerRatingRow key={r.name} r={r} />,
-                    ])}
-                    {reaction && (
-                      <div className="post-mgr-quote" style={{ borderColor: accent }}>
-                        <span className="post-mgr-text">{reaction}</span>
+            <div className="bw-match-pre-row">
+              {[
+                { mgr: homeManager, name: homeName, accent: homeAccent, idx: homeIdx },
+                null,
+                { mgr: awayManager, name: awayName, accent: awayAccent, idx: awayIdx },
+              ].map((entry, ci) => {
+                if (entry === null) {
+                  return <div className="bw-match-pre-centre" key="vs"><span className="bw-match-pre-vs">VS</span></div>;
+                }
+                const { mgr, name, accent, idx } = entry;
+                const absent = draft.playerAbsences ? Object.entries(draft.playerAbsences).filter(([, a]) => a.mgrIdx === idx) : [];
+                return (
+                  <div className="bw-match-pre-col" key={ci}>
+                    <div className="bw-match-pre-team-name" style={{ color: accent }}>{name}</div>
+                    {mgr.footballManager && (
+                      <div className="bw-match-pre-mgr">
+                        <div className="bw-match-pre-mgr-name" style={{ color: accent }}>{mgr.footballManager.name}</div>
+                        <div className="bw-match-pre-mgr-style">{mgr.footballManager.styleLabel}</div>
+                      </div>
+                    )}
+                    <div className="bw-match-pre-avg">
+                      <span className="bw-match-pre-avg-val">{Math.round(teamStrength(mgr.squad))}</span>
+                      <span className="bw-match-pre-avg-label">AVG</span>
+                    </div>
+                    <PreMatchPitch manager={mgr} accent={accent} formation={draft?.warChest ? "1-2-1" : (mgr.formation || "4-3-3")} variant={draft?.warChest ? "clay" : "grass"} />
+                    {absent.length > 0 && (
+                      <div className="bw-match-pre-absence" style={{ color: accent }}>
+                        {absent.map(([nm, a]) => (
+                          <div key={nm} className="bw-match-pre-absence-row">
+                            {a.type === "suspension" ? "🟥" : "🚑"} {nm}
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
-          </div>}
-        </div>
-      )}
+          </div>
+        )}
 
-      </div>{/* end .match-body */}
+        {showMoment && (
+          <div className={`bw-match-moment ${eventCategory(latestEvent) === "goal" ? "goal" : ""}`} style={eventStyle(latestEvent)}>
+            <span className="bw-match-moment-min">
+              {(latestEvent.type === "pen_goal" || latestEvent.type === "pen_miss") ? "PEN" : `${latestEvent.min}'`}
+            </span>
+            <div className="bw-match-moment-text">{latestEvent.text}</div>
+          </div>
+        )}
+
+        {visibleEvents.length > 0 && (
+          <div className="bw-match-commentary" ref={feedRef}>
+            <div className="bw-match-commentary-label">COMMENTARY</div>
+            <div className="bw-match-feed">
+              {visibleEvents.map((e, i) => ({ e, i })).reverse().map(({ e, i }) => (
+                <div key={i} className={`bw-match-feed-row ${eventCategory(e)}`}>
+                  <span className="bw-match-feed-min">
+                    {(e.type === "pen_goal" || e.type === "pen_miss") ? "PEN" : `${e.min}'`}
+                  </span>
+                  <span className="bw-match-feed-icon">{eventIcon(e)}</span>
+                  <span className="bw-match-feed-text">{e.text}</span>
+                  {e.penScore
+                    ? <span className="bw-match-feed-score">{e.penScore}</span>
+                    : e.score ? <span className="bw-match-feed-score">{e.score}</span> : null}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {done && result && (
+          <div className="bw-match-ft">
+            <div className="bw-match-ft-head" onClick={() => setSummaryCollapsed(c => !c)}>
+              <span className="bw-match-ft-head-title">FULL TIME</span>
+              <span className="bw-match-ft-head-score">{homeName} {result.score.home}–{result.score.away} {awayName}</span>
+              <span className="bw-match-ft-toggle">{summaryCollapsed ? "▲" : "▼"}</span>
+            </div>
+            {!summaryCollapsed && (
+              <>
+                {result.penWinner && (
+                  <div className="bw-match-ft-pen-note">
+                    ({result.penWinner === "home" ? homeName : awayName} win on penalties)
+                  </div>
+                )}
+                {result.summary && <p className="bw-match-ft-report">{result.summary}</p>}
+
+                <div className="bw-match-stats">
+                  {ftStats.map(s => {
+                    const hf = s.hf ?? s.h;
+                    const af = s.af ?? s.a;
+                    const total = (hf || 0) + (af || 0);
+                    const flexH = total === 0 ? 1 : (hf || 0);
+                    const flexA = total === 0 ? 1 : (af || 0);
+                    return (
+                      <div key={s.label}>
+                        <div className="bw-match-stat-head">
+                          <span>{s.h}</span>
+                          <span className="bw-match-stat-label">{s.label}</span>
+                          <span>{s.a}</span>
+                        </div>
+                        <div className="bw-match-stat-track">
+                          <div className="bw-match-stat-fill-h" style={{ flex: flexH, background: homeAccent, minWidth: 3 }} />
+                          <div className="bw-match-stat-fill-a" style={{ flex: flexA, background: awayAccent, minWidth: 3 }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {motmPlayer && (
+                  <div className="bw-match-motm">
+                    <div className="bw-match-motm-label">MAN OF THE MATCH</div>
+                    <div className="bw-match-motm-card">
+                      <div className="bw-match-motm-badge">
+                        <span className="bw-match-motm-rating">{motmPlayer.rating.toFixed(1)}</span>
+                        <span className="bw-match-motm-pos">{motmPlayer.pos}</span>
+                      </div>
+                      <div className="bw-match-motm-info">
+                        <div className="bw-match-motm-name">{motmPlayer.name}</div>
+                        <div className="bw-match-motm-sub">{motmSub}</div>
+                      </div>
+                      <span className="bw-match-motm-star">⭐</span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="bw-match-ratings">
+                  <div className="bw-match-ratings-label">PLAYER RATINGS</div>
+                  <div className="bw-match-ratings-cols">
+                    {[
+                      { rs: result.ratings.home, accent: homeAccent, name: homeName, reaction: result.homeReaction },
+                      { rs: result.ratings.away, accent: awayAccent, name: awayName, reaction: result.awayReaction },
+                    ].map(({ rs, accent, name, reaction }) => (
+                      <div className="bw-match-ratings-col" key={name}>
+                        <div className="bw-match-ratings-team" style={{ color: accent }}>{name}</div>
+                        {rs.map((r, i) => [
+                          r.subOnMin != null && (i === 0 || rs[i - 1].subOnMin == null) && (
+                            <div className="bw-match-ratings-subs" key={`${r.name}-sub-label`}>SUBSTITUTES</div>
+                          ),
+                          <PlayerRatingRow key={r.name} r={r} />,
+                        ])}
+                        {reaction && (
+                          <div className="bw-match-reaction" style={{ borderColor: accent }}>
+                            <span className="bw-match-reaction-text">{reaction}</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {!onMatchResult && (
+                  <button className="bw-match-replay" onClick={startSim}>REPLAY</button>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </div>{/* end .bw-match-body */}
 
       {showLineups && (
         <LineupPanel
