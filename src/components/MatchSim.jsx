@@ -1816,7 +1816,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
       seriesContext?.isLeg1 ?? false,
       homeManager.tactics ?? "balanced",
       awayManager.tactics ?? "balanced",
-      seriesContext ? { homePrevResult: seriesContext.homePrevResult ?? null, awayPrevResult: seriesContext.awayPrevResult ?? null, isSeriesTiebreaker: seriesContext.isSeriesTiebreaker ?? false, isTournamentKnockout: seriesContext.isTournamentKnockout ?? false, skipToShootout: (seriesContext.isTournamentKnockout && matchMinutes < 90) ?? false } : null,
+      seriesContext ? { homePrevResult: seriesContext.homePrevResult ?? null, awayPrevResult: seriesContext.awayPrevResult ?? null, isSeriesTiebreaker: seriesContext.isSeriesTiebreaker ?? false, isTournamentKnockout: seriesContext.isTournamentKnockout ?? false, skipToShootout: (seriesContext.isTournamentKnockout && matchMinutes < 90) || !!seriesContext.isSeriesTiebreaker } : null,
       matchMinutes,
     );
     if (onMatchGenerated) onMatchGenerated(r); // broadcast to all players via Firestore
