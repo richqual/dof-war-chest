@@ -5174,7 +5174,7 @@ html.light-mode .bw-wc-stage {
   margin: 0 auto;
 }
 .bw-match-pitch-token-empty { background: rgba(255,255,255,.05); border: 1.5px dashed rgba(255,255,255,.3); color: rgba(255,255,255,.4); }
-.bw-match-pitch-token-name { font-size: 10px; color: var(--bw-text-hi); margin-top: 3px; white-space: nowrap; max-width: 64px; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 3px #000; }
+.bw-match-pitch-token-name { font-size: 13px; font-weight: 500; color: #fff; margin-top: 3px; white-space: nowrap; max-width: 84px; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 3px #000, 0 0 2px rgba(0,0,0,.6); }
 .bw-match-pitch-formation { font: 600 9px var(--bw-font-display); letter-spacing: .08em; opacity: .8; }
 
 /* Continue / pen CTA in scoreboard */
