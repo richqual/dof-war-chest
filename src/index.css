@@ -167,6 +167,29 @@ html.wc-theme {
   .bw-frame { max-width: 100%; border-radius: 0; box-shadow: none; }
 }
 
+/* Lobby / Game Setup desktop reflow (mock 3e intent — no scroll to reach
+   CONTINUE). On mobile the two column wrappers are display:contents, so the
+   body stays one flat flex stack exactly as before. At desktop width the frame
+   widens and the body becomes two columns: core options left, advanced/rules +
+   CONTINUE right. */
+.bw-lobby-col { display: contents; }
+@media (min-width: 900px) {
+  .bw-lobby-frame { max-width: 820px; }
+  .bw-lobby-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    column-gap: 28px;
+    padding: 20px 20px 22px;
+  }
+  .bw-lobby-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+}
+
 .bw-topbar {
   padding: 11px 16px;
   display: flex;
@@ -4347,6 +4370,23 @@ html.light-mode .bw-hero { background: #0b1f14; }
   gap: 11px;
 }
 
+/* Desktop reflow (mock 3e, adapted): the two mode cards sit side by side under
+   the marquee instead of stacked; the About link spans full width beneath. The
+   two steps stay separate — this reflows the picker within its own screen. */
+@media (min-width: 900px) {
+  .bw-home-card { max-width: 760px; }
+  .bw-hero { padding: 30px 20px 22px; }
+  .bw-wordmark { font-size: 24px; }
+  .bw-home-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: 14px;
+    padding: 20px 20px 22px;
+  }
+  .bw-about-link { grid-column: 1 / -1; }
+}
+
 .bw-mode-card {
   display: flex;
   flex-direction: column;
@@ -4713,6 +4753,20 @@ html.large-text .sim-btn             { font-size: 16px; }
 
 /* ── WAR CHEST — BROADCAST SKIN (mock ref: 2c pick, 1e reveal) ───────────── */
 .bw-wc-screen { min-height: 100vh; background: #100a0a; font-family: var(--bw-font-body); color: #f4e9e6; }
+
+/* Light mode: the cinematic chest/reveal elements stay dark (they're built for a
+   black stage), but the surrounding frame goes light and the dark bits are boxed
+   off so they read as deliberate panels rather than a black page (v3.9.33). */
+html.light-mode .bw-wc-screen { background: #f1ece6; color: #2a1c16; }
+html.light-mode .bw-wc-intro-title { color: #3a2016; }
+html.light-mode .bw-wc-intro-sub,
+html.light-mode .bw-wc-footnote { color: #7a5c50; }
+html.light-mode .bw-wc-stage {
+  margin: 14px 16px;
+  border-radius: 14px !important;
+  border: 1px solid #cbb9ae;
+  box-shadow: 0 4px 18px rgba(0,0,0,.16);
+}
 
 .bw-wc-header {
   padding: 11px 16px;

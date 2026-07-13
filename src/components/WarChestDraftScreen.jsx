@@ -262,7 +262,7 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
           disabled={!canProceed}
         >
           {!requiredFilled
-            ? "FILL GK · DEF · MID TO CONTINUE"
+            ? "COMPLETE YOUR SQUAD TO CONTINUE"
             : !allFilled
               ? "FILL ALL 5 SLOTS TO CONTINUE"
               : (isLastHuman ? "DONE — VIEW SQUADS →" : "DONE — PASS TO NEXT PLAYER →")}
