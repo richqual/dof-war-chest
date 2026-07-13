@@ -66,6 +66,19 @@ html.wc-theme body {
   background-color: var(--bg);
 }
 
+/* Light mode must win over wc-theme for the page background (higher specificity:
+   two classes). Without this, wc-theme repaints --bg near-black while the light
+   panels stay light, leaving a black screen behind them in light mode. */
+html.light-mode.wc-theme {
+  --bg:  #f2f5f2;
+  --bg2: #e4ece4;
+  --bg3: #d6e4d6;
+}
+html.light-mode.wc-theme body {
+  background-image: none;
+  background-color: var(--bg);
+}
+
 /* ── BROADCAST SKIN TOKENS ───────────────────────────────────────────────
    New design system (The Transfer Wheel redesign). Namespaced --bw-* so it
    can be adopted screen-by-screen without touching the legacy --bg/--text/
