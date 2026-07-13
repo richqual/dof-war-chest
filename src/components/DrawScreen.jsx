@@ -75,6 +75,7 @@ export default function DrawScreen({ draft, onComplete, isHost = true }) {
   const [phase, setPhase] = useState("numbers");
   const [step, setStep] = useState(0);                     // which ball (0..n-1) is currently animating
   const [ballPhase, setBallPhase] = useState("spinning");   // spinning | landed — only meaningful while phase === "drawing"
+  const [listAdvanced, setListAdvanced] = useState(false);  // lags the ball: list row fills in shortly AFTER the ball lands
 
   const timers = useRef([]);
   function addTimer(fn, ms) {
@@ -89,12 +90,16 @@ export default function DrawScreen({ draft, onComplete, isHost = true }) {
     if (ballPhase === "spinning") {
       addTimer(() => setBallPhase("landed"), 1600);
     } else {
+      // Ball has revealed its number — fill the matching list row a beat later
+      // so the eye reads the ball first, then sees the name drop into the draw.
+      addTimer(() => setListAdvanced(true), 1000);
       addTimer(() => {
         if (step + 1 >= n) {
           setPhase("done");
         } else {
           setStep(s => s + 1);
           setBallPhase("spinning");
+          setListAdvanced(false);
         }
       }, 2400);
     }
@@ -103,6 +108,7 @@ export default function DrawScreen({ draft, onComplete, isHost = true }) {
   function startDraw() {
     setStep(0);
     setBallPhase("spinning");
+    setListAdvanced(false);
     setPhase("drawing");
   }
 
@@ -198,7 +204,7 @@ export default function DrawScreen({ draft, onComplete, isHost = true }) {
   /* ── FRAME 2 · LIVE BOWL DRAW ─────────────────────────────────── */
   const pairing = Math.floor(step / 2);
   const slotInPairing = step % 2;
-  const revealedCount = step + (ballPhase === "landed" ? 1 : 0);
+  const revealedCount = step + (listAdvanced ? 1 : 0);
   const currentTeam = managers[drawOrder[step]];
 
   return (
