@@ -162,6 +162,20 @@ html.light-mode {
 html.wc-theme {
   --bw-mode:      #e0701a;
   --bw-mode-lite: #e11d48;
+
+  /* Warm-tinted dark surfaces so War Chest keeps its red/orange identity in dark
+     mode too. Without these, the input/panel tokens fall through to the green
+     :root defaults and the fields read green instead of warm. Mirrors the
+     light-mode.wc-theme warming above. */
+  --bw-field:    #0f0806;
+  --bw-recessed: #140a08;
+  --bw-panel:    #1a0f0b;
+  --bw-raised:   #261510;
+  --bw-border:   #3a2018;
+  --bw-border2:  #45261c;
+  --bw-text-hi:  #f1e8e4;
+  --bw-text-mid: #b99d94;
+  --bw-text-low: #7d635c;
 }
 
 /* ── BROADCAST SKIN — SHARED PRIMITIVES ─────────────────────────────────
@@ -5655,13 +5669,15 @@ html.light-mode .bw-wc-stage {
    same self-contained --cc-* tokens so it flips light/dark correctly even
    though it's only ever reached in War Chest mode (html.wc-theme). */
 .bw-wcs-screen {
-  --cc-bg:        #0a0f0b;
-  --cc-panel:     #121a12;
-  --cc-border:    #24331f;
-  --cc-border2:   #2a3a24;
-  --cc-text-hi:   #e8f1e6;
-  --cc-text-mid:  #9db99d;
-  --cc-text-low:  #62805f;
+  /* Warm-tinted to match War Chest identity — this screen is only ever reached
+     in wc-theme, so its dark defaults should read red/orange, not green. */
+  --cc-bg:        #0f0806;
+  --cc-panel:     #1a0f0b;
+  --cc-border:    #3a2018;
+  --cc-border2:   #45261c;
+  --cc-text-hi:   #f1e8e4;
+  --cc-text-mid:  #b99d94;
+  --cc-text-low:  #7d635c;
   min-height: 100vh;
   background: var(--cc-bg);
   font-family: var(--bw-font-body);
@@ -5669,13 +5685,13 @@ html.light-mode .bw-wc-stage {
   padding-bottom: 24px;
 }
 html.light-mode .bw-wcs-screen {
-  --cc-bg:        #eef1ec;
-  --cc-panel:     #ffffff;
-  --cc-border:    #d7ded6;
-  --cc-border2:   #c3ccc1;
-  --cc-text-hi:   #0c140e;
-  --cc-text-mid:  #5a6b5e;
-  --cc-text-low:  #9aa89e;
+  --cc-bg:        #f5efe9;
+  --cc-panel:     #fdfbf8;
+  --cc-border:    #d9ccc2;
+  --cc-border2:   #cbb9ac;
+  --cc-text-hi:   #1c120d;
+  --cc-text-mid:  #6b5248;
+  --cc-text-low:  #9a8478;
 }
 
 .bw-wcs-banner {
