@@ -70,9 +70,11 @@ html.wc-theme body {
    two classes). Without this, wc-theme repaints --bg near-black while the light
    panels stay light, leaving a black screen behind them in light mode. */
 html.light-mode.wc-theme {
-  --bg:  #f2f5f2;
-  --bg2: #e4ece4;
-  --bg3: #d6e4d6;
+  /* Warm-tinted light palette so War Chest screens keep the red/orange identity
+     in light mode instead of the green light-mode default. */
+  --bg:  #f5efe9;
+  --bg2: #ece2da;
+  --bg3: #e2d4ca;
 }
 html.light-mode.wc-theme body {
   background-image: none;
@@ -175,7 +177,7 @@ html.wc-theme {
 .bw-lobby-col { display: contents; }
 @media (min-width: 900px) {
   .bw-lobby-frame { max-width: 820px; }
-  .bw-lobby-body {
+  .bw-body.bw-lobby-body {
     display: grid;
     grid-template-columns: 1fr 1fr;
     align-items: start;

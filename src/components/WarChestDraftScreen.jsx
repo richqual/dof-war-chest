@@ -61,7 +61,10 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
   const slotPlayers = activeSlot !== null ? getPlayers(activeSlot) : [];
   const boundsMin = slotPlayers.length ? Math.min(...slotPlayers.map(p => p.value)) : 0;
   const boundsMax = slotPlayers.length ? Math.max(...slotPlayers.map(p => p.value)) : 0;
-  const [priceMin, priceMax] = priceRange ?? [boundsMin, boundsMax];
+  // Default the upper handle to what you can actually afford (clamped to the
+  // slot's price range), so the list pre-filters to affordable players.
+  const defaultMax = Math.max(boundsMin, Math.min(remaining, boundsMax));
+  const [priceMin, priceMax] = priceRange ?? [boundsMin, defaultMax];
 
   const activePlayers = activeSlot !== null
     ? slotPlayers
