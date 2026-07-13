@@ -205,7 +205,6 @@ export default function DrawScreen({ draft, onComplete, isHost = true }) {
   const pairing = Math.floor(step / 2);
   const slotInPairing = step % 2;
   const revealedCount = step + (listAdvanced ? 1 : 0);
-  const currentTeam = managers[drawOrder[step]];
 
   return (
     <div className="setup-screen">
@@ -230,7 +229,6 @@ export default function DrawScreen({ draft, onComplete, isHost = true }) {
           {ballPhase === "landed" && (
             <div className="bw-draw-result-banner">
               <span className="bw-draw-result-pill">BALL {drawOrder[step] + 1}</span>
-              <span className="bw-draw-result-name">{clubName(currentTeam)}</span>
             </div>
           )}
         </div>
