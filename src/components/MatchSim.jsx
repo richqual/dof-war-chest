@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import KitSwatch, { readableTextOn, teamAccent } from "./KitSwatch";
 import { TIER_SIM_MODIFIER } from "../data/managers";
 import { FORMATIONS } from "../data/formations";
+import { lastName } from "../utils/displayName";
 
 function teamStrength(squad) {
   const starters = squad.slice(0, 11).filter(Boolean);
@@ -615,8 +616,8 @@ function generatePreMatchNarrative(draft, homeIdx, awayIdx, seriesContext) {
   const homeName = hm.teamName || hm.clubName || hm.name;
   const awayName = am.teamName || am.clubName || am.name;
   const hmFm = hm.footballManager, amFm = am.footballManager;
-  const hmFmName = hmFm ? hmFm.name.split(" ").pop() : null;
-  const amFmName = amFm ? amFm.name.split(" ").pop() : null;
+  const hmFmName = hmFm ? lastName(hmFm.name) : null;
+  const amFmName = amFm ? lastName(amFm.name) : null;
 
   function topScorerFor(mgrIndices) {
     if (!tournamentStats) return null;
@@ -943,16 +944,16 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   // Inject early contextual commentary (minutes 2-15) for new systems
   const earlyMins = [];
   if (hMomentumRaw === 1 && homeFootballMgr) {
-    earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_WIN)(homeName, homeFootballMgr.name.split(" ").pop()) });
+    earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_WIN)(homeName, lastName(homeFootballMgr.name)) });
   }
   if (aMomentumRaw === 1 && awayFootballMgr) {
-    earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_WIN)(awayName, awayFootballMgr.name.split(" ").pop()) });
+    earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_WIN)(awayName, lastName(awayFootballMgr.name)) });
   }
   if (hMomentumRaw === -1 && homeFootballMgr) {
-    earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_LOSS)(homeName, homeFootballMgr.name.split(" ").pop()) });
+    earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_LOSS)(homeName, lastName(homeFootballMgr.name)) });
   }
   if (aMomentumRaw === -1 && awayFootballMgr) {
-    earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_LOSS)(awayName, awayFootballMgr.name.split(" ").pop()) });
+    earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_LOSS)(awayName, lastName(awayFootballMgr.name)) });
   }
   // Cohesion commentary for the team with higher cohesion (>60% match)
   const hCohesionPct = homeFootballMgr?.preferredArchetypes?.length
@@ -962,10 +963,10 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     ? awaySquad.slice(0, 11).filter(Boolean).filter(p => awayFootballMgr.preferredArchetypes.includes(p.archetype)).length / Math.max(1, awaySquad.slice(0, 11).filter(Boolean).length)
     : 0;
   if (hCohesionPct >= 0.6 && homeFootballMgr) {
-    earlyMins.push({ min: rand(5, 20), text: pick(COHESION_COMMENTARY)(homeFootballMgr.name.split(" ").pop(), homeName) });
+    earlyMins.push({ min: rand(5, 20), text: pick(COHESION_COMMENTARY)(lastName(homeFootballMgr.name), homeName) });
   }
   if (aCohesionPct >= 0.6 && awayFootballMgr) {
-    earlyMins.push({ min: rand(5, 20), text: pick(COHESION_COMMENTARY)(awayFootballMgr.name.split(" ").pop(), awayName) });
+    earlyMins.push({ min: rand(5, 20), text: pick(COHESION_COMMENTARY)(lastName(awayFootballMgr.name), awayName) });
   }
   // Style matchup commentary (fire once mid-match if there's a clear advantage)
   if (hMatchupBonus > 0) {
@@ -1199,7 +1200,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     if (!fm || !style || Math.random() > 0.28) return null;
     const pool = MGR_STYLE_COMMENTARY[style];
     if (!pool) return null;
-    const mgrName = fm.name.split(" ").pop(); // last name
+    const mgrName = lastName(fm.name); // last name
     const teamName = isHome ? homeName : awayName;
     return { min, type: "commentary", text: pick(pool)(mgrName, teamName) };
   }
@@ -1523,7 +1524,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   const motmTeam = motmSide === "home" ? homeName : awayName;
   const motmStyle = motmSide === "home" ? hStyle : aStyle;
   if (motmFm && motmStyle && MGR_MOTM_LINES[motmStyle]) {
-    const mgrLastName = motmFm.name.split(" ").pop();
+    const mgrLastName = lastName(motmFm.name);
     motmLine = `${motmEntry.name} — ${MGR_MOTM_LINES[motmStyle](mgrLastName, motmTeam)}`;
   }
 
@@ -1531,7 +1532,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   const winner = winnerSide;
   function managerReaction(fm, isWin, isDraw) {
     if (!fm) return null;
-    const n = fm.name.split(" ").pop();
+    const n = lastName(fm.name);
     if (isWin) {
       const WINS = {
         pressing: `${n}: "We pressed them off the park. That's what we do."`,
@@ -1572,7 +1573,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   // Pre-match flavour
   function preFlavour(fm, teamName) {
     if (!fm) return null;
-    const n = fm.name.split(" ").pop();
+    const n = lastName(fm.name);
     const lines = {
       pressing:   `${n}: "Press them from the first whistle. No mercy."`,
       counter:    `${n}: "Stay compact. Be patient. Then hurt them."`,
@@ -1668,7 +1669,7 @@ function PreMatchPitch({ manager, accent, formation, variant = "grass" }) {
                   <div className="bw-match-pitch-token" style={{ background: lc.bg, color: lc.text }}>
                     {coord.pos}
                   </div>
-                  <div className="bw-match-pitch-token-name">{player.name.split(" ").pop()}</div>
+                  <div className="bw-match-pitch-token-name">{lastName(player.name)}</div>
                 </>
               ) : (
                 <div className="bw-match-pitch-token bw-match-pitch-token-empty">{coord.pos}</div>

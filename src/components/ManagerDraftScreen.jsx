@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { MANAGERS, TIER_LABELS } from "../data/managers";
 import { ERA_LABELS } from "../data/players";
 import { DRAFT_ROULETTE_ERAS, DRAFT_ROULETTE_LEAGUES } from "../hooks/draftUtils";
+import { lastName } from "../utils/displayName";
 
 const DRAFT_ROULETTE_ERA_LABELS = Object.fromEntries(DRAFT_ROULETTE_ERAS.map(e => [e.key, e.label]));
 const DRAFT_ROULETTE_LEAGUE_LABELS = Object.fromEntries(DRAFT_ROULETTE_LEAGUES.map(l => [l.key, l.label]));
@@ -118,7 +119,7 @@ function RideStage({ riders }) {
 }
 
 function ManagerCard({ manager, onPick, disabled, highlighted, showPickButton = true }) {
-  const lastName = manager.name.trim().split(" ").pop().toUpperCase();
+  const mgrLastName = lastName(manager.name).toUpperCase();
   return (
     <div className={`bw-mgr-card ${highlighted ? "recommended" : ""}`}>
       <div className="bw-mgr-card-body">
@@ -142,7 +143,7 @@ function ManagerCard({ manager, onPick, disabled, highlighted, showPickButton = 
       </div>
       {showPickButton && (
         <button className="bw-mgr-pick-btn" onClick={() => onPick(manager)} disabled={disabled}>
-          PICK {lastName} →
+          PICK {mgrLastName} →
         </button>
       )}
     </div>
@@ -634,7 +635,7 @@ export default function ManagerDraftScreen({
             </div>
             <div className="bw-confirm-btns">
               <button className="bw-cta-primary" onClick={() => handlePick(pendingPick)}>
-                APPOINT {pendingPick.name.trim().split(" ").pop().toUpperCase()} →
+                APPOINT {lastName(pendingPick.name).toUpperCase()} →
               </button>
               <button className="bw-cta-secondary" onClick={() => setPendingPick(null)}>CANCEL</button>
             </div>

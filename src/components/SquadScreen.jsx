@@ -6,6 +6,7 @@ import { TIER_LABELS, TIER_COLORS, TIER_BG } from "../data/managers";
 import { ARCHETYPE_COLOR } from "./PlayerCard";
 import { getFormArrow } from "../hooks/useDraftState";
 import KitSwatch, { kitAccent, readableTextOn } from "./KitSwatch";
+import { lastName } from "../utils/displayName";
 
 
 const TACTICS = ["defensive", "balanced", "attacking"];
@@ -86,7 +87,7 @@ function SquadPitch({ squad, formation, swapSlot, onSlotClick, kitPrimary, kitSe
                 <div className="bw-pitch-token" style={{ width: lc.size, height: lc.size, background: slotBg, color: slotInk, borderColor: tokenBorder }}>
                   {coord.pos}
                 </div>
-                <div className="bw-pitch-token-name">{player.name.split(" ").pop()}</div>
+                <div className="bw-pitch-token-name">{lastName(player.name)}</div>
               </>
             ) : (
               <div className="bw-pitch-token bw-pitch-token-empty">{coord.pos}</div>

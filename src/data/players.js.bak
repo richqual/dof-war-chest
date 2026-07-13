@@ -415,7 +415,6 @@ export const PLAYERS = [
   { id: 2414, name: "Manuel Iturra",          club: "Granada",        years: "2011–2016", pos: "DM", rating: 77, value: 0,   nation: "🇨🇱", era: "golden",  league: "la_liga", tier: "depth",   nationality_code: "CHI" },
   { id: 2415, name: "Sergio Busquets",        club: "Barcelona",      years: "2016–2023", pos: "DM", rating: 90, value: 49,  nation: "🇪🇸", era: "modern",  league: "la_liga", tier: "elite",   nationality_code: "ESP" },
   { id: 2416, name: "Casemiro",               club: "Real Madrid",    years: "2016–2022", pos: "DM", rating: 92, value: 80,  nation: "🇧🇷", era: "modern",  league: "la_liga", tier: "elite",   nationality_code: "BRA" },
-  { id: 2417, name: "Thomas Partey",          club: "Atlético",       years: "2012–2020", pos: "DM", rating: 88, value: 29,  nation: "🇬🇭", era: "modern",  league: "la_liga", tier: "quality", nationality_code: "GHA" },
   { id: 2418, name: "Marcos Llorente",        club: "Atlético",       years: "2019–",     pos: "DM", rating: 86, value: 16,  nation: "🇪🇸", era: "modern",  league: "la_liga", tier: "quality", nationality_code: "ESP" },
   { id: 2419, name: "Frenkie de Jong",        club: "Barcelona",      years: "2019–",     pos: "DM", rating: 88, value: 29,  nation: "🇳🇱", era: "modern",  league: "la_liga", tier: "quality", nationality_code: "NED" },
   { id: 2420, name: "Dani Ceballos",          club: "Real Madrid",    years: "2017–2022", pos: "DM", rating: 83, value: 4,   nation: "🇪🇸", era: "modern",  league: "la_liga", tier: "quality", nationality_code: "ESP" },
@@ -1205,7 +1204,6 @@ export const PLAYERS = [
   { id: 5615, name: "Mbappe PSG RW",          club: "PSG",            years: "2017–2023", pos: "RW", rating: 95, value: 155, nation: "🇫🇷", era: "modern",  league: "ligue_1", tier: "elite",   nationality_code: "FRA" },
   { id: 5616, name: "Kvara Khvicha",          club: "Napoli",         years: "2022–",     pos: "RW", rating: 90, value: 49,  nation: "🇬🇪", era: "modern",  league: "ligue_1", tier: "elite",   nationality_code: "GEO" },
   { id: 5617, name: "Vinicius Junior",        club: "Real Madrid",    years: "2018–",     pos: "RW", rating: 92, value: 80,  nation: "🇧🇷", era: "modern",  league: "ligue_1", tier: "elite",   nationality_code: "BRA" },
-  { id: 5618, name: "Greenwood Mason",        club: "Getafe",         years: "2023–",     pos: "RW", rating: 81, value: 1,   nation: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", era: "modern",  league: "ligue_1", tier: "depth",   nationality_code: "ENG" },
   { id: 5619, name: "Ismaila Sarr",           club: "Watford",        years: "2018–2020", pos: "RW", rating: 81, value: 1,   nation: "🇸🇳", era: "modern",  league: "ligue_1", tier: "depth",   nationality_code: "SEN" },
 
   // ── LEFT WINGERS (Ligue 1) ────────────────────────────────────────────
