@@ -2736,6 +2736,32 @@ html.light-mode .bw-mgr-card.recommended .bw-mgr-card-name { color: var(--bw-tex
   font: 400 8px var(--bw-font-marquee);
   color: #b98b1c;
 }
+.bw-draw-mini-ball.clickable {
+  cursor: pointer;
+  transition: transform .12s ease, box-shadow .12s ease;
+  animation: bw-ball-bob 1.6s ease-in-out infinite;
+}
+.bw-draw-mini-ball.clickable:hover {
+  transform: translateY(-5px) scale(1.14);
+  box-shadow: inset -3px -4px 9px rgba(0,0,0,.4), inset 2px 2px 6px rgba(255,255,255,.35), 0 10px 18px rgba(0,0,0,.55), 0 0 0 2px var(--bw-gold);
+  animation: none;
+}
+.bw-draw-mini-ball.clickable:active {
+  transform: translateY(-1px) scale(1.05);
+}
+@keyframes bw-ball-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.bw-draw-team-callout { color: var(--bw-gold); }
+.bw-draw-bowl-hint {
+  text-align: center;
+  margin-top: 8px;
+  font-size: 12px;
+  letter-spacing: .04em;
+  color: var(--bw-gold);
+  opacity: .85;
+}
 
 .bw-pick-order-list { display: flex; flex-direction: column; gap: 6px; }
 .bw-pick-order-row {

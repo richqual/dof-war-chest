@@ -194,10 +194,14 @@ export default function OrderDrawScreen({ draft, onStart }) {
         </div>
 
         <div className="bw-draw-subtitle">
-          {phase === "waiting" && isHumanTurn && "Pick a ball from the bowl"}
-          {phase === "waiting" && !isHumanTurn && "CPU is drawing…"}
+          {phase === "waiting" && curManager && (
+            <>Next up to draw… <strong className="bw-draw-team-callout">{curManager.clubName || curManager.name}</strong>{isHumanTurn ? " — pick your ball!" : " is drawing…"}</>
+          )}
           {(phase === "drawing" || phase === "revealed") && revealInfo && (
-            <>Drawing the <strong>{ordinal(revealInfo.pos)} pick</strong>…</>
+            <>
+              <strong className="bw-draw-team-callout">{managers[revealInfo.mIdx].clubName || managers[revealInfo.mIdx].name}</strong>
+              {phase === "revealed" ? <> draws the <strong>{ordinal(revealInfo.pos)} pick!</strong></> : " is drawing…"}
+            </>
           )}
         </div>
 
@@ -220,10 +224,22 @@ export default function OrderDrawScreen({ draft, onStart }) {
         <div className="bw-body">
           <div className="bw-field-label" style={{ textAlign: "center" }}>STILL IN THE BOWL</div>
           <div className="bw-draw-bowl-row">
-            {availableBalls.map(ballIdx => (
-              <div key={ballIdx} className="bw-draw-mini-ball" />
-            ))}
+            {availableBalls.map(ballIdx => {
+              const canPick = isHumanTurn && phase === "waiting";
+              return (
+                <div
+                  key={ballIdx}
+                  className={`bw-draw-mini-ball ${canPick ? "clickable" : ""}`}
+                  onClick={canPick ? () => triggerDraw(ballIdx) : undefined}
+                  role={canPick ? "button" : undefined}
+                  aria-label={canPick ? "Pick this ball" : undefined}
+                />
+              );
+            })}
           </div>
+          {isHumanTurn && phase === "waiting" && (
+            <div className="bw-draw-bowl-hint">☝ Tap a ball to take your pick</div>
+          )}
 
           <div className="bw-field-label" style={{ marginTop: 16, textAlign: "center" }}>PICK ORDER</div>
           <div className="bw-pick-order-list">
@@ -254,8 +270,8 @@ export default function OrderDrawScreen({ draft, onStart }) {
           </div>
 
           {isHumanTurn && phase === "waiting" && (
-            <button className="bw-cta-arcade" style={{ marginTop: 12 }} onClick={drawNextBall}>
-              DRAW NEXT BALL
+            <button className="bw-cta-secondary" style={{ marginTop: 12 }} onClick={drawNextBall}>
+              🎲 PICK A RANDOM BALL
             </button>
           )}
           <button className="bw-cta-secondary" style={{ marginTop: 8 }} onClick={skipToEnd}>
