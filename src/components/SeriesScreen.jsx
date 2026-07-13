@@ -336,6 +336,7 @@ function TournamentBracket({ series, managers }) {
       {semis.length > 0 && (
         <div className="bw-bracket-section">
           {quarters.length > 0 && <div className="bw-bracket-section-title">SEMI-FINALS</div>}
+          <div className="bw-bracket-grid">
           {semis.map((sm, i) => {
             const m0 = managers[sm.p[0]], m1 = managers[sm.p[1]];
             return (
@@ -360,6 +361,7 @@ function TournamentBracket({ series, managers }) {
               </div>
             );
           })}
+          </div>
         </div>
       )}
 
@@ -1048,7 +1050,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
           handleSimDone={handleSimDone}
         />
       ) : (
-        <div className="bw-series-frame">
+        <div className="bw-series-frame bw-series-frame-bracket">
           <div className="bw-banner">
             <div className="bw-banner-title">{formatLabel}</div>
             {nextMatchup && (

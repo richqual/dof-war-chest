@@ -130,13 +130,14 @@ export default function LobbyScreen({ onContinue, onBack }) {
 
   return (
     <div className="setup-screen">
-      <div className="bw-frame">
+      <div className="bw-frame bw-lobby-frame">
         <div className="bw-banner">
           <div className="bw-banner-title">GAME SETUP</div>
           <div className="bw-banner-subtitle">Build a squad. Spin the wheel. Become a legend.</div>
         </div>
 
-        <div className="bw-body">
+        <div className="bw-body bw-lobby-body">
+         <div className="bw-lobby-col bw-lobby-col-main">
           <div className="bw-setup-row">
             <span className="bw-setup-label">CLUBS</span>
             <div className="bw-setup-select-wrap">
@@ -240,6 +241,9 @@ export default function LobbyScreen({ onContinue, onBack }) {
             </>
           )}
 
+         </div>
+
+         <div className="bw-lobby-col bw-lobby-col-side">
           <button
             className="bw-collapse-toggle"
             onClick={() => setShowAdvanced(v => !v)}
@@ -338,6 +342,7 @@ export default function LobbyScreen({ onContinue, onBack }) {
               ← change mode
             </button>
           )}
+         </div>
         </div>
       </div>
     </div>

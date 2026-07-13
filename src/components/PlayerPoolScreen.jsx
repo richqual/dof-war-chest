@@ -52,13 +52,13 @@ export default function PlayerPoolScreen({ onConfirm, numClubs = 4 }) {
 
   return (
     <div className="setup-screen">
-      <div className="bw-frame">
+      <div className="bw-frame bw-pool-frame">
         <div className="bw-banner">
           <div className="bw-banner-title">PLAYER POOL</div>
           <div className="bw-banner-subtitle">Choose which eras, leagues &amp; tiers to draft from</div>
         </div>
 
-        <div className="bw-body">
+        <div className="bw-body bw-pool-body">
           <div className="bw-field">
             <div className="bw-field-label">ERAS</div>
             <div className="bw-pool-list">
@@ -121,15 +121,17 @@ export default function PlayerPoolScreen({ onConfirm, numClubs = 4 }) {
             </div>
           </div>
 
-          <div className={`bw-pool-total ${tooSmall ? "too-small" : ""}`}>
-            {tooSmall
-              ? `Only ~${poolSize} unique players — need ~${minPool} for ${numClubs} teams. Select more options.`
-              : <><strong>{poolSize}</strong> unique players in pool</>}
-          </div>
+          <div className="bw-pool-footer">
+            <div className={`bw-pool-total ${tooSmall ? "too-small" : ""}`}>
+              {tooSmall
+                ? `Only ~${poolSize} unique players — need ~${minPool} for ${numClubs} teams. Select more options.`
+                : <><strong>{poolSize}</strong> unique players in pool</>}
+            </div>
 
-          <button className="bw-cta-arcade" disabled={tooSmall} onClick={handleConfirm}>
-            ▶ START THE DRAFT
-          </button>
+            <button className="bw-cta-arcade" disabled={tooSmall} onClick={handleConfirm}>
+              ▶ START THE DRAFT
+            </button>
+          </div>
         </div>
       </div>
     </div>

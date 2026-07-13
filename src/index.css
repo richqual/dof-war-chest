@@ -180,6 +180,47 @@ html.wc-theme {
 @media (max-width: 480px) {
   .bw-frame { max-width: 100%; border-radius: 0; box-shadow: none; }
 }
+/* Tier-3 desktop baseline: every frame-based screen gets a roomier centred
+   column instead of a 440px mobile strip stranded on a wide monitor. Screens
+   that reflow into columns (lobby, player pool, my squads) override this with a
+   wider, higher-specificity cap of their own. */
+@media (min-width: 900px) {
+  .bw-frame { max-width: 600px; }
+}
+/* Player pool (Tier-2): the three filter groups sit 3-up on desktop; the pool
+   total + START button span full width beneath. */
+@media (min-width: 900px) {
+  .bw-frame.bw-pool-frame { max-width: 860px; }
+  .bw-body.bw-pool-body {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: start;
+    column-gap: 20px;
+  }
+  .bw-pool-body > .bw-pool-footer { grid-column: 1 / -1; }
+}
+/* My Squads (Tier-2): saved-squad list goes 2-up on desktop; in the detail
+   view the XI / bench player rows split into two columns to cut the height. */
+@media (min-width: 900px) {
+  .bw-frame.bw-mysq-list-frame { max-width: 780px; }
+  .bw-body .bw-mysq-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px 12px;
+  }
+  .bw-body .bw-mysq-players {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 18px;
+  }
+}
+/* Series (Tier-2): the scoreboard view widens modestly; the tournament-bracket
+   view widens more so semis (now wrapped in .bw-bracket-grid) and quarters sit
+   two-up. */
+@media (min-width: 900px) {
+  .bw-series-frame { max-width: 560px; }
+  .bw-series-frame.bw-series-frame-bracket { max-width: 780px; }
+}
 
 /* Lobby / Game Setup desktop reflow (mock 3e intent — no scroll to reach
    CONTINUE). On mobile the two column wrappers are display:contents, so the
@@ -433,6 +474,23 @@ input, select { font-family: var(--font); }
 }
 
 .draft-main { flex: 1; overflow-y: auto; padding: 16px; }
+
+/* Desktop (mock 3d + tiered widen): the draft is capped and centred as one
+   panel instead of a full-bleed narrow column. The player pool becomes a
+   two-column grid so rows aren't stretched edge to edge; section dividers and
+   empty/no-afford states span both columns. The wheel phase stays centred. */
+@media (min-width: 900px) {
+  .draft-screen { max-width: 1100px; margin-inline: auto; }
+  .bw-picker .bw-player-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-content: start;
+    gap: 6px 12px;
+  }
+  .bw-picker .bw-player-list > .bw-section-divider,
+  .bw-picker .bw-player-list > .bw-no-afford,
+  .bw-picker .bw-player-list > .bw-no-results { grid-column: 1 / -1; }
+}
 
 /* ── Position Wheel (roulette-style) ────────────────────────── */
 .position-wheel-wrap {
@@ -3100,9 +3158,17 @@ html.light-mode .bw-mgr-card.recommended .bw-mgr-card-name { color: var(--bw-tex
 .bw-bench-rating { font: 700 11px var(--bw-font-display); color: #fff; background: var(--bw-rating-bg); padding: 1px 6px; border-radius: 3px !important; flex-shrink: 0; }
 .bw-bench-empty { font-size: 13px; color: var(--bw-text-low); font-style: italic; }
 
-/* Desktop reflow (mock 3c): pitch/tactics left, full XI right */
+/* Desktop reflow (mock 3c): pitch/tactics left, full XI right. The kit header
+   stays a full-bleed broadcast bar; the action bar and body are capped and
+   centred so the two columns don't stretch unusably wide on large monitors. */
 @media (min-width: 820px) {
-  .bw-squad-body { display: grid; grid-template-columns: 1fr 1fr; }
+  .bw-squad-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+  .bw-squad-actions { max-width: 1180px; margin: 0 auto; }
   .bw-squad-left { border-right: 1px solid var(--bw-border); }
   .bw-squad-right-col { padding-top: 2px; }
 }
@@ -5122,6 +5188,21 @@ html.light-mode .bw-wc-stage {
 .bw-match-commentary-label { font: 600 9px var(--bw-font-display); letter-spacing: .2em; color: var(--bw-text-low); margin: 6px 0 8px; }
 .bw-match-feed { display: flex; flex-direction: column; }
 .bw-match-feed-row { display: flex; gap: 11px; padding: 8px 0; border-bottom: 1px solid #141c13; align-items: baseline; }
+
+/* Desktop: the live-match bars stay full-bleed (broadcast look), but their
+   inner content is capped and centred so the scoreboard, possession bar and
+   commentary don't stretch across a wide monitor (the pre-match row is already
+   capped). Keeps commentary line-length readable. */
+@media (min-width: 900px) {
+  .bw-match-score-row,
+  .bw-match-momentum-label, .bw-match-momentum-row,
+  .bw-match-commentary-label, .bw-match-feed,
+  .bw-match-ft {
+    max-width: 760px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
 .bw-match-feed-row:last-child { border-bottom: none; }
 .bw-match-feed-min { font: 600 11px var(--bw-font-mono); color: var(--bw-text-mid); width: 26px; flex-shrink: 0; }
 .bw-match-feed-icon { color: var(--bw-text-low); flex-shrink: 0; }

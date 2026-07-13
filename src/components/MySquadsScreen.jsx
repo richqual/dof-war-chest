@@ -127,7 +127,7 @@ export default function MySquadsScreen({ loadSquads, deleteSquad, onBack }) {
 
   return (
     <div className="setup-screen">
-      <div className="bw-frame">
+      <div className="bw-frame bw-mysq-list-frame">
         <div className="bw-topbar">
           <button className="bw-back-link" onClick={onBack}>← BACK</button>
           <span className="bw-screen-badge">MY SQUADS</span>
