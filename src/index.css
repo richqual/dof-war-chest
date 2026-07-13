@@ -71,10 +71,22 @@ html.wc-theme body {
    panels stay light, leaving a black screen behind them in light mode. */
 html.light-mode.wc-theme {
   /* Warm-tinted light palette so War Chest screens keep the red/orange identity
-     in light mode instead of the green light-mode default. */
+     in light mode instead of the green light-mode default. Also warms up the
+     broadcast-skin tokens (text/surfaces) and darkens the mid/low text so
+     commentary and secondary copy stay readable on the light warm background. */
   --bg:  #f5efe9;
   --bg2: #ece2da;
   --bg3: #e2d4ca;
+
+  --bw-field:    #f5efe9;
+  --bw-recessed: #ece2da;
+  --bw-panel:    #fdfbf8;
+  --bw-raised:   #ece2da;
+  --bw-border:   #d9ccc2;
+  --bw-border2:  #d9ccc2;
+  --bw-text-hi:  #1c120d;
+  --bw-text-mid: #6b5248;
+  --bw-text-low: #9a8478;
 }
 html.light-mode.wc-theme body {
   background-image: none;
