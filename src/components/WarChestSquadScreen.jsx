@@ -113,7 +113,15 @@ export default function WarChestSquadScreen({ draft, setScreen, isHost = true })
           </div>
         ) : (
           <>
-            {n === 2 && (
+            {/* Once the series is decided, don't let the squads screen replay the
+                already-finished final — send the host back to the champion screen
+                (mirrors the n>2 tournament guard below). */}
+            {n === 2 && series?.stage === "champion" && (
+              <button className="bw-cta-arcade" onClick={() => setScreen("series")}>
+                SEE THE RESULTS →
+              </button>
+            )}
+            {n === 2 && series?.stage !== "champion" && (
               <button className="bw-cta-arcade" onClick={() => setScreen("match", { homeIdx: 0, awayIdx: 1 })}>
                 PLAY 60-MIN MATCH →
               </button>

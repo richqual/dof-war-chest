@@ -3265,11 +3265,35 @@ html.light-mode .bw-champ-screen {
   --cc-text-mid:  #5a6b5e;
   --cc-text-low:  #9aa89e;
 }
+/* War Chest keeps its warm red/orange identity on the champion screen too.
+   Only applies under wc-theme, so Classic mode's green celebration is untouched.
+   The light variant uses a 3-class selector so it beats html.light-mode above. */
+html.wc-theme .bw-champ-screen {
+  --cc-bg:        #0f0806;
+  --cc-panel:     #1a0f0b;
+  --cc-border:    #3a2018;
+  --cc-border2:   #45261c;
+  --cc-text-hi:   #f1e8e4;
+  --cc-text-mid:  #b99d94;
+  --cc-text-low:  #7d635c;
+}
+html.light-mode.wc-theme .bw-champ-screen {
+  --cc-bg:        #f5efe9;
+  --cc-panel:     #fdfbf8;
+  --cc-border:    #d9ccc2;
+  --cc-border2:   #cbb9ac;
+  --cc-text-hi:   #1c120d;
+  --cc-text-mid:  #6b5248;
+  --cc-text-low:  #9a8478;
+}
 .bw-champ-stage {
   position: relative;
   height: 280px;
   overflow: hidden;
   background: radial-gradient(120% 90% at 50% 24%, #1c4126, #080f09 74%);
+}
+html.wc-theme .bw-champ-stage {
+  background: radial-gradient(120% 90% at 50% 24%, #4a1c10, #0f0806 74%);
 }
 .bw-champ-stage-spin {
   position: absolute;
