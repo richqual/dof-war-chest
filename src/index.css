@@ -5230,6 +5230,55 @@ html.light-mode .bw-wc-stage {
 .bw-match-moment.goal .bw-match-moment-min, .bw-match-moment.goal .bw-match-moment-text { color: var(--flash-on-a); }
 .bw-match-moment-text { font: 500 14px/1.4 var(--bw-font-body); color: #f7ecd0; }
 
+/* Penalty shootout tracker */
+.bw-match-shootout {
+  margin: 12px 16px 4px;
+  border: 1px solid var(--bw-gold-border);
+  border-radius: 8px !important;
+  background: linear-gradient(180deg, var(--bw-gold-bg), #0e140d);
+  padding: 12px 14px 14px;
+  flex-shrink: 0;
+}
+@media (min-width: 900px) {
+  .bw-match-shootout { max-width: 760px; margin-left: auto; margin-right: auto; }
+}
+.bw-match-shootout-label {
+  font: 700 9px var(--bw-font-display); letter-spacing: .2em;
+  color: var(--bw-gold); text-align: center; margin-bottom: 10px;
+}
+.bw-match-shootout-grid { display: flex; flex-direction: column; gap: 9px; }
+.bw-match-shootout-row { display: flex; align-items: center; gap: 10px; }
+.bw-match-shootout-team {
+  font: 600 12px var(--bw-font-display); flex-shrink: 0;
+  width: 84px; text-align: right; overflow: hidden;
+  white-space: nowrap; text-overflow: ellipsis;
+}
+.bw-match-shootout-dots { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; }
+.bw-match-shootout-dot {
+  width: 14px; height: 14px; border-radius: 50% !important;
+  flex-shrink: 0; border: 1.5px solid transparent;
+  transition: transform 0.2s ease;
+}
+.bw-match-shootout-dot.pending { background: transparent; border-color: #2a3428; }
+.bw-match-shootout-dot.scored { background: #3fae5a; box-shadow: 0 0 0 1px #2c7a40; }
+.bw-match-shootout-dot.missed { background: #d64b4b; box-shadow: 0 0 0 1px #8f2e2e; }
+.bw-match-shootout-dot.sd { margin-left: 6px; }
+.bw-match-shootout-dot.latest { animation: bw-pen-pop 0.36s ease; transform: scale(1.25); }
+@keyframes bw-pen-pop {
+  0% { transform: scale(0.4); opacity: 0.3; }
+  60% { transform: scale(1.4); }
+  100% { transform: scale(1.25); }
+}
+.bw-match-shootout-score {
+  font: 700 15px var(--bw-font-display); color: #f7ecd0;
+  flex-shrink: 0; width: 18px; text-align: center;
+}
+.bw-match-shootout-line {
+  margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--bw-gold-border);
+  font: 500 13px/1.4 var(--bw-font-body); color: #f7ecd0; text-align: center;
+  min-height: 1.4em;
+}
+
 /* Commentary feed */
 .bw-match-commentary { padding: 8px 16px 14px; flex: 1; min-height: 0; overflow-y: auto; }
 .bw-match-commentary-label { font: 600 9px var(--bw-font-display); letter-spacing: .2em; color: var(--bw-text-low); margin: 6px 0 8px; }

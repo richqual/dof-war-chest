@@ -1911,7 +1911,22 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
 
   const currentMin = visibleEvents.length ? visibleEvents[visibleEvents.length - 1].min : 0;
   const latestEvent = visibleEvents.length ? visibleEvents[visibleEvents.length - 1] : null;
-  const showMoment = simulating && latestEvent && isNotable(latestEvent);
+  const isPenKick = e => e && (e.type === "pen_goal" || e.type === "pen_miss");
+  // Pen kicks live in the dedicated shootout tracker, not the big-moment banner.
+  const showMoment = simulating && latestEvent && isNotable(latestEvent) && !isPenKick(latestEvent);
+
+  // --- Penalty shootout tracker state (derived from the visible feed) ---
+  const penEventsVisible = visibleEvents.filter(isPenKick);
+  const shootoutActive = penPaused || penEventsVisible.length > 0;
+  const hPenKicks = penEventsVisible.filter(e => e.team === "home").map(e => e.type === "pen_goal");
+  const aPenKicks = penEventsVisible.filter(e => e.team === "away").map(e => e.type === "pen_goal");
+  const penCols = Math.max(5, hPenKicks.length, aPenKicks.length);
+  const hPenScore = hPenKicks.filter(Boolean).length;
+  const aPenScore = aPenKicks.filter(Boolean).length;
+  const lastPenEvent = penEventsVisible.length ? penEventsVisible[penEventsVisible.length - 1] : null;
+  const lastPenTeam = lastPenEvent?.team ?? null;
+  const lastPenIdx = lastPenTeam === "home" ? hPenKicks.length - 1
+    : lastPenTeam === "away" ? aPenKicks.length - 1 : -1;
 
   let winnerSide = null;
   const drewMatch = done && result && !result.penWinner && result.score.home === result.score.away;
@@ -2101,11 +2116,45 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
           </div>
         )}
 
+        {shootoutActive && (
+          <div className="bw-match-shootout">
+            <div className="bw-match-shootout-label">PENALTY SHOOTOUT</div>
+            <div className="bw-match-shootout-grid">
+              {[
+                { side: "home", name: homeName, accent: homeAccent, kicks: hPenKicks, score: hPenScore },
+                { side: "away", name: awayName, accent: awayAccent, kicks: aPenKicks, score: aPenScore },
+              ].map(row => (
+                <div className="bw-match-shootout-row" key={row.side}>
+                  <span className="bw-match-shootout-team" style={{ color: row.accent }}>{row.name}</span>
+                  <div className="bw-match-shootout-dots">
+                    {Array.from({ length: penCols }).map((_, j) => {
+                      const taken = j < row.kicks.length;
+                      const scored = taken && row.kicks[j];
+                      const isLatest = row.side === lastPenTeam && j === lastPenIdx;
+                      const state = !taken ? "pending" : scored ? "scored" : "missed";
+                      return (
+                        <span
+                          key={j}
+                          className={`bw-match-shootout-dot ${state}${isLatest ? " latest" : ""}${j >= 5 ? " sd" : ""}`}
+                        />
+                      );
+                    })}
+                  </div>
+                  <span className="bw-match-shootout-score">{row.score}</span>
+                </div>
+              ))}
+            </div>
+            {lastPenEvent && (
+              <div className="bw-match-shootout-line">{lastPenEvent.text}</div>
+            )}
+          </div>
+        )}
+
         {visibleEvents.length > 0 && (
           <div className="bw-match-commentary" ref={feedRef}>
             <div className="bw-match-commentary-label">COMMENTARY</div>
             <div className="bw-match-feed">
-              {visibleEvents.map((e, i) => ({ e, i })).reverse().map(({ e, i }) => (
+              {visibleEvents.map((e, i) => ({ e, i })).filter(({ e }) => !isPenKick(e)).reverse().map(({ e, i }) => (
                 <div key={i} className={`bw-match-feed-row ${eventCategory(e)}`}>
                   <span className="bw-match-feed-min">
                     {(e.type === "pen_goal" || e.type === "pen_miss") ? "PEN" : `${e.min}'`}
