@@ -14,11 +14,12 @@ import { useRef, useState, useCallback, useEffect } from "react";
  */
 
 const FRAME = 16.6667;      // ms, reference frame for normalising dt
-const FRICTION = 0.982;     // velocity retained per reference frame during momentum
-const STOP_VEL = 0.016;     // deg/ms — below this the wheel is considered stopped
+const FRICTION = 0.984;     // velocity retained per reference frame during momentum
+const STOP_VEL = 0.008;     // deg/ms — below this the wheel is considered stopped
 const MIN_FLICK = 0.15;     // deg/ms — release faster than this commits a real spin
 const SOFT_FLOOR = 0.7;     // deg/ms — a committed flick gets at least this much oomph
 const DRIFT = 0.16;         // deg/frame idle drift (~9.5°/s) — the "spin me" affordance
+const SPIN_JITTER = 0.26;   // ± fraction of random speed variation added at spin commit
 
 export function useSpinnableWheel({ rotorRef, onLive, onLanded, disabled = false }) {
   const [phase, setPhase] = useState("idle"); // idle | dragging | momentum | done
@@ -80,6 +81,16 @@ export function useSpinnableWheel({ rotorRef, onLive, onLanded, disabled = false
     if (!rafRef.current) { lastTRef.current = 0; rafRef.current = requestAnimationFrame(loop); }
   }, [loop]);
 
+  // Commit the current velocity into a momentum spin, nudged by a random amount
+  // so two near-identical flicks don't come to rest in the same place. The
+  // landing stays physically uniform over the wedges, so the odds are unchanged
+  // — this only breaks the "I can guess where it'll stop" predictability.
+  const commitSpin = useCallback(() => {
+    velRef.current *= 1 + (Math.random() * 2 - 1) * SPIN_JITTER;
+    goPhase("momentum");
+    run();
+  }, [run, goPhase]);
+
   const onPointerDown = useCallback((e) => {
     if (disabledRef.current) return;
     const p = phaseRef.current;
@@ -119,8 +130,7 @@ export function useSpinnableWheel({ rotorRef, onLive, onLanded, disabled = false
       dragRef.current = null;
       if (Math.abs(velRef.current) >= MIN_FLICK) {
         if (Math.abs(velRef.current) < SOFT_FLOOR) velRef.current = Math.sign(velRef.current) * SOFT_FLOOR;
-        goPhase("momentum");
-        run();
+        commitSpin();
       } else {
         // too gentle to count as a flick — no result, drift resumes
         velRef.current = 0;
@@ -133,7 +143,7 @@ export function useSpinnableWheel({ rotorRef, onLive, onLanded, disabled = false
     window.addEventListener("pointerup", up);
     window.addEventListener("pointercancel", up);
     e.preventDefault();
-  }, [paint, stop, run, goPhase]);
+  }, [paint, stop, run, goPhase, commitSpin]);
 
   const flick = useCallback(() => {
     if (disabledRef.current) return;
@@ -142,9 +152,8 @@ export function useSpinnableWheel({ rotorRef, onLive, onLanded, disabled = false
     stop();
     const v = 1.7 + Math.random() * 0.8;
     velRef.current = (Math.random() < 0.5 ? -1 : 1) * v;
-    goPhase("momentum");
-    run();
-  }, [stop, run, goPhase]);
+    commitSpin();
+  }, [stop, commitSpin]);
 
   // Start the idle drift on mount (unless the wheel is disabled, e.g. only one slot left).
   useEffect(() => {

@@ -295,6 +295,15 @@ function TwoPlayerSeriesHub({ draft, series, managers, nextMatchup, isHost, isCp
   );
 }
 
+// Bracket row score: dash until a leg is played (avoids a phantom 0-0 before
+// kick-off). Two-legged ties show the running aggregate in brackets, as is
+// standard in football; single-leg ties show the plain scoreline.
+function bracketScore(slot, idx, singleLeg) {
+  if (!slot || !(slot.legsPlayed > 0)) return "–";
+  const g = slot.goals?.[idx] ?? 0;
+  return singleLeg ? g : `(${g})`;
+}
+
 // Tournament bracket panel — handles 4-team (semis+final) and 8-team (quarters+semis+final)
 function TournamentBracket({ series, managers }) {
   const quarters = series.quarters || [];
@@ -335,16 +344,13 @@ function TournamentBracket({ series, managers }) {
                 <div className={`bw-bracket-row ${sm.winner === sm.p[0] ? "bw-bracket-winner" : sm.winner !== null ? "bw-bracket-out" : ""}`}>
                   <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bs${i}a`} size={16} />
                   <span>{m0.teamName || m0.clubName || m0.name}</span>
-                  <span className="bw-bracket-score">{sm.goals?.[0] ?? 0}</span>
+                  <span className="bw-bracket-score">{bracketScore(sm, 0, series.singleLeg)}</span>
                 </div>
                 <div className={`bw-bracket-row ${sm.winner === sm.p[1] ? "bw-bracket-winner" : sm.winner !== null ? "bw-bracket-out" : ""}`}>
                   <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bs${i}b`} size={16} />
                   <span>{m1.teamName || m1.clubName || m1.name}</span>
-                  <span className="bw-bracket-score">{sm.goals?.[1] ?? 0}</span>
+                  <span className="bw-bracket-score">{bracketScore(sm, 1, series.singleLeg)}</span>
                 </div>
-                {sm.legsPlayed === 1 && sm.winner === null && (
-                  <div className="bw-bracket-adv">Agg: {sm.goals[0]}–{sm.goals[1]} · Leg 2 to come</div>
-                )}
                 {sm.winner !== null && (
                   <div className="bw-bracket-adv">
                     → {managers[sm.winner].teamName || managers[sm.winner].name} advance
@@ -370,16 +376,13 @@ function TournamentBracket({ series, managers }) {
                   <div className={`bw-bracket-row ${q.winner === q.p[0] ? "bw-bracket-winner" : q.winner !== null ? "bw-bracket-out" : ""}`}>
                     <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bq${i}a`} size={16} />
                     <span>{m0.teamName || m0.clubName || m0.name}</span>
-                    <span className="bw-bracket-score">{q.goals?.[0] ?? 0}</span>
+                    <span className="bw-bracket-score">{bracketScore(q, 0, series.singleLeg)}</span>
                   </div>
                   <div className={`bw-bracket-row ${q.winner === q.p[1] ? "bw-bracket-winner" : q.winner !== null ? "bw-bracket-out" : ""}`}>
                     <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bq${i}b`} size={16} />
                     <span>{m1.teamName || m1.clubName || m1.name}</span>
-                    <span className="bw-bracket-score">{q.goals?.[1] ?? 0}</span>
+                    <span className="bw-bracket-score">{bracketScore(q, 1, series.singleLeg)}</span>
                   </div>
-                  {q.legsPlayed === 1 && q.winner === null && (
-                    <div className="bw-bracket-adv">Agg: {q.goals[0]}–{q.goals[1]} · Leg 2 to come</div>
-                  )}
                   {q.winner !== null && (
                     <div className="bw-bracket-adv">
                       → {(managers[q.winner].teamName || managers[q.winner].name)} advance
@@ -920,7 +923,7 @@ function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone }) {
                 </div>
               </div>
             )}
-            <button className="sim-btn cpu-sim-continue" onClick={confirm}>CONTINUE ▶</button>
+            <button className="bw-cta-arcade cpu-sim-continue" onClick={confirm}>CONTINUE ▶</button>
           </div>
         )}
       </div>

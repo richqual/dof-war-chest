@@ -66,18 +66,18 @@ function dedupByName(arr) {
 
 const VALANCE_BULBS = Array.from({ length: 8 }, (_, i) => i);
 
-const RIDER_DELAYS = [0, -2.4, -4.8, -7.2, -9.6];
+// Three riders — one per real option — evenly spaced (12s / 3) around the orbit.
+const RIDER_DELAYS = [0, -4, -8];
 
 function RideStage({ riders }) {
-  // Progressive reveal is driven by the parent's `revealed` counter — riders[0..2]
-  // are the real offer (null = not yet revealed), riders[3..4] are decorative filler
-  // shown immediately so the wheel always looks fully populated.
+  // Progressive reveal is driven by the parent's `revealed` counter — every rider
+  // is a real offer slot that starts as "?????" and flips to the manager once
+  // revealed. No decorative filler: the wheel only ever shows the three choices.
   return (
     <div className="bw-ride-stage">
       <div className="bw-ride-lights-bg" />
 
       <div className="bw-ride-finial">
-        <div className="bw-ride-flag" />
         <div className="bw-ride-finial-ball" />
         <div className="bw-ride-finial-pole" />
       </div>
@@ -104,7 +104,7 @@ function RideStage({ riders }) {
           className="bw-ride-orbit"
           style={{ animationDelay: `${RIDER_DELAYS[i]}s` }}
         >
-          <div className="bw-ride-orbit-card">
+          <div className={`bw-ride-orbit-card ${m ? "" : "pending"}`}>
             <div className="bw-ride-orbit-name">{m ? m.name : "?????"}</div>
             <div className="bw-ride-orbit-style">{m ? m.styleLabel : "···"}</div>
           </div>
@@ -272,7 +272,12 @@ export default function ManagerDraftScreen({
   const [assignments, setAssignments] = useState({});
   const timers = useRef([]);
   const pendingOffer = useRef(null);
-  const [rideFiller, setRideFiller] = useState([]);
+  // `settled` gates the transition from the spinning ride to the choice cards —
+  // it flips true a beat AFTER the final option is revealed, so the wheel keeps
+  // spinning for a moment rather than snapping away the instant reveal completes.
+  const [settled, setSettled] = useState(false);
+  // A human's tapped-but-not-yet-confirmed choice; drives the confirm dialog.
+  const [pendingPick, setPendingPick] = useState(null);
 
   // Refs for stale-closure-safe external pick handling
   const poolRef = useRef(pool);
@@ -322,19 +327,23 @@ export default function ManagerDraftScreen({
     setCpuPick(null);
     setRevealed(0);
     setOffered(null);
+    setSettled(false);
+    setPendingPick(null);
 
     pendingOffer.current = dedupByName(shuffle(filterByRoulette(pool, currentManager))).slice(0, 3);
-    const offeredIds = new Set(pendingOffer.current.map(m => m.id));
-    setRideFiller(dedupByName(shuffle(MANAGERS)).filter(m => !offeredIds.has(m.id)).slice(0, 2));
 
     const t0 = setTimeout(() => {
       setSpinning(false);
       setOffered(pendingOffer.current);
-      const t1 = setTimeout(() => setRevealed(1), 1800);
+      // Reveal the three horses one at a time while the wheel keeps turning,
+      // with a generous gap between each for suspense, then hold the spin a good
+      // beat longer (settle) before the choice cards appear.
+      const t1 = setTimeout(() => setRevealed(1), 2000);
       const t2 = setTimeout(() => setRevealed(2), 4200);
-      const t3 = setTimeout(() => setRevealed(3), 6800);
-      timers.current = [t1, t2, t3];
-    }, 3500);
+      const t3 = setTimeout(() => setRevealed(3), 6400);
+      const t4 = setTimeout(() => setSettled(true), 8800);
+      timers.current = [t1, t2, t3, t4];
+    }, 3600);
     timers.current = [t0];
   }
 
@@ -343,6 +352,7 @@ export default function ManagerDraftScreen({
     setOffered(pendingOffer.current || dedupByName(shuffle(filterByRoulette(pool, currentManager))).slice(0, 3));
     setSpinning(false);
     setRevealed(3);
+    setSettled(true);
   }
 
   // CPU highlights its top pick after all cards are revealed
@@ -385,6 +395,8 @@ export default function ManagerDraftScreen({
       setCpuPick(null);
       setRevealed(0);
       setOffered(null);
+      setSettled(false);
+      setPendingPick(null);
 
       const newAssignments = { ...assignmentsRef.current, [currentManagerIdx]: pick };
       setAssignments(newAssignments);
@@ -412,6 +424,8 @@ export default function ManagerDraftScreen({
     setCpuPick(null);
     setRevealed(0);
     setOffered(null);
+    setSettled(false);
+    setPendingPick(null);
 
     const newAssignments = { ...assignments, [currentManagerIdx]: manager };
     setAssignments(newAssignments);
@@ -460,6 +474,8 @@ export default function ManagerDraftScreen({
     setOffered(null);
     setRevealed(0);
     setCpuPick(null);
+    setSettled(false);
+    setPendingPick(null);
 
     if (nextHumanIdx !== null) {
       setTurnIdx(nextHumanIdx);
@@ -498,7 +514,7 @@ export default function ManagerDraftScreen({
 
   // Non-active human turn in multiplayer: show waiting state
   const theirTurn = isMultiplayer && isHuman && !isMyTurn;
-  const showChoose = !theirTurn && !spinning && !!offered && revealed >= 3;
+  const showChoose = !theirTurn && !spinning && !!offered && revealed >= 3 && settled;
   const showRide = !theirTurn && !showChoose;
   const revealedOffered = offered ? offered.slice(0, revealed) : [];
   const sortedOffered = offered ? [...offered].sort((a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier]) : [];
@@ -506,8 +522,6 @@ export default function ManagerDraftScreen({
     revealedOffered[0] || null,
     revealedOffered[1] || null,
     revealedOffered[2] || null,
-    rideFiller[0] || null,
-    rideFiller[1] || null,
   ];
 
   return (
@@ -562,7 +576,7 @@ export default function ManagerDraftScreen({
               {waitingForGo && !spinning && isHuman && isMyTurn && (
                 <button className="bw-cta-arcade" onClick={spinAndReveal}>↻ SPIN THE WHEEL</button>
               )}
-              {(spinning || (!!offered && revealed < 3)) && (
+              {(spinning || (!!offered && !settled)) && (
                 <button className="bw-cta-secondary" onClick={skipReveal}>SKIP</button>
               )}
               {spinning && !isHuman && isHost && (
@@ -580,13 +594,13 @@ export default function ManagerDraftScreen({
                   : "Deliberating..."}
             </div>
             <div className="bw-mgr-picks">
-              {sortedOffered.map((mgr, i) => (
+              {sortedOffered.map((mgr) => (
                 <ManagerCard
                   key={mgr.id}
                   manager={mgr}
-                  onPick={isHuman && isMyTurn ? handlePick : () => {}}
+                  onPick={isHuman && isMyTurn ? setPendingPick : () => {}}
                   disabled={!isHuman || !isMyTurn}
-                  highlighted={isHuman ? i === 0 : cpuPick?.id === mgr.id}
+                  highlighted={isHuman ? pendingPick?.id === mgr.id : cpuPick?.id === mgr.id}
                   showPickButton={isHuman}
                 />
               ))}
@@ -608,6 +622,25 @@ export default function ManagerDraftScreen({
           <PicksLog assignments={assignments} draft={draft} />
         </div>
       </div>
+
+      {pendingPick && (
+        <div className="bw-modal-overlay" onClick={() => setPendingPick(null)}>
+          <div className="bw-modal-box" onClick={e => e.stopPropagation()}>
+            <div className="bw-modal-title">CONFIRM APPOINTMENT</div>
+            <div className="bw-confirm-name">{pendingPick.name}</div>
+            <div className="bw-confirm-detail">{pendingPick.styleLabel}</div>
+            <div className="bw-confirm-detail" style={{ marginBottom: 18 }}>
+              Appoint as gaffer for <strong style={{ color: "var(--bw-gold)" }}>{clubDisplayName}</strong>?
+            </div>
+            <div className="bw-confirm-btns">
+              <button className="bw-cta-primary" onClick={() => handlePick(pendingPick)}>
+                APPOINT {pendingPick.name.trim().split(" ").pop().toUpperCase()} →
+              </button>
+              <button className="bw-cta-secondary" onClick={() => setPendingPick(null)}>CANCEL</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

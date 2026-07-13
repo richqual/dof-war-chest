@@ -1,6 +1,7 @@
 import { WAR_CHEST_SLOTS } from "../hooks/draftUtils";
 import { formatValue, getRatingBg, getRatingColor } from "../data/players";
 import KitSwatch, { kitAccent } from "./KitSwatch";
+import { squadRating } from "./SquadScreen";
 
 function formatChest(v) {
   if (v === null || v === undefined) return "—";
@@ -25,6 +26,7 @@ function SquadCard({ manager, uid }) {
   const spent = budget - remaining;
   const pct = budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;
   const accent = kitAccent(manager.primaryColor, manager.secondaryColor);
+  const ovr = squadRating(manager.squad);
 
   return (
     <div className="bw-wcs-card" style={{ borderColor: manager.primaryColor }}>
@@ -48,6 +50,12 @@ function SquadCard({ manager, uid }) {
         <div className="bw-wcs-budget-row">
           <span className="bw-wcs-budget-spent">{formatChest(spent)} spent</span>
           <span className="bw-wcs-budget-of">of {formatChest(budget)}</span>
+          {ovr > 0 && (
+            <span className="bw-wcs-ovr">
+              <span className="bw-wcs-ovr-num">{ovr}</span>
+              <span className="bw-wcs-ovr-label">OVR</span>
+            </span>
+          )}
         </div>
         <div className="bw-wcs-budget-track">
           <div className="bw-wcs-budget-fill" style={{ width: `${pct}%` }} />

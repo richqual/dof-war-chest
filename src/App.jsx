@@ -65,9 +65,10 @@ function GlobalMenu({ light, onToggle, largeText, onToggleLargeText, hasGame, on
   return (
     <>
       <button
-        className="global-menu-btn"
+        className={"global-menu-tab" + (open ? " is-open" : "")}
         onClick={() => setOpen(o => !o)}
         title="Menu"
+        aria-label="Menu"
       >
         ☰
       </button>
@@ -1000,7 +1001,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "3.9.24";
+const APP_VERSION = "3.9.31";
 
 function AppFooter() {
   return (

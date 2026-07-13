@@ -723,13 +723,13 @@ export default function DraftScreen({
                 )
               )}
               {affordable.map(p => (
-                <PlayerCard key={p.id} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} />
+                <PlayerCard key={p.id} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.preferredArchetypes} />
               ))}
               {tooExpensive.length > 0 && (
                 <>
                   <div className="bw-section-divider">OUT OF BUDGET</div>
                   {tooExpensive.map(p => (
-                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} budget={currentBudget} />
+                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} budget={currentBudget} preferredArchetypes={activeManager?.preferredArchetypes} />
                   ))}
                 </>
               )}
@@ -737,7 +737,7 @@ export default function DraftScreen({
                 <>
                   <div className="bw-section-divider">ALREADY SIGNED</div>
                   {takenPlayers.map(p => (
-                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} takenBy={p.ownedBy} />
+                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} takenBy={p.ownedBy} preferredArchetypes={activeManager?.preferredArchetypes} />
                   ))}
                 </>
               )}

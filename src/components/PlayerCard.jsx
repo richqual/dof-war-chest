@@ -12,7 +12,10 @@ export const ARCHETYPE_COLOR = {
   Organiser:        { bg: "#1a1a3a", fg: "#8899ff" },
 };
 
-export default function PlayerCard({ player, onPick, canAfford, compact = false, hideRatings = false, takenBy = null, hideBadges = false, budget = null }) {
+export default function PlayerCard({ player, onPick, canAfford, compact = false, hideRatings = false, takenBy = null, hideBadges = false, budget = null, preferredArchetypes = null }) {
+  const arch = player.archetype;
+  const archColors = arch ? ARCHETYPE_COLOR[arch] : null;
+  const isPreferred = arch && preferredArchetypes && preferredArchetypes.includes(arch);
   const rowClass = takenBy
     ? "bw-player-row taken"
     : `bw-player-row ${canAfford ? "affordable" : "unaffordable"}`;
@@ -36,8 +39,15 @@ export default function PlayerCard({ player, onPick, canAfford, compact = false,
       <div className="bw-player-info">
         <div className="bw-player-name-row">
           <span className="bw-player-name">{player.nation} {player.name}</span>
-          {!hideBadges && player.archetype && (
-            <span className="bw-player-tag">{player.archetype}</span>
+          {!hideBadges && arch && (
+            <span
+              className={`bw-player-tag${isPreferred ? " preferred" : ""}`}
+              style={archColors ? { background: archColors.bg, color: archColors.fg, borderColor: `${archColors.fg}55` } : undefined}
+              title={isPreferred ? `Preferred archetype for your Director of Football` : undefined}
+            >
+              {isPreferred && <span className="bw-player-tag-star">★</span>}
+              {arch}
+            </span>
           )}
         </div>
         {!compact && (

@@ -1039,8 +1039,14 @@ html.wc-theme .bw-msp-header { background: linear-gradient(90deg, #2a1610, #240e
   border-radius: 3px !important;
   background: var(--bw-raised);
   color: var(--bw-text-mid);
+  border: 1px solid transparent;
   vertical-align: middle;
 }
+.bw-player-tag.preferred {
+  border-color: var(--bw-gold) !important;
+  box-shadow: 0 0 0 1px var(--bw-gold), 0 0 8px rgba(245,197,66,.45);
+}
+.bw-player-tag-star { margin-right: 3px; color: var(--bw-gold); }
 .bw-player-club { font-size: 12px; color: var(--bw-text-low); margin-top: 2px; }
 .bw-player-value { font: 700 14px var(--bw-font-display); color: var(--bw-gold); flex-shrink: 0; min-width: 52px; text-align: right; }
 .bw-player-row.unaffordable .bw-player-value { color: #e0701a; }
@@ -1998,10 +2004,6 @@ html.light-mode .bw-wc-lobby {
   87.5% { transform: translate(-108px,21px) scale(.92);  opacity: .9;  z-index: 4; }
   100%  { transform: translate(0px,30px)    scale(1);    opacity: 1;   z-index: 4; }
 }
-@keyframes bw-flagwave {
-  0%, 100% { transform: skewY(0deg) scaleX(1); }
-  50% { transform: skewY(-7deg) scaleX(.9); }
-}
 
 .bw-ride-stage {
   position: relative;
@@ -2023,13 +2025,6 @@ html.light-mode .bw-wc-lobby {
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-.bw-ride-flag {
-  width: 12px; height: 22px;
-  background: linear-gradient(90deg, var(--bw-gold), #e0701a);
-  clip-path: polygon(0 0, 100% 25%, 0 55%);
-  transform-origin: left center;
-  animation: bw-flagwave 1.6s ease-in-out infinite;
 }
 .bw-ride-finial-ball {
   width: 11px; height: 11px;
@@ -2121,6 +2116,12 @@ html.light-mode .bw-wc-lobby {
   box-shadow: 0 10px 24px rgba(0,0,0,.5);
   text-align: center;
 }
+.bw-ride-orbit-card.pending {
+  background: linear-gradient(180deg, #16130a, #0b100c);
+  border-style: dashed;
+  border-color: var(--bw-gold-border);
+}
+.bw-ride-orbit-card.pending .bw-ride-orbit-name { color: var(--bw-gold-border); letter-spacing: .12em; }
 .bw-ride-orbit-name { font: 600 18px var(--bw-font-display); color: #fff; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bw-ride-orbit-style { font-size: 12px; color: var(--bw-gold); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
@@ -3605,91 +3606,112 @@ html.wc-theme .bw-roulette-team { background: linear-gradient(90deg, #2a1610, #2
 .squad-best--unset { color: var(--text3); font-style: italic; }
 
 /* ── Global Persistent Menu ──────────────────────────────── */
-.global-menu-btn {
+/* ── Global menu (Broadcast skin, R8 option 8b) ──────────────────────────────
+   Slim gold pull-tab flush against the right edge; tapping slides a panel in
+   from the right over a scrim. Keeps the top-right corner free for score/
+   context on every screen. */
+.global-menu-tab {
   position: fixed;
-  top: 8px;
-  right: 8px;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
   z-index: 10002;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  color: var(--text2);
-  font-size: 16px;
-  padding: 5px 10px;
+  width: 22px;
+  height: 66px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bw-gold, var(--amber));
+  color: var(--bw-gold-ink, #0a0f0b);
+  border: none;
+  border-radius: 8px 0 0 8px !important;
+  box-shadow: var(--bw-shadow-amber, 0 4px 14px rgba(245,197,66,.28));
   cursor: pointer;
+  font-size: 13px;
   line-height: 1;
-  font-family: inherit;
-  letter-spacing: 0.05em;
-  transition: border-color 0.15s, color 0.15s;
+  writing-mode: vertical-rl;
+  transition: transform 0.28s cubic-bezier(.4,0,.2,1), filter 0.15s;
 }
-.global-menu-btn:hover {
-  border-color: var(--amber);
-  color: var(--amber);
-}
+.global-menu-tab:hover { filter: brightness(1.08); }
+/* When open, ride along the panel's left edge as its handle. */
+.global-menu-tab.is-open { transform: translateY(-50%) translateX(calc(-1 * min(340px, 82vw))); }
+
 .global-menu-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0,0,0,0.55);
   z-index: 10003;
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: flex-end;
-  padding-top: 44px;
-  padding-right: 8px;
+  animation: gm-fade 0.2s ease;
 }
+@keyframes gm-fade { from { opacity: 0; } to { opacity: 1; } }
 .global-menu-box {
-  background: var(--bg2);
-  border: 2px solid var(--amber);
-  min-width: 240px;
+  width: min(340px, 82vw);
+  height: 100%;
+  overflow-y: auto;
+  background: var(--bw-recessed, var(--bg2));
+  border-left: 1px solid var(--bw-gold, var(--amber));
+  box-shadow: -14px 0 34px rgba(0,0,0,.5);
   display: flex;
   flex-direction: column;
   gap: 0;
+  padding: 0.5rem 0 1.25rem;
+  animation: gm-slide 0.28s cubic-bezier(.4,0,.2,1);
 }
+@keyframes gm-slide { from { transform: translateX(100%); } to { transform: translateX(0); } }
 .global-menu-title {
-  font-size: 0.7rem;
+  font-family: var(--bw-font-display, inherit);
+  font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.12em;
-  color: var(--amber);
-  padding: 0.6rem 1rem;
-  border-bottom: 1px solid var(--border);
+  color: var(--bw-gold, var(--amber));
+  padding: 0.75rem 1.15rem 0.6rem;
 }
 .global-menu-item {
   background: none;
   border: none;
-  color: var(--text1);
-  font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  padding: 0.7rem 1rem;
+  border-top: 1px solid var(--bw-border, var(--border));
+  color: var(--bw-text-hi, var(--text1));
+  font-family: var(--bw-font-display, inherit);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.85rem 1.15rem;
   text-align: left;
   cursor: pointer;
   transition: background 0.12s, color 0.12s;
   width: 100%;
 }
-.global-menu-item:hover { background: var(--bg3); color: var(--amber); }
-.global-menu-item.danger { color: #f87171; }
-.global-menu-item.danger:hover { background: rgba(248,113,113,0.1); color: #f87171; }
+.global-menu-item:hover { background: var(--bw-panel, var(--bg3)); color: var(--bw-gold, var(--amber)); }
+.global-menu-item.danger { color: #e0522f; }
+.global-menu-item.danger:hover { background: rgba(224,82,47,0.1); color: #e0522f; }
 .global-menu-divider {
   height: 1px;
-  background: var(--border);
+  background: transparent;
   margin: 0;
 }
 .global-menu-warn {
-  font-size: 0.7rem;
-  color: var(--text2);
-  padding: 0 1rem 0.6rem;
+  font-family: var(--bw-font-body, inherit);
+  font-size: 0.75rem;
+  color: var(--bw-text-mid, var(--text2));
+  padding: 0.4rem 1.15rem 0.5rem;
   margin: 0;
   line-height: 1.4;
 }
 
 .global-menu-account {
-  padding: 0.5rem 1rem 0.25rem;
+  padding: 0.7rem 1.15rem 0.3rem;
+  border-top: 1px solid var(--bw-border, var(--border));
 }
 .global-menu-account-name {
-  font-size: 0.72rem;
-  color: var(--amber);
-  letter-spacing: 0.06em;
-  font-weight: 600;
+  font-family: var(--bw-font-display, inherit);
+  font-size: 0.76rem;
+  color: var(--bw-gold, var(--amber));
+  letter-spacing: 0.05em;
+  font-weight: 700;
 }
 
 /* ── Profile screen (Broadcast skin) — bw-frame shell + shared kit primitives. */
@@ -3969,19 +3991,21 @@ html.wc-theme .bw-roulette-team { background: linear-gradient(90deg, #2a1610, #2
   backdrop-filter: blur(4px);
 }
 .cpu-sim-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  background: var(--bw-panel);
+  border: 1px solid var(--bw-border);
+  border-top: 3px solid var(--bw-gold);
+  border-radius: var(--bw-radius-card) !important;
+  box-shadow: var(--bw-shadow-modal);
   padding: 24px 28px 20px;
   width: min(420px, 92vw);
   text-align: center;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+  font-family: var(--bw-font-body);
 }
 .cpu-sim-label {
-  font-family: var(--font-head);
-  font-size: 11px;
-  letter-spacing: 3px;
-  color: var(--amber);
+  font: 400 15px var(--bw-font-marquee);
+  letter-spacing: .02em;
+  color: var(--bw-gold);
+  text-shadow: 0 0 8px rgba(245,197,66,.4);
   margin-bottom: 18px;
 }
 .cpu-sim-teams {
@@ -4002,16 +4026,14 @@ html.wc-theme .bw-roulette-team { background: linear-gradient(90deg, #2a1610, #2
   align-items: center;
 }
 .cpu-sim-team-name {
-  font-family: var(--font-sub);
-  font-size: 14px;
+  font: 600 14px var(--bw-font-display);
   line-height: 1.2;
   text-align: center;
 }
 .cpu-sim-score {
   flex: 0 0 auto;
-  font-family: var(--font-head);
-  font-size: 32px;
-  color: var(--text);
+  font: 400 32px var(--bw-font-marquee);
+  color: var(--bw-text-hi);
   min-width: 72px;
   text-align: center;
 }
@@ -4025,10 +4047,9 @@ html.wc-theme .bw-roulette-team { background: linear-gradient(90deg, #2a1610, #2
   to   { transform: rotate(360deg); }
 }
 .cpu-sim-status {
-  font-family: var(--font-head);
-  font-size: 11px;
+  font: 600 11px var(--bw-font-display);
   letter-spacing: 2px;
-  color: var(--text3);
+  color: var(--bw-text-mid);
   margin-bottom: 8px;
 }
 .cpu-sim-result {
@@ -4038,10 +4059,9 @@ html.wc-theme .bw-roulette-team { background: linear-gradient(90deg, #2a1610, #2
   gap: 10px;
 }
 .cpu-sim-pens {
-  font-family: var(--font-head);
-  font-size: 11px;
+  font: 600 11px var(--bw-font-display);
   letter-spacing: 2px;
-  color: var(--amber);
+  color: var(--bw-gold);
 }
 .cpu-sim-scorers {
   display: flex;
@@ -4060,9 +4080,9 @@ html.wc-theme .bw-roulette-team { background: linear-gradient(90deg, #2a1610, #2
   align-items: flex-end;
 }
 .cpu-sim-scorer-name {
-  font-family: var(--font-sub);
+  font-family: var(--bw-font-body);
   font-size: 13px;
-  color: var(--text2);
+  color: var(--bw-text-mid);
 }
 .cpu-sim-continue {
   margin-top: 4px;
@@ -5455,6 +5475,9 @@ html.light-mode .bw-wcs-screen {
 .bw-wcs-budget-row { display: flex; align-items: baseline; gap: 6px; }
 .bw-wcs-budget-spent { font: 600 14px var(--bw-font-display); color: var(--bw-gold); }
 .bw-wcs-budget-of { font-size: 13px; color: var(--cc-text-mid); }
+.bw-wcs-ovr { margin-left: auto; display: inline-flex; align-items: baseline; gap: 4px; }
+.bw-wcs-ovr-num { font: 700 18px var(--bw-font-display); color: var(--bw-gold); line-height: 1; }
+.bw-wcs-ovr-label { font: 600 8px var(--bw-font-display); letter-spacing: .2em; color: var(--cc-text-low); }
 
 .bw-wcs-budget-track {
   height: 5px;
