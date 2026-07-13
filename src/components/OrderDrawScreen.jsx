@@ -31,6 +31,7 @@ export default function OrderDrawScreen({ draft, onStart }) {
   const [pickStep, setPickStep] = useState(0);
   const [phase, setPhase]       = useState("waiting"); // waiting | drawing | revealed | summary
   const [revealInfo, setRevealInfo]   = useState(null); // { mIdx, ballIdx, pos }
+  const [nameRevealed, setNameRevealed] = useState(false); // lags the ball: club name fills into the list AFTER the ball shows its number
   const [completedDraws, setCompletedDraws] = useState([]); // [{ mIdx, ballIdx, pos }]
 
   const timers = useRef([]);
@@ -64,11 +65,16 @@ export default function OrderDrawScreen({ draft, onStart }) {
     setAvailableBalls(prev => prev.filter(b => b !== ballIdx));
     setPhase("drawing");
     setRevealInfo({ mIdx, ballIdx, pos });
+    setNameRevealed(false);
 
     addTimer(() => setPhase("revealed"), 700);
+    // Ball has shown its number — fill the club name into the list a beat
+    // later so the ball is read first, then the name drops into the order.
+    addTimer(() => setNameRevealed(true), 1700);
     addTimer(() => {
       setCompletedDraws(prev => [...prev, { mIdx, ballIdx, pos }]);
       setRevealInfo(null);
+      setNameRevealed(false);
       const next = mIdx + 1;
       if (next >= n) {
         setPhase("summary");
@@ -207,7 +213,6 @@ export default function OrderDrawScreen({ draft, onStart }) {
           {phase === "revealed" && revealInfo && (
             <div className="bw-draw-result-banner">
               <span className="bw-draw-result-pill">{ordinal(revealInfo.pos)} PICK</span>
-              <span className="bw-draw-result-name">{managers[revealInfo.mIdx].clubName || managers[revealInfo.mIdx].name}</span>
             </div>
           )}
         </div>
@@ -226,17 +231,20 @@ export default function OrderDrawScreen({ draft, onStart }) {
               const pos = i + 1;
               const done = completedDraws.some(d => d.pos === pos);
               const isNow = revealInfo?.pos === pos;
+              // Only show the club name once the ball has landed (nameRevealed),
+              // so the list fills in just after the ball — never before it.
+              const showName = done || (isNow && nameRevealed);
               const m = managers[mIdx];
               return (
                 <div key={i} className={`bw-pick-order-row ${done ? "done" : isNow ? "now" : "pending"}`}>
                   <span className="bw-pick-order-num">{ordinal(pos)}</span>
-                  {(done || isNow) ? (
+                  {showName ? (
                     <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern || "plain"} uid={`po-${i}`} size={16} />
                   ) : (
                     <span className="bw-pick-order-swatch-placeholder" />
                   )}
-                  <span className={`bw-pick-order-club ${!done && !isNow ? "pending" : ""}`}>
-                    {done || isNow ? (m.clubName || m.name) : "To be drawn"}
+                  <span className={`bw-pick-order-club ${!showName ? "pending" : ""}`}>
+                    {showName ? (m.clubName || m.name) : "To be drawn"}
                   </span>
                   {done && <span className="bw-pick-order-check">✓</span>}
                   {isNow && <span className="bw-pick-order-now-tag">NOW</span>}
