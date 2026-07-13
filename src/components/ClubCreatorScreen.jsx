@@ -120,27 +120,11 @@ function makeCpuClub(existingNames, takenColors = []) {
 
 // ── Shared club editor form ───────────────────────────────────────────────────
 
-function ClubEditorForm({ club, onChange, index, hideFormation = false, profileDefaults }) {
+function ClubEditorForm({ club, onChange, index, hideFormation = false }) {
   const defaults = HUMAN_KITS[index % HUMAN_KITS.length];
-
-  function applyProfile() {
-    onChange({
-      ...club,
-      dofName:        profileDefaults.dofName        || club.dofName,
-      clubName:       profileDefaults.clubName        || club.clubName,
-      primaryColor:   profileDefaults.primaryColor    || club.primaryColor,
-      secondaryColor: profileDefaults.secondaryColor  || club.secondaryColor,
-      pattern:        profileDefaults.pattern         || club.pattern,
-    });
-  }
 
   return (
     <>
-      {profileDefaults && (
-        <button className="bw-autofill-btn" type="button" onClick={applyProfile}>
-          ⚽ USE MY SAVED CLUB
-        </button>
-      )}
       <div className="bw-field">
         <div className="bw-field-label">DIRECTOR OF FOOTBALL</div>
         <input
@@ -394,19 +378,37 @@ export default function ClubCreatorScreen({ config, onStart, onBack, profileDefa
               <span className="bw-badge-pill bw-badge-pill-human">
                 {numHumans > 1 ? `PLAYER ${step + 1}` : "PLAYER"}
               </span>
-              <button
-                className="bw-dice-btn"
-                onClick={() => {
-                  const identity = randomHumanIdentity(club.clubName);
-                  updateClub(step, { ...club, ...identity, isComputer: false });
-                }}
-                title="Randomise everything"
-              >
-                🎲
-              </button>
+              <div className="bw-field-row-actions">
+                {step === 0 && profileDefaults && (
+                  <button
+                    className="bw-autofill-btn"
+                    type="button"
+                    onClick={() => updateClub(step, {
+                      ...club,
+                      dofName:        profileDefaults.dofName        || club.dofName,
+                      clubName:       profileDefaults.clubName       || club.clubName,
+                      primaryColor:   profileDefaults.primaryColor   || club.primaryColor,
+                      secondaryColor: profileDefaults.secondaryColor || club.secondaryColor,
+                      pattern:        profileDefaults.pattern        || club.pattern,
+                    })}
+                  >
+                    ⚽ USE MY SAVED CLUB
+                  </button>
+                )}
+                <button
+                  className="bw-dice-btn"
+                  onClick={() => {
+                    const identity = randomHumanIdentity(club.clubName);
+                    updateClub(step, { ...club, ...identity, isComputer: false });
+                  }}
+                  title="Randomise everything"
+                >
+                  🎲
+                </button>
+              </div>
             </div>
 
-            <ClubEditorForm club={club} onChange={updated => updateClub(step, updated)} index={step} hideFormation={hideFormation} profileDefaults={step === 0 ? profileDefaults : null} />
+            <ClubEditorForm club={club} onChange={updated => updateClub(step, updated)} index={step} hideFormation={hideFormation} />
 
             <button
               className="bw-cta-primary"

@@ -31,8 +31,36 @@ function squadRating(squad) {
   return Math.round(starters.reduce((s, p) => s + p.rating, 0) / starters.length);
 }
 
-function SquadPitch({ squad, formation, swapSlot, onSlotClick }) {
+// Typical GK-kit colours. The keeper is shown in whichever of these sits
+// furthest from the club's outfield colours, so it never clashes.
+const GK_KITS = ["#1f8a3b", "#111111", "#f0c400", "#f07000"];
+
+function hexRgb(h) {
+  const s = (h || "").replace("#", "");
+  const v = s.length === 3 ? s.split("").map(c => c + c).join("") : s;
+  const n = parseInt(v, 16);
+  return Number.isNaN(n) ? [128, 128, 128] : [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function colorDist(a, b) {
+  const [r1, g1, b1] = hexRgb(a), [r2, g2, b2] = hexRgb(b);
+  return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
+}
+function pickGkKit(primary, secondary) {
+  let best = GK_KITS[0], bestScore = -1;
+  for (const gk of GK_KITS) {
+    // Score by the closest club colour — maximise the worst-case separation.
+    const score = Math.min(colorDist(gk, primary || "#888"), colorDist(gk, secondary || primary || "#888"));
+    if (score > bestScore) { bestScore = score; best = gk; }
+  }
+  return best;
+}
+
+function SquadPitch({ squad, formation, swapSlot, onSlotClick, kitPrimary, kitSecondary }) {
   const coords = FORMATIONS[formation];
+  const tokenBg = kitPrimary || null;
+  const tokenInk = kitPrimary ? readableTextOn(kitPrimary) : null;
+  const tokenBorder = kitSecondary || "rgba(255,255,255,.9)";
+  const gkKit = kitPrimary ? pickGkKit(kitPrimary, kitSecondary) : null;
   return (
     <div className="bw-pitch">
       <div className="bw-pitch-stripes" />
@@ -42,6 +70,9 @@ function SquadPitch({ squad, formation, swapSlot, onSlotClick }) {
         const player = squad[i];
         const isSwapping = swapSlot === i;
         const lc = lineColors(coord.pos);
+        const isGk = coord.pos === "GK";
+        const slotBg = isGk && gkKit ? gkKit : (tokenBg || lc.bg);
+        const slotInk = isGk && gkKit ? readableTextOn(gkKit) : (tokenInk || lc.text);
         return (
           <div
             key={i}
@@ -52,7 +83,7 @@ function SquadPitch({ squad, formation, swapSlot, onSlotClick }) {
           >
             {player ? (
               <>
-                <div className="bw-pitch-token" style={{ width: lc.size, height: lc.size, background: lc.bg, color: lc.text }}>
+                <div className="bw-pitch-token" style={{ width: lc.size, height: lc.size, background: slotBg, color: slotInk, borderColor: tokenBorder }}>
                   {coord.pos}
                 </div>
                 <div className="bw-pitch-token-name">{player.name.split(" ").pop()}</div>
@@ -384,6 +415,8 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
                 formation={formation}
                 swapSlot={swapSlot}
                 onSlotClick={handleSlotClick}
+                kitPrimary={kitPrimary}
+                kitSecondary={kitSecondary}
               />
             </div>
           )}
@@ -435,11 +468,9 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
                   >
                     <span className="bw-xi-pos" style={{ color: lc.label }}>{pos}</span>
                     <div className="bw-xi-info">
-                      <div className="bw-xi-name-row">
-                        {p.nation} {p.name}
-                        {captainId === p.id && <span className="bw-xi-captain-tag">(C)</span>}
-                      </div>
-                      <div className="bw-xi-meta">{p.club}{p.archetype ? ` · ${p.archetype}` : ""}</div>
+                      <strong>{p.nation} {p.name}</strong>
+                      {captainId === p.id && <span className="bw-xi-captain-tag">(C)</span>}
+                      <span className="bw-xi-meta">· {p.club}</span>
                     </div>
                     <span className="bw-xi-form">{draft?.playerForm && draft.playerForm.has(p.id) ? getFormArrow(draft.playerForm.get(p.id)) : ""}</span>
                     {!hideBadges && p.archetype && (() => {

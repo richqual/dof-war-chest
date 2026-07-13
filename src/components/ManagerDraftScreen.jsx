@@ -526,7 +526,7 @@ export default function ManagerDraftScreen({
 
   return (
     <div className="setup-screen">
-      <div className="bw-frame">
+      <div className="bw-frame bw-mgr-frame">
         <div className="bw-banner bw-banner-row">
           <div className="bw-banner-title">MERRY-GO-ROUND</div>
           <div className="bw-banner-meta">{clubDisplayName} · {playerName}</div>

@@ -222,6 +222,19 @@ html.wc-theme {
   .bw-series-frame.bw-series-frame-bracket { max-width: 780px; }
 }
 
+/* Manager draft (Tier-2): the offered gaffer cards spread 2-up instead of a tall
+   single stack, so 3 candidates sit across two rows. The ride stage, banner,
+   status and picks log stay full-width and centred. */
+@media (min-width: 900px) {
+  .bw-frame.bw-mgr-frame { max-width: 820px; }
+  .bw-mgr-frame .bw-mgr-picks {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: 12px;
+  }
+}
+
 /* Lobby / Game Setup desktop reflow (mock 3e intent — no scroll to reach
    CONTINUE). On mobile the two column wrappers are display:contents, so the
    body stays one flat flex stack exactly as before. At desktop width the frame
@@ -1850,8 +1863,12 @@ html.wc-theme .bw-draft-banner { background: linear-gradient(90deg, #2a1610, #24
 }
 .bw-dice-btn:hover { border-color: var(--bw-gold); color: var(--bw-gold); }
 
+.bw-field-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .bw-autofill-btn {
-  align-self: flex-end;
   background: none;
   border: 1px solid var(--bw-border2);
   border-radius: 6px !important;
@@ -1860,7 +1877,6 @@ html.wc-theme .bw-draft-banner { background: linear-gradient(90deg, #2a1610, #24
   letter-spacing: .06em;
   padding: 6px 10px;
   cursor: pointer;
-  margin-bottom: 6px;
 }
 .bw-autofill-btn:hover { border-color: var(--bw-gold); color: var(--bw-gold); }
 
@@ -2116,6 +2132,8 @@ html.light-mode .bw-wc-lobby {
 .bw-ride-stage {
   position: relative;
   height: 372px;
+  max-width: 430px;
+  margin: 0 auto;
   overflow: hidden;
   background: radial-gradient(130% 100% at 50% 8%, #1c4126, #080f09 74%);
 }
@@ -2965,9 +2983,11 @@ html.light-mode .bw-mgr-card.recommended .bw-mgr-card-name { color: var(--bw-tex
 
 /* Gaffer block */
 .bw-gaffer-block {
+  margin: 12px 16px;
   padding: 14px 16px 12px;
-  background: radial-gradient(130% 100% at 0 0, rgba(245,197,66,.10), transparent 60%);
-  border-bottom: 1px solid var(--bw-border);
+  background: var(--bw-panel);
+  border: 1px solid var(--bw-border);
+  border-radius: 9px !important;
 }
 .bw-gaffer-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .bw-gaffer-name { font: 600 20px var(--bw-font-display); color: var(--bw-text-hi); letter-spacing: .01em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -3040,7 +3060,7 @@ html.light-mode .bw-mgr-card.recommended .bw-mgr-card-name { color: var(--bw-tex
 .bw-pitch-wrap { padding: 10px 16px 4px; }
 .bw-pitch {
   position: relative;
-  height: 296px;
+  height: 360px;
   border-radius: 9px !important;
   overflow: hidden;
   background: linear-gradient(180deg, #15401d, #103217);
@@ -3136,10 +3156,10 @@ html.light-mode .bw-mgr-card.recommended .bw-mgr-card-name { color: var(--bw-tex
 .bw-xi-row.swapping { border-color: var(--bw-gold); background: var(--bw-gold-bg); }
 .bw-xi-row.captain-selectable:hover { outline: 1px dashed var(--bw-gold); outline-offset: -2px; }
 .bw-xi-pos { font: 700 10px var(--bw-font-display); width: 32px; flex-shrink: 0; }
-.bw-xi-info { flex: 1; min-width: 0; }
-.bw-xi-name-row { font-weight: 600; font-size: 14px; color: var(--bw-text-hi); display: flex; align-items: center; gap: 6px; }
-.bw-xi-captain-tag { font-size: 11px; color: var(--bw-gold); }
-.bw-xi-meta { font-size: 11px; color: var(--bw-text-low); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bw-xi-info { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 6px; overflow: hidden; }
+.bw-xi-info strong { font-weight: 600; font-size: 14px; color: var(--bw-text-hi); white-space: nowrap; flex-shrink: 0; }
+.bw-xi-captain-tag { font-size: 11px; color: var(--bw-gold); flex-shrink: 0; }
+.bw-xi-meta { font-size: 11px; color: var(--bw-text-low); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .bw-xi-form { font-size: 12px; flex-shrink: 0; }
 .bw-xi-archetype {
   font-size: 10px;
@@ -3197,6 +3217,7 @@ html.light-mode .bw-mgr-card.recommended .bw-mgr-card-name { color: var(--bw-tex
   .bw-squad-actions { max-width: 1180px; margin: 0 auto; }
   .bw-squad-left { border-right: 1px solid var(--bw-border); }
   .bw-squad-right-col { padding-top: 2px; }
+  .bw-pitch { height: 460px; }
 }
 
 /* ── Champion screen ────────────────────────────────── */
