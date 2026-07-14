@@ -490,6 +490,7 @@ export function resolveCurrentPos(d) {
 // ── War Chest mode ──────────────────────────────────────────────────────────
 
 function buildWCSeries(n, format = "bo3") {
+  if (format === "single") return null; // one-off match — no series, just play & return
   if (n === 2) return {
     format,
     participants: [0, 1],

@@ -16,10 +16,12 @@ const DIFFICULTY_INFO = [
 ];
 
 export default function WarChestLobbyScreen({ onContinue, onBack }) {
-  const [numClubs, setNumClubs] = useState(2);
+  const [numClubs, setNumClubs] = useState(8);
   const [numHumans, setNumHumans] = useState(1);
   const [difficulty, setDifficulty] = useState("normal");
-  const [format, setFormat] = useState("bo3");
+  // 2-team match structure: a one-off game or a best-of-N series.
+  const [matchType, setMatchType] = useState("series"); // "single" | "series"
+  const [seriesLength, setSeriesLength] = useState("bo3"); // bo3 | bo5 | bo7
   const [hideRatings, setHideRatings] = useState(false);
   const [dynamicValues, setDynamicValues] = useState(true);
   const [draftRoulette, setDraftRoulette] = useState({ enabled: false, era: false, league: true });
@@ -31,8 +33,10 @@ export default function WarChestLobbyScreen({ onContinue, onBack }) {
     if (numHumans > n) setNumHumans(n);
   }
 
+  const activeFormat = numClubs === 2 ? (matchType === "single" ? "single" : seriesLength) : undefined;
+
   function handleContinue() {
-    onContinue({ numClubs, numHumans, difficulty, format: numClubs === 2 ? format : undefined, hideRatings, dynamicValues, dynamicForm: true, draftRoulette });
+    onContinue({ numClubs, numHumans, difficulty, format: activeFormat, hideRatings, dynamicValues, dynamicForm: true, draftRoulette });
   }
 
   return (
@@ -53,30 +57,8 @@ export default function WarChestLobbyScreen({ onContinue, onBack }) {
             </div>
           </div>
           <div className="bw-setup-hint">
-            {numClubs === 2 ? "Head-to-head — build your squads then play a series" : `${numClubs}-way — everyone builds a squad, then play off`}
+            {numClubs === 2 ? "Head-to-head — build your squads then play" : numClubs === 8 ? "Eight-way knockout tournament — QF, semis, then a Grand Final" : "Four-way knockout tournament — semis, then a Grand Final"}
           </div>
-
-          {numClubs === 2 && (
-            <>
-              <div className="bw-setup-row">
-                <span className="bw-setup-label">BEST OF</span>
-                <div className="bw-tactics-toggle">
-                  {FORMAT_OPTIONS.map(f => (
-                    <button
-                      key={f.key}
-                      className={`bw-tactics-seg ${format === f.key ? "active" : ""}`}
-                      onClick={() => setFormat(f.key)}
-                    >
-                      {f.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="bw-setup-hint">
-                {FORMAT_OPTIONS.find(f => f.key === format)?.hint}
-              </div>
-            </>
-          )}
 
           <div className="bw-setup-row">
             <span className="bw-setup-label">PLAYERS</span>
@@ -93,6 +75,49 @@ export default function WarChestLobbyScreen({ onContinue, onBack }) {
               ? "All clubs are human-controlled"
               : `${numClubs - numHumans} CPU club${numClubs - numHumans > 1 ? "s" : ""} will be auto-generated`}
           </div>
+
+          {numClubs === 2 && (
+            <>
+              <div className="bw-setup-row">
+                <span className="bw-setup-label">MATCH TYPE</span>
+                <div className="bw-tactics-toggle">
+                  <button
+                    className={`bw-tactics-seg ${matchType === "single" ? "active" : ""}`}
+                    onClick={() => setMatchType("single")}
+                  >
+                    ONE-OFF
+                  </button>
+                  <button
+                    className={`bw-tactics-seg ${matchType === "series" ? "active" : ""}`}
+                    onClick={() => setMatchType("series")}
+                  >
+                    SERIES
+                  </button>
+                </div>
+              </div>
+              {matchType === "series" && (
+                <div className="bw-setup-row">
+                  <span className="bw-setup-label">LENGTH</span>
+                  <div className="bw-tactics-toggle">
+                    {FORMAT_OPTIONS.map(f => (
+                      <button
+                        key={f.key}
+                        className={`bw-tactics-seg ${seriesLength === f.key ? "active" : ""}`}
+                        onClick={() => setSeriesLength(f.key)}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="bw-setup-hint">
+                {matchType === "single"
+                  ? "A single winner-takes-all match — level after 60 goes to penalties"
+                  : FORMAT_OPTIONS.find(f => f.key === seriesLength)?.hint}
+              </div>
+            </>
+          )}
 
           <div className="bw-setup-row">
             <span className="bw-setup-label">DIFFICULTY</span>
