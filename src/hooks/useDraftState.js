@@ -7,7 +7,7 @@ import {
   availablePlayersFor, getPlayersFromState,
   autoDrawSlot, activeFormation, resolveCurrentPosKey, resolveCurrentPos,
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder,
-  buildRealTeamsPool, isDraftableBy,
+  buildRealTeamsPool, isDraftableBy, dedupeByName,
   POS_LABELS, getFormArrow,
   buildInitialWarChestDraft, getWarChestPlayersForSlot, autoBuildWarChestSquad,
   appendSeriesHistory,
@@ -344,6 +344,7 @@ export function useDraftState() {
     if (draft?.availablePlayerIds) {
       players = players.filter(p => isDraftableBy(draft, activeManager, p.id));
     }
+    players = dedupeByName(players, draft, activeManager);
     if (draft?.playerValues) {
       players = players.map(p => ({
         ...p,

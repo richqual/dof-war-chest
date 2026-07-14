@@ -320,6 +320,33 @@ export function isDraftableBy(draft, activeManager, id) {
   return !!activeManager?.ownClubIds?.includes(id);
 }
 
+// Fast id→name lookup for taken-by-name checks below.
+const PLAYER_NAME_BY_ID = new Map(PLAYERS.map(p => [p.id, p.name]));
+
+// Real Teams mode intentionally keeps multiple league-versions of the same real
+// player in the shared pool, so an assigned CPU can always reach its own-club card.
+// But any single manager must only ever be shown ONE version of a player, and a name
+// already drafted (in any version) must not resurface. This collapses the list to one
+// card per name, preferring the active manager's own-club version when it has one.
+// No-op outside Real Teams mode (there are no duplicate names in a normal pool).
+export function dedupeByName(players, draft, activeManager) {
+  if (!draft?.realTeams) return players;
+  const takenNames = new Set();
+  for (const id of (draft.takenIds || [])) {
+    const name = PLAYER_NAME_BY_ID.get(id);
+    if (name) takenNames.add(name);
+  }
+  const ownIds = new Set(activeManager?.ownClubIds || []);
+  const chosen = new Map(); // name -> chosen player
+  for (const p of players) {
+    if (takenNames.has(p.name)) continue;
+    const existing = chosen.get(p.name);
+    if (!existing) chosen.set(p.name, p);
+    else if (ownIds.has(p.id) && !ownIds.has(existing.id)) chosen.set(p.name, p);
+  }
+  return Array.from(chosen.values());
+}
+
 export function randomizePlayerValues(availablePlayerIds) {
   const playerValues = new Map();
   for (const player of PLAYERS) {
@@ -435,6 +462,7 @@ export function getPlayersFromState(d, posKey) {
   if (d.availablePlayerIds instanceof Set) {
     players = players.filter(p => isDraftableBy(d, activeManager, p.id));
   }
+  players = dedupeByName(players, d, activeManager);
   players = players.map(p => {
     const player = { ...p };
     if (d.playerValues instanceof Map) player.value = d.playerValues.get(p.id) ?? p.value;
