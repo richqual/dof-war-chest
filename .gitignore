@@ -28,3 +28,7 @@ dist-ssr
 design_handoff_transfer_wheel/
 transfer-wheel-skin-options/
 docs/
+
+# Design handoff archive (Broadcast redesign reference, not shipped)
+Transfer Wheel skin options.zip
+Transfer Wheel skin options/
