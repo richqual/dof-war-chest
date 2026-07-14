@@ -485,6 +485,14 @@ function buildSummary({ homeName, awayName, score, penWinner, allEvents }) {
   const margin = Math.abs(score.home - score.away);
 
   const sentences = [];
+  if (!winnerSide) {
+    if (score.home === 0) {
+      sentences.push(`${homeName} and ${awayName} played out a goalless stalemate.`);
+    } else {
+      sentences.push(`${homeName} and ${awayName} shared the spoils in a ${scoreline} draw.`);
+    }
+    return sentences.join(" ");
+  }
   if (penWinner) {
     sentences.push(`Nothing could separate the sides after 120 minutes at ${scoreline}, but ${winner} held their nerve in the shootout to break ${loser} hearts.`);
   } else if (margin >= 3) {
