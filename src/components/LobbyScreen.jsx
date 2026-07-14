@@ -15,14 +15,6 @@ const FORMAT_OPTIONS_2 = [
   { key: "bo7", label: "BEST OF 7", short: "BO7", hint: "First to 4 wins — NBA Finals style" },
 ];
 
-const FORMAT_OPTIONS_4 = [
-  { key: "tournament", label: "TOURNAMENT", short: "CUP", hint: "2-legged semi-finals (aggregate), then a 1-leg Grand Final" },
-];
-
-const FORMAT_OPTIONS_8 = [
-  { key: "tournament8", label: "TOURNAMENT", short: "CUP", hint: "Single-leg quarter-finals, 2-legged semi-finals (aggregate), then a 1-leg Grand Final" },
-];
-
 export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onWcOnline, onAbout }) {
   const [selected, setSelected] = useState(null); // null | "classic" | "warchest"
 
@@ -91,11 +83,13 @@ export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onW
 }
 
 export default function LobbyScreen({ onContinue, onBack }) {
-  const [numClubs, setNumClubs] = useState(2);
+  const [numClubs, setNumClubs] = useState(8);
   const [numHumans, setNumHumans] = useState(1);
   const [difficulty, setDifficulty] = useState("normal");
   const [positionMode, setPositionMode] = useState("random");
-  const [format, setFormat] = useState("bo7");
+  // 2-team match structure: a one-off game or a best-of-N series.
+  const [matchType, setMatchType] = useState("series"); // "single" | "series"
+  const [seriesLength, setSeriesLength] = useState("bo7"); // bo3 | bo5 | bo7
   const [hideRatings, setHideRatings] = useState(true);
   const [dynamicValues, setDynamicValues] = useState(true);
   const [dynamicForm, setDynamicForm] = useState(true);
@@ -105,9 +99,9 @@ export default function LobbyScreen({ onContinue, onBack }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showRules, setShowRules] = useState(false);
 
-  const formatOptions = numClubs === 2 ? FORMAT_OPTIONS_2 : numClubs === 8 ? FORMAT_OPTIONS_8 : FORMAT_OPTIONS_4;
-  const validFormats = formatOptions.map(f => f.key);
-  const activeFormat = validFormats.includes(format) ? format : formatOptions[0].key;
+  const activeFormat = numClubs === 8 ? "tournament8"
+    : numClubs === 4 ? "tournament"
+    : matchType === "single" ? "single" : seriesLength;
 
   function handleNumClubs(n) {
     setNumClubs(n);
@@ -155,7 +149,7 @@ export default function LobbyScreen({ onContinue, onBack }) {
             </div>
           </div>
           <div className="bw-setup-hint">
-            {numClubs === 2 ? "Head-to-head — two clubs, one draft, one winner" : numClubs === 8 ? "Eight-way draft — maximum chaos, maximum competition" : "Four-way draft — more chaos, more competition"}
+            {numClubs === 2 ? "Head-to-head — two clubs, one draft, one winner" : numClubs === 8 ? "Eight-way knockout tournament — QF, two-legged semis, then a Grand Final" : "Four-way knockout tournament — two-legged semis, then a Grand Final"}
           </div>
 
           <div className="bw-setup-row">
@@ -178,6 +172,49 @@ export default function LobbyScreen({ onContinue, onBack }) {
               : `${numClubs - numHumans} CPU club${numClubs - numHumans > 1 ? "s" : ""} will be auto-generated`}
           </div>
 
+          {numClubs === 2 && (
+            <>
+              <div className="bw-setup-row">
+                <span className="bw-setup-label">MATCH TYPE</span>
+                <div className="bw-tactics-toggle">
+                  <button
+                    className={`bw-tactics-seg ${matchType === "single" ? "active" : ""}`}
+                    onClick={() => setMatchType("single")}
+                  >
+                    ONE-OFF
+                  </button>
+                  <button
+                    className={`bw-tactics-seg ${matchType === "series" ? "active" : ""}`}
+                    onClick={() => setMatchType("series")}
+                  >
+                    SERIES
+                  </button>
+                </div>
+              </div>
+              {matchType === "series" && (
+                <div className="bw-setup-row">
+                  <span className="bw-setup-label">LENGTH</span>
+                  <div className="bw-tactics-toggle">
+                    {["bo3", "bo5", "bo7"].map(k => (
+                      <button
+                        key={k}
+                        className={`bw-tactics-seg ${seriesLength === k ? "active" : ""}`}
+                        onClick={() => setSeriesLength(k)}
+                      >
+                        {k === "bo3" ? "3" : k === "bo5" ? "5" : "7"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="bw-setup-hint">
+                {matchType === "single"
+                  ? "A single winner-takes-all match — level after 90 goes to penalties"
+                  : FORMAT_OPTIONS_2.find(f => f.key === seriesLength)?.hint}
+              </div>
+            </>
+          )}
+
           <div className="bw-setup-row">
             <span className="bw-setup-label">DIFFICULTY</span>
             <div className="bw-setup-select-wrap">
@@ -196,52 +233,7 @@ export default function LobbyScreen({ onContinue, onBack }) {
             {DIFFICULTY_INFO.find(d => d.key === difficulty)?.hint}
           </div>
 
-          <div className="bw-setup-row">
-            <span className="bw-setup-label">DRAFT ORDER</span>
-            <div className="bw-tactics-toggle">
-              <button
-                className={`bw-tactics-seg ${positionMode === "fixed" ? "active" : ""}`}
-                onClick={() => setPositionMode("fixed")}
-              >
-                FIXED
-              </button>
-              <button
-                className={`bw-tactics-seg ${positionMode === "random" ? "active" : ""}`}
-                onClick={() => setPositionMode("random")}
-              >
-                RANDOM
-              </button>
-            </div>
-          </div>
-          <div className="bw-setup-hint">
-            {positionMode === "fixed"
-              ? "Classic order — GK first, subs last. Predictable and competitive"
-              : "Spin to reveal your position each round — chaos, carnage, and competition"}
-          </div>
-
           <DraftRouletteToggle value={draftRoulette} onChange={setDraftRoulette} />
-
-          {numClubs === 2 && (
-            <>
-              <div className="bw-setup-row">
-                <span className="bw-setup-label">BEST OF</span>
-                <div className="bw-tactics-toggle">
-                  {formatOptions.map(f => (
-                    <button
-                      key={f.key}
-                      className={`bw-tactics-seg ${activeFormat === f.key ? "active" : ""}`}
-                      onClick={() => setFormat(f.key)}
-                    >
-                      {f.key === "bo3" ? "3" : f.key === "bo5" ? "5" : "7"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="bw-setup-hint">
-                {formatOptions.find(f => f.key === activeFormat)?.hint}
-              </div>
-            </>
-          )}
 
          </div>
 
@@ -255,6 +247,18 @@ export default function LobbyScreen({ onContinue, onBack }) {
 
           {showAdvanced && (
             <div className="bw-pool-list bw-setup-block">
+              <label className={`bw-pool-row ${positionMode === "fixed" ? "checked" : "unchecked"}`}>
+                <input
+                  type="checkbox"
+                  checked={positionMode === "fixed"}
+                  onChange={e => setPositionMode(e.target.checked ? "fixed" : "random")}
+                />
+                <span className="bw-pool-check-icon">{positionMode === "fixed" ? "✓" : ""}</span>
+                <span className="bw-pool-label-wrap">
+                  <span className="bw-pool-label">Fixed Draft Order</span>
+                  <span className="bw-pool-label-sub">Draft positions in a set order (GK first, subs last) instead of spinning the position wheel each round.</span>
+                </span>
+              </label>
               <label className={`bw-pool-row ${hideRatings ? "checked" : "unchecked"}`}>
                 <input
                   type="checkbox"
