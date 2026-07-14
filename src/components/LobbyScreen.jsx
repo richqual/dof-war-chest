@@ -255,18 +255,6 @@ export default function LobbyScreen({ onContinue, onBack }) {
 
           {showAdvanced && (
             <div className="bw-pool-list bw-setup-block">
-              <label className={`bw-pool-row ${managerTiming === "before" ? "checked" : "unchecked"}`}>
-                <input
-                  type="checkbox"
-                  checked={managerTiming === "before"}
-                  onChange={e => setManagerTiming(e.target.checked ? "before" : "after")}
-                />
-                <span className="bw-pool-check-icon">{managerTiming === "before" ? "✓" : ""}</span>
-                <span className="bw-pool-label-wrap">
-                  <span className="bw-pool-label">Manager draft before squad draft</span>
-                  <span className="bw-pool-label-sub">Spin the Merry-Go-Round first, then build your squad</span>
-                </span>
-              </label>
               <label className={`bw-pool-row ${hideRatings ? "checked" : "unchecked"}`}>
                 <input
                   type="checkbox"
@@ -275,8 +263,8 @@ export default function LobbyScreen({ onContinue, onBack }) {
                 />
                 <span className="bw-pool-check-icon">{hideRatings ? "✓" : ""}</span>
                 <span className="bw-pool-label-wrap">
-                  <span className="bw-pool-label">Hide player ratings during draft</span>
-                  <span className="bw-pool-label-sub">Adds mystery — pick on reputation alone</span>
+                  <span className="bw-pool-label">Hide Ratings</span>
+                  <span className="bw-pool-label-sub">Hides player ratings during the draft phase. Trust your gut!</span>
                 </span>
               </label>
               <label className={`bw-pool-row ${dynamicValues ? "checked" : "unchecked"}`}>
@@ -287,8 +275,8 @@ export default function LobbyScreen({ onContinue, onBack }) {
                 />
                 <span className="bw-pool-check-icon">{dynamicValues ? "✓" : ""}</span>
                 <span className="bw-pool-label-wrap">
-                  <span className="bw-pool-label">Randomize player values each game</span>
-                  <span className="bw-pool-label-sub">Prices vary by tier — no two games are alike</span>
+                  <span className="bw-pool-label">Value for Money</span>
+                  <span className="bw-pool-label-sub">Transfer value is randomised for each player. Can you find good value, or will you overpay?</span>
                 </span>
               </label>
               <label className={`bw-pool-row ${dynamicForm ? "checked" : "unchecked"}`}>
@@ -299,8 +287,8 @@ export default function LobbyScreen({ onContinue, onBack }) {
                 />
                 <span className="bw-pool-check-icon">{dynamicForm ? "✓" : ""}</span>
                 <span className="bw-pool-label-wrap">
-                  <span className="bw-pool-label">Apply player form variance</span>
-                  <span className="bw-pool-label-sub">Hot form +2, poor form -2 — bargains and traps daily</span>
+                  <span className="bw-pool-label">The Form Book</span>
+                  <span className="bw-pool-label-sub">Player ratings can vary by +/-2 for each match.</span>
                 </span>
               </label>
               {numHumans < numClubs && (
@@ -312,7 +300,7 @@ export default function LobbyScreen({ onContinue, onBack }) {
                   />
                   <span className="bw-pool-check-icon">{realTeams ? "✓" : ""}</span>
                   <span className="bw-pool-label-wrap">
-                    <span className="bw-pool-label">Real Teams (CPU clubs)</span>
+                    <span className="bw-pool-label">Super League</span>
                     <span className="bw-pool-label-sub">Each CPU is assigned an elite club and favours its former players</span>
                   </span>
                 </label>
@@ -336,12 +324,12 @@ export default function LobbyScreen({ onContinue, onBack }) {
               </p>
               <ul className="bw-rules-list">
                 <li>Spin the Managerial Merry-Go-Round to assign a manager to your squad</li>
-                <li>Spin the budget wheel each turn — £0 to £200m, unspent carries over</li>
+                <li>Spin the budget wheel each turn — values vary with difficulty, unspent carries over</li>
                 <li>Draft one player per position until your squad of 16 is complete</li>
                 <li>Draft order rotates each round — no one picks last forever</li>
                 <li>A squad that suits your manager's style will perform better on match day</li>
                 <li>Simulate the match and see who built the best team</li>
-                <li>Each position is drafted in sequence: GK, DEF ×4, MID ×4, ATT ×3, then 4 subs</li>
+                <li>Positions are drafted in a randomised order by default</li>
                 <li>Player values vary each game if randomised prices is on — no two drafts alike</li>
                 <li>Form variance can add or subtract up to 2 rating points on match day</li>
                 <li>Manager quality affects your team's overall match rating — choose wisely</li>
