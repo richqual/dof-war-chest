@@ -3488,7 +3488,8 @@ html.wc-theme .bw-champ-stage {
 .bw-champ-pott-name { font: 600 16px "Oswald", sans-serif; color: var(--cc-text-hi); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bw-champ-pott-team { font-size: 12px; color: var(--cc-text-low); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bw-champ-pott-star { font-size: 20px; flex-shrink: 0; }
-.bw-champ-tourn-tables { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.bw-champ-tourn-tables { display: grid; grid-template-columns: 1fr; gap: 12px; }
+@media (min-width: 900px) { .bw-champ-tourn-tables { grid-template-columns: 1fr 1fr; } }
 .bw-champ-tourn-table { background: var(--cc-panel); border: 1px solid var(--cc-border); border-radius: 8px !important; padding: 10px 12px; }
 .bw-champ-tourn-table-title { font: 400 9px var(--bw-font-marquee); color: var(--bw-gold); margin-bottom: 8px; }
 .bw-champ-tourn-row { display: flex; align-items: baseline; gap: 6px; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--cc-border); }
@@ -3501,7 +3502,6 @@ html.wc-theme .bw-champ-stage {
   .bw-champ-stage { height: 240px; }
   .bw-champ-name { font-size: 22px; }
   .bw-champ-squad { margin-top: 8px; }
-  .bw-champ-tourn-tables { grid-template-columns: 1fr; }
 }
 
 .draw-reveal-pos {
@@ -4165,8 +4165,11 @@ html.wc-theme .bw-roulette-team { background: linear-gradient(90deg, #2a1610, #2
 /* ── Tournament Results (mid-series collapsible, TournamentStats) ────── */
 .tourn-tables {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 12px;
+}
+@media (min-width: 900px) {
+  .tourn-tables { grid-template-columns: 1fr 1fr; }
 }
 
 .tourn-table {
@@ -4200,9 +4203,6 @@ html.wc-theme .bw-roulette-team { background: linear-gradient(90deg, #2a1610, #2
 .tourn-row-team { font-size: 10px; color: var(--text3); flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tourn-row-val { font-family: var(--font-head); color: var(--accent); margin-left: auto; flex: 0 0 auto; white-space: nowrap; }
 
-@media (max-width: 420px) {
-  .tourn-tables { grid-template-columns: 1fr; }
-}
 
 
 /* ── CPU Auto-Sim Overlay ────────────────────────────── */
