@@ -264,7 +264,6 @@ function CpuSummaryCard({ index, club, onEdit, hideFormation = false }) {
           <div className="bw-club-card-name">{club.clubName}</div>
           <div className="bw-club-card-meta">{club.dofName}</div>
           {!hideFormation && <div className="bw-club-card-meta">{club.formation}</div>}
-          {club.realClub && <div className="bw-club-card-meta">★ {club.realClub}</div>}
         </div>
       </div>
     </div>
@@ -342,6 +341,7 @@ function applyRealClubIdentity(club, realClub) {
   return {
     ...club,
     realClub,
+    clubName: t.name || t.club,
     primaryColor: t.primary,
     secondaryColor: t.secondary,
     pattern: t.pattern,

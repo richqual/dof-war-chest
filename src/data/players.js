@@ -1533,20 +1533,20 @@ const CPU_POS_SUITABILITY = {
 // manager's `club` for auto-assigning a club manager.
 // Kept to well-represented top-tier sides so an assigned CPU has plenty of own-club players.
 export const REAL_TEAMS = [
-  { club: "Man Utd",     league: "premier_league", primary: "#DA020E", secondary: "#FBE122", pattern: "plain",   dof: "John Henry Davies",    managerClubs: ["Manchester United"] },
-  { club: "Arsenal",     league: "premier_league", primary: "#EF0107", secondary: "#FFFFFF", pattern: "plain",   dof: "Henry Norris" },
-  { club: "Liverpool",   league: "premier_league", primary: "#C8102E", secondary: "#FFFFFF", pattern: "plain",   dof: "John Houlding" },
-  { club: "Chelsea",     league: "premier_league", primary: "#034694", secondary: "#FFFFFF", pattern: "plain",   dof: "Roman Abramovich" },
-  { club: "Man City",    league: "premier_league", primary: "#6CABDD", secondary: "#FFFFFF", pattern: "plain",   dof: "Joshua Parlby",        managerClubs: ["Manchester City"] },
-  { club: "Real Madrid", league: "la_liga",        primary: "#FEFEFE", secondary: "#00529F", pattern: "plain",   dof: "Santiago Bernabéu" },
-  { club: "Barcelona",   league: "la_liga",        primary: "#A50044", secondary: "#004D98", pattern: "stripes", dof: "Joan Gamper" },
-  { club: "Atlético",    league: "la_liga",        primary: "#CE3524", secondary: "#FFFFFF", pattern: "stripes", dof: "Vicente Calderón" },
-  { club: "Juventus",    league: "serie_a",        primary: "#000000", secondary: "#FFFFFF", pattern: "stripes", dof: "Gianni Agnelli" },
-  { club: "Inter",       league: "serie_a",        primary: "#010E80", secondary: "#000000", pattern: "stripes", dof: "Giovanni Paramithiotti" },
-  { club: "AC Milan",    league: "serie_a",        primary: "#FB090B", secondary: "#000000", pattern: "stripes", dof: "Silvio Berlusconi" },
-  { club: "Bayern",      league: "bundesliga",     primary: "#DC052D", secondary: "#FFFFFF", pattern: "plain",   dof: "Franz John",           playerAliases: ["Bayern Munich"] },
-  { club: "Dortmund",    league: "bundesliga",     primary: "#FDE100", secondary: "#000000", pattern: "plain",   dof: "Michael Zorc" },
-  { club: "PSG",         league: "ligue_1",        primary: "#004170", secondary: "#DA291C", pattern: "plain",   dof: "Nasser Al-Khelaifi" },
+  { club: "Man Utd",     name: "Manchester United",   league: "premier_league", primary: "#DA020E", secondary: "#FBE122", pattern: "plain",   dof: "John Henry Davies",    managerClubs: ["Manchester United"] },
+  { club: "Arsenal",     name: "Arsenal",             league: "premier_league", primary: "#EF0107", secondary: "#FFFFFF", pattern: "plain",   dof: "Henry Norris" },
+  { club: "Liverpool",   name: "Liverpool",           league: "premier_league", primary: "#C8102E", secondary: "#FFFFFF", pattern: "plain",   dof: "John Houlding" },
+  { club: "Chelsea",     name: "Chelsea",             league: "premier_league", primary: "#034694", secondary: "#FFFFFF", pattern: "plain",   dof: "Roman Abramovich" },
+  { club: "Man City",    name: "Manchester City",     league: "premier_league", primary: "#6CABDD", secondary: "#FFFFFF", pattern: "plain",   dof: "Joshua Parlby",        managerClubs: ["Manchester City"] },
+  { club: "Real Madrid", name: "Real Madrid",         league: "la_liga",        primary: "#FEFEFE", secondary: "#00529F", pattern: "plain",   dof: "Santiago Bernabéu" },
+  { club: "Barcelona",   name: "Barcelona",           league: "la_liga",        primary: "#A50044", secondary: "#004D98", pattern: "stripes", dof: "Joan Gamper" },
+  { club: "Atlético",    name: "Atlético Madrid",     league: "la_liga",        primary: "#CE3524", secondary: "#FFFFFF", pattern: "stripes", dof: "Vicente Calderón" },
+  { club: "Juventus",    name: "Juventus",            league: "serie_a",        primary: "#000000", secondary: "#FFFFFF", pattern: "stripes", dof: "Gianni Agnelli" },
+  { club: "Inter",       name: "Inter Milan",         league: "serie_a",        primary: "#010E80", secondary: "#000000", pattern: "stripes", dof: "Giovanni Paramithiotti" },
+  { club: "AC Milan",    name: "AC Milan",            league: "serie_a",        primary: "#FB090B", secondary: "#000000", pattern: "stripes", dof: "Silvio Berlusconi" },
+  { club: "Bayern",      name: "Bayern Munich",       league: "bundesliga",     primary: "#DC052D", secondary: "#FFFFFF", pattern: "plain",   dof: "Franz John",           playerAliases: ["Bayern Munich"] },
+  { club: "Dortmund",    name: "Borussia Dortmund",   league: "bundesliga",     primary: "#FDE100", secondary: "#000000", pattern: "plain",   dof: "Michael Zorc" },
+  { club: "PSG",         name: "Paris Saint-Germain", league: "ligue_1",        primary: "#004170", secondary: "#DA291C", pattern: "plain",   dof: "Nasser Al-Khelaifi" },
 ];
 
 const REAL_TEAM_BY_CLUB = Object.fromEntries(REAL_TEAMS.map(t => [t.club, t]));
