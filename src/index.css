@@ -3412,6 +3412,31 @@ html.wc-theme .bw-champ-stage {
   cursor: pointer;
   user-select: none;
 }
+.bw-champ-road { width: 100%; max-width: 480px; margin: 12px auto 0; padding: 0 16px; text-align: left; }
+.bw-champ-road-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 13px; background: var(--cc-panel);
+  border: 1px solid var(--cc-border); border-radius: 8px !important;
+  cursor: pointer; user-select: none;
+}
+.bw-champ-road-header:hover { border-color: var(--cc-border2); }
+.bw-champ-road-title { font: 700 10px var(--bw-font-display); letter-spacing: .16em; color: var(--bw-gold); }
+.bw-champ-road-toggle { font-size: 10px; color: var(--cc-text-low); }
+.bw-champ-road-body { display: flex; flex-direction: column; gap: 8px; padding: 10px 2px 0; }
+.bw-champ-road-game { border-bottom: 1px solid var(--cc-border); padding-bottom: 7px; }
+.bw-champ-road-game:last-child { border-bottom: none; padding-bottom: 0; }
+.bw-champ-road-line { display: flex; align-items: center; gap: 9px; }
+.bw-champ-road-badge {
+  width: 18px; height: 18px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  border-radius: 4px !important; font: 700 10px var(--bw-font-display); color: #fff;
+}
+.bw-champ-road-badge.win { background: #1f8a3b; }
+.bw-champ-road-badge.loss { background: #a33; }
+.bw-champ-road-badge.draw { background: #777; }
+.bw-champ-road-opp { flex: 1; font: 500 12px var(--bw-font-body, inherit); color: var(--cc-text); }
+.bw-champ-road-score { font: 700 12px var(--bw-font-display); color: var(--bw-gold); letter-spacing: .04em; }
+.bw-champ-road-scorers { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 5px 0 0 27px; }
+.bw-champ-road-scorer { font-size: 10.5px; color: var(--cc-text-low); white-space: nowrap; }
 .bw-champ-squad-header:hover { border-color: var(--cc-border2); }
 .bw-champ-squad-ovr { font: 400 9px var(--bw-font-marquee); color: var(--bw-gold-ink); background: var(--bw-gold); padding: 4px 7px; border-radius: 4px !important; }
 .bw-champ-squad-toggle-label { flex: 1; text-align: center; font: 700 10px var(--bw-font-display); letter-spacing: .2em; color: var(--cc-text-low); }
@@ -3466,11 +3491,11 @@ html.wc-theme .bw-champ-stage {
 .bw-champ-tourn-tables { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .bw-champ-tourn-table { background: var(--cc-panel); border: 1px solid var(--cc-border); border-radius: 8px !important; padding: 10px 12px; }
 .bw-champ-tourn-table-title { font: 400 9px var(--bw-font-marquee); color: var(--bw-gold); margin-bottom: 8px; }
-.bw-champ-tourn-row { display: flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--cc-border); }
+.bw-champ-tourn-row { display: flex; align-items: baseline; gap: 6px; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--cc-border); }
 .bw-champ-tourn-row:last-child { border-bottom: none; }
-.bw-champ-tourn-row-name { color: var(--cc-text-hi); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bw-champ-tourn-row-team { font-size: 10px; color: var(--cc-text-low); flex: 0 0 auto; }
-.bw-champ-tourn-row-val { font: 700 12px var(--bw-font-display); color: var(--bw-gold); margin-left: auto; white-space: nowrap; }
+.bw-champ-tourn-row-name { color: var(--cc-text-hi); flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bw-champ-tourn-row-team { font-size: 10px; color: var(--cc-text-low); flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bw-champ-tourn-row-val { font: 700 12px var(--bw-font-display); color: var(--bw-gold); margin-left: auto; flex: 0 0 auto; white-space: nowrap; }
 
 @media (max-width: 480px) {
   .bw-champ-stage { height: 240px; }
@@ -4171,9 +4196,9 @@ html.wc-theme .bw-roulette-team { background: linear-gradient(90deg, #2a1610, #2
 
 .tourn-table-row:last-child { border-bottom: none; }
 
-.tourn-row-name { color: var(--text); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tourn-row-team { font-size: 10px; color: var(--text3); flex: 0 0 auto; }
-.tourn-row-val { font-family: var(--font-head); color: var(--accent); margin-left: auto; white-space: nowrap; }
+.tourn-row-name { color: var(--text); flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tourn-row-team { font-size: 10px; color: var(--text3); flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tourn-row-val { font-family: var(--font-head); color: var(--accent); margin-left: auto; flex: 0 0 auto; white-space: nowrap; }
 
 @media (max-width: 420px) {
   .tourn-tables { grid-template-columns: 1fr; }
@@ -5365,8 +5390,13 @@ html.light-mode .bw-wc-stage {
   font: 400 12px var(--bw-font-marquee); letter-spacing: .02em;
   box-shadow: 0 4px 16px rgba(245,197,66,.32);
 }
-.bw-match-pre-row { display: flex; align-items: flex-start; gap: 12px; width: 100%; max-width: 1100px; margin: 0 auto; }
+/* Mobile-first: stack the two team boards so a full XI isn't crushed into
+   half the width. Side-by-side only kicks in on wider screens (≥900px). */
+.bw-match-pre-row { display: flex; flex-direction: column; align-items: stretch; gap: 18px; width: 100%; max-width: 1100px; margin: 0 auto; }
 .bw-match-pre-col { display: flex; flex-direction: column; align-items: center; flex: 1; min-width: 0; gap: 6px; }
+@media (min-width: 900px) {
+  .bw-match-pre-row { flex-direction: row; align-items: flex-start; gap: 12px; }
+}
 .bw-match-pre-team-name { font: 600 clamp(12px, 2vw, 15px) var(--bw-font-display); letter-spacing: .03em; text-align: center; }
 .bw-match-pre-mgr { text-align: center; }
 .bw-match-pre-mgr-name { font: 600 13px var(--bw-font-display); }
@@ -5374,13 +5404,15 @@ html.light-mode .bw-wc-stage {
 .bw-match-pre-avg { display: flex; align-items: baseline; gap: 5px; }
 .bw-match-pre-avg-val { font: 400 18px var(--bw-font-marquee); color: var(--bw-gold); }
 .bw-match-pre-avg-label { font: 400 8px var(--bw-font-marquee); color: var(--bw-text-low); }
-.bw-match-pre-centre { display: flex; align-items: center; justify-content: center; padding-top: 90px; flex-shrink: 0; width: 60px; }
+.bw-match-pre-centre { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 100%; }
+@media (min-width: 900px) { .bw-match-pre-centre { padding-top: 90px; width: 60px; } }
 .bw-match-pre-vs { font: 400 16px var(--bw-font-marquee); color: var(--bw-text-low); }
 .bw-match-pre-absence { display: flex; flex-direction: column; gap: 3px; font-size: 12px; margin-top: 6px; }
 .bw-match-pre-absence-row { display: flex; align-items: center; gap: 6px; font-weight: 600; }
 
 /* Circular pitch (shared token look with squad pitch) */
-.bw-match-pitch-wrap { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 5px; }
+.bw-match-pitch-wrap { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 320px; margin: 0 auto; gap: 5px; }
+@media (min-width: 900px) { .bw-match-pitch-wrap { max-width: none; } }
 .bw-match-pitch {
   position: relative; width: 100%; aspect-ratio: 0.74; max-height: 340px;
   border-radius: 9px !important; overflow: hidden;
@@ -5401,7 +5433,7 @@ html.light-mode .bw-wc-stage {
   margin: 0 auto;
 }
 .bw-match-pitch-token-empty { background: rgba(255,255,255,.05); border: 1.5px dashed rgba(255,255,255,.3); color: rgba(255,255,255,.4); }
-.bw-match-pitch-token-name { font-size: 13px; font-weight: 500; color: #fff; margin-top: 3px; white-space: nowrap; max-width: 84px; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 3px #000, 0 0 2px rgba(0,0,0,.6); }
+.bw-match-pitch-token-name { font-size: 12px; font-weight: 500; color: #fff; margin-top: 3px; white-space: nowrap; max-width: 78px; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 3px #000, 0 0 2px rgba(0,0,0,.6); }
 .bw-match-pitch-formation { font: 600 9px var(--bw-font-display); letter-spacing: .08em; opacity: .8; }
 
 /* Continue / pen CTA in scoreboard */

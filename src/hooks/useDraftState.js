@@ -231,6 +231,26 @@ export function useDraftState() {
         next = { ...next, tournamentStats: stats };
       }
 
+      // Per-match log — powers the champion's "Road to Victory" recap.
+      {
+        const goalEvents = (matchEvents || []).filter(e => e.type === "goal");
+        const scorers = goalEvents.map(e => ({
+          name: e.scorer,
+          teamIdx: e.team === "home" ? homeIdx : awayIdx,
+          min: e.min,
+        }));
+        const pens = (matchEvents || []).some(e => e.type === "pens");
+        const logEntry = {
+          homeIdx, awayIdx,
+          homeScore: score?.home ?? 0,
+          awayScore: score?.away ?? 0,
+          winnerIdx: winnerIdx ?? null,
+          pens,
+          scorers,
+        };
+        next = { ...next, matchLog: [...(next.matchLog || []), logEntry] };
+      }
+
       {
         const absences = {};
         for (const [name, abs] of Object.entries(next.playerAbsences || {})) {

@@ -1651,8 +1651,37 @@ function pitchLineColors(pos) {
   return { bg: "var(--bw-line-mid)", text: "#fff" }; // DM, CM, RM, LM, CAM, MID
 }
 
+// Typical GK-kit colours. The keeper is shown in whichever of these sits
+// furthest from the club's outfield colours, so it never clashes. Mirrors the
+// team-management pitch (SquadScreen).
+const GK_KITS = ["#1f8a3b", "#111111", "#f0c400", "#f07000"];
+function hexRgb(h) {
+  const s = (h || "").replace("#", "");
+  const v = s.length === 3 ? s.split("").map(c => c + c).join("") : s;
+  const n = parseInt(v, 16);
+  return Number.isNaN(n) ? [128, 128, 128] : [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+function colorDist(a, b) {
+  const [r1, g1, b1] = hexRgb(a), [r2, g2, b2] = hexRgb(b);
+  return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
+}
+function pickGkKit(primary, secondary) {
+  let best = GK_KITS[0], bestScore = -1;
+  for (const gk of GK_KITS) {
+    const score = Math.min(colorDist(gk, primary || "#888"), colorDist(gk, secondary || primary || "#888"));
+    if (score > bestScore) { bestScore = score; best = gk; }
+  }
+  return best;
+}
+
 function PreMatchPitch({ manager, accent, formation, variant = "grass" }) {
   const coords = FORMATIONS[formation] || FORMATIONS["4-3-3"];
+  const kitPrimary = manager.primaryColor || null;
+  const kitSecondary = manager.secondaryColor || null;
+  const tokenBg = kitPrimary || null;
+  const tokenInk = kitPrimary ? readableTextOn(kitPrimary) : null;
+  const tokenBorder = kitSecondary || "rgba(255,255,255,.9)";
+  const gkKit = kitPrimary ? pickGkKit(kitPrimary, kitSecondary) : null;
   return (
     <div className="bw-match-pitch-wrap">
       <div className={`bw-match-pitch ${variant === "clay" ? "clay" : ""}`}>
@@ -1662,11 +1691,14 @@ function PreMatchPitch({ manager, accent, formation, variant = "grass" }) {
         {coords.map((coord, i) => {
           const player = manager.squad[i];
           const lc = pitchLineColors(coord.pos);
+          const isGk = coord.pos === "GK";
+          const slotBg = isGk && gkKit ? gkKit : (tokenBg || lc.bg);
+          const slotInk = isGk && gkKit ? readableTextOn(gkKit) : (tokenInk || lc.text);
           return (
             <div key={i} className="bw-match-pitch-slot" style={{ left: `${coord.x}%`, top: `${coord.y}%` }}>
               {player ? (
                 <>
-                  <div className="bw-match-pitch-token" style={{ background: lc.bg, color: lc.text }}>
+                  <div className="bw-match-pitch-token" style={{ background: slotBg, color: slotInk, borderColor: tokenBorder }}>
                     {coord.pos}
                   </div>
                   <div className="bw-match-pitch-token-name">{lastName(player.name)}</div>

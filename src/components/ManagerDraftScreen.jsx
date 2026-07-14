@@ -607,7 +607,7 @@ export default function ManagerDraftScreen({
             <RideStage riders={riders} />
             <div className="bw-ride-controls">
               {waitingForGo && !spinning && isHuman && isMyTurn && (
-                <button className="bw-cta-arcade" onClick={spinAndReveal}>↻ SPIN THE WHEEL</button>
+                <button className="bw-cta-arcade" onClick={spinAndReveal}>🎠 HOP ON THE RIDE</button>
               )}
               {(spinning || (!!offered && !settled)) && (
                 <button className="bw-cta-secondary" onClick={skipReveal}>SKIP</button>

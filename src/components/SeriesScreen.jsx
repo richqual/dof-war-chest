@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import KitSwatch, { kitAccent } from "./KitSwatch";
 import { POSITIONS, getRatingBg, getRatingColor, formatValue } from "../data/players";
+import { FORMATIONS } from "../data/formations";
 import { squadRating } from "./SquadScreen";
 import { generateEvents, buildEffectiveSquad } from "./MatchSim";
 
@@ -597,6 +598,8 @@ function ChampionSquad({ manager, onSaveSquad, saveState }) {
   const isWC = manager.chestBudget !== undefined;
   const starters = manager.squad.slice(0, 11);
   const bench = manager.squad.slice(11, 16);
+  // Label each starter by the manager's actual formation, not the default 4-3-3.
+  const formationCoords = FORMATIONS[manager.formation] || FORMATIONS["4-3-3"];
 
   async function exportSquad() {
     setExporting(true);
@@ -650,7 +653,7 @@ function ChampionSquad({ manager, onSaveSquad, saveState }) {
         <div className="bw-champ-squad-list">
           {starters.map((p, i) => p ? (
             <div key={i} className="bw-champ-squad-row">
-              {!isWC && <span className="bw-champ-squad-pos">{POSITIONS[i].key}</span>}
+              {!isWC && <span className="bw-champ-squad-pos">{formationCoords[i]?.pos || POSITIONS[i].key}</span>}
               <span className="bw-champ-squad-name">{p.name}</span>
               <span className="bw-champ-squad-club">{p.club}</span>
               <span
@@ -730,6 +733,60 @@ function TournamentStats({ tournamentStats, managers }) {
               ))}
             </div>
           )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function RoadToVictory({ matchLog, championIdx, managers }) {
+  const [open, setOpen] = useState(false);
+  if (!matchLog || championIdx == null) return null;
+
+  const games = matchLog
+    .filter(m => m.homeIdx === championIdx || m.awayIdx === championIdx)
+    .map(m => {
+      const isHome = m.homeIdx === championIdx;
+      const oppIdx = isHome ? m.awayIdx : m.homeIdx;
+      const champScore = isHome ? m.homeScore : m.awayScore;
+      const oppScore = isHome ? m.awayScore : m.homeScore;
+      const opp = managers[oppIdx];
+      const oppName = opp ? (opp.teamName || opp.clubName || opp.name) : "–";
+      const won = m.winnerIdx === championIdx;
+      const champScorers = (m.scorers || []).filter(s => s.teamIdx === championIdx);
+      let outcome = "D";
+      if (m.winnerIdx != null) outcome = won ? "W" : "L";
+      return { oppName, champScore, oppScore, outcome, pens: m.pens, won, champScorers };
+    });
+
+  if (!games.length) return null;
+
+  return (
+    <div className="bw-champ-road">
+      <div className="bw-champ-road-header" onClick={() => setOpen(o => !o)}>
+        <span className="bw-champ-road-title">🏁 ROAD TO VICTORY</span>
+        <span className="bw-champ-road-toggle">{open ? "▼" : "▲"}</span>
+      </div>
+      {open && (
+        <div className="bw-champ-road-body">
+          {games.map((g, i) => (
+            <div className="bw-champ-road-game" key={i}>
+              <div className="bw-champ-road-line">
+                <span className={`bw-champ-road-badge ${g.outcome === "W" ? "win" : g.outcome === "L" ? "loss" : "draw"}`}>{g.outcome}</span>
+                <span className="bw-champ-road-opp">vs {g.oppName}</span>
+                <span className="bw-champ-road-score">
+                  {g.champScore}–{g.oppScore}{g.pens ? " (pens)" : ""}
+                </span>
+              </div>
+              {g.champScorers.length > 0 && (
+                <div className="bw-champ-road-scorers">
+                  {g.champScorers.map((s, j) => (
+                    <span key={j} className="bw-champ-road-scorer">⚽ {s.name} {s.min}'</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
@@ -882,6 +939,11 @@ function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone }) {
   const homeGoals = goals.filter(e => e.team === "home");
   const awayGoals = goals.filter(e => e.team === "away");
 
+  const penEvent = simResult ? simResult.events.find(e => e.type === "pens") : null;
+  const penWinnerName = simResult?.penWinner
+    ? (simResult.penWinner === "home" ? homeName : awayName)
+    : null;
+
   return (
     <div className="cpu-sim-overlay" onClick={phase === "result" ? confirm : undefined}>
       <div className="cpu-sim-card" onClick={e => e.stopPropagation()}>
@@ -910,7 +972,11 @@ function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone }) {
 
         {phase === "result" && simResult && (
           <div className="cpu-sim-result">
-            {simResult.penWinner && <div className="cpu-sim-pens">⚡ Won on penalties</div>}
+            {simResult.penWinner && (
+              <div className="cpu-sim-pens">
+                ⚡ {penWinnerName} win {penEvent?.penScore ? `${penEvent.penScore} ` : ""}on penalties
+              </div>
+            )}
             {(homeGoals.length > 0 || awayGoals.length > 0) && (
               <div className="cpu-sim-scorers">
                 <div className="cpu-sim-scorer-col">
@@ -1015,6 +1081,9 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
 
             {/* Full squad */}
             <ChampionSquad manager={champion} onSaveSquad={onSaveSquad} saveState={saveState} />
+
+            {/* Road to Victory — champion's run of games */}
+            <RoadToVictory matchLog={draft.matchLog} championIdx={series.champion} managers={managers} />
 
             {/* Tournament stats */}
             <TournamentResults tournamentStats={draft.tournamentStats} managers={managers} />

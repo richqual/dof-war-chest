@@ -31,6 +31,13 @@ function sliceTextColor(value) {
   return value >= 150 ? "#241c05" : "rgba(232,241,230,0.92)";
 }
 
+// Outline that contrasts with the text itself: light halo behind dark text on
+// the gold wedges (a black stroke there merges into an unreadable blob), dark
+// halo behind light text on the green wedges.
+function sliceStrokeColor(value) {
+  return value >= 150 ? "rgba(255,255,255,0.85)" : "rgba(0,0,0,0.8)";
+}
+
 function polar(angleDeg, r) {
   const a = (angleDeg * Math.PI) / 180;
   return [r * Math.sin(a), -r * Math.cos(a)];
@@ -133,7 +140,7 @@ export default function SpinWheel({ carryover, onConfirm, difficulty = "normal" 
                   fontFamily="var(--bw-font-display, var(--font-head))"
                   dominantBaseline="middle"
                   textAnchor="middle"
-                  style={{ paintOrder: "stroke", stroke: "rgba(0,0,0,0.8)", strokeWidth: 2.5 }}
+                  style={{ paintOrder: "stroke", stroke: sliceStrokeColor(seg.value), strokeWidth: 2.5 }}
                 >
                   {seg.value === 0 ? "£0" : `£${seg.value}m`}
                 </text>
