@@ -3433,7 +3433,8 @@ html.wc-theme .bw-champ-stage {
 .bw-champ-road-badge.win { background: #1f8a3b; }
 .bw-champ-road-badge.loss { background: #a33; }
 .bw-champ-road-badge.draw { background: #777; }
-.bw-champ-road-opp { flex: 1; font: 500 12px var(--bw-font-body, inherit); color: var(--cc-text); }
+.bw-champ-road-stage { flex: 0 0 auto; font: 700 9px var(--bw-font-display); letter-spacing: .08em; color: var(--bw-gold); background: rgba(245,197,66,.12); border: 1px solid rgba(245,197,66,.3); border-radius: 4px !important; padding: 2px 5px; }
+.bw-champ-road-opp { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 12px var(--bw-font-body, inherit); color: var(--cc-text); }
 .bw-champ-road-score { font: 700 12px var(--bw-font-display); color: var(--bw-gold); letter-spacing: .04em; }
 .bw-champ-road-scorers { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 5px 0 0 27px; }
 .bw-champ-road-scorer { font-size: 10.5px; color: var(--cc-text-low); white-space: nowrap; }

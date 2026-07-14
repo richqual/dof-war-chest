@@ -87,11 +87,13 @@ export function useDraftState() {
       if (!s) return prev;
 
       let next = prev;
+      let stageLabel = null; // compact round/leg tag for the champion's Road to Victory
 
       if (s.format !== "tournament" && s.format !== "tournament8") {
         const newPlayed = (s.played ?? s.wins[0] + s.wins[1]) + 1;
         const maxGames = s.target * 2 - 1;
         const history = appendSeriesHistory(s, homeIdx, awayIdx, score, winnerIdx);
+        stageLabel = s.stage === "tiebreaker" ? "TIEBREAKER" : `G${newPlayed}`;
 
         if (winnerIdx === null) {
           const newDraws = (s.draws ?? 0) + 1;
@@ -125,6 +127,7 @@ export function useDraftState() {
           const p1Goals = isP0Home ? (score?.away ?? 0) : (score?.home ?? 0);
           const newGoals = [q.goals[0] + p0Goals, q.goals[1] + p1Goals];
           const newLegsPlayed = q.legsPlayed + 1;
+          stageLabel = s.singleLeg ? "QF" : `QF L${newLegsPlayed}`;
           let qWinner = null;
           let wonOnPens = false;
           if (newLegsPlayed >= (s.singleLeg ? 1 : 2)) {
@@ -155,6 +158,7 @@ export function useDraftState() {
             const p1Goals = isP0Home ? (score?.away ?? 0) : (score?.home ?? 0);
             const newGoals = [semi.goals[0] + p0Goals, semi.goals[1] + p1Goals];
             const newLegsPlayed = semi.legsPlayed + 1;
+            stageLabel = s.singleLeg ? "SF" : `SF L${newLegsPlayed}`;
             let semiWinner = null;
             let wonOnPens = false;
             if (newLegsPlayed >= (s.singleLeg ? 1 : 2)) {
@@ -174,6 +178,7 @@ export function useDraftState() {
             const f = s.final;
             const pos = f.p.indexOf(winnerIdx);
             if (pos < 0) return prev;
+            stageLabel = "FINAL";
             const wins = f.wins.map((w, i) => i === pos ? w + 1 : w);
             const champion = wins.some(w => w >= f.target) ? winnerIdx : null;
             next = { ...prev, series: { ...s, final: { ...f, wins, winner: champion }, champion, stage: champion !== null ? "champion" : "final" } };
@@ -247,6 +252,7 @@ export function useDraftState() {
           winnerIdx: winnerIdx ?? null,
           pens,
           scorers,
+          stage: stageLabel,
         };
         next = { ...next, matchLog: [...(next.matchLog || []), logEntry] };
       }

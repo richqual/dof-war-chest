@@ -756,7 +756,7 @@ function RoadToVictory({ matchLog, championIdx, managers }) {
       const champScorers = (m.scorers || []).filter(s => s.teamIdx === championIdx);
       let outcome = "D";
       if (m.winnerIdx != null) outcome = won ? "W" : "L";
-      return { oppName, champScore, oppScore, outcome, pens: m.pens, won, champScorers };
+      return { oppName, champScore, oppScore, outcome, pens: m.pens, won, champScorers, stage: m.stage };
     });
 
   if (!games.length) return null;
@@ -773,6 +773,7 @@ function RoadToVictory({ matchLog, championIdx, managers }) {
             <div className="bw-champ-road-game" key={i}>
               <div className="bw-champ-road-line">
                 <span className={`bw-champ-road-badge ${g.outcome === "W" ? "win" : g.outcome === "L" ? "loss" : "draw"}`}>{g.outcome}</span>
+                {g.stage && <span className="bw-champ-road-stage">{g.stage}</span>}
                 <span className="bw-champ-road-opp">vs {g.oppName}</span>
                 <span className="bw-champ-road-score">
                   {g.champScore}–{g.oppScore}{g.pens ? " (pens)" : ""}

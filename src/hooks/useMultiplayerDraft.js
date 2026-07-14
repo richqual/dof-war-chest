@@ -236,11 +236,13 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
     if (!s) return;
 
     let next = draft;
+    let stageLabel = null; // compact round/leg tag for the champion's Road to Victory
 
     if (s.format !== "tournament" && s.format !== "tournament8") {
       const newPlayed = (s.played ?? s.wins[0] + s.wins[1]) + 1;
       const maxGames = s.target * 2 - 1;
       const history = appendSeriesHistory(s, homeIdx, awayIdx, score, winnerIdx);
+      stageLabel = s.stage === "tiebreaker" ? "TIEBREAKER" : `G${newPlayed}`;
       if (winnerIdx === null) {
         const newDraws = (s.draws ?? 0) + 1;
         const allPlayed = newPlayed >= maxGames;
@@ -270,6 +272,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
         const p1Goals = isP0Home ? (score?.away ?? 0) : (score?.home ?? 0);
         const newGoals = [q.goals[0] + p0Goals, q.goals[1] + p1Goals];
         const newLegsPlayed = q.legsPlayed + 1;
+        stageLabel = s.singleLeg ? "QF" : `QF L${newLegsPlayed}`;
         let qWinner = null, wonOnPens = false;
         if (newLegsPlayed >= 2) {
           if (newGoals[0] > newGoals[1]) qWinner = q.p[0];
@@ -332,6 +335,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
         const p1Goals = isP0Home ? (score?.away ?? 0) : (score?.home ?? 0);
         const newGoals = [semi.goals[0] + p0Goals, semi.goals[1] + p1Goals];
         const newLegsPlayed = semi.legsPlayed + 1;
+        stageLabel = s.singleLeg ? "SF" : `SF L${newLegsPlayed}`;
         let semiWinner = null, wonOnPens = false;
         if (newLegsPlayed >= 2) {
           if (newGoals[0] > newGoals[1]) semiWinner = semi.p[0];
@@ -350,6 +354,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
         const f = s.final;
         const pos = f.p.indexOf(winnerIdx);
         if (pos < 0) return;
+        stageLabel = "FINAL";
         const wins = f.wins.map((w, i) => i === pos ? w + 1 : w);
         const champion = wins.some(w => w >= f.target) ? winnerIdx : null;
         next = { ...draft, series: { ...s, final: { ...f, wins, winner: champion }, champion, stage: champion !== null ? "champion" : "final" } };
@@ -369,6 +374,27 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
       accum(matchRatings.home, homeIdx);
       accum(matchRatings.away, awayIdx);
       next = { ...next, tournamentStats: stats };
+    }
+
+    // Per-match log — powers the champion's "Road to Victory" recap.
+    {
+      const goalEvents = (matchEvents || []).filter(e => e.type === "goal");
+      const scorers = goalEvents.map(e => ({
+        name: e.scorer,
+        teamIdx: e.team === "home" ? homeIdx : awayIdx,
+        min: e.min,
+      }));
+      const pens = (matchEvents || []).some(e => e.type === "pens");
+      const logEntry = {
+        homeIdx, awayIdx,
+        homeScore: score?.home ?? 0,
+        awayScore: score?.away ?? 0,
+        winnerIdx: winnerIdx ?? null,
+        pens,
+        scorers,
+        stage: stageLabel,
+      };
+      next = { ...next, matchLog: [...(next.matchLog || []), logEntry] };
     }
 
     {
