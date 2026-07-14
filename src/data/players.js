@@ -1524,7 +1524,52 @@ const CPU_POS_SUITABILITY = {
   ST:  ["ST", "LW", "RW"],
 };
 
-export function chooseCpuPick(candidates, budget, posKey) {
+// Elite clubs offered in "Real Teams" mode — one entry per assignable real club.
+// `club` must match a player card's `club` string exactly; `league` must match `p.league`.
+// `primary`/`secondary`/`pattern` set the CPU's kit; `dof` is the assigned Director of
+// Football (a club legend / historical figure); `playerAliases` are extra club strings
+// used elsewhere in the data (e.g. Legends cards say "Bayern Munich" not "Bayern") so
+// own-club matching catches them; `managerClubs` are substrings matched against a
+// manager's `club` for auto-assigning a club manager.
+// Kept to well-represented top-tier sides so an assigned CPU has plenty of own-club players.
+export const REAL_TEAMS = [
+  { club: "Man Utd",     league: "premier_league", primary: "#DA020E", secondary: "#FBE122", pattern: "plain",   dof: "John Henry Davies",    managerClubs: ["Manchester United"] },
+  { club: "Arsenal",     league: "premier_league", primary: "#EF0107", secondary: "#FFFFFF", pattern: "plain",   dof: "Henry Norris" },
+  { club: "Liverpool",   league: "premier_league", primary: "#C8102E", secondary: "#FFFFFF", pattern: "plain",   dof: "John Houlding" },
+  { club: "Chelsea",     league: "premier_league", primary: "#034694", secondary: "#FFFFFF", pattern: "plain",   dof: "Roman Abramovich" },
+  { club: "Man City",    league: "premier_league", primary: "#6CABDD", secondary: "#FFFFFF", pattern: "plain",   dof: "Joshua Parlby",        managerClubs: ["Manchester City"] },
+  { club: "Real Madrid", league: "la_liga",        primary: "#FEFEFE", secondary: "#00529F", pattern: "plain",   dof: "Santiago Bernabéu" },
+  { club: "Barcelona",   league: "la_liga",        primary: "#A50044", secondary: "#004D98", pattern: "stripes", dof: "Joan Gamper" },
+  { club: "Atlético",    league: "la_liga",        primary: "#CE3524", secondary: "#FFFFFF", pattern: "stripes", dof: "Vicente Calderón" },
+  { club: "Juventus",    league: "serie_a",        primary: "#000000", secondary: "#FFFFFF", pattern: "stripes", dof: "Gianni Agnelli" },
+  { club: "Inter",       league: "serie_a",        primary: "#010E80", secondary: "#000000", pattern: "stripes", dof: "Giovanni Paramithiotti" },
+  { club: "AC Milan",    league: "serie_a",        primary: "#FB090B", secondary: "#000000", pattern: "stripes", dof: "Silvio Berlusconi" },
+  { club: "Bayern",      league: "bundesliga",     primary: "#DC052D", secondary: "#FFFFFF", pattern: "plain",   dof: "Franz John",           playerAliases: ["Bayern Munich"] },
+  { club: "Dortmund",    league: "bundesliga",     primary: "#FDE100", secondary: "#000000", pattern: "plain",   dof: "Michael Zorc" },
+  { club: "PSG",         league: "ligue_1",        primary: "#004170", secondary: "#DA291C", pattern: "plain",   dof: "Nasser Al-Khelaifi" },
+];
+
+const REAL_TEAM_BY_CLUB = Object.fromEntries(REAL_TEAMS.map(t => [t.club, t]));
+const REAL_TEAM_LEAGUE = Object.fromEntries(REAL_TEAMS.map(t => [t.club, t.league]));
+
+// All club strings (canonical + aliases) that count as "played for" a given real club.
+export function realTeamPlayerClubs(realClub) {
+  const t = REAL_TEAM_BY_CLUB[realClub];
+  if (!t) return realClub ? [realClub] : [];
+  return [t.club, ...(t.playerAliases || [])];
+}
+
+// True if a manager's `club` string belongs to the given real club.
+export function managerMatchesRealClub(manager, realClub) {
+  const t = REAL_TEAM_BY_CLUB[realClub];
+  if (!t || !manager?.club) return false;
+  const needles = t.managerClubs || [t.club];
+  return needles.some(n => manager.club.includes(n));
+}
+
+// realClub: when set (Real Teams mode), the CPU favours players from that club, then
+// players from OTHER leagues (avoiding same-league rivals), before normal preferences.
+export function chooseCpuPick(candidates, budget, posKey, realClub = null) {
   let affordable = candidates.filter(p => p.value <= budget);
   if (affordable.length === 0) return null;
 
@@ -1535,6 +1580,21 @@ export function chooseCpuPick(candidates, budget, posKey) {
            (p.pos2 && CPU_POS_SUITABILITY[posKey].includes(p.pos2))
     );
     if (suitable.length > 0) affordable = suitable;
+  }
+
+  // Real Teams preference: (1) own-club players, else (2) players outside the club's
+  // league so a CPU never poaches a same-league rival. Falls through to normal behaviour
+  // if neither tier has candidates for this slot, so a turn is never wasted.
+  if (realClub) {
+    const ownClubs = realTeamPlayerClubs(realClub);
+    const ownClub = affordable.filter(p => ownClubs.includes(p.club));
+    if (ownClub.length > 0) {
+      affordable = ownClub;
+    } else {
+      const league = REAL_TEAM_LEAGUE[realClub];
+      const outsideLeague = affordable.filter(p => p.league !== league);
+      if (outsideLeague.length > 0) affordable = outsideLeague;
+    }
   }
 
   // CPU acts on value (perceived market reputation), not actual ratings it can't see.
@@ -1584,7 +1644,7 @@ export const EASTER_EGG_TEAMS = [
   { clubName: "Wirral County",       dofName: "Mike Bassett",     primary: "#c8102e", secondary: "#ffffff", pattern: "stripes" },
   { clubName: "Melchester Rovers",   dofName: "Roy Race",         primary: "#c8102e", secondary: "#ffd700", pattern: "hoops"   },
   { clubName: "Allies PoW",          dofName: "Sly Stallone",     primary: "#c8102e", secondary: "#003087", pattern: "stripes" },
-  { clubName: "Longmarsh Prisoners", dofName: "Danny Meehan",     primary: "#111827", secondary: "#111827", pattern: "plain"   },
+  { clubName: "Longmarsh Prisoners", dofName: "Danny Meehan",     primary: "#111827", secondary: "#9ca3af", pattern: "plain"   },
   { clubName: "Renford Rejects",     dofName: "Jason Summerbee",  primary: "#1a1a6e", secondary: "#6a0dad", pattern: "stripes" },
   { clubName: "Hounslow Harriers",   dofName: "Juliette Paxton",  primary: "#ffffff", secondary: "#c8102e", pattern: "plain"   },
   { clubName: "Real San Tadeo",      dofName: "Santiago Muñez",   primary: "#111827", secondary: "#ffffff", pattern: "stripes" },

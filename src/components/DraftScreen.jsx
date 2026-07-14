@@ -248,7 +248,7 @@ export default function DraftScreen({
       } else if (currentBudget === null) {
         confirmBudget(generateBudget(draft.difficulty));
       } else {
-        const pick = chooseCpuPick(getAvailablePlayers(currentPos.key), currentBudget, currentPos.key);
+        const pick = chooseCpuPick(getAvailablePlayers(currentPos.key), currentBudget, currentPos.key, activeManager?.realClub || null);
         if (pick) handlePickPlayer(pick);
         else skipTurn();
       }
@@ -489,6 +489,7 @@ export default function DraftScreen({
           <div className="bw-cpu-area">
             <span className="bw-badge-pill bw-badge-pill-cpu">THEIR TURN</span>
             <div className="bw-cpu-name">{activeManager?.clubName || activeManager?.name}</div>
+            {activeManager?.realClub && <div className="bw-cpu-status">★ {activeManager.realClub}</div>}
             <div className="bw-cpu-status">
               {needsSlotDraw
                 ? "Drawing their position..."
@@ -502,6 +503,7 @@ export default function DraftScreen({
           <div className="bw-cpu-area">
             <span className="bw-badge-pill bw-badge-pill-human">CPU TURN</span>
             <div className="bw-cpu-name">{activeManager?.clubName || activeManager?.name}</div>
+            {activeManager?.realClub && <div className="bw-cpu-status">★ {activeManager.realClub}</div>}
             <div className="bw-cpu-status">
               {needsSlotDraw
                 ? "Drawing position…"

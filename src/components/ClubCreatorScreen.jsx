@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RANDOM_CLUB_NAMES, RANDOM_MANAGER_NAMES, EASTER_EGG_TEAMS } from "../data/players";
+import { RANDOM_CLUB_NAMES, RANDOM_MANAGER_NAMES, EASTER_EGG_TEAMS, REAL_TEAMS } from "../data/players";
 import { FORMATION_LIST } from "../data/formations";
 import KitSwatch from "./KitSwatch";
 
@@ -73,8 +73,13 @@ function filterDistinctKits(pool, takenColors, threshold = 80) {
 function randomCpuIdentity(existingNames = [], takenColors = []) {
   const formation = randomCpuFormation();
   if (Math.random() < 0.25) {
-    const egg = EASTER_EGG_TEAMS[Math.floor(Math.random() * EASTER_EGG_TEAMS.length)];
-    return { clubName: egg.clubName, dofName: egg.dofName, primaryColor: egg.primary, secondaryColor: egg.secondary, pattern: egg.pattern, formation };
+    // Only pick from egg teams not already in use, so the same team can't be randomised twice
+    const freeEggs = EASTER_EGG_TEAMS.filter(e => !existingNames.includes(e.clubName));
+    if (freeEggs.length > 0) {
+      const egg = freeEggs[Math.floor(Math.random() * freeEggs.length)];
+      return { clubName: egg.clubName, dofName: egg.dofName, primaryColor: egg.primary, secondaryColor: egg.secondary, pattern: egg.pattern, formation };
+    }
+    // All egg teams taken — fall through to a normal random identity
   }
   const available = filterDistinctKits(CPU_KITS, takenColors);
   const kit = available[Math.floor(Math.random() * available.length)];
@@ -94,15 +99,19 @@ const ALL_KITS = [
   { primary: "#8b0000", secondary: "#ffd700" },
 ];
 
-function randomHumanIdentity(existingName = "") {
+function randomHumanIdentity(existingName = "", otherNames = []) {
   const formation = randomCpuFormation();
+  const taken = [existingName, ...otherNames];
   if (Math.random() < 0.25) {
-    const egg = EASTER_EGG_TEAMS[Math.floor(Math.random() * EASTER_EGG_TEAMS.length)];
-    return { clubName: egg.clubName, dofName: egg.dofName, primaryColor: egg.primary, secondaryColor: egg.secondary, pattern: egg.pattern, formation };
+    const freeEggs = EASTER_EGG_TEAMS.filter(e => !otherNames.includes(e.clubName));
+    if (freeEggs.length > 0) {
+      const egg = freeEggs[Math.floor(Math.random() * freeEggs.length)];
+      return { clubName: egg.clubName, dofName: egg.dofName, primaryColor: egg.primary, secondaryColor: egg.secondary, pattern: egg.pattern, formation };
+    }
   }
   const kit = ALL_KITS[Math.floor(Math.random() * ALL_KITS.length)];
   let name;
-  do { name = randomClubName(); } while (name === existingName);
+  do { name = randomClubName(); } while (taken.includes(name));
   const r = Math.random();
   const pattern = r < 0.35 ? "stripes" : r < 0.45 ? "hoops" : "plain";
   return { clubName: name, dofName: randomManagerName(), primaryColor: kit.primary, secondaryColor: kit.secondary, pattern, formation };
@@ -255,6 +264,7 @@ function CpuSummaryCard({ index, club, onEdit, hideFormation = false }) {
           <div className="bw-club-card-name">{club.clubName}</div>
           <div className="bw-club-card-meta">{club.dofName}</div>
           {!hideFormation && <div className="bw-club-card-meta">{club.formation}</div>}
+          {club.realClub && <div className="bw-club-card-meta">★ {club.realClub}</div>}
         </div>
       </div>
     </div>
@@ -263,7 +273,7 @@ function CpuSummaryCard({ index, club, onEdit, hideFormation = false }) {
 
 // ── CPU editor step ────────────────────────────────────────────────────────────
 
-function CpuEditorStep({ index, club, onChange, onDone, otherColors = [], hideFormation = false }) {
+function CpuEditorStep({ index, club, onChange, onDone, otherColors = [], otherNames = [], hideFormation = false, realTeams = false, takenRealClubs = [] }) {
   const valid = club.dofName.trim() && club.clubName.trim();
   return (
     <div className="bw-frame">
@@ -277,8 +287,10 @@ function CpuEditorStep({ index, club, onChange, onDone, otherColors = [], hideFo
           <button
             className="bw-dice-btn"
             onClick={() => {
-              const identity = randomCpuIdentity([], otherColors);
-              onChange({ ...club, ...identity, isComputer: true });
+              const identity = randomCpuIdentity(otherNames, otherColors);
+              const next = { ...club, ...identity, isComputer: true };
+              // In Real Teams mode keep the club's kit + legend DoF; only the name/formation reroll
+              onChange(realTeams && club.realClub ? applyRealClubIdentity(next, club.realClub) : next);
             }}
             title="Randomise everything"
           >
@@ -287,6 +299,28 @@ function CpuEditorStep({ index, club, onChange, onDone, otherColors = [], hideFo
         </div>
 
         <ClubEditorForm club={club} onChange={onChange} index={index} hideFormation={hideFormation} />
+
+        {realTeams && (
+          <div className="bw-field">
+            <div className="bw-field-label">ELITE CLUB</div>
+            <select
+              className="bw-select"
+              value={club.realClub || ""}
+              onChange={e => onChange(applyRealClubIdentity(club, e.target.value))}
+            >
+              {REAL_TEAMS.map(t => (
+                <option
+                  key={t.club}
+                  value={t.club}
+                  disabled={t.club !== club.realClub && takenRealClubs.includes(t.club)}
+                >
+                  {t.club}{t.club !== club.realClub && takenRealClubs.includes(t.club) ? " (taken)" : ""}
+                </option>
+              ))}
+            </select>
+            <div className="bw-setup-hint">This CPU favours players who played for {club.realClub || "this club"}.</div>
+          </div>
+        )}
 
         <button
           className="bw-cta-primary"
@@ -298,6 +332,21 @@ function CpuEditorStep({ index, club, onChange, onDone, otherColors = [], hideFo
       </div>
     </div>
   );
+}
+
+// Apply an elite club's kit + Director of Football (a club legend) to a CPU club,
+// keeping its (fictional) club name. Used on assignment and when the club is changed.
+function applyRealClubIdentity(club, realClub) {
+  const t = REAL_TEAMS.find(x => x.club === realClub);
+  if (!t) return { ...club, realClub };
+  return {
+    ...club,
+    realClub,
+    primaryColor: t.primary,
+    secondaryColor: t.secondary,
+    pattern: t.pattern,
+    dofName: t.dof,
+  };
 }
 
 // ── Main component ─────────────────────────────────────────────────────────────
@@ -314,8 +363,14 @@ export default function ClubCreatorScreen({ config, onStart, onBack, profileDefa
     const takenNames = [];
     // Seed taken colours with human defaults so CPUs avoid clashing with them too
     const takenColors = result.map(c => c.primaryColor);
+    // Real Teams: hand each CPU a distinct elite club (editable later in the CPU editor)
+    const realClubPool = gameOptions.realTeams
+      ? [...REAL_TEAMS].sort(() => Math.random() - 0.5).map(t => t.club)
+      : [];
+    let realIdx = 0;
     for (let i = numHumans; i < numClubs; i++) {
-      const cpu = makeCpuClub(takenNames, takenColors);
+      let cpu = makeCpuClub(takenNames, takenColors);
+      if (gameOptions.realTeams) cpu = applyRealClubIdentity(cpu, realClubPool[realIdx++ % realClubPool.length]);
       takenNames.push(cpu.clubName);
       takenColors.push(cpu.primaryColor);
       result.push(cpu);
@@ -342,7 +397,10 @@ export default function ClubCreatorScreen({ config, onStart, onBack, profileDefa
           onChange={updated => updateClub(editingCpuIdx, updated)}
           onDone={() => setEditingCpuIdx(null)}
           otherColors={clubs.filter((_, i) => i !== editingCpuIdx).map(c => c.primaryColor)}
+          otherNames={clubs.filter((_, i) => i !== editingCpuIdx).map(c => c.clubName).filter(Boolean)}
           hideFormation={hideFormation}
+          realTeams={!!gameOptions.realTeams}
+          takenRealClubs={clubs.filter((_, i) => i !== editingCpuIdx).map(c => c.realClub).filter(Boolean)}
         />
       </div>
     );
@@ -398,7 +456,8 @@ export default function ClubCreatorScreen({ config, onStart, onBack, profileDefa
                 <button
                   className="bw-dice-btn"
                   onClick={() => {
-                    const identity = randomHumanIdentity(club.clubName);
+                    const otherNames = clubs.filter((_, j) => j !== step).map(c => c.clubName).filter(Boolean);
+                    const identity = randomHumanIdentity(club.clubName, otherNames);
                     updateClub(step, { ...club, ...identity, isComputer: false });
                   }}
                   title="Randomise everything"

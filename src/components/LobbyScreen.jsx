@@ -99,6 +99,7 @@ export default function LobbyScreen({ onContinue, onBack }) {
   const [hideRatings, setHideRatings] = useState(true);
   const [dynamicValues, setDynamicValues] = useState(true);
   const [dynamicForm, setDynamicForm] = useState(true);
+  const [realTeams, setRealTeams] = useState(false);
   const [managerTiming, setManagerTiming] = useState("before");
   const [draftRoulette, setDraftRoulette] = useState({ enabled: false, era: false, league: true });
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -125,6 +126,7 @@ export default function LobbyScreen({ onContinue, onBack }) {
       dynamicForm,
       managerTiming,
       draftRoulette,
+      realTeams,
     });
   }
 
@@ -301,6 +303,20 @@ export default function LobbyScreen({ onContinue, onBack }) {
                   <span className="bw-pool-label-sub">Hot form +2, poor form -2 — bargains and traps daily</span>
                 </span>
               </label>
+              {numHumans < numClubs && (
+                <label className={`bw-pool-row ${realTeams ? "checked" : "unchecked"}`}>
+                  <input
+                    type="checkbox"
+                    checked={realTeams}
+                    onChange={e => setRealTeams(e.target.checked)}
+                  />
+                  <span className="bw-pool-check-icon">{realTeams ? "✓" : ""}</span>
+                  <span className="bw-pool-label-wrap">
+                    <span className="bw-pool-label">Real Teams (CPU clubs)</span>
+                    <span className="bw-pool-label-sub">Each CPU is assigned an elite club and favours its former players</span>
+                  </span>
+                </label>
+              )}
             </div>
           )}
 

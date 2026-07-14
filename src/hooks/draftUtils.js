@@ -1,4 +1,4 @@
-import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS } from "../data/players";
+import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS, realTeamPlayerClubs } from "../data/players";
 import { GROUP_SLOT_INDICES, FORMATIONS } from "../data/formations";
 
 export { generateBudget, chooseCpuPick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS };
@@ -80,6 +80,7 @@ export function serializeDraft(draft) {
     availablePlayerIds: draft.availablePlayerIds instanceof Set
       ? [...draft.availablePlayerIds]
       : draft.availablePlayerIds,
+    poolIds: draft.poolIds instanceof Set ? [...draft.poolIds] : draft.poolIds,
     playerValues: mapToObj(draft.playerValues),
     playerForm:   mapToObj(draft.playerForm),
     playerOrder:  mapToObj(draft.playerOrder),
@@ -95,6 +96,11 @@ export function deserializeDraft(draft) {
       : draft.availablePlayerIds instanceof Set
         ? draft.availablePlayerIds
         : new Set(),
+    poolIds: Array.isArray(draft.poolIds)
+      ? new Set(draft.poolIds)
+      : draft.poolIds instanceof Set
+        ? draft.poolIds
+        : undefined,
     playerValues: objToMap(draft.playerValues),
     playerForm:   objToMap(draft.playerForm),
     playerOrder:  objToMap(draft.playerOrder),
@@ -255,7 +261,7 @@ export function assignDraftRoulette(n, draftRoulette) {
   return assignments;
 }
 
-export function selectGamePlayers(filter = {}) {
+export function selectGamePlayers(filter = {}, { perLeagueDedup = false } = {}) {
   const { eras, leagues, tiers } = filter;
   const pool = PLAYERS.filter(p =>
     (!leagues || leagues.includes(p.league)) &&
@@ -263,10 +269,14 @@ export function selectGamePlayers(filter = {}) {
     // Legends bypass the era filter — they're gated by their own league toggle
     (p.league === "legends" || !eras || eras.includes(p.era))
   );
+  // Normally one card per real player (deduped by name). In Real Teams mode we dedupe
+  // per-league instead, so each league's version survives (e.g. a Man Utd Ronaldo AND a
+  // Real Madrid Ronaldo) and an assigned CPU can find the card for its own league.
   const byName = {};
   for (const player of pool) {
-    if (!byName[player.name]) byName[player.name] = [player];
-    else byName[player.name].push(player);
+    const key = perLeagueDedup ? `${player.name}|${player.league}` : player.name;
+    if (!byName[key]) byName[key] = [player];
+    else byName[key].push(player);
   }
   const availableIds = new Set();
   for (const versions of Object.values(byName)) {
@@ -274,6 +284,40 @@ export function selectGamePlayers(filter = {}) {
     availableIds.add(selected.id);
   }
   return availableIds;
+}
+
+// Real Teams: the card ids a CPU always has access to for its assigned club — every
+// card (any league, including Legends) whose club matches, deduped by name so a player
+// isn't offered twice. Legends versions win the tie so the club's icons show up.
+export function computeOwnClubIds(realClub) {
+  if (!realClub) return [];
+  const clubs = realTeamPlayerClubs(realClub);
+  const byName = {};
+  for (const p of PLAYERS) {
+    if (!clubs.includes(p.club)) continue;
+    const cur = byName[p.name];
+    if (!cur || (p.league === "legends" && cur.league !== "legends")) byName[p.name] = p;
+  }
+  return Object.values(byName).map(p => p.id);
+}
+
+// Builds the shared pool. Everyone can draft from `poolIds` (the filtered selection);
+// additionally, each Real Teams CPU can draft its own-club cards. Returns the union
+// (so values/form/order get generated for every draftable card) plus the base poolIds.
+export function buildRealTeamsPool(poolIds, managers) {
+  const union = new Set(poolIds);
+  for (const m of managers) {
+    for (const id of (m.ownClubIds || [])) union.add(id);
+  }
+  return { availablePlayerIds: union, poolIds: new Set(poolIds) };
+}
+
+// Is a given card draftable by the active manager? Base pool for everyone, plus the
+// active manager's own-club cards in Real Teams mode.
+export function isDraftableBy(draft, activeManager, id) {
+  const base = draft.poolIds || draft.availablePlayerIds;
+  if (base && base.has(id)) return true;
+  return !!activeManager?.ownClubIds?.includes(id);
 }
 
 export function randomizePlayerValues(availablePlayerIds) {
@@ -326,13 +370,11 @@ export function getFormArrow(formValue) {
 export function buildInitialDraft(clubs, options = {}) {
   const n = clubs.length;
   const initialOrder = shuffle(Array.from({ length: n }, (_, i) => i));
-  const availablePlayerIds = selectGamePlayers(options.playerFilter);
-  const playerValues = options.dynamicValues !== false ? randomizePlayerValues(availablePlayerIds) : new Map();
-  const playerForm = options.dynamicForm !== false ? generatePlayerForm(availablePlayerIds) : new Map();
-  const playerOrder = generatePlayerOrder(availablePlayerIds);
   const rouletteAssignments = assignDraftRoulette(n, options.draftRoulette);
-  return {
-    managers: clubs.map((c, i) => ({
+  const managers = clubs.map((c, i) => {
+    // Real Teams mode: elite club this CPU favours during the draft (null otherwise)
+    const realClub = (options.realTeams && c.isComputer) ? (c.realClub || null) : null;
+    return {
       id: i,
       name: c.dofName,
       dofName: c.dofName,
@@ -348,7 +390,18 @@ export function buildInitialDraft(clubs, options = {}) {
       formation: c.formation || "4-3-3",
       assignedEra: rouletteAssignments[i].era,
       assignedLeague: rouletteAssignments[i].league,
-    })),
+      realClub,
+      ownClubIds: realClub ? computeOwnClubIds(realClub) : [],
+    };
+  });
+  const basePool = selectGamePlayers(options.playerFilter, { perLeagueDedup: !!options.realTeams });
+  const { availablePlayerIds, poolIds } = buildRealTeamsPool(basePool, managers);
+  const playerValues = options.dynamicValues !== false ? randomizePlayerValues(availablePlayerIds) : new Map();
+  const playerForm = options.dynamicForm !== false ? generatePlayerForm(availablePlayerIds) : new Map();
+  const playerOrder = generatePlayerOrder(availablePlayerIds);
+  return {
+    managers,
+    realTeams: !!options.realTeams,
     draftRoulette: options.draftRoulette || null,
     positionIndex: 0,
     turnIndex: 0,
@@ -358,6 +411,7 @@ export function buildInitialDraft(clubs, options = {}) {
     snakeOrder: initialOrder,
     takenIds: [],
     availablePlayerIds,
+    poolIds,
     playerValues,
     playerForm,
     playerOrder,
@@ -379,7 +433,7 @@ export function getPlayersFromState(d, posKey) {
     : null;
   let players = availablePlayersFor(posKey, d.takenIds, rouletteAssignment);
   if (d.availablePlayerIds instanceof Set) {
-    players = players.filter(p => d.availablePlayerIds.has(p.id));
+    players = players.filter(p => isDraftableBy(d, activeManager, p.id));
   }
   players = players.map(p => {
     const player = { ...p };

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { MANAGERS, TIER_LABELS } from "../data/managers";
-import { ERA_LABELS } from "../data/players";
+import { ERA_LABELS, REAL_TEAMS, managerMatchesRealClub } from "../data/players";
 import { DRAFT_ROULETTE_ERAS, DRAFT_ROULETTE_LEAGUES } from "../hooks/draftUtils";
 import { lastName } from "../utils/displayName";
 
@@ -45,6 +45,29 @@ function filterByRoulette(pool, manager) {
     (!era || m.era === era) &&
     (!league || getManagerLeague(m) === league)
   );
+}
+
+// Real Teams: managers in `pool` who managed the CPU's assigned club.
+function clubManagersInPool(pool, realClub) {
+  if (!realClub) return [];
+  return pool.filter(m => managerMatchesRealClub(m, realClub));
+}
+
+// Every club manager for the real-club CPUs, so the human's pool filter can't leave a
+// real-club CPU without a club manager to be assigned. Deduped against the base pool.
+function withRealClubManagers(pool, managers) {
+  const extra = [];
+  const seen = new Set(pool.map(m => m.id));
+  for (const mgr of managers) {
+    if (!mgr.realClub) continue;
+    for (const m of MANAGERS) {
+      if (!seen.has(m.id) && managerMatchesRealClub(m, mgr.realClub)) {
+        seen.add(m.id);
+        extra.push(m);
+      }
+    }
+  }
+  return extra.length ? [...pool, ...extra] : pool;
 }
 
 function shuffle(arr) {
@@ -304,7 +327,7 @@ export default function ManagerDraftScreen({
     if (!isMultiplayer || !managerDraftConfig) return;
     if (phase !== "league-select") return;
     const { leagues, tiers } = managerDraftConfig;
-    setPool(shuffle([...getFilteredPool(leagues, tiers)]));
+    setPool(shuffle([...withRealClubManagers(getFilteredPool(leagues, tiers), draft.managers)]));
     setPhase("playing");
     setWaitingForGo(true);
   }, [managerDraftConfig, phase, isMultiplayer]);
@@ -316,7 +339,7 @@ export default function ManagerDraftScreen({
 
   function startWithLeague(leagues, tiers) {
     if (onSetManagerDraftConfig) onSetManagerDraftConfig(leagues, tiers);
-    setPool(shuffle([...getFilteredPool(leagues, tiers)]));
+    setPool(shuffle([...withRealClubManagers(getFilteredPool(leagues, tiers), draft.managers)]));
     setPhase("playing");
     setWaitingForGo(true);
   }
@@ -331,7 +354,11 @@ export default function ManagerDraftScreen({
     setSettled(false);
     setPendingPick(null);
 
-    pendingOffer.current = dedupByName(shuffle(filterByRoulette(pool, currentManager))).slice(0, 3);
+    // Real Teams CPU: offer managers from its assigned club (falls back to normal if none)
+    const clubMgrs = currentManager?.isComputer ? clubManagersInPool(pool, currentManager.realClub) : [];
+    pendingOffer.current = clubMgrs.length
+      ? dedupByName(shuffle(clubMgrs)).slice(0, 3)
+      : dedupByName(shuffle(filterByRoulette(pool, currentManager))).slice(0, 3);
 
     const t0 = setTimeout(() => {
       setSpinning(false);
@@ -453,9 +480,14 @@ export default function ManagerDraftScreen({
     for (let i = turnIdx; i < pickOrder.length; i++) {
       const mgr = draft.managers[pickOrder[i]];
       if (mgr.isComputer) {
-        const cpuPool = filterByRoulette(remaining, mgr);
-        const sorted = cpuPool.sort((a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier]);
-        const pick = sorted[0];
+        const clubMgrs = clubManagersInPool(remaining, mgr.realClub);
+        let pick;
+        if (clubMgrs.length) {
+          pick = shuffle(clubMgrs)[0];
+        } else {
+          const cpuPool = filterByRoulette(remaining, mgr);
+          pick = cpuPool.sort((a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier])[0];
+        }
         if (!pick) break;
         newAssignments[pickOrder[i]] = pick;
         if (isMultiplayer) {

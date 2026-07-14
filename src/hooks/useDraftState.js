@@ -7,6 +7,7 @@ import {
   availablePlayersFor, getPlayersFromState,
   autoDrawSlot, activeFormation, resolveCurrentPosKey, resolveCurrentPos,
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder,
+  buildRealTeamsPool, isDraftableBy,
   POS_LABELS, getFormArrow,
   buildInitialWarChestDraft, getWarChestPlayersForSlot, autoBuildWarChestSquad,
   appendSeriesHistory,
@@ -315,7 +316,7 @@ export function useDraftState() {
       : null;
     let players = availablePlayersFor(posKey, draft ? draft.takenIds : [], rouletteAssignment);
     if (draft?.availablePlayerIds) {
-      players = players.filter(p => draft.availablePlayerIds.has(p.id));
+      players = players.filter(p => isDraftableBy(draft, activeManager, p.id));
     }
     if (draft?.playerValues) {
       players = players.map(p => ({
@@ -379,7 +380,8 @@ export function useDraftState() {
         };
       }
       const posKey = resolveCurrentPosKey(d);
-      const pick = chooseCpuPick(getPlayersFromState(d, posKey), d.currentBudget, posKey);
+      const realClub = d.managers[d.currentOrder[d.turnIndex]]?.realClub || null;
+      const pick = chooseCpuPick(getPlayersFromState(d, posKey), d.currentBudget, posKey, realClub);
       if (!pick) {
         d = { ...d, currentBudget: null, noCarryoverNext: true };
         continue;
@@ -407,7 +409,8 @@ export function useDraftState() {
         };
       }
       const posKey = resolveCurrentPosKey(d);
-      const pick = chooseCpuPick(getPlayersFromState(d, posKey), d.currentBudget, posKey);
+      const realClub = d.managers[activeIdx]?.realClub || null;
+      const pick = chooseCpuPick(getPlayersFromState(d, posKey), d.currentBudget, posKey, realClub);
       if (!pick) {
         d = { ...d, currentBudget: null, noCarryoverNext: true };
         continue;
@@ -451,11 +454,14 @@ export function useDraftState() {
   }
 
   function setPlayerPool(filter) {
-    const availablePlayerIds = selectGamePlayers(filter);
-    const playerValues = randomizePlayerValues(availablePlayerIds);
-    const playerForm = generatePlayerForm(availablePlayerIds);
-    const playerOrder = generatePlayerOrder(availablePlayerIds);
-    setDraft(prev => ({ ...prev, availablePlayerIds, playerValues, playerForm, playerOrder }));
+    setDraft(prev => {
+      const basePool = selectGamePlayers(filter, { perLeagueDedup: !!prev.realTeams });
+      const { availablePlayerIds, poolIds } = buildRealTeamsPool(basePool, prev.managers);
+      const playerValues = randomizePlayerValues(availablePlayerIds);
+      const playerForm = generatePlayerForm(availablePlayerIds);
+      const playerOrder = generatePlayerOrder(availablePlayerIds);
+      return { ...prev, availablePlayerIds, poolIds, playerValues, playerForm, playerOrder };
+    });
   }
 
   // ── War Chest actions ────────────────────────────────────────────────────
