@@ -15,10 +15,12 @@ Back to [[The Transfer Wheel]]. Related: [[Game Modes]], [[Screens]].
 | Match sim desktop reflow | 🟡 | Only screen left in the widescreen/desktop reflow sweep. |
 
 ## Recently shipped (for context)
+See [[Version History]] for the full story. Highlights:
+
 | Feature | Version |
 |---|---|
-| Real Teams mode | v3.9.55–56 |
-| Broadcast UI redesign (complete) | v3.9.0–22 |
+| Real Teams / Super League mode | v3.9.55–59 |
+| Broadcast UI redesign (complete) | v3.9.23 |
 | Drag-to-spin wheels | v3.9.23 |
 | Global menu → pull-tab | v3.9.31 |
 

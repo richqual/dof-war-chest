@@ -18,6 +18,7 @@
 - [[State & Persistence]] — hooks, localStorage, save/resume
 - [[Multiplayer]] — Firebase real-time sync
 - [[Roadmap]] — planning, ideas, and what's shipped
+- [[Version History]] — the story of the build, v1 → now
 
 ## The core loop
 1. Pick a **mode** → set up clubs / players → (optionally) [[Game Modes#Draft Roulette|spin the mode wheel]]
