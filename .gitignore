@@ -27,8 +27,13 @@ dist-ssr
 # Design references / mocks — not shipped app code
 design_handoff_transfer_wheel/
 transfer-wheel-skin-options/
-docs/
+# Ignore everything in docs/ EXCEPT the Obsidian reference vault (tracked below)
+docs/*
+!docs/obsidian/
 
 # Design handoff archive (Broadcast redesign reference, not shipped)
 Transfer Wheel skin options.zip
 Transfer Wheel skin options/
+
+# Obsidian local editor config (per-machine, not shared)
+docs/obsidian/.obsidian/
