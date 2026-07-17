@@ -119,6 +119,57 @@ export const FORMATIONS = {
   ],
 };
 
+// ── Position eligibility ──────────────────────────────────────────────────
+// Each outfield starter slot draws from a pool: the slot's NATURAL position
+// (no match penalty) plus a set of ELIGIBLE alternatives (small penalty). GK is
+// always strict. Players outside the pool can't be drafted into the slot.
+//
+// Standard elig by natural position. Wing-back and back-three slots differ per
+// formation, handled by ELIG_OVERRIDE below (the RM/LM/CB labels mean different
+// things in a 3-at-the-back shape than in a flat four).
+const ELIG_STD = {
+  GK:  [],
+  CB:  [],                        // strict in a back four/five
+  RB:  ["LB", "RM"],
+  LB:  ["RB", "LM"],
+  DM:  ["CM", "CB"],
+  CM:  ["DM", "CAM"],
+  CAM: ["CM", "RW", "LW"],
+  RM:  ["RW", "RB"],              // orthodox wide mid
+  LM:  ["LW", "LB"],              // orthodox wide mid
+  RW:  ["RM", "LW", "ST", "CAM"],
+  LW:  ["LM", "RW", "ST", "CAM"],
+  ST:  ["RW", "LW", "CAM"],
+};
+
+// Per-formation, per-slot overrides. Keys are slot indices into FORMATIONS.
+// In 3-5-2 / 3-4-3: slots 1&2 (labelled RM/LM) are wing-backs, and the three
+// centre-backs (slots 3,4,5) may be filled by full-backs at a penalty.
+const WB_R = { natural: "RB", elig: ["RM", "LB", "RW", "LW", "LM"] };
+const WB_L = { natural: "LB", elig: ["LM", "RB", "RW", "LW", "RM"] };
+const CB3  = { elig: ["RB", "LB"] };
+const BACK_THREE_OVERRIDE = { 1: WB_R, 2: WB_L, 3: CB3, 4: CB3, 5: CB3 };
+const ELIG_OVERRIDE = {
+  "3-5-2": BACK_THREE_OVERRIDE,
+  "3-4-3": BACK_THREE_OVERRIDE,
+};
+
+// Resolve a slot's eligibility. Returns { natural, elig, pool } or null.
+// `natural` = 0-penalty position; `elig` = penalised alternatives;
+// `pool` = everything draftable into the slot (natural first, deduped).
+export function slotEligibility(formation, slotIndex) {
+  const entry = FORMATIONS[formation]?.[slotIndex];
+  if (!entry) return null;
+  const ov = ELIG_OVERRIDE[formation]?.[slotIndex];
+  const natural = ov?.natural ?? entry.pos;
+  const elig = ov?.elig ?? ELIG_STD[entry.pos] ?? [];
+  const pool = [natural, ...elig.filter(p => p !== natural)];
+  return { natural, elig, pool };
+}
+
+// Flat rating/attribute penalty for playing an eligible-but-not-natural player.
+export const OOP_PENALTY = 5;
+
 // Display order for progress bar chips: DEF → MID → ATT.
 // Only formations where slot order differs from logical group order need an entry.
 // Default (omitted) = [0,1,2,3,4,5,6,7,8,9,10]

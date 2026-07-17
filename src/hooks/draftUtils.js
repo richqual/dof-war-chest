@@ -1,5 +1,5 @@
 import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS, realTeamPlayerClubs } from "../data/players";
-import { GROUP_SLOT_INDICES, FORMATIONS } from "../data/formations";
+import { GROUP_SLOT_INDICES, FORMATIONS, slotEligibility } from "../data/formations";
 
 export { generateBudget, chooseCpuPick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS };
 
@@ -120,7 +120,7 @@ function matchesRoulette(p, rouletteAssignment) {
   return true;
 }
 
-export function availablePlayersFor(posKey, takenIds, rouletteAssignment) {
+export function availablePlayersFor(posKey, takenIds, rouletteAssignment, eligPool = null) {
   const taken = new Set(takenIds);
   if (posKey === "GKSUB") {
     return PLAYERS.filter(p => p.pos === "GK" && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
@@ -131,7 +131,26 @@ export function availablePlayersFor(posKey, takenIds, rouletteAssignment) {
   if (posKey === "GK") {
     return PLAYERS.filter(p => p.pos === "GK" && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
   }
+  // Outfield starter: restrict to the slot's eligibility pool (hard pool) when
+  // one is supplied. Falls back to "any outfielder" for callers without a slot
+  // context (e.g. warm-up/edge paths).
+  if (eligPool && eligPool.length) {
+    return PLAYERS.filter(p => eligPool.includes(p.pos) && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
+  }
   return PLAYERS.filter(p => p.pos !== "GK" && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
+}
+
+// The eligibility pool (array of acceptable pos strings) for the pick currently
+// on the clock, or null when the slot has no formation-based pool (GK is handled
+// by its own branch, subs by SUB_POSITIONS, War Chest not at all).
+export function currentEligPool(d) {
+  if (!d || d.warChest) return null;
+  const slotIndex = (d.positionMode === "random" && d.positionIndex < 11 && d.currentSlot !== null && d.currentSlot !== undefined)
+    ? d.currentSlot
+    : d.positionIndex;
+  if (slotIndex === null || slotIndex === undefined || slotIndex >= 11) return null;
+  const e = slotEligibility(activeFormation(d), slotIndex);
+  return e ? e.pool : null;
 }
 
 export function applyPick(d, player) {
@@ -458,7 +477,7 @@ export function getPlayersFromState(d, posKey) {
   const rouletteAssignment = activeManager
     ? { era: activeManager.assignedEra, league: activeManager.assignedLeague }
     : null;
-  let players = availablePlayersFor(posKey, d.takenIds, rouletteAssignment);
+  let players = availablePlayersFor(posKey, d.takenIds, rouletteAssignment, currentEligPool(d));
   if (d.availablePlayerIds instanceof Set) {
     players = players.filter(p => isDraftableBy(d, activeManager, p.id));
   }

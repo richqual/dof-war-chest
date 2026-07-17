@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import KitSwatch, { readableTextOn, teamAccent } from "./KitSwatch";
 import { TIER_SIM_MODIFIER } from "../data/managers";
-import { FORMATIONS } from "../data/formations";
+import { FORMATIONS, slotEligibility, OOP_PENALTY } from "../data/formations";
 import { lastName } from "../utils/displayName";
 
 function teamStrength(squad) {
@@ -419,8 +419,31 @@ const POS_PRIORITY = {
   ST:  ["ST", "LW", "RW", "CAM"],
 };
 
+// Out-of-position penalty: a player filling an eligible-but-not-natural slot
+// takes a flat hit to their rating and the six stat fields deriveAttributes reads,
+// so every downstream strength/attribute calc inherits it. Natural picks and
+// players outside the eligibility system (subs already sit in valid slots) are
+// untouched. Only applied to real 11-a-side formations — War Chest 5-a-side has
+// no formation and is left alone.
+const OOP_STAT_KEYS = ["pac", "sho", "pas", "dri", "def", "phy"];
+function applyPositionPenalty(squad, formation) {
+  if (!formation || FORMATIONS[formation]?.length !== 11) return squad;
+  return squad.map((p, i) => {
+    if (!p || i >= 11) return p;
+    const e = slotEligibility(formation, i);
+    if (!e || p.pos === e.natural || !e.pool.includes(p.pos)) return p;
+    const penalised = { ...p, rating: Math.max(1, (p.rating ?? 0) - OOP_PENALTY), outOfPosition: true };
+    for (const k of OOP_STAT_KEYS) {
+      if (typeof penalised[k] === "number") penalised[k] = Math.max(1, penalised[k] - OOP_PENALTY);
+    }
+    return penalised;
+  });
+}
+
 export function buildEffectiveSquad(manager, playerAbsences) {
-  if (!playerAbsences || Object.keys(playerAbsences).length === 0) return manager.squad;
+  if (!playerAbsences || Object.keys(playerAbsences).length === 0) {
+    return applyPositionPenalty(manager.squad, manager.formation);
+  }
   const starters = manager.squad.slice(0, 11).map(p => p || null);
   const bench = manager.squad.slice(11, 16).filter(p => p);
   const usedFromBench = new Set();
@@ -437,7 +460,7 @@ export function buildEffectiveSquad(manager, playerAbsences) {
     return null;
   });
   const remainingBench = bench.filter(b => !usedFromBench.has(b.name));
-  return [...effectiveStarters, ...remainingBench];
+  return applyPositionPenalty([...effectiveStarters, ...remainingBench], manager.formation);
 }
 
 function goalContext(forGoals, againstGoals) {

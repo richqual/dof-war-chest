@@ -8,11 +8,11 @@ Back to [[The Transfer Wheel]]. Related: [[Game Modes]], [[Screens]].
 - 🟢 **Building** · 🟡 **Designed, not built** · 🔵 **Idea / someday** · ✅ **Shipped**
 
 ## In flight / planned
-| Idea | Status | Notes |
-|---|---|---|
-| Position eligibility | 🟡 | Multi-pool slots + out-of-position match penalty + filter UI. Design all three together. |
-| Career mode | 🟡 | Third mode: wipe/re-draft loop, tier + era progression, save slots. Design agreed, not built. |
-| Match sim desktop reflow | 🟡 | Only screen left in the widescreen/desktop reflow sweep. |
+| Idea                     | Status | Notes                                                                                         |
+| ------------------------ | ------ | --------------------------------------------------------------------------------------------- |
+| ~~Position eligibility~~ | ✅     | Hard-pool slots + out-of-position penalty (−5) + filter UI. Built v3.9.69. Spec: [[Position Eligibility Spec]]. |
+| Career mode              | 🟡     | Third mode: wipe/re-draft loop, tier + era progression, save slots. Design agreed, not built. |
+| Match sim desktop reflow | 🟡     | Only screen left in the widescreen/desktop reflow sweep.                                      |
 
 ## Recently shipped (for context)
 See [[Version History]] for the full story. Highlights:

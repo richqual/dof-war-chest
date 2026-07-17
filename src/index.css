@@ -1182,6 +1182,11 @@ html.wc-theme .bw-msp-header { background: linear-gradient(90deg, #2a1610, #240e
   box-shadow: 0 0 0 1px var(--bw-gold), 0 0 8px rgba(245,197,66,.45);
 }
 .bw-player-tag-star { margin-right: 3px; color: var(--bw-gold); }
+.bw-player-tag-oop {
+  background: #3a1a1a !important;
+  color: #e0701a !important;
+  border-color: #e0701a55 !important;
+}
 .bw-player-club { font-size: 12px; color: var(--bw-text-low); margin-top: 2px; }
 .bw-player-value { font: 700 14px var(--bw-font-display); color: var(--bw-gold); flex-shrink: 0; min-width: 52px; text-align: right; }
 .bw-player-row.unaffordable .bw-player-value { color: #e0701a; }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { POSITIONS, generateBudget, chooseCpuPick, normalizeSearch } from "../data/players";
-import { GROUP_COLORS, FORMATIONS, FORMATION_DISPLAY_ORDER } from "../data/formations";
+import { GROUP_COLORS, FORMATIONS, FORMATION_DISPLAY_ORDER, slotEligibility, OOP_PENALTY } from "../data/formations";
 import { POSITIONS as ALL_POSITIONS } from "../data/players";
 import PlayerCard, { ARCHETYPE_COLOR } from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
@@ -26,20 +26,27 @@ export default function DraftScreen({
   const showPosChips = !isGkPos && !isSubPos;
   const relevantArchetypes = isGkPos ? GK_ARCHETYPES : OUTFIELD_ARCHETYPES;
 
+  // Position eligibility for the slot on the clock. `posPool` is the hard pool of
+  // draftable positions (natural + eligible); `naturalPos` plays with no penalty,
+  // anything else in the pool takes the out-of-position match penalty.
+  const slotElig = showPosChips ? slotEligibility(activeManager?.formation || "4-3-3", currentPos.slot) : null;
+  const posPool = slotElig?.pool ?? OUTFIELD_POS;
+  const naturalPos = slotElig?.natural ?? currentPos.key;
+
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const [filterEra, setFilterEra] = useState(new Set(["classic", "golden", "modern"]));
   const [filterLeague, setFilterLeague] = useState(new Set(["premier_league", "la_liga", "serie_a", "bundesliga", "ligue_1", "legends"]));
   const [filterTiers, setFilterTiers] = useState(new Set(["T1", "T2", "T3", "T4", "T5"]));
   const [filterArchetypes, setFilterArchetypes] = useState(new Set(relevantArchetypes));
-  const [filterPos, setFilterPos] = useState(() => new Set([currentPos.key]));
+  const [filterPos, setFilterPos] = useState(() => new Set(showPosChips ? posPool : [currentPos.key]));
 
   // Reset position and archetype filters when the slot changes
   const [lastPosKey, setLastPosKey] = useState(currentPos.key);
   useEffect(() => {
     if (currentPos.key === lastPosKey) return;
     setLastPosKey(currentPos.key);
-    setFilterPos(new Set([currentPos.key]));
+    setFilterPos(new Set(showPosChips ? posPool : [currentPos.key]));
     setNameSearch("");
     const cat = isGkPos ? "gk" : "outfield";
     const prevCat = ["GK", "GKSUB"].includes(lastPosKey) ? "gk" : "outfield";
@@ -109,7 +116,7 @@ export default function DraftScreen({
 
   let available = getAvailablePlayers(currentPos.key);
   const rawAvailable = available;
-  if (showPosChips && filterPos.size < OUTFIELD_POS.length) {
+  if (showPosChips && filterPos.size < posPool.length) {
     available = available.filter(p => filterPos.has(p.pos) || (p.pos2 && filterPos.has(p.pos2)));
   }
   if (filterEra.size > 0) available = available.filter(p => p.league === "legends" || filterEra.has(p.era));
@@ -177,14 +184,14 @@ export default function DraftScreen({
   const takenPlayers = currentBudget !== null ? getTakenPlayers(currentPos.key) : [];
 
   // Whether any filter is narrower than its "show everything" state
-  const hasActiveFilters = (showPosChips && filterPos.size < OUTFIELD_POS.length)
+  const hasActiveFilters = (showPosChips && filterPos.size < posPool.length)
     || filterEra.size < 3 || filterLeague.size < 6 || filterTiers.size < 5
     || filterArchetypes.size < relevantArchetypes.length || nameSearch.trim() !== "";
   // True budget shortfall: no affordable player exists even ignoring filters
   const genuinelyNoAfford = currentBudget !== null && !rawAvailable.some(p => p.value <= currentBudget);
 
   function clearFilters() {
-    if (showPosChips) setFilterPos(new Set(OUTFIELD_POS));
+    if (showPosChips) setFilterPos(new Set(posPool));
     setFilterEra(new Set(["classic", "golden", "modern"]));
     setFilterLeague(new Set(["premier_league", "la_liga", "serie_a", "bundesliga", "ligue_1", "legends"]));
     setFilterTiers(new Set(["T1", "T2", "T3", "T4", "T5"]));
@@ -557,17 +564,17 @@ export default function DraftScreen({
                 {showPosChips && (
                   <div className="bw-filter-chip-wrap">
                     <button
-                      className={`bw-filter-chip ${filterPos.size < OUTFIELD_POS.length ? "active" : ""}`}
+                      className={`bw-filter-chip ${filterPos.size < posPool.length ? "active" : ""}`}
                       onClick={() => { setShowPosDropdown(s => !s); setShowLeagueDropdown(false); setShowEraDropdown(false); setShowTierDropdown(false); setShowArchetypeDropdown(false); }}
                     >
-                      Position {filterPos.size < OUTFIELD_POS.length ? `· ${[...filterPos].join(", ")}` : ""}
+                      Position {filterPos.size < posPool.length ? `· ${[...filterPos].join(", ")}` : ""}
                     </button>
                     {showPosDropdown && (
                       <div className="bw-filter-menu">
-                        {OUTFIELD_POS.map(pos => (
+                        {posPool.map(pos => (
                           <label key={pos} className="bw-filter-checkbox">
                             <input type="checkbox" checked={filterPos.has(pos)} onChange={() => togglePos(pos)} />
-                            {pos}
+                            {pos}{pos === naturalPos ? " ★" : ` (−${OOP_PENALTY})`}
                           </label>
                         ))}
                       </div>
@@ -723,13 +730,13 @@ export default function DraftScreen({
                 )
               )}
               {affordable.map(p => (
-                <PlayerCard key={p.id} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.preferredArchetypes} />
+                <PlayerCard key={p.id} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.preferredArchetypes} outOfPos={showPosChips && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
               ))}
               {tooExpensive.length > 0 && (
                 <>
                   <div className="bw-section-divider">OUT OF BUDGET</div>
                   {tooExpensive.map(p => (
-                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} budget={currentBudget} preferredArchetypes={activeManager?.preferredArchetypes} />
+                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} budget={currentBudget} preferredArchetypes={activeManager?.preferredArchetypes} outOfPos={showPosChips && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
                   ))}
                 </>
               )}

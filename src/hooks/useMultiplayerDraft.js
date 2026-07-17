@@ -2,7 +2,7 @@ import { PLAYERS, SUB_POSITIONS, generateBudget, chooseCpuPick } from "../data/p
 import {
   serializeDraft, deserializeDraft,
   applyPick, buildInitialDraft,
-  availablePlayersFor, getPlayersFromState,
+  availablePlayersFor, getPlayersFromState, currentEligPool,
   autoDrawSlot, resolveCurrentPosKey, resolveCurrentPos,
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder,
   getFormArrow,
@@ -472,7 +472,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
   // ── Read helpers ───────────────────────────────────────────────────────
 
   function getAvailablePlayers(posKey) {
-    let players = availablePlayersFor(posKey, draft ? draft.takenIds : []);
+    let players = availablePlayersFor(posKey, draft ? draft.takenIds : [], null, draft ? currentEligPool(draft) : null);
     if (draft?.availablePlayerIds) {
       players = players.filter(p => draft.availablePlayerIds.has(p.id));
     }

@@ -12,7 +12,7 @@ export const ARCHETYPE_COLOR = {
   Organiser:        { bg: "#1a1a3a", fg: "#8899ff" },
 };
 
-export default function PlayerCard({ player, onPick, canAfford, compact = false, hideRatings = false, takenBy = null, hideBadges = false, budget = null, preferredArchetypes = null }) {
+export default function PlayerCard({ player, onPick, canAfford, compact = false, hideRatings = false, takenBy = null, hideBadges = false, budget = null, preferredArchetypes = null, outOfPos = null }) {
   const arch = player.archetype;
   const archColors = arch ? ARCHETYPE_COLOR[arch] : null;
   const isPreferred = arch && preferredArchetypes && preferredArchetypes.includes(arch);
@@ -39,6 +39,14 @@ export default function PlayerCard({ player, onPick, canAfford, compact = false,
       <div className="bw-player-info">
         <div className="bw-player-name-row">
           <span className="bw-player-name">{player.nation} {player.name}</span>
+          {outOfPos && (
+            <span
+              className="bw-player-tag bw-player-tag-oop"
+              title={`Out of position (natural ${player.pos}) — plays with a match-rating penalty here`}
+            >
+              {outOfPos}
+            </span>
+          )}
           {!hideBadges && arch && (
             <span
               className={`bw-player-tag${isPreferred ? " preferred" : ""}`}
