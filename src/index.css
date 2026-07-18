@@ -4576,7 +4576,7 @@ html.light-mode .bw-hero { background: #0b1f14; }
   .bw-home-body {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    align-items: start;
+    align-items: stretch;
     gap: 14px;
     padding: 20px 20px 22px;
   }
@@ -4606,6 +4606,7 @@ html.light-mode .bw-mode-card { box-shadow: 0 2px 8px rgba(11,31,20,.06); }
   display: flex;
   gap: 12px;
   align-items: center;
+  min-height: 78px;
   background: none;
   border: none;
   padding: 0;
@@ -5968,6 +5969,9 @@ html.scout-theme .bw-ride-stage {
 .bw-mode-card-scout .bw-mode-card-label { color: #3b9dff; }
 .bw-mode-card-scout .bw-mode-card-cta { color: #3b9dff; }
 html.light-mode .bw-mode-card-scout .bw-mode-card-cta { color: #1560b0; }
+/* Blue-tinged body copy so the whole scout card reads cool, matching label/border/CTA. */
+.bw-mode-card-scout .bw-mode-card-desc { color: #8fb8dd; }
+html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
 
 /* ── Squad-wide tier-cap strip ── */
 .scout-cap-strip {

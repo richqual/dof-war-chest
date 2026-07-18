@@ -80,7 +80,7 @@ export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onW
               <div className="bw-mode-card-text">
                 <div className="bw-mode-card-label">SCOUT MODE</div>
                 <div className="bw-mode-card-desc">
-                  One shared, shrinking pool. Each turn your scouts deal you a hand — one player per tier. Draft order finally bites.
+                  One shared, shrinking pool of players. Draft order makes all the difference here!
                 </div>
               </div>
               <div className="bw-mode-card-cta">{selected === "scout" ? "▲" : "PLAY →"}</div>
