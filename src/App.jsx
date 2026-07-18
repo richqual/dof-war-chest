@@ -598,7 +598,7 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
 function AppInner({ onMultiplayer, auth }) {
   const {
     screen, setScreen,
-    draft, activeManager, activeManagerIdx, currentPos,
+    draft, activeManager, activeManagerIdx, currentPos, scoutFreeAgentList,
     startGame, confirmBudget, confirmSlot, pickPlayer, setTeamName,
     swapSquadPlayers, setTactics, setFormation, setCaptain, restartGame, getAvailablePlayers, getTakenPlayers,
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
@@ -961,6 +961,7 @@ function AppInner({ onMultiplayer, auth }) {
           scoutSkipCpuTurns={scoutSkipCpuTurns}
           respin={respin}
           getTakenPlayers={getTakenPlayers}
+          freeAgents={scoutFreeAgentList}
         />
       </>
     );
@@ -1083,7 +1084,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "4.1.0";
+const APP_VERSION = "4.1.1";
 
 function AppFooter() {
   return (

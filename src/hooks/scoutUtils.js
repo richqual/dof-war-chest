@@ -35,9 +35,8 @@ export const SCOUT_TUNING = {
   reportSize: 5,           // max cards dealt in a scout report per turn
   minReportOptions: 3,     // always deal at least this many when the pool can supply
                            // them — cheapest-first, so a low/zero budget never empties
-                           // the report (those cheap cards become free transfers)
-  freeTransferFloor: 2,    // cheapest N report cards are ALWAYS signable, for free
-                           // when they're over budget — so you're never stranded
+                           // the report
+  freeAgentLimit: 6,       // max genuine £0 free agents surfaced per position
   reportValueBias: 1.15,   // >1 skews the report toward pricier cards you can afford
   reScoutsPerGame: 3,      // re-rolls of a bad hand per manager
   missionPremiumPct: 0.35, // scouting-mission cost = value × (1 + this)
@@ -322,8 +321,8 @@ export function allowedTiers(squad, tierCaps) {
 // cap — NOT budget-filtered. From those we deal up to `size` cards, NOT
 // one-per-tier:
 //  - the cheapest `minOptions` are ALWAYS included, so a low or even £0 budget
-//    never empties the report — those bottom cards are offered as free transfers
-//    (see freeTransferFloor) rather than filtered away;
+//    never empties the report (genuine £0 free agents live in a separate
+//    always-on list — see buildScoutFreeAgents);
 //  - the rest are weighted toward pricier + tenet-matching cards you can afford,
 //    so a bigger budget surfaces bigger names — the report reflects the money you
 //    spun, while duplicates within a tier are perfectly fine.
@@ -377,6 +376,33 @@ export function buildScoutReport({
   }
 
   return chosen.sort((a, b) => valueOf(b) - valueOf(a)).map(p => p.id); // best value first
+}
+
+// ── Free agents (the always-on £0 floor) ──
+
+// Genuine free agents: position-eligible, still-available players whose in-game
+// value is literally £0 (the worthless bench fodder — Paul Robinson, Adrián,
+// Titus Bramble…). Drawn from the FULL eligible master list, NOT the depleting
+// live pool, so every position always has a couple you can sign for nothing,
+// regardless of what you spun or whether they made the 5-card report. Best-rated
+// first, capped to a short shortlist. Returns an array of ids.
+export function buildScoutFreeAgents({
+  formation, positionIndex, takenIds, valueOf = defaultValueOf,
+  filterFn = () => true, limit = SCOUT_TUNING.freeAgentLimit,
+}) {
+  const bucket = scoutBucketForSlot(formation, positionIndex);
+  if (!bucket) return [];
+  const base = bucketBasePosition(bucket);
+  const taken = new Set(takenIds);
+  const free = [];
+  for (const id of masterIdsForBucket(base, filterFn)) {
+    if (taken.has(id)) continue;
+    const p = PLAYER_BY_ID.get(id);
+    if (!p || valueOf(p) !== 0) continue;
+    free.push(p);
+  }
+  free.sort((a, b) => b.rating - a.rating);
+  return free.slice(0, limit).map(p => p.id);
 }
 
 // ── Scouting mission (paid escape hatch, one sub slot, once per game) ──

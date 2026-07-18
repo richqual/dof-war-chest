@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { POSITIONS, SUB_POSITIONS } from "../data/players";
 import { FORMATIONS, FORMATION_DISPLAY_ORDER } from "../data/formations";
 import { DRAFT_ROULETTE_ERAS, DRAFT_ROULETTE_LEAGUES } from "../hooks/draftUtils";
-import { TIERS, squadTierCounts, SCOUT_TUNING } from "../hooks/scoutUtils";
+import { TIERS, squadTierCounts } from "../hooks/scoutUtils";
 import PlayerCard from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
 import KitSwatch from "./KitSwatch";
@@ -16,7 +16,7 @@ const SUB_LABELS = { GKSUB: "GKS", DEFSUB: "DEF", MIDSUB: "MID", WIDSUB: "WID", 
 export default function ScoutDraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
   confirmScoutBudget, pickScoutPlayer, reScout, commissionMission, confirmMission,
-  scoutSkipCpuTurns, respin, getTakenPlayers,
+  scoutSkipCpuTurns, respin, getTakenPlayers, freeAgents = [],
   myTurn = true,
 }) {
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -57,17 +57,7 @@ export default function ScoutDraftScreen({
   const missionUsed = !!activeManager?.missionUsed;
   const budget = currentBudget ?? 0;
   const report = draft.currentReport || [];
-  // The cheapest `freeTransferFloor` cards are always signable — at their price if
-  // you can afford them, or as a FREE TRANSFER (£0) if you can't. So there are
-  // always options on the table, even at a £0 budget, and skipping is never needed.
-  const freeFloorIds = new Set(
-    [...report].sort((a, b) => a.value - b.value)
-      .slice(0, SCOUT_TUNING.freeTransferFloor).map(p => p.id)
-  );
-  const isFreeSign = (p) => p.value > budget && freeFloorIds.has(p.id);
-  const canSign = (p) => p.value <= budget || freeFloorIds.has(p.id);
-  const signPlayer = (p) => pickScoutPlayer(isFreeSign(p) ? { ...p, value: 0 } : p);
-  const affordableReport = report.filter(canSign);
+  const affordableReport = report.filter(p => p.value <= budget);
   // Players at this position already signed by anyone — shown so later pickers
   // can see what's gone (same as the Classic draft's "already signed" list).
   const takenPlayers = (currentBudget !== null && getTakenPlayers)
@@ -236,24 +226,43 @@ export default function ScoutDraftScreen({
             ) : (
               <div className="scout-cards-row">
                 {report.map(p => {
-                  const free = isFreeSign(p);
-                  const sign = canSign(p);
+                  const afford = p.value <= budget;
                   return (
                     <div key={p.id} className="scout-card-wrap">
                       <div className="scout-card-tier">{p.tier}</div>
                       <PlayerCard
                         player={p}
-                        onPick={sign ? signPlayer : undefined}
-                        canAfford={sign}
+                        onPick={afford ? pickScoutPlayer : undefined}
+                        canAfford={afford}
                         hideRatings={draft.hideRatings}
                         budget={currentBudget}
                       />
-                      {free && (
-                        <div className="scout-free-badge">✅ FREE TRANSFER · £0</div>
-                      )}
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Free agents — genuine £0 players, always signable no matter your
+                budget or what the report dealt. There's always something here. */}
+            {freeAgents.length > 0 && (
+              <div className="scout-free-agents">
+                <div className="bw-section-divider">FREE AGENTS · £0 · SIGN ANYTIME</div>
+                <div className="scout-cards-row">
+                  {freeAgents.map(p => (
+                    <div key={p.id} className="scout-card-wrap">
+                      <div className="scout-card-tier">{p.tier}</div>
+                      <PlayerCard
+                        player={p}
+                        onPick={pickScoutPlayer}
+                        canAfford={true}
+                        hideRatings={draft.hideRatings}
+                        budget={currentBudget}
+                      />
+                      <div className="scout-free-badge">✅ FREE TRANSFER · £0</div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

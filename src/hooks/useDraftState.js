@@ -13,7 +13,7 @@ import {
   appendSeriesHistory,
 } from "./draftUtils";
 import {
-  buildScoutLivePool, buildScoutReport, buildScoutMission, scoutBucketForSlot,
+  buildScoutLivePool, buildScoutReport, buildScoutFreeAgents, buildScoutMission, scoutBucketForSlot,
   tierCapsFor, SCOUT_TUNING, randomCpuTenets,
 } from "./scoutUtils";
 
@@ -654,6 +654,22 @@ export function useDraftState() {
     return scoutReportIds(d).map(id => resolveScoutPlayer(d, id));
   }
 
+  // The genuine £0 free agents available for whoever's on the clock — always
+  // signable regardless of budget or the live pool (see buildScoutFreeAgents).
+  function scoutFreeAgents(d) {
+    if (!d?.scout || d.currentBudget === null) return [];
+    const activeIdx = d.currentOrder[d.turnIndex];
+    const m = d.managers[activeIdx];
+    const availableSet = d.availablePlayerIds instanceof Set
+      ? d.availablePlayerIds
+      : (d.availablePlayerIds ? new Set(d.availablePlayerIds) : null);
+    return buildScoutFreeAgents({
+      formation: m.formation, positionIndex: d.positionIndex, takenIds: d.takenIds,
+      valueOf: scoutValueOf(d),
+      filterFn: (p) => !availableSet || availableSet.has(p.id),
+    }).map(id => resolveScoutPlayer(d, id));
+  }
+
   function startScoutGame(clubs, options) {
     const formation = options.scoutFormation || "4-3-3";
     const clubsF = clubs.map(c => ({ ...c, formation }));
@@ -751,20 +767,19 @@ export function useDraftState() {
   }
 
   // CPU: pick the highest-rated affordable card from its own scout report. If it
-  // can't afford anything, it takes a free transfer from the cheapest floor (the
-  // same guaranteed always-signable options a human gets) rather than skipping.
+  // can't afford anything, it signs the best available £0 free agent (the same
+  // always-on floor a human gets) rather than skipping.
   function cpuScoutPick(d) {
     const budget = d.currentBudget ?? 0;
-    const players = scoutReportIds(d).map(id => resolveScoutPlayer(d, id));
-    if (!players.length) return null;
-    const affordable = players.filter(p => p.value <= budget);
+    const affordable = scoutReportIds(d)
+      .map(id => resolveScoutPlayer(d, id))
+      .filter(p => p.value <= budget);
     if (affordable.length) {
       affordable.sort((a, b) => b.rating - a.rating);
       return affordable[0];
     }
-    const floor = [...players].sort((a, b) => a.value - b.value).slice(0, SCOUT_TUNING.freeTransferFloor);
-    floor.sort((a, b) => b.rating - a.rating);
-    return { ...floor[0], value: 0 }; // signed as a free transfer
+    const freeAgents = scoutFreeAgents(d); // best-rated first, value £0
+    return freeAgents.length ? freeAgents[0] : null;
   }
 
   function scoutSkipCpuTurns() {
@@ -793,15 +808,17 @@ export function useDraftState() {
   const activeManagerIdx = draft ? draft.currentOrder?.[draft.turnIndex] ?? 0 : 0;
   const activeManager = draft ? draft.managers[activeManagerIdx] : null;
   const currentPos = resolveCurrentPos(draft);
+  const scoutFreeAgentList = (draft?.scout && !activeManager?.isComputer) ? scoutFreeAgents(draft) : [];
 
   return {
     screen, setScreen,
-    draft, activeManager, activeManagerIdx, currentPos,
+    draft, activeManager, activeManagerIdx, currentPos, scoutFreeAgentList,
     startGame, confirmBudget, confirmSlot, pickPlayer, setTeamName,
     swapSquadPlayers, setTactics, setFormation, setCaptain, restartGame, getAvailablePlayers, getTakenPlayers,
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
     startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
     startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, commissionMission, confirmMission, scoutSkipCpuTurns,
+    scoutFreeAgents,
   };
 }
