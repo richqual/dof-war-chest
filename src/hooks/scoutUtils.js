@@ -33,9 +33,11 @@ export const SCOUT_TUNING = {
   surplus: 6,              // extra cards over demand, per bucket (roomy enough that
                            // a bucket holds same-tier duplicates to offer)
   reportSize: 5,           // max cards dealt in a scout report per turn
-  minReportOptions: 3,     // always deal at least this many when the pool can supply
-                           // them — cheapest-first, so a low/zero budget never empties
-                           // the report
+  minReportOptions: 1,     // guarantee just ONE cheap bargain slot (saving is always
+                           // on the table); the other 4 cards re-roll freely so a
+                           // re-scout actually changes the hand. Affordability is now
+                           // guaranteed at the source (affordable-only + deep pool),
+                           // so this no longer needs to prop up option count.
   freeAgentLimit: 6,       // max genuine £0 free agents surfaced per position
   reportValueBias: 1.15,   // >1 skews the report toward pricier cards you can afford
   reScoutsPerGame: 3,      // re-rolls of a bad hand per manager
@@ -364,8 +366,8 @@ export function buildScoutReport({
   }
 
   const remaining = [...candidates].sort((a, b) => valueOf(a) - valueOf(b));
-  // Guarantee the cheapest `minOptions` affordable cards (bargains always on the
-  // table), so a healthy pool always yields at least a couple you can buy.
+  // Reserve `minOptions` (1) cheapest affordable card as a guaranteed bargain, so
+  // "save your money" is always an option; the rest re-roll freely each scout.
   const chosen = remaining.splice(0, Math.min(minOptions, remaining.length));
 
   // Fill the rest, weighted toward value (skewed by reportValueBias) with a tenet
