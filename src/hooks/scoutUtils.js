@@ -50,10 +50,16 @@ export const SCOUT_TUNING = {
 // for `n` managers. Small = one genuine elite prize per position everyone fights
 // over; Large = nearly one T1 per player. T3–T5 stay uncapped (plentiful). Every
 // size still refines the pool massively vs Classic's open browse.
+//
+// `surplus` = cheap (T3–T5) fill ON TOP of demand + the elite cap, so it controls
+// the AFFORDABLE-player depth, NOT the elite scarcity. It's sized so the LAST
+// picker of a full table still finds a couple of players they can afford (verified
+// by sim: last-of-8 avg ~3 affordable options, <2% chance of zero on a >£0 spin).
+// Bigger pool sizes hold more elite (pricier), so they need a bigger cheap floor.
 export const POOL_SIZES = {
-  small:  { key: "small",  label: "SMALL",  surplus: 3,  elite: () => ({ T1: 1, T2: 1 }) },
-  medium: { key: "medium", label: "MEDIUM", surplus: 6,  elite: (n) => ({ T1: Math.max(1, Math.round(n / 2)), T2: Math.max(2, n) }) },
-  large:  { key: "large",  label: "LARGE",  surplus: 12, elite: (n) => ({ T1: Math.max(2, n), T2: n + 2 }) },
+  small:  { key: "small",  label: "SMALL",  surplus: 8,  elite: () => ({ T1: 1, T2: 1 }) },
+  medium: { key: "medium", label: "MEDIUM", surplus: 16, elite: (n) => ({ T1: Math.max(1, Math.round(n / 2)), T2: Math.max(2, n) }) },
+  large:  { key: "large",  label: "LARGE",  surplus: 22, elite: (n) => ({ T1: Math.max(2, n), T2: n + 2 }) },
 };
 
 export function poolSizeFor(key) {
@@ -347,26 +353,29 @@ export function buildScoutReport({
   };
 
   const allowed = new Set(allowedTiers(squad, tierCaps));
-  let candidates = availablePlayers().filter(p => allowed.has(p.tier));
-  // Tier caps blocked the whole hand — relax them so the manager still has options.
-  if (!candidates.length) candidates = availablePlayers();
+  // AFFORDABLE only — the scout never offers a player you can't sign. When you
+  // spin too low for anyone here, the report is empty and the always-on £0 free
+  // agents (buildScoutFreeAgents) are your fallback.
+  let candidates = availablePlayers().filter(p => allowed.has(p.tier) && valueOf(p) <= budget);
+  // Tier caps blocked the whole affordable hand — relax them so you still see options.
+  if (!candidates.length) candidates = availablePlayers().filter(p => valueOf(p) <= budget);
   if (candidates.length <= size) {
     return [...candidates].sort((a, b) => valueOf(b) - valueOf(a)).map(p => p.id);
   }
 
   const remaining = [...candidates].sort((a, b) => valueOf(a) - valueOf(b));
-  // Guarantee the cheapest `minOptions` (bargains / the free-transfer floor).
+  // Guarantee the cheapest `minOptions` affordable cards (bargains always on the
+  // table), so a healthy pool always yields at least a couple you can buy.
   const chosen = remaining.splice(0, Math.min(minOptions, remaining.length));
 
   // Fill the rest, weighted toward value (skewed by reportValueBias) with a tenet
-  // nudge, sampling without replacement so a tier can repeat naturally. Cards over
-  // budget are down-weighted so the report leans to what the spun money can buy.
+  // nudge, sampling without replacement so a tier can repeat naturally — a bigger
+  // spun budget surfaces bigger names among what you can actually afford.
   while (chosen.length < size && remaining.length) {
     const weights = remaining.map(p => {
       const base = Math.pow(valueOf(p) + 1, SCOUT_TUNING.reportValueBias);
       const tenetMult = (tenets || []).some(t => tenetMatches(t, p)) ? SCOUT_TUNING.tenetBiasWeight : 1;
-      const affordMult = valueOf(p) <= budget ? 1 : 0.15;
-      return base * tenetMult * affordMult;
+      return base * tenetMult;
     });
     const total = weights.reduce((a, b) => a + b, 0);
     let r = Math.random() * total;

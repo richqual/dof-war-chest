@@ -654,10 +654,10 @@ export function useDraftState() {
     return scoutReportIds(d).map(id => resolveScoutPlayer(d, id));
   }
 
-  // The genuine £0 free agents available for whoever's on the clock — always
-  // signable regardless of budget or the live pool (see buildScoutFreeAgents).
-  function scoutFreeAgents(d) {
-    if (!d?.scout || d.currentBudget === null) return [];
+  // The genuine £0 free agents in the pool for whoever's on the clock — the
+  // literally-worthless players (see buildScoutFreeAgents). These deplete as they
+  // get signed, so they're not a hard guarantee on their own.
+  function scoutGenuineFreeAgents(d) {
     const activeIdx = d.currentOrder[d.turnIndex];
     const m = d.managers[activeIdx];
     const availableSet = d.availablePlayerIds instanceof Set
@@ -668,6 +668,38 @@ export function useDraftState() {
       valueOf: scoutValueOf(d),
       filterFn: (p) => !availableSet || availableSet.has(p.id),
     }).map(id => resolveScoutPlayer(d, id));
+  }
+
+  // The emergency floor: the single cheapest still-available player in the live
+  // pool, offered for £0. Used ONLY when a manager can't afford anyone AND the
+  // genuine free agents are gone — so a low/£0 spin is never a dead end.
+  function scoutEmergencyFreeAgent(d) {
+    const activeIdx = d.currentOrder[d.turnIndex];
+    const m = d.managers[activeIdx];
+    const bucket = scoutBucketForSlot(m.formation, d.positionIndex);
+    const taken = new Set(d.takenIds);
+    const valueOf = scoutValueOf(d);
+    let cheapest = null;
+    for (const id of (d.livePool?.[bucket] || [])) {
+      if (taken.has(id)) continue;
+      const p = resolveScoutPlayer(d, id);
+      if (!cheapest || valueOf(p) < valueOf(cheapest)) cheapest = p;
+    }
+    return cheapest ? { ...cheapest, value: 0 } : null;
+  }
+
+  // Free-transfer options to SHOW the manager on the clock: the genuine £0 agents
+  // whenever any exist; otherwise, only if nothing in the report is affordable, a
+  // single emergency £0 signing so they're never stranded.
+  function scoutFreeAgents(d) {
+    if (!d?.scout || d.currentBudget === null) return [];
+    const genuine = scoutGenuineFreeAgents(d);
+    if (genuine.length) return genuine;
+    const report = d.currentReport || [];
+    const budget = d.currentBudget ?? 0;
+    if (report.some(p => p.value <= budget)) return []; // affordable options exist
+    const emergency = scoutEmergencyFreeAgent(d);
+    return emergency ? [emergency] : [];
   }
 
   function startScoutGame(clubs, options) {
@@ -767,8 +799,8 @@ export function useDraftState() {
   }
 
   // CPU: pick the highest-rated affordable card from its own scout report. If it
-  // can't afford anything, it signs the best available £0 free agent (the same
-  // always-on floor a human gets) rather than skipping.
+  // can't afford anything, it takes the best genuine £0 free agent, then the
+  // emergency £0 floor — the same never-stranded chain a human gets, not a skip.
   function cpuScoutPick(d) {
     const budget = d.currentBudget ?? 0;
     const affordable = scoutReportIds(d)
@@ -778,8 +810,9 @@ export function useDraftState() {
       affordable.sort((a, b) => b.rating - a.rating);
       return affordable[0];
     }
-    const freeAgents = scoutFreeAgents(d); // best-rated first, value £0
-    return freeAgents.length ? freeAgents[0] : null;
+    const genuine = scoutGenuineFreeAgents(d); // best-rated first, value £0
+    if (genuine.length) return genuine[0];
+    return scoutEmergencyFreeAgent(d); // null only if the bucket is fully exhausted
   }
 
   function scoutSkipCpuTurns() {
