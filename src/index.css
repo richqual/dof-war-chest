@@ -6004,6 +6004,13 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
   border-radius: 4px !important;
 }
 
+.scout-free-badge {
+  text-align: center; margin: 8px auto 0; max-width: max-content;
+  font-size: 0.68rem; font-weight: 800; letter-spacing: 0.06em;
+  padding: 3px 10px; color: #0a0f0b; background: var(--green-l);
+  border-radius: 4px !important;
+}
+
 .scout-taken { margin-top: 20px; }
 .scout-taken-list { display: flex; flex-direction: column; gap: 10px; opacity: 0.72; }
 .scout-empty { text-align: center; color: var(--text2); padding: 24px 12px; }

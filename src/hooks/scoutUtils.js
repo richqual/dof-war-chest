@@ -33,6 +33,11 @@ export const SCOUT_TUNING = {
   surplus: 6,              // extra cards over demand, per bucket (roomy enough that
                            // a bucket holds same-tier duplicates to offer)
   reportSize: 5,           // max cards dealt in a scout report per turn
+  minReportOptions: 3,     // always deal at least this many when the pool can supply
+                           // them — cheapest-first, so a low/zero budget never empties
+                           // the report (those cheap cards become free transfers)
+  freeTransferFloor: 2,    // cheapest N report cards are ALWAYS signable, for free
+                           // when they're over budget — so you're never stranded
   reportValueBias: 1.15,   // >1 skews the report toward pricier cards you can afford
   reScoutsPerGame: 3,      // re-rolls of a bad hand per manager
   missionPremiumPct: 0.35, // scouting-mission cost = value × (1 + this)
@@ -313,43 +318,56 @@ export function allowedTiers(squad, tierCaps) {
 }
 
 // Build the hand for the manager on the clock. Candidates are the bucket's live
-// players that are (a) still available, (b) affordable, (c) not blocked by a
-// squad-wide tier cap. From those we deal up to `size` cards, NOT one-per-tier:
-//  - one slot is always reserved for the cheapest option (a bargain / free pick,
-//    so saving your money is always on the table);
-//  - the rest are weighted toward pricier + tenet-matching cards, so a bigger
-//    budget surfaces bigger names — the report reflects the money you spun, while
-//    duplicates within a tier are perfectly fine.
-// Returns an array of ids (best value first). Fewer than `size` when the pool's
-// thin; empty when nothing's available/affordable/allowed.
-export function buildScoutReport({ livePool, bucket, takenIds, squad, budget, tierCaps, tenets, valueOf = defaultValueOf, size = SCOUT_TUNING.reportSize }) {
+// players that are (a) still available and (b) not blocked by a squad-wide tier
+// cap — NOT budget-filtered. From those we deal up to `size` cards, NOT
+// one-per-tier:
+//  - the cheapest `minOptions` are ALWAYS included, so a low or even £0 budget
+//    never empties the report — those bottom cards are offered as free transfers
+//    (see freeTransferFloor) rather than filtered away;
+//  - the rest are weighted toward pricier + tenet-matching cards you can afford,
+//    so a bigger budget surfaces bigger names — the report reflects the money you
+//    spun, while duplicates within a tier are perfectly fine.
+// If tier caps would leave nothing, they're relaxed so the manager still gets a
+// hand. Returns an array of ids (best value first). Fewer than `size` only when
+// the bucket genuinely holds that few; empty only when the bucket is exhausted.
+export function buildScoutReport({
+  livePool, bucket, takenIds, squad, budget, tierCaps, tenets, valueOf = defaultValueOf,
+  size = SCOUT_TUNING.reportSize, minOptions = SCOUT_TUNING.minReportOptions,
+}) {
   const taken = new Set(takenIds);
-  const allowed = new Set(allowedTiers(squad, tierCaps));
   const poolIds = livePool[bucket] || [];
 
-  const candidates = [];
-  for (const id of poolIds) {
-    if (taken.has(id)) continue;
-    const p = PLAYER_BY_ID.get(id);
-    if (!p) continue;
-    if (!allowed.has(p.tier)) continue;
-    if (valueOf(p) > budget) continue;
-    candidates.push(p);
-  }
+  const availablePlayers = () => {
+    const out = [];
+    for (const id of poolIds) {
+      if (taken.has(id)) continue;
+      const p = PLAYER_BY_ID.get(id);
+      if (p) out.push(p);
+    }
+    return out;
+  };
+
+  const allowed = new Set(allowedTiers(squad, tierCaps));
+  let candidates = availablePlayers().filter(p => allowed.has(p.tier));
+  // Tier caps blocked the whole hand — relax them so the manager still has options.
+  if (!candidates.length) candidates = availablePlayers();
   if (candidates.length <= size) {
     return [...candidates].sort((a, b) => valueOf(b) - valueOf(a)).map(p => p.id);
   }
 
   const remaining = [...candidates].sort((a, b) => valueOf(a) - valueOf(b));
-  const chosen = [remaining.shift()]; // guaranteed bargain: cheapest available
+  // Guarantee the cheapest `minOptions` (bargains / the free-transfer floor).
+  const chosen = remaining.splice(0, Math.min(minOptions, remaining.length));
 
   // Fill the rest, weighted toward value (skewed by reportValueBias) with a tenet
-  // nudge, sampling without replacement so a tier can repeat naturally.
+  // nudge, sampling without replacement so a tier can repeat naturally. Cards over
+  // budget are down-weighted so the report leans to what the spun money can buy.
   while (chosen.length < size && remaining.length) {
     const weights = remaining.map(p => {
       const base = Math.pow(valueOf(p) + 1, SCOUT_TUNING.reportValueBias);
       const tenetMult = (tenets || []).some(t => tenetMatches(t, p)) ? SCOUT_TUNING.tenetBiasWeight : 1;
-      return base * tenetMult;
+      const affordMult = valueOf(p) <= budget ? 1 : 0.15;
+      return base * tenetMult * affordMult;
     });
     const total = weights.reduce((a, b) => a + b, 0);
     let r = Math.random() * total;

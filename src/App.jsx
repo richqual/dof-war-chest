@@ -959,7 +959,6 @@ function AppInner({ onMultiplayer, auth }) {
           commissionMission={commissionMission}
           confirmMission={confirmMission}
           scoutSkipCpuTurns={scoutSkipCpuTurns}
-          skipTurn={skipTurn}
           respin={respin}
           getTakenPlayers={getTakenPlayers}
         />
@@ -1084,7 +1083,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "4.0.8";
+const APP_VERSION = "4.1.0";
 
 function AppFooter() {
   return (

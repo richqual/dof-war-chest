@@ -750,15 +750,21 @@ export function useDraftState() {
     if (next.phase === "complete") setScreen(draft.managerTiming === "before" ? "squads" : "manager-draft");
   }
 
-  // CPU: pick the highest-rated affordable card from its own scout report.
+  // CPU: pick the highest-rated affordable card from its own scout report. If it
+  // can't afford anything, it takes a free transfer from the cheapest floor (the
+  // same guaranteed always-signable options a human gets) rather than skipping.
   function cpuScoutPick(d) {
     const budget = d.currentBudget ?? 0;
-    const players = scoutReportIds(d)
-      .map(id => resolveScoutPlayer(d, id))
-      .filter(p => p.value <= budget);
+    const players = scoutReportIds(d).map(id => resolveScoutPlayer(d, id));
     if (!players.length) return null;
-    players.sort((a, b) => b.rating - a.rating);
-    return players[0];
+    const affordable = players.filter(p => p.value <= budget);
+    if (affordable.length) {
+      affordable.sort((a, b) => b.rating - a.rating);
+      return affordable[0];
+    }
+    const floor = [...players].sort((a, b) => a.value - b.value).slice(0, SCOUT_TUNING.freeTransferFloor);
+    floor.sort((a, b) => b.rating - a.rating);
+    return { ...floor[0], value: 0 }; // signed as a free transfer
   }
 
   function scoutSkipCpuTurns() {

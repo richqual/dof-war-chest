@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { POSITIONS, SUB_POSITIONS } from "../data/players";
 import { FORMATIONS, FORMATION_DISPLAY_ORDER } from "../data/formations";
 import { DRAFT_ROULETTE_ERAS, DRAFT_ROULETTE_LEAGUES } from "../hooks/draftUtils";
-import { TIERS, squadTierCounts } from "../hooks/scoutUtils";
+import { TIERS, squadTierCounts, SCOUT_TUNING } from "../hooks/scoutUtils";
 import PlayerCard from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
 import KitSwatch from "./KitSwatch";
@@ -16,7 +16,7 @@ const SUB_LABELS = { GKSUB: "GKS", DEFSUB: "DEF", MIDSUB: "MID", WIDSUB: "WID", 
 export default function ScoutDraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
   confirmScoutBudget, pickScoutPlayer, reScout, commissionMission, confirmMission,
-  scoutSkipCpuTurns, skipTurn, respin, getTakenPlayers,
+  scoutSkipCpuTurns, respin, getTakenPlayers,
   myTurn = true,
 }) {
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -55,8 +55,19 @@ export default function ScoutDraftScreen({
   const isSubSlot = positionIndex >= 11;
   const reScoutsLeft = activeManager?.reScoutsLeft ?? 0;
   const missionUsed = !!activeManager?.missionUsed;
+  const budget = currentBudget ?? 0;
   const report = draft.currentReport || [];
-  const affordableReport = report.filter(p => p.value <= (currentBudget ?? 0));
+  // The cheapest `freeTransferFloor` cards are always signable — at their price if
+  // you can afford them, or as a FREE TRANSFER (£0) if you can't. So there are
+  // always options on the table, even at a £0 budget, and skipping is never needed.
+  const freeFloorIds = new Set(
+    [...report].sort((a, b) => a.value - b.value)
+      .slice(0, SCOUT_TUNING.freeTransferFloor).map(p => p.id)
+  );
+  const isFreeSign = (p) => p.value > budget && freeFloorIds.has(p.id);
+  const canSign = (p) => p.value <= budget || freeFloorIds.has(p.id);
+  const signPlayer = (p) => pickScoutPlayer(isFreeSign(p) ? { ...p, value: 0 } : p);
+  const affordableReport = report.filter(canSign);
   // Players at this position already signed by anyone — shown so later pickers
   // can see what's gone (same as the Classic draft's "already signed" list).
   const takenPlayers = (currentBudget !== null && getTakenPlayers)
@@ -215,28 +226,31 @@ export default function ScoutDraftScreen({
               </p>
             </div>
 
-            {affordableReport.length === 0 ? (
+            {report.length === 0 ? (
               <div className="scout-empty">
-                <p>The scouts came back empty-handed for your <strong>{currentPos.label}</strong> — the pool's run dry or nothing's in budget.</p>
+                <p>Every player in the <strong>{currentPos.label}</strong> pool has already been signed. Re-scout to double-check for anyone freed up.</p>
                 <div className="scout-empty-actions">
                   {respin && <button className="bw-cta-secondary" onClick={respin}>🎡 RE-SPIN BUDGET</button>}
-                  {skipTurn && <button className="bw-cta-secondary" onClick={skipTurn}>⏭ TAKE A FREE TRANSFER</button>}
                 </div>
               </div>
             ) : (
               <div className="scout-cards-row">
                 {report.map(p => {
-                  const afford = p.value <= currentBudget;
+                  const free = isFreeSign(p);
+                  const sign = canSign(p);
                   return (
                     <div key={p.id} className="scout-card-wrap">
                       <div className="scout-card-tier">{p.tier}</div>
                       <PlayerCard
                         player={p}
-                        onPick={afford ? pickScoutPlayer : undefined}
-                        canAfford={afford}
+                        onPick={sign ? signPlayer : undefined}
+                        canAfford={sign}
                         hideRatings={draft.hideRatings}
                         budget={currentBudget}
                       />
+                      {free && (
+                        <div className="scout-free-badge">✅ FREE TRANSFER · £0</div>
+                      )}
                     </div>
                   );
                 })}
