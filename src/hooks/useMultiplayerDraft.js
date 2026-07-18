@@ -464,6 +464,24 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
     await setDraftAndScreen(next, screen);
   }
 
+  async function setFormation(managerIdx, formation) {
+    if (!draft || managerIdx !== mySlotIdx) return;
+    const next = {
+      ...draft,
+      managers: draft.managers.map((m, i) => i === managerIdx ? { ...m, formation } : m),
+    };
+    await setDraftAndScreen(next, screen);
+  }
+
+  async function setCaptain(managerIdx, captainId) {
+    if (!draft || managerIdx !== mySlotIdx) return;
+    const next = {
+      ...draft,
+      managers: draft.managers.map((m, i) => i === managerIdx ? { ...m, captainId } : m),
+    };
+    await setDraftAndScreen(next, screen);
+  }
+
   async function restartGame() {
     if (!isHost) return;
     await writeGameState(null, "setup");
@@ -573,6 +591,8 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
     setTeamName,
     swapSquadPlayers,
     setTactics,
+    setFormation,
+    setCaptain,
     restartGame,
     getAvailablePlayers,
     getTakenPlayers,

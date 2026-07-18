@@ -13,6 +13,7 @@ Back to [[The Transfer Wheel]]. Related: [[Game Modes]], [[Screens]].
 | ~~Position eligibility~~ | ✅     | Hard-pool slots + out-of-position penalty (−5) + filter UI. Built v3.9.69. Spec: [[Position Eligibility Spec]]. |
 | Career mode              | 🟡     | Third mode: wipe/re-draft loop, tier + era progression, save slots. Design agreed, not built. |
 | Match sim desktop reflow | 🟡     | Only screen left in the widescreen/desktop reflow sweep.                                      |
+| Captain match influence  | 🔵     | Captain (`manager.captainId`) now persists across games/series/tournaments (v3.9.71) but is **cosmetic only** — `MatchSim` ignores it. Idea: give the captain a small in-match effect (e.g. leadership/morale nudge, tie-break weighting, or a rating bump). Affects [[Screens#MatchSim]], set on [[Screens#SquadScreen]]. |
 
 ## Recently shipped (for context)
 See [[Version History]] for the full story. Highlights:

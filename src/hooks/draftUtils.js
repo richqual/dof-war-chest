@@ -595,6 +595,8 @@ export function buildInitialWarChestDraft(clubs, options = {}) {
     draftRoulette: options.draftRoulette || null,
     wcCurrentManagerIdx: 0,
     wcPhase: "selecting",
+    wcBuildOrder: null,
+    wcBuildCursor: 0,
     takenIds: [],
     availablePlayerIds,
     playerValues,
@@ -636,9 +638,24 @@ const WC_MAX_FRACTION = { 3: 0.30, 4: 0.26, 0: 0.22, 2: 0.14, 1: 0.08 };
 // ATT slots: exclude purely defensive positions even if posFilter allows them
 const WC_ATT_EXCLUDE_POS = ["CB", "LB", "RB", "DM"];
 
-export function autoBuildWarChestSquad(d, managerIdx) {
+// Assign a manager's chest budget without building their squad — used by the
+// up-front "everyone opens their chest first" phase (CPU chests are rolled here;
+// human chests come from WarChestSelectionScreen). Squads are built later, in the
+// order set by the build-order draw.
+export function assignWarChestBudget(d, managerIdx) {
   const values = WAR_CHEST_VALUES[d.difficulty] || WAR_CHEST_VALUES.hard;
   const budget = values[Math.floor(Math.random() * values.length)];
+  const managers = d.managers.map((m, i) =>
+    i === managerIdx ? { ...m, chestBudget: budget, wcBudgetRemaining: budget } : m
+  );
+  return { ...d, managers };
+}
+
+export function autoBuildWarChestSquad(d, managerIdx) {
+  const values = WAR_CHEST_VALUES[d.difficulty] || WAR_CHEST_VALUES.hard;
+  // Respect a budget already assigned in the chest-opening phase; only roll a
+  // fresh one if this manager somehow reaches build with no chest yet.
+  const budget = d.managers[managerIdx]?.chestBudget ?? values[Math.floor(Math.random() * values.length)];
   let takenIds = [...d.takenIds];
   let budgetRemaining = budget;
   const squad = Array(16).fill(null);

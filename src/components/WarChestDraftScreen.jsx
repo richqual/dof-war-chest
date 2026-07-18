@@ -78,7 +78,11 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
     : [];
 
   const isLastHuman = (() => {
-    const remainingHumans = draft.managers.slice(managerIdx + 1).filter(m => !m.isComputer);
+    // Building follows the drawn build order, not array order — count humans
+    // still to come after the current build cursor.
+    const order = draft.wcBuildOrder || draft.managers.map((_, i) => i);
+    const cursor = draft.wcBuildCursor ?? order.indexOf(managerIdx);
+    const remainingHumans = order.slice(cursor + 1).filter(mi => !draft.managers[mi].isComputer);
     return remainingHumans.length === 0;
   })();
 

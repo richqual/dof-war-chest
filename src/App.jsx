@@ -526,6 +526,8 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
           setTeamName={actions.setTeamName}
           swapSquadPlayers={(idx, a, b) => idx === mySlotIdx && actions.swapSquadPlayers(idx, a, b)}
           setTactics={(idx, t) => idx === mySlotIdx && actions.setTactics(idx, t)}
+          setFormation={(idx, f) => idx === mySlotIdx && actions.setFormation(idx, f)}
+          setCaptain={(idx, pid) => idx === mySlotIdx && actions.setCaptain(idx, pid)}
           restartGame={isHost ? actions.restartGame : () => {}}
           setScreen={mpSquadSetScreen}
           onBackToSeries={draft.series ? () => mpDraft.setScreen(draft.series.stage === "draw" ? "draw" : "series") : undefined}
@@ -559,7 +561,7 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
     const homeIdx = matchConfig.homeIdx ?? 0;
     const awayIdx = matchConfig.awayIdx ?? 1;
     if (!draft.managers[homeIdx] || !draft.managers[awayIdx]) {
-      return <>{globalMenu}<SquadScreen draft={draft} setTeamName={actions.setTeamName} swapSquadPlayers={actions.swapSquadPlayers} setTactics={actions.setTactics} restartGame={actions.restartGame} setScreen={handleSetScreen} onBackToSeries={draft.series ? () => mpDraft.setScreen("series") : undefined} mySlotIdx={mySlotIdx} /></>;
+      return <>{globalMenu}<SquadScreen draft={draft} setTeamName={actions.setTeamName} swapSquadPlayers={actions.swapSquadPlayers} setTactics={actions.setTactics} setFormation={actions.setFormation} setCaptain={actions.setCaptain} restartGame={actions.restartGame} setScreen={handleSetScreen} onBackToSeries={draft.series ? () => mpDraft.setScreen("series") : undefined} mySlotIdx={mySlotIdx} /></>;
     }
     const inSeries = !!draft.series;
     const seriesCtx = inSeries ? getSeriesContext(draft.series, draft.managers, !!draft.warChest) : null;
@@ -595,10 +597,10 @@ function AppInner({ onMultiplayer, auth }) {
     screen, setScreen,
     draft, activeManager, activeManagerIdx, currentPos,
     startGame, confirmBudget, confirmSlot, pickPlayer, setTeamName,
-    swapSquadPlayers, setTactics, restartGame, getAvailablePlayers, getTakenPlayers,
+    swapSquadPlayers, setTactics, setFormation, setCaptain, restartGame, getAvailablePlayers, getTakenPlayers,
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
-    startWarChestGame, selectWarChest, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
+    startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
   } = useDraftState();
 
   const [preScreen, setPreScreen] = useState("mode-select"); // "mode-select" | "lobby" | "club-creator" | "wc-lobby" | "wc-club-creator"
@@ -778,7 +780,7 @@ function AppInner({ onMultiplayer, auth }) {
   // ── War Chest screens ────────────────────────────────────────────────────
   if (draft?.warChest) {
     if (screen === "draft-roulette") {
-      return <>{globalMenu}<DraftRouletteScreen draft={draft} onStart={() => setScreen("war-chest-select")} /></>;
+      return <>{globalMenu}<DraftRouletteScreen draft={draft} onStart={() => beginChestPhase(draft)} /></>;
     }
     if (screen === "war-chest-select") {
       return (
@@ -787,6 +789,9 @@ function AppInner({ onMultiplayer, auth }) {
           <WarChestSelectionScreen draft={draft} onSelect={selectWarChest} />
         </>
       );
+    }
+    if (screen === "war-chest-order-draw") {
+      return <>{globalMenu}<OrderDrawScreen draft={draft} onStart={beginBuildPhase} warChest /></>;
     }
     if (screen === "war-chest-draft") {
       return (
@@ -940,6 +945,8 @@ function AppInner({ onMultiplayer, auth }) {
           setTeamName={setTeamName}
           swapSquadPlayers={swapSquadPlayers}
           setTactics={setTactics}
+          setFormation={setFormation}
+          setCaptain={setCaptain}
           restartGame={restartGame}
           setScreen={handleSetScreen}
           onBackToSeries={draft.series ? () => setScreen(draft.series.stage === "draw" ? "draw" : "series") : undefined}
@@ -976,7 +983,7 @@ function AppInner({ onMultiplayer, auth }) {
     const homeIdx = matchConfig.homeIdx ?? 0;
     const awayIdx = matchConfig.awayIdx ?? 1;
     if (!draft.managers[homeIdx] || !draft.managers[awayIdx]) {
-      return <>{globalMenu}<SquadScreen draft={draft} setTeamName={setTeamName} swapSquadPlayers={swapSquadPlayers} setTactics={setTactics} restartGame={restartGame} setScreen={handleSetScreen} onBackToSeries={draft.series ? () => setScreen("series") : undefined} /></>;
+      return <>{globalMenu}<SquadScreen draft={draft} setTeamName={setTeamName} swapSquadPlayers={swapSquadPlayers} setTactics={setTactics} setFormation={setFormation} setCaptain={setCaptain} restartGame={restartGame} setScreen={handleSetScreen} onBackToSeries={draft.series ? () => setScreen("series") : undefined} /></>;
     }
     const inSeries = !!draft.series;
     const seriesCtx = inSeries ? getSeriesContext(draft.series, draft.managers, !!draft.warChest) : null;
@@ -1001,7 +1008,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "3.9.69";
+const APP_VERSION = "3.9.71";
 
 function AppFooter() {
   return (

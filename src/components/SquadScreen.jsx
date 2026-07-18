@@ -211,8 +211,10 @@ function drawSquadCard(manager, captainId, starters, bench) {
   return canvas;
 }
 
-function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers, setTactics, onBack, onSimulate, allManagers, managers, captainId, setCaptain }) {
-  const [formation, setFormation] = useState(manager.formation || "4-3-3");
+function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers, setTactics, setFormation, onBack, onSimulate, allManagers, managers, captainId, setCaptain }) {
+  // Formation is persisted on the manager so it carries across games, series and
+  // tournaments (MatchSim reads manager.formation). Derive directly from the prop.
+  const formation = manager.formation || "4-3-3";
   const [swapSlot, setSwapSlot] = useState(null);
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(manager.teamName || "");
@@ -400,7 +402,7 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
               <select
                 className="bw-formation-select"
                 value={formation}
-                onChange={e => setFormation(e.target.value)}
+                onChange={e => setFormation && setFormation(managerIdx, e.target.value)}
               >
                 {FORMATION_LIST.map(f => (
                   <option key={f} value={f}>{f}</option>
@@ -551,24 +553,21 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
   );
 }
 
-export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setTactics, restartGame, setScreen, onBackToSeries, onManagerDraft, onSaveSquad, saveState }) {
+export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setTactics, setFormation, setCaptain, restartGame, setScreen, onBackToSeries, onManagerDraft, onSaveSquad, saveState }) {
   const [viewIdx, setViewIdx] = useState(null);
   const { managers } = draft;
-  const [captains, setCaptains] = useState(() => {
-    const init = {};
-    draft.managers.forEach((m, i) => {
-      const starters = m.squad.slice(0, 11).filter(Boolean);
-      if (starters.length) {
-        const best = starters.reduce((a, b) => (b.rating > a.rating ? b : a));
-        init[i] = best.id;
-      }
-    });
-    return init;
-  });
 
-  function setCaptain(managerIdx, playerId) {
-    setCaptains(prev => ({ ...prev, [managerIdx]: playerId }));
+  // Captain is persisted on each manager (manager.captainId). When unset, fall
+  // back to the highest-rated starter so a captain always shows, but persist the
+  // default once so it survives across games/series without recomputing.
+  function captainFor(m) {
+    if (m.captainId != null) return m.captainId;
+    const starters = m.squad.slice(0, 11).filter(Boolean);
+    if (!starters.length) return null;
+    return starters.reduce((a, b) => (b.rating > a.rating ? b : a)).id;
   }
+  const captains = {};
+  managers.forEach((m, i) => { captains[i] = captainFor(m); });
   const inSeries = !!draft.series;
   const seriesOver = inSeries && draft.series.champion !== null && draft.series.champion !== undefined;
 
@@ -581,6 +580,7 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
         setTeamName={setTeamName}
         swapSquadPlayers={swapSquadPlayers}
         setTactics={setTactics}
+        setFormation={setFormation}
         onBack={() => setViewIdx(null)}
         onSimulate={(inSeries || seriesOver) ? null : (hi, ai) => { setScreen("match", { homeIdx: hi, awayIdx: ai }); }}
         allManagers={managers}

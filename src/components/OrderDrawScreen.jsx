@@ -16,7 +16,7 @@ function pickPosition(managerId, displayRound, initialOrder, n) {
   return n + 1 - forwardPos;
 }
 
-export default function OrderDrawScreen({ draft, onStart }) {
+export default function OrderDrawScreen({ draft, onStart, warChest = false }) {
   const { managers, currentOrder } = draft;
   const n = managers.length;
 
@@ -138,7 +138,8 @@ export default function OrderDrawScreen({ draft, onStart }) {
       <div className="setup-screen">
         <div className="bw-frame">
           <div className="bw-banner">
-            <div className="bw-banner-title">DRAFT ORDER SET</div>
+            <div className="bw-banner-title">{warChest ? "PICK PRIORITY SET" : "DRAFT ORDER SET"}</div>
+            {warChest && <div className="bw-banner-subtitle">Everyone builds at once — this order breaks ties for any contested player</div>}
           </div>
           <div className="bw-body">
             <div className="bw-pick-order-list">
@@ -155,7 +156,7 @@ export default function OrderDrawScreen({ draft, onStart }) {
               })}
             </div>
 
-            {managers.some(m => !m.isComputer) && (
+            {!warChest && managers.some(m => !m.isComputer) && (
               <div className="bw-draw-schedule">
                 <div className="bw-field-label">YOUR PICK SCHEDULE</div>
                 {managers.filter(m => !m.isComputer).map(m => (
@@ -177,7 +178,7 @@ export default function OrderDrawScreen({ draft, onStart }) {
               </div>
             )}
 
-            <button className="bw-cta-arcade" style={{ marginTop: 14 }} onClick={onStart}>▶ START DRAFT</button>
+            <button className="bw-cta-arcade" style={{ marginTop: 14 }} onClick={onStart}>▶ {warChest ? "BUILD SQUADS" : "START DRAFT"}</button>
           </div>
         </div>
       </div>

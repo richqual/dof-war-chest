@@ -9,7 +9,7 @@ import {
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder,
   buildRealTeamsPool, isDraftableBy, dedupeByName,
   POS_LABELS, getFormArrow,
-  buildInitialWarChestDraft, getWarChestPlayersForSlot, autoBuildWarChestSquad,
+  buildInitialWarChestDraft, getWarChestPlayersForSlot, autoBuildWarChestSquad, assignWarChestBudget,
   appendSeriesHistory,
 } from "./draftUtils";
 
@@ -474,6 +474,20 @@ export function useDraftState() {
     }));
   }
 
+  function setFormation(managerIdx, formation) {
+    setDraft(prev => ({
+      ...prev,
+      managers: prev.managers.map((m, i) => i === managerIdx ? { ...m, formation } : m),
+    }));
+  }
+
+  function setCaptain(managerIdx, captainId) {
+    setDraft(prev => ({
+      ...prev,
+      managers: prev.managers.map((m, i) => i === managerIdx ? { ...m, captainId } : m),
+    }));
+  }
+
   function restartGame() {
     setDraft(null);
     setScreen("setup");
@@ -494,34 +508,82 @@ export function useDraftState() {
   // ── War Chest actions ────────────────────────────────────────────────────
 
   function startWarChestGame(clubs, options) {
-    let d = buildInitialWarChestDraft(clubs, options);
-    // Auto-build any leading CPU managers before the first human
-    let idx = 0;
+    const d = buildInitialWarChestDraft(clubs, options);
+    // In singleplayer, humans are always ordered before CPUs, so the chest phase
+    // begins with the first (human) manager. Roulette assignment, if enabled,
+    // happens first and then flows into the chest phase.
+    if (options?.draftRoulette?.enabled) {
+      setDraft(d);
+      setScreen("draft-roulette");
+    } else {
+      beginChestPhase(d);
+    }
+  }
+
+  // ── Phase 1: everyone opens their own chest first ─────────────────────────
+  // Walk managers from wcCurrentManagerIdx: auto-roll budgets for any CPUs, stop
+  // at the first human so they can open their chest on WarChestSelectionScreen.
+  // When every chest is revealed, move on to the build-order draw.
+  function beginChestPhase(d) {
+    let idx = d.wcCurrentManagerIdx ?? 0;
     while (idx < d.managers.length && d.managers[idx].isComputer) {
-      d = autoBuildWarChestSquad(d, idx);
+      d = assignWarChestBudget(d, idx);
       idx++;
     }
     if (idx >= d.managers.length) {
-      d = { ...d, wcCurrentManagerIdx: d.managers.length, wcPhase: "complete", phase: "complete" };
-      setDraft(d);
-      setScreen("squads");
+      startOrderDraw(d);
     } else {
-      setDraft({ ...d, wcCurrentManagerIdx: idx });
-      setScreen(options?.draftRoulette?.enabled ? "draft-roulette" : "war-chest-select");
+      setDraft({ ...d, wcCurrentManagerIdx: idx, wcPhase: "selecting" });
+      setScreen("war-chest-select");
     }
   }
 
   function selectWarChest(value) {
-    setDraft(prev => ({
-      ...prev,
-      wcPhase: "building",
-      managers: prev.managers.map((m, i) =>
-        i === prev.wcCurrentManagerIdx
-          ? { ...m, chestBudget: value, wcBudgetRemaining: value }
-          : m
+    // Record this human's opened chest, then continue the chest phase from the
+    // next manager (rather than dropping straight into squad building).
+    const idx = draft.wcCurrentManagerIdx;
+    const d = {
+      ...draft,
+      managers: draft.managers.map((m, i) =>
+        i === idx ? { ...m, chestBudget: value, wcBudgetRemaining: value } : m
       ),
-    }));
-    setScreen("war-chest-draft");
+      wcCurrentManagerIdx: idx + 1,
+    };
+    beginChestPhase(d);
+  }
+
+  // ── Phase 2: draw the build order (pure random) ───────────────────────────
+  function startOrderDraw(d) {
+    const n = d.managers.length;
+    const order = Array.from({ length: n }, (_, i) => i);
+    for (let i = n - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+    setDraft({ ...d, wcBuildOrder: order, currentOrder: order, wcPhase: "order-draw", wcBuildCursor: 0 });
+    setScreen("war-chest-order-draw");
+  }
+
+  // ── Phase 3: build squads in the drawn order over the shared pool ──────────
+  function beginBuildPhase() {
+    advanceBuild({ ...draft, wcPhase: "building" }, 0);
+  }
+
+  function advanceBuild(d, cursor) {
+    const order = d.wcBuildOrder || d.managers.map((_, i) => i);
+    while (cursor < order.length && d.managers[order[cursor]].isComputer) {
+      d = autoBuildWarChestSquad(d, order[cursor]);
+      cursor++;
+    }
+    const done = cursor >= order.length;
+    setDraft({
+      ...d,
+      wcBuildCursor: cursor,
+      wcCurrentManagerIdx: done ? d.managers.length : order[cursor],
+      wcPhase: done ? "complete" : "building",
+      phase: done ? "complete" : "draft",
+    });
+    setScreen(done ? "squads" : "war-chest-draft");
   }
 
   function pickWarChestPlayer(slot, player) {
@@ -538,22 +600,9 @@ export function useDraftState() {
   }
 
   function completeWarChestSquad() {
-    // Compute next state directly from the current draft snapshot (not inside
-    // the setDraft updater) so setScreen gets the correct value in the same batch.
-    let d = { ...draft };
-    let nextIdx = draft.wcCurrentManagerIdx + 1;
-    while (nextIdx < d.managers.length && d.managers[nextIdx].isComputer) {
-      d = autoBuildWarChestSquad(d, nextIdx);
-      nextIdx++;
-    }
-    const done = nextIdx >= d.managers.length;
-    setDraft({
-      ...d,
-      wcCurrentManagerIdx: done ? d.managers.length : nextIdx,
-      wcPhase: done ? "complete" : "selecting",
-      phase: done ? "complete" : "draft",
-    });
-    setScreen(done ? "squads" : "war-chest-select");
+    // The human just finished building; advance to the next slot in the drawn
+    // build order (auto-building any CPUs that come before the next human).
+    advanceBuild({ ...draft }, (draft.wcBuildCursor ?? 0) + 1);
   }
 
   function getWarChestPlayers(slotIdx) {
@@ -575,9 +624,9 @@ export function useDraftState() {
     screen, setScreen,
     draft, activeManager, activeManagerIdx, currentPos,
     startGame, confirmBudget, confirmSlot, pickPlayer, setTeamName,
-    swapSquadPlayers, setTactics, restartGame, getAvailablePlayers, getTakenPlayers,
+    swapSquadPlayers, setTactics, setFormation, setCaptain, restartGame, getAvailablePlayers, getTakenPlayers,
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
-    startWarChestGame, selectWarChest, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
+    startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
   };
 }

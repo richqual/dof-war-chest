@@ -102,7 +102,7 @@ export default function WarChestSelectionScreen({ draft, onSelect, deadline }) {
               </div>
             </div>
             <button className="bw-wc-build-btn" onClick={handleConfirm}>
-              BUILD YOUR SQUAD →
+              CONFIRM CHEST →
             </button>
           </div>
         )}
