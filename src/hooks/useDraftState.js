@@ -12,6 +12,10 @@ import {
   buildInitialWarChestDraft, getWarChestPlayersForSlot, autoBuildWarChestSquad, assignWarChestBudget,
   appendSeriesHistory,
 } from "./draftUtils";
+import {
+  buildScoutLivePool, buildScoutReport, buildScoutMission, scoutBucketForSlot,
+  tierCapsFor, SCOUT_TUNING, randomCpuTenets,
+} from "./scoutUtils";
 
 export { getFormArrow };
 
@@ -616,6 +620,170 @@ export function useDraftState() {
     );
   }
 
+  // ─────────────────────────── Scout Mode ───────────────────────────
+  // Reuses the whole Classic draft loop (snake order, position-major turns,
+  // budget wheel, carryover, applyPick). The only swap: instead of an open
+  // browse, the manager on the clock gets a "scout report" — one affordable
+  // candidate per tier drawn from a small, shared, depleting per-position live
+  // pool, under squad-wide tier caps and optional Club Tenet draw-bias.
+
+  const scoutValueOf = (d) => (p) =>
+    d.playerValues?.get(p.id) ?? p.value ?? Math.round(((p.valueMin ?? 0) + (p.valueMax ?? 0)) / 2);
+
+  function resolveScoutPlayer(d, id) {
+    const p = { ...PLAYERS.find(x => x.id === id) };
+    p.value = d.playerValues?.has(id) ? d.playerValues.get(id) : Math.round(((p.valueMin ?? 0) + (p.valueMax ?? 0)) / 2);
+    if (d.playerForm?.has(id)) p.rating = Math.max(0, p.rating + d.playerForm.get(id));
+    return p;
+  }
+
+  // The report ids for whoever is on the clock, at the current slot + budget.
+  function scoutReportIds(d) {
+    const activeIdx = d.currentOrder[d.turnIndex];
+    const m = d.managers[activeIdx];
+    const bucket = scoutBucketForSlot(m.formation, d.positionIndex);
+    return buildScoutReport({
+      livePool: d.livePool, bucket, takenIds: d.takenIds,
+      squad: m.squad, budget: d.currentBudget ?? 0,
+      tierCaps: d.tierCaps, tenets: m.tenets || [],
+      valueOf: scoutValueOf(d),
+    });
+  }
+
+  function computeScoutReport(d) {
+    return scoutReportIds(d).map(id => resolveScoutPlayer(d, id));
+  }
+
+  function startScoutGame(clubs, options) {
+    const formation = options.scoutFormation || "4-3-3";
+    const clubsF = clubs.map(c => ({ ...c, formation }));
+    const d = buildInitialDraft(clubsF, { ...options, positionMode: "fixed" });
+    const availableSet = d.availablePlayerIds instanceof Set
+      ? d.availablePlayerIds
+      : (d.availablePlayerIds ? new Set(d.availablePlayerIds) : null);
+    const livePool = buildScoutLivePool(formation, clubs.length, {
+      poolSize: options.poolSize || "medium",
+      surplus: options.surplus, // explicit override wins; else the pool-size preset decides
+      filterFn: (p) => !availableSet || availableSet.has(p.id),
+    });
+    const scoutDraft = {
+      ...d,
+      scout: true,
+      livePool,
+      // Tier caps are opt-in — the depleting pool already supplies the scarcity.
+      tierCaps: options.tierCaps ? tierCapsFor(options.difficulty || "normal") : null,
+      currentReport: null,
+      managers: d.managers.map((m, i) => ({
+        ...m,
+        tenets: (options.tenets?.[i]?.length ? options.tenets[i] : (m.isComputer ? randomCpuTenets() : [])),
+        reScoutsLeft: options.reScouts ?? SCOUT_TUNING.reScoutsPerGame,
+        missionUsed: false,
+      })),
+    };
+    setDraft(scoutDraft);
+    setScreen(options?.draftRoulette?.enabled ? "draft-roulette" : "order-draw");
+  }
+
+  // Wheel resolves → set budget (incl. carryover) AND deal the report in one go.
+  function confirmScoutBudget(spunVal) {
+    setDraft(prev => {
+      const activeIdx = prev.currentOrder[prev.turnIndex];
+      const carry = prev.managers[activeIdx]?.carryover || 0;
+      const withBudget = {
+        ...prev,
+        currentBudget: spunVal + carry,
+        managers: prev.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
+      };
+      return { ...withBudget, currentReport: computeScoutReport(withBudget) };
+    });
+  }
+
+  function reScout() {
+    setDraft(prev => {
+      const activeIdx = prev.currentOrder[prev.turnIndex];
+      const m = prev.managers[activeIdx];
+      if ((m.reScoutsLeft ?? 0) <= 0) return prev;
+      const managers = prev.managers.map((mm, i) => i === activeIdx ? { ...mm, reScoutsLeft: mm.reScoutsLeft - 1 } : mm);
+      const next = { ...prev, managers };
+      return { ...next, currentReport: computeScoutReport(next) };
+    });
+  }
+
+  function pickScoutPlayer(player) {
+    if (!draft) return;
+    if (draft.currentBudget === null || player.value > draft.currentBudget) return;
+    const next = { ...applyPick(draft, player), currentReport: null };
+    setDraft(next);
+    if (next.phase === "complete") setScreen(draft.managerTiming === "before" ? "squads" : "manager-draft");
+  }
+
+  // Preview a scouting-mission candidate (does not commit). Only valid on a sub
+  // slot (positionIndex >= 11) and once per game per manager.
+  function commissionMission(request) {
+    if (!draft || draft.positionIndex < 11) return null;
+    const activeIdx = draft.currentOrder[draft.turnIndex];
+    const m = draft.managers[activeIdx];
+    if (m.missionUsed) return null;
+    const found = buildScoutMission({
+      takenIds: draft.takenIds, squad: m.squad, budget: draft.currentBudget ?? 0,
+      request, tierCaps: draft.tierCaps, tenets: m.tenets || [], valueOf: scoutValueOf(draft),
+    });
+    if (!found || !found.length) return [];
+    // A shortlist of up to 3 — resolve each to a display player with its own cost.
+    return found.map(f => ({ ...resolveScoutPlayer(draft, f.id), missionCost: f.missionCost, missionPremium: f.missionPremium }));
+  }
+
+  // Commit a previewed mission player, charged at missionCost, marking the
+  // manager's one mission as used.
+  function confirmMission(missionPlayer) {
+    if (!draft) return;
+    const activeIdx = draft.currentOrder[draft.turnIndex];
+    const chargeable = { ...missionPlayer, value: missionPlayer.missionCost };
+    if (chargeable.value > (draft.currentBudget ?? 0)) return;
+    let next = applyPick(draft, chargeable);
+    next = {
+      ...next,
+      currentReport: null,
+      managers: next.managers.map((mm, i) => i === activeIdx ? { ...mm, missionUsed: true } : mm),
+    };
+    setDraft(next);
+    if (next.phase === "complete") setScreen(draft.managerTiming === "before" ? "squads" : "manager-draft");
+  }
+
+  // CPU: pick the highest-rated affordable card from its own scout report.
+  function cpuScoutPick(d) {
+    const budget = d.currentBudget ?? 0;
+    const players = scoutReportIds(d)
+      .map(id => resolveScoutPlayer(d, id))
+      .filter(p => p.value <= budget);
+    if (!players.length) return null;
+    players.sort((a, b) => b.rating - a.rating);
+    return players[0];
+  }
+
+  function scoutSkipCpuTurns() {
+    if (!draft) return;
+    let d = draft;
+    let guard = 0;
+    while (d.phase !== "complete" && guard++ < 500) {
+      const activeIdx = d.currentOrder[d.turnIndex];
+      if (!d.managers[activeIdx].isComputer) break;
+      if (d.currentBudget === null) {
+        const carry = d.noCarryoverNext ? 0 : (d.managers[activeIdx]?.carryover || 0);
+        d = {
+          ...d,
+          currentBudget: generateBudget(d.difficulty) + carry,
+          managers: d.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
+        };
+      }
+      const pick = cpuScoutPick(d);
+      if (!pick) { d = { ...d, currentBudget: null, noCarryoverNext: true }; continue; }
+      d = { ...applyPick(d, pick), currentReport: null };
+    }
+    setDraft(d);
+    if (d.phase === "complete") setScreen(d.managerTiming === "before" ? "squads" : "manager-draft");
+  }
+
   const activeManagerIdx = draft ? draft.currentOrder?.[draft.turnIndex] ?? 0 : 0;
   const activeManager = draft ? draft.managers[activeManagerIdx] : null;
   const currentPos = resolveCurrentPos(draft);
@@ -628,5 +796,6 @@ export function useDraftState() {
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
     startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
+    startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, commissionMission, confirmMission, scoutSkipCpuTurns,
   };
 }

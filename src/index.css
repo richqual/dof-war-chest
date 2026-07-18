@@ -5856,3 +5856,193 @@ html.light-mode .bw-wcs-screen {
 @media (max-width: 600px) {
   .bw-wcs-grid-2, .bw-wcs-grid-3, .bw-wcs-grid-4 { grid-template-columns: 1fr; }
 }
+
+/* ══════════════════════════ SCOUT MODE ══════════════════════════ */
+/* Blue-tinted theme, distinct from Classic (green) and War Chest (orange).
+   Mirrors the War Chest theme structure: overrides BOTH the legacy --bg/--text
+   tokens AND the broadcast-skin --bw-* tokens (every redesigned screen reads
+   the --bw-* set), plus light-mode variants and the per-screen banner/stage
+   gradients. This is what carries the blue identity through the whole mode. */
+html.scout-theme {
+  --bg:      #04070a;
+  --bg2:     #070d16;
+  --bg3:     #0c1522;
+  --border:  #16406e;
+  --border2: #0a1e34;
+  --text:    #d8ecff;
+  --text2:   #6fa8d4;
+  --text3:   #3a6a8f;
+  --green:   #1a7fe0;
+  --green-l: #4db4ff;
+}
+html.scout-theme body::after { display: none; }
+html.scout-theme body {
+  background-image: none;
+  background-color: var(--bg);
+}
+
+/* Broadcast-skin tokens — the mode accent + cool-tinted dark surfaces so every
+   redesigned Scout screen reads blue instead of the green :root defaults.
+   Mirrors html.wc-theme's --bw-* warming. */
+html.scout-theme {
+  --bw-mode:      #1560b0;
+  --bw-mode-lite: #3b9dff;
+
+  --bw-field:    #050b12;
+  --bw-recessed: #0a1018;
+  --bw-panel:    #0d1622;
+  --bw-raised:   #142234;
+  --bw-border:   #1c3a5c;
+  --bw-border2:  #244a72;
+  --bw-text-hi:  #e4f0ff;
+  --bw-text-mid: #94b6d4;
+  --bw-text-low: #5c7d9c;
+}
+
+/* Light mode must win over scout-theme for the page background (higher
+   specificity: two classes), and warms the palette cool instead of the green
+   light-mode default so Scout screens keep the blue identity in light mode. */
+html.light-mode.scout-theme {
+  --bg:  #eef3f8;
+  --bg2: #e2eaf2;
+  --bg3: #d4e0ec;
+
+  --bw-field:    #eef3f8;
+  --bw-recessed: #e2eaf2;
+  --bw-panel:    #fbfdff;
+  --bw-raised:   #e2eaf2;
+  --bw-border:   #c8d6e4;
+  --bw-border2:  #c8d6e4;
+  --bw-text-hi:  #0d1620;
+  --bw-text-mid: #48606f;
+  --bw-text-low: #7890a2;
+}
+html.light-mode.scout-theme body {
+  background-image: none;
+  background-color: var(--bg);
+}
+
+/* Banner / header gradients — cool navy, mirroring wc-theme's warm ones. */
+html.scout-theme .bw-banner { background: linear-gradient(90deg, #102840, #0a1830); }
+html.scout-theme .bw-msp-header { background: linear-gradient(90deg, #102840, #0a1830); }
+html.scout-theme .bw-draft-banner { background: linear-gradient(90deg, #102840, #0a1830); }
+html.scout-theme .bw-roulette-team { background: linear-gradient(90deg, #102840, #0a1830); }
+
+/* Champion celebration — blue instead of Classic green / War Chest red. */
+html.scout-theme .bw-champ-screen {
+  --cc-bg:        #050b12;
+  --cc-panel:     #0d1622;
+  --cc-border:    #1c3a5c;
+  --cc-border2:   #244a72;
+  --cc-text-hi:   #e4f0ff;
+  --cc-text-mid:  #94b6d4;
+  --cc-text-low:  #5c7d9c;
+}
+html.light-mode.scout-theme .bw-champ-screen {
+  --cc-bg:        #eef3f8;
+  --cc-panel:     #fbfdff;
+  --cc-border:    #c8d6e4;
+  --cc-border2:   #b4c6d8;
+  --cc-text-hi:   #0d1620;
+  --cc-text-mid:  #48606f;
+  --cc-text-low:  #7890a2;
+}
+html.scout-theme .bw-champ-stage {
+  background: radial-gradient(120% 90% at 50% 24%, #10365c, #050b12 74%);
+}
+/* Order-draw + roulette ride stages — cool navy felt instead of the green
+   default (wc-theme leaves these green; Scout goes blue throughout). */
+html.scout-theme .bw-draw-stage {
+  background: radial-gradient(120% 90% at 50% 22%, #10365c, #0a1220 72%);
+}
+html.scout-theme .bw-ride-stage {
+  background: radial-gradient(130% 100% at 50% 8%, #10365c, #050b12 74%);
+}
+
+/* Scout lobby / tenets banner accent */
+.bw-scout-title { color: #4db4ff !important; }
+.bw-scout-lobby .bw-banner { border-bottom: 2px solid #16406e; }
+
+/* Mode-select scout card */
+.bw-mode-card-scout { border-left: 3px solid #3b9dff; }
+.bw-mode-card-scout .bw-mode-card-label { color: #3b9dff; }
+.bw-mode-card-scout .bw-mode-card-cta { color: #3b9dff; }
+html.light-mode .bw-mode-card-scout .bw-mode-card-cta { color: #1560b0; }
+
+/* ── Squad-wide tier-cap strip ── */
+.scout-cap-strip {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  padding: 6px 10px; justify-content: center;
+}
+.scout-cap-chip {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.03em;
+  padding: 3px 8px; border: 1px solid var(--border);
+  color: var(--text2); background: var(--bg2);
+  border-radius: 4px !important;
+}
+.scout-cap-chip.full { color: #0a0f0b; background: var(--bw-gold, #f5c542); border-color: var(--bw-gold, #f5c542); }
+
+/* ── Scout report (dealt hand) ── */
+.scout-report-area { padding: 8px 12px 24px; max-width: 820px; margin: 0 auto; width: 100%; }
+.scout-report-head { text-align: center; margin-bottom: 14px; }
+.scout-report-title {
+  font-size: 1.4rem; letter-spacing: 0.06em; color: var(--green-l);
+  margin: 0 0 4px;
+}
+.scout-report-sub { color: var(--text2); font-size: 0.85rem; margin: 0; }
+
+.scout-cards-row { display: flex; flex-direction: column; gap: 14px; }
+.scout-card-wrap { position: relative; padding-top: 14px; }
+.scout-card-tier {
+  position: absolute; top: 0; left: 10px; z-index: 2;
+  font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em;
+  padding: 2px 8px; color: #0a0f0b; background: var(--green-l);
+  border-radius: 4px !important;
+}
+
+.scout-taken { margin-top: 20px; }
+.scout-taken-list { display: flex; flex-direction: column; gap: 10px; opacity: 0.72; }
+.scout-empty { text-align: center; color: var(--text2); padding: 24px 12px; }
+.scout-empty-actions { display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
+
+.scout-actions {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  margin-top: 20px;
+}
+.scout-actions button:disabled { opacity: 0.45; cursor: not-allowed; }
+.scout-mission-used { color: var(--text3); font-size: 0.8rem; align-self: center; }
+
+/* ── Scouting mission panel ── */
+.scout-mission-panel {
+  margin-top: 16px; padding: 14px; border: 1px solid var(--border);
+  background: var(--bg2); border-radius: 8px !important;
+}
+.scout-mission-lead { color: var(--text2); font-size: 0.82rem; margin: 0 0 12px; }
+.scout-mission-controls { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.scout-mission-controls label { display: flex; flex-direction: column; gap: 4px; font-size: 0.7rem; color: var(--text2); }
+.scout-mission-controls select { padding: 6px 8px; background: var(--bg3); color: var(--text); border: 1px solid var(--border); border-radius: 4px !important; }
+.scout-mission-miss { color: var(--red, #ff5555); font-size: 0.8rem; margin: 10px 0 0; }
+.scout-mission-result { margin-top: 14px; }
+.scout-mission-results { margin-top: 14px; }
+.scout-mission-shortlist-label { color: var(--text2); font-size: 0.82rem; margin: 0 0 12px; text-align: center; }
+.scout-mission-cost { text-align: center; color: var(--text); margin: 10px 0; font-size: 0.9rem; }
+.scout-mission-premium { color: var(--text3); font-size: 0.8rem; }
+
+/* ── Club Tenets picker ── */
+.scout-tenet-club { display: flex; align-items: center; gap: 10px; justify-content: center; margin-bottom: 16px; }
+.scout-tenet-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px; margin-bottom: 8px;
+}
+.scout-tenet-card {
+  display: flex; flex-direction: column; gap: 4px; text-align: left;
+  padding: 12px; border: 1px solid var(--border); background: var(--bg2);
+  color: var(--text); cursor: pointer; border-radius: 8px !important;
+  transition: border-color 0.15s, background 0.15s;
+}
+.scout-tenet-card:hover:not(.locked) { border-color: var(--green); }
+.scout-tenet-card.on { border-color: var(--green-l); background: rgba(77,180,255,0.08); }
+.scout-tenet-card.locked { opacity: 0.4; cursor: not-allowed; }
+.scout-tenet-name { font-weight: 800; font-size: 0.95rem; color: var(--green-l); }
+.scout-tenet-desc { font-size: 0.75rem; color: var(--text2); }
+.scout-tenet-card select { margin-top: 6px; padding: 5px 6px; background: var(--bg3); color: var(--text); border: 1px solid var(--border); border-radius: 4px !important; font-size: 0.78rem; }

@@ -15,8 +15,8 @@ const FORMAT_OPTIONS_2 = [
   { key: "bo7", label: "BEST OF 7", short: "BO7", hint: "First to 4 wins — NBA Finals style" },
 ];
 
-export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onWcOnline, onAbout }) {
-  const [selected, setSelected] = useState(null); // null | "classic" | "warchest"
+export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onWcOnline, onScoutSolo, onAbout }) {
+  const [selected, setSelected] = useState(null); // null | "classic" | "warchest" | "scout"
 
   return (
     <div className="bw-home-screen">
@@ -70,6 +70,30 @@ export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onW
                 <button className="bw-mode-sub-btn bw-mode-sub-btn-online" onClick={onWcOnline}>
                   <span className="bw-mode-sub-label">ONLINE</span>
                   <span className="bw-mode-sub-desc">Everyone picks simultaneously from their own device</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className={`bw-mode-card bw-mode-card-scout ${selected === "scout" ? "bw-mode-card-expanded" : ""}`}>
+            <button className="bw-mode-card-main" onClick={() => setSelected(selected === "scout" ? null : "scout")}>
+              <div className="bw-mode-card-text">
+                <div className="bw-mode-card-label">SCOUT MODE</div>
+                <div className="bw-mode-card-desc">
+                  One shared, shrinking pool. Each turn your scouts deal you a hand — one player per tier. Draft order finally bites.
+                </div>
+              </div>
+              <div className="bw-mode-card-cta">{selected === "scout" ? "▲" : "PLAY →"}</div>
+            </button>
+            {selected === "scout" && (
+              <div className="bw-mode-sub-options">
+                <button className="bw-mode-sub-btn" onClick={onScoutSolo}>
+                  <span className="bw-mode-sub-label">SOLO / LOCAL</span>
+                  <span className="bw-mode-sub-desc">1–8 players on one screen</span>
+                </button>
+                <button className="bw-mode-sub-btn bw-mode-sub-btn-online" disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                  <span className="bw-mode-sub-label">ONLINE</span>
+                  <span className="bw-mode-sub-desc">Coming soon</span>
                 </button>
               </div>
             )}

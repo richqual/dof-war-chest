@@ -15,13 +15,21 @@ function shuffleSlots(slots) {
   return arr;
 }
 
-function sliceColor(value) {
-  if (value === 0)   return "#1a2618";
-  if (value <= 25)   return "#14351b";
-  if (value <= 50)   return "#0e5a2f";
-  if (value <= 75)   return "#0b7a3d";
-  if (value <= 100)  return "#146b3a";
-  if (value <= 125)  return "#2fd06e";
+// Low-to-mid budget tiers are theme-tinted (green in Classic, blue in Scout);
+// the top "jackpot" tiers stay gold in every theme.
+const WHEEL_RAMPS = {
+  green: ["#1a2618", "#14351b", "#0e5a2f", "#0b7a3d", "#146b3a", "#2fd06e"],
+  blue:  ["#141d28", "#13233a", "#0e3a63", "#0b4f8a", "#14568f", "#3b9dff"],
+};
+
+function sliceColor(value, theme = "green") {
+  const ramp = WHEEL_RAMPS[theme] || WHEEL_RAMPS.green;
+  if (value === 0)   return ramp[0];
+  if (value <= 25)   return ramp[1];
+  if (value <= 50)   return ramp[2];
+  if (value <= 75)   return ramp[3];
+  if (value <= 100)  return ramp[4];
+  if (value <= 125)  return ramp[5];
   if (value <= 150)  return "#c99a1a";
   if (value <= 175)  return "#e0a91a";
   return "#f5c542";
@@ -58,7 +66,7 @@ function RollerHub({ display, isFinal }) {
   );
 }
 
-export default function SpinWheel({ carryover, onConfirm, difficulty = "normal" }) {
+export default function SpinWheel({ carryover, onConfirm, difficulty = "normal", theme = "green" }) {
   const [finalVal, setFinalVal] = useState(null);
   const [rollerDisplay, setRollerDisplay] = useState(null);
 
@@ -124,7 +132,7 @@ export default function SpinWheel({ carryover, onConfirm, difficulty = "normal" 
                   <path
                     key={i}
                     d={`M 0 0 L ${x1} ${y1} A 100 100 0 0 1 ${x2} ${y2} Z`}
-                    fill={sliceColor(seg.value)}
+                    fill={sliceColor(seg.value, theme)}
                     stroke="#0e140d"
                     strokeWidth="1.2"
                   />

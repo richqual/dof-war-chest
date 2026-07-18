@@ -25,6 +25,9 @@ import WarChestLobbyScreen from "./components/WarChestLobbyScreen";
 import WarChestSelectionScreen from "./components/WarChestSelectionScreen";
 import WarChestDraftScreen from "./components/WarChestDraftScreen";
 import WarChestSquadScreen from "./components/WarChestSquadScreen";
+import ScoutLobbyScreen from "./components/ScoutLobbyScreen";
+import ScoutTenetsScreen from "./components/ScoutTenetsScreen";
+import ScoutDraftScreen from "./components/ScoutDraftScreen";
 import SquadTimer from "./components/SquadTimer";
 
 class ErrorBoundary extends Component {
@@ -601,6 +604,7 @@ function AppInner({ onMultiplayer, auth }) {
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
     startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
+    startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, commissionMission, confirmMission, scoutSkipCpuTurns,
   } = useDraftState();
 
   const [preScreen, setPreScreen] = useState("mode-select"); // "mode-select" | "lobby" | "club-creator" | "wc-lobby" | "wc-club-creator"
@@ -630,6 +634,12 @@ function AppInner({ onMultiplayer, auth }) {
     document.documentElement.classList.toggle("wc-theme", isWC);
     return () => document.documentElement.classList.remove("wc-theme");
   }, [draft?.warChest, preScreen]);
+
+  useEffect(() => {
+    const isScout = !!draft?.scout || ["scout-lobby", "scout-club-creator", "scout-tenets"].includes(preScreen);
+    document.documentElement.classList.toggle("scout-theme", isScout);
+    return () => document.documentElement.classList.remove("scout-theme");
+  }, [draft?.scout, preScreen]);
 
   function handleSetScreen(s, extra) {
     if (s === "match" && extra) setMatchConfig(extra);
@@ -721,6 +731,7 @@ function AppInner({ onMultiplayer, auth }) {
             onClassicOnline={() => onMultiplayer("classic")}
             onWcSolo={() => setPreScreen("wc-lobby")}
             onWcOnline={() => onMultiplayer("warchest")}
+            onScoutSolo={() => setPreScreen("scout-lobby")}
             onAbout={() => setShowAbout(true)}
           />
         </>
@@ -749,6 +760,46 @@ function AppInner({ onMultiplayer, auth }) {
               setPreScreen("mode-select");
             }}
             onBack={() => setPreScreen("wc-lobby")}
+          />
+        </>
+      );
+    }
+    if (preScreen === "scout-lobby") {
+      return (
+        <>
+          {globalMenu}
+          <ScoutLobbyScreen
+            onContinue={config => { setLobbyConfig(config); setPreScreen("scout-club-creator"); }}
+            onBack={() => setPreScreen("mode-select")}
+          />
+        </>
+      );
+    }
+    if (preScreen === "scout-club-creator") {
+      return (
+        <>
+          {globalMenu}
+          <ClubCreatorScreen
+            config={lobbyConfig}
+            profileDefaults={auth.profile?.setupComplete ? auth.profile : null}
+            onStart={(clubs, opts) => { setLobbyConfig({ ...lobbyConfig, ...opts, _clubs: clubs }); setPreScreen("scout-tenets"); }}
+            onBack={() => setPreScreen("scout-lobby")}
+          />
+        </>
+      );
+    }
+    if (preScreen === "scout-tenets") {
+      return (
+        <>
+          {globalMenu}
+          <ScoutTenetsScreen
+            clubs={lobbyConfig?._clubs || []}
+            onStart={(tenets) => {
+              const { _clubs, ...opts } = lobbyConfig;
+              startScoutGame(_clubs, { ...opts, tenets });
+              setPreScreen("mode-select");
+            }}
+            onBack={() => setPreScreen("scout-club-creator")}
           />
         </>
       );
@@ -868,9 +919,11 @@ function AppInner({ onMultiplayer, auth }) {
   }
 
   if (screen === "order-draw" && draft) {
-    const afterDraw = draft.draftRoulette?.enabled
+    const afterDraw = draft.scout
       ? (draft.managerTiming === "before" ? "manager-draft" : "draft")
-      : "player-pool";
+      : draft.draftRoulette?.enabled
+        ? (draft.managerTiming === "before" ? "manager-draft" : "draft")
+        : "player-pool";
     return <>{globalMenu}<OrderDrawScreen draft={draft} onStart={() => setScreen(afterDraw)} /></>;
   }
 
@@ -887,6 +940,29 @@ function AppInner({ onMultiplayer, auth }) {
           setPlayerPool(filter);
           setScreen(draft.managerTiming === "before" ? "manager-draft" : "draft");
         }} />
+      </>
+    );
+  }
+
+  if (screen === "draft" && draft?.scout && currentPos) {
+    return (
+      <>
+        <GlobalMenu light={lightMode} onToggle={() => setLightMode(l => !l)} hasGame={true} onAbandon={restartGame} />
+        <ScoutDraftScreen
+          draft={draft}
+          activeManager={activeManager}
+          activeManagerIdx={activeManagerIdx}
+          currentPos={currentPos}
+          confirmScoutBudget={confirmScoutBudget}
+          pickScoutPlayer={pickScoutPlayer}
+          reScout={reScout}
+          commissionMission={commissionMission}
+          confirmMission={confirmMission}
+          scoutSkipCpuTurns={scoutSkipCpuTurns}
+          skipTurn={skipTurn}
+          respin={respin}
+          getTakenPlayers={getTakenPlayers}
+        />
       </>
     );
   }
@@ -1008,7 +1084,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "3.9.71";
+const APP_VERSION = "4.0.7";
 
 function AppFooter() {
   return (
