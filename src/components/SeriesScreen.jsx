@@ -286,40 +286,54 @@ function BwFixtures({ series }) {
 // The play/watch/skip button cluster, shared by the 2-player hub and the
 // tournament bracket view so the two can't drift apart.
 //
-// For a CPU vs CPU fixture the old single "AUTO-SIMULATE" button read as a
-// second, equally-weighted way to play the match. It's now an explicit
-// WATCH / SKIP pair: watching opens the full match screen, skipping resolves
-// it instantly. Plus a third option to fast-forward every CPU tie between
-// here and the player's own next fixture.
-// Laid out as a hierarchy rather than one flat stack of equal-weight buttons:
-// the gold CTA is the thing to do next, the skip row is how to get past it,
-// and the utility row (squads / restart) is quieter and sits underneath.
+// Laid out as a hierarchy rather than a flat stack of equal-weight buttons:
+// the gold CTA is the thing you most likely want, secondary options sit 2-up
+// beneath it, and the utility row (squads / restart) is quieter again.
+//
+// Which action is dominant depends on whose match it is:
+//  - your own fixture      -> PLAY, obviously.
+//  - CPU vs CPU, you're in -> getting back to your own match is the point, so
+//                             SKIP AHEAD leads and watching is the opt-in.
+//  - CPU vs CPU, you're out -> there's no "my next match" to skip to, so it
+//                             falls back to WATCH leading.
 function MatchActions({ nextMatchup, primaryLabel, isCpuVsCpu, hasHumanLater, playNextMatch, startSkip, startSkipToHuman, children }) {
+  const watchLabel = nextMatchup.label || primaryLabel;
+
+  const watchBtn = (
+    <button className="bw-cta-secondary bw-cta-skip" onClick={playNextMatch}>
+      <span className="bw-cta-skip-icon">👁</span>
+      <span className="bw-cta-skip-label">WATCH</span>
+      <span className="bw-cta-skip-sub">play it out</span>
+    </button>
+  );
+  const skipBtn = (
+    <button className="bw-cta-secondary bw-cta-skip" onClick={startSkip}>
+      <span className="bw-cta-skip-icon">⏭</span>
+      <span className="bw-cta-skip-label">SKIP</span>
+      <span className="bw-cta-skip-sub">this match only</span>
+    </button>
+  );
+
   return (
     <div className="bw-series-actions">
-      {isCpuVsCpu ? (
+      {!isCpuVsCpu ? (
+        <button className="bw-cta-arcade" onClick={playNextMatch}>▶ {primaryLabel}</button>
+      ) : hasHumanLater ? (
         <>
-          <button className="bw-cta-arcade bw-cta-watch" onClick={playNextMatch}>
-            <span className="bw-cta-kicker">CPU vs CPU</span>
-            <span className="bw-cta-main">👁 WATCH {nextMatchup.label || primaryLabel}</span>
+          <button className="bw-cta-arcade bw-cta-stacked" onClick={startSkipToHuman}>
+            <span className="bw-cta-kicker">CPU vs CPU · {watchLabel}</span>
+            <span className="bw-cta-main">⏩ SKIP TO MY NEXT MATCH</span>
           </button>
-          <div className="bw-series-skiprow">
-            <button className="bw-cta-secondary bw-cta-skip" onClick={startSkip}>
-              <span className="bw-cta-skip-icon">⏭</span>
-              <span className="bw-cta-skip-label">SKIP</span>
-              <span className="bw-cta-skip-sub">instant result</span>
-            </button>
-            {hasHumanLater && (
-              <button className="bw-cta-secondary bw-cta-skip" onClick={startSkipToHuman}>
-                <span className="bw-cta-skip-icon">⏩</span>
-                <span className="bw-cta-skip-label">SKIP AHEAD</span>
-                <span className="bw-cta-skip-sub">to my next match</span>
-              </button>
-            )}
-          </div>
+          <div className="bw-series-skiprow">{watchBtn}{skipBtn}</div>
         </>
       ) : (
-        <button className="bw-cta-arcade" onClick={playNextMatch}>▶ {primaryLabel}</button>
+        <>
+          <button className="bw-cta-arcade bw-cta-stacked" onClick={playNextMatch}>
+            <span className="bw-cta-kicker">CPU vs CPU</span>
+            <span className="bw-cta-main">👁 WATCH {watchLabel}</span>
+          </button>
+          <div className="bw-series-skiprow">{skipBtn}</div>
+        </>
       )}
       <div className="bw-series-utilrow">{children}</div>
     </div>

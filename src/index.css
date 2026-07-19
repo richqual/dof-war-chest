@@ -1753,7 +1753,7 @@ html.wc-theme .bw-draft-banner { background: linear-gradient(90deg, #2a1610, #24
 /* ── Series action hierarchy ─────────────────────────────────────────────
    Primary CTA full-width, then the skip options side by side, then the
    quieter utility row. Stops five equal-weight buttons stacking up. */
-.bw-cta-watch {
+.bw-cta-stacked {
   display: flex;
   flex-direction: column;
   align-items: center;

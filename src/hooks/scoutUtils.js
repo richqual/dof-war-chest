@@ -511,27 +511,43 @@ export function reScoutSwap({
     ? restrictPositions
     : (restrictPositions && restrictPositions.length ? new Set(restrictPositions) : null);
 
-  // Everyone already accounted for: taken/retired, plus every player currently
-  // sitting in ANY live-pool bucket (so we never pull a player who's on offer
-  // elsewhere). The outgoing cards are in the bucket too, so they're excluded.
-  const inPlay = new Set(takenIds);
-  for (const ids of Object.values(livePool || {})) for (const id of ids) inPlay.add(id);
+  // Hard exclusions: already signed/retired, and whatever is on show right now.
+  const taken = new Set(takenIds);
+  const shown = new Set(report.map(c => c.id));
+  // Freshness tiers. A truly fresh player (in NO live-pool bucket) is ideal, but
+  // insisting on that starves thin positions — CM only has ~88 players in the DB
+  // and the CM/MIDSUB buckets hold most of them — so we widen in steps rather
+  // than hand back an unchanged card. Rank 0 = fresh from the DB, 1 = sitting in
+  // another slot's bucket, 2 = already in THIS bucket but not on show.
+  const thisBucket = new Set(livePool?.[bucket] || []);
+  const otherPools = new Set();
+  for (const [b, ids] of Object.entries(livePool || {})) {
+    if (b === bucket) continue;
+    for (const id of ids) otherPools.add(id);
+  }
+  const rankOf = (p) => thisBucket.has(p.id) ? 2 : (otherPools.has(p.id) ? 1 : 0);
 
-  // Fresh, affordable, position-eligible DB candidates, grouped by tier.
-  const candidatesByTier = new Map(TIERS.map(t => [t, []]));
+  // Affordable, position-eligible candidates grouped by tier then freshness rank.
+  const candidatesByTier = new Map(TIERS.map(t => [t, [[], [], []]]));
   for (const p of PLAYERS) {
     if (!posSet.has(p.pos)) continue;
     if (restrict && !restrict.has(p.pos)) continue;
-    if (inPlay.has(p.id)) continue;
+    if (taken.has(p.id) || shown.has(p.id)) continue;
     if (!filterFn(p)) continue;
     if (valueOf(p) > budget) continue;
-    candidatesByTier.get(p.tier)?.push(p);
+    candidatesByTier.get(p.tier)?.[rankOf(p)].push(p);
   }
 
   const used = new Set();
   const reportIds = [], retireIds = [], addIds = [];
   for (const card of report) {
-    const pool = (candidatesByTier.get(card.tier) || []).filter(p => !used.has(p.id));
+    // Take the freshest rank that actually has someone; only widen if it's empty.
+    const ranks = candidatesByTier.get(card.tier) || [[], [], []];
+    let pool = [];
+    for (const rank of ranks) {
+      pool = rank.filter(p => !used.has(p.id));
+      if (pool.length) break;
+    }
     if (!pool.length) { reportIds.push(card.id); continue; } // scraps stay scraps
     // Same value-bias + tenet weighting the report uses, so the swap feels native.
     const weights = pool.map(p => {
@@ -546,7 +562,7 @@ export function reScoutSwap({
     used.add(pick.id);
     reportIds.push(pick.id);
     retireIds.push(card.id);
-    addIds.push(pick.id);
+    if (!thisBucket.has(pick.id)) addIds.push(pick.id); // already here? no need to re-add
   }
 
   reportIds.sort((a, b) => valueOf(PLAYER_BY_ID.get(b)) - valueOf(PLAYER_BY_ID.get(a)));
