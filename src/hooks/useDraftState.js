@@ -130,6 +130,10 @@ export function useDraftState() {
           const p0Goals = isP0Home ? (score?.home ?? 0) : (score?.away ?? 0);
           const p1Goals = isP0Home ? (score?.away ?? 0) : (score?.home ?? 0);
           const newGoals = [q.goals[0] + p0Goals, q.goals[1] + p1Goals];
+          // `goals` is the running aggregate, so the individual leg scorelines
+          // would otherwise be lost — the bracket needs them to show
+          // "leg score (aggregate)" on a two-legged tie.
+          const newLegs = [...(q.legs || []), [p0Goals, p1Goals]];
           const newLegsPlayed = q.legsPlayed + 1;
           stageLabel = s.singleLeg ? "QF" : `QF L${newLegsPlayed}`;
           let qWinner = null;
@@ -140,7 +144,7 @@ export function useDraftState() {
             else { qWinner = winnerIdx; wonOnPens = true; }
           }
           const newQuarters = s.quarters.map((qq, i) =>
-            i === qIdx ? { ...qq, goals: newGoals, legsPlayed: newLegsPlayed, winner: qWinner, wonOnPens } : qq
+            i === qIdx ? { ...qq, goals: newGoals, legs: newLegs, legsPlayed: newLegsPlayed, winner: qWinner, wonOnPens } : qq
           );
           const allQsDone = newQuarters.every(q => q.winner !== null);
           const newSemis = allQsDone && !s.semis
@@ -161,6 +165,7 @@ export function useDraftState() {
             const p0Goals = isP0Home ? (score?.home ?? 0) : (score?.away ?? 0);
             const p1Goals = isP0Home ? (score?.away ?? 0) : (score?.home ?? 0);
             const newGoals = [semi.goals[0] + p0Goals, semi.goals[1] + p1Goals];
+            const newLegs = [...(semi.legs || []), [p0Goals, p1Goals]];
             const newLegsPlayed = semi.legsPlayed + 1;
             stageLabel = s.singleLeg ? "SF" : `SF L${newLegsPlayed}`;
             let semiWinner = null;
@@ -171,7 +176,7 @@ export function useDraftState() {
               else { semiWinner = winnerIdx; wonOnPens = true; }
             }
             const newSemis = s.semis.map((sm, i) =>
-              i === semiIdx ? { ...sm, goals: newGoals, legsPlayed: newLegsPlayed, winner: semiWinner, wonOnPens } : sm
+              i === semiIdx ? { ...sm, goals: newGoals, legs: newLegs, legsPlayed: newLegsPlayed, winner: semiWinner, wonOnPens } : sm
             );
             const bothDone = newSemis.every(sm => sm.winner !== null);
             const newFinal = bothDone && !s.final
@@ -199,6 +204,7 @@ export function useDraftState() {
           const p0Goals = isP0Home ? (score?.home ?? 0) : (score?.away ?? 0);
           const p1Goals = isP0Home ? (score?.away ?? 0) : (score?.home ?? 0);
           const newGoals = [semi.goals[0] + p0Goals, semi.goals[1] + p1Goals];
+          const newLegs = [...(semi.legs || []), [p0Goals, p1Goals]];
           const newLegsPlayed = semi.legsPlayed + 1;
           let semiWinner = null;
           let wonOnPens = false;
@@ -208,7 +214,7 @@ export function useDraftState() {
             else { semiWinner = winnerIdx; wonOnPens = true; }
           }
           const newSemis = s.semis.map((sm, i) =>
-            i === semiIdx ? { ...sm, goals: newGoals, legsPlayed: newLegsPlayed, winner: semiWinner, wonOnPens } : sm
+            i === semiIdx ? { ...sm, goals: newGoals, legs: newLegs, legsPlayed: newLegsPlayed, winner: semiWinner, wonOnPens } : sm
           );
           const bothDone = newSemis.every(sm => sm.winner !== null);
           const newFinal = bothDone && !s.final

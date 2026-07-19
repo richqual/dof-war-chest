@@ -1750,6 +1750,67 @@ html.wc-theme .bw-draft-banner { background: linear-gradient(90deg, #2a1610, #24
 }
 .bw-cta-secondary:hover { border-color: var(--bw-gold); color: var(--bw-gold); }
 
+/* ── Series action hierarchy ─────────────────────────────────────────────
+   Primary CTA full-width, then the skip options side by side, then the
+   quieter utility row. Stops five equal-weight buttons stacking up. */
+.bw-cta-watch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 15px;
+}
+.bw-cta-kicker {
+  font: 700 9px var(--bw-font-display);
+  letter-spacing: .2em;
+  opacity: .62;
+}
+.bw-cta-main { font: 400 11px var(--bw-font-marquee); letter-spacing: .02em; }
+
+/* Explicit 2-up rather than auto-fit: a full-width grid-column child (the
+   restart confirm) keeps auto-fit's empty tracks alive, which squeezed its
+   siblings down to a fraction of the row. A lone child spans instead. */
+.bw-series-skiprow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+.bw-series-skiprow > :only-child { grid-column: 1 / -1; }
+.bw-cta-skip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 8px;
+}
+.bw-cta-skip-icon { font-size: 15px; line-height: 1; }
+.bw-cta-skip-label { font: 700 11px var(--bw-font-display); letter-spacing: .12em; }
+.bw-cta-skip-sub {
+  font: 400 10px var(--bw-font-body);
+  letter-spacing: .02em;
+  color: var(--bw-text-low);
+  text-transform: none;
+}
+.bw-cta-skip:hover .bw-cta-skip-sub { color: inherit; opacity: .75; }
+
+/* Utility row: squads + restart, deliberately lower contrast than the CTAs. */
+.bw-series-utilrow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+.bw-series-utilrow > :only-child { grid-column: 1 / -1; }
+.bw-series-utilrow .bw-cta-secondary {
+  padding: 10px 8px;
+  font-size: 11px;
+  border-color: var(--bw-border);
+  color: var(--bw-text-low);
+}
+.bw-series-utilrow .bw-cta-secondary:hover { color: var(--bw-gold); }
+/* The restart confirm expands to a full-width panel — it must not be squeezed
+   into a single grid column alongside TEAM MANAGEMENT. */
+.bw-series-utilrow .bw-restart-confirm { grid-column: 1 / -1; }
+
 /* ── RESTART tournament/series control + attempt counter ─────────────────── */
 .bw-restart-btn { opacity: .82; }
 .bw-restart-btn:hover { border-color: #e0864a; color: #e0864a; opacity: 1; }

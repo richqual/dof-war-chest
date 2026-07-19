@@ -18,7 +18,7 @@ function AttemptChip({ restartCount }) {
 
 // RESTART button with an inline two-tap confirm. Re-runs the whole tournament
 // from the draw (or a 2-player series from 0–0) while keeping every squad.
-function RestartControl({ restartCount, onRestart, isTournament }) {
+function RestartControl({ onRestart, isTournament }) {
   const [confirming, setConfirming] = useState(false);
   if (!onRestart) return null;
   if (confirming) {
@@ -35,8 +35,10 @@ function RestartControl({ restartCount, onRestart, isTournament }) {
     );
   }
   return (
+    // The attempt count already sits in the banner chip above, so repeating it
+    // here only made the label overflow its button in the utility row.
     <button className="bw-cta-secondary bw-restart-btn" onClick={() => setConfirming(true)}>
-      ↻ RESTART{restartCount > 0 ? ` · ATTEMPT ${restartCount + 1}` : ""}
+      ↻ RESTART
     </button>
   );
 }
@@ -289,29 +291,37 @@ function BwFixtures({ series }) {
 // WATCH / SKIP pair: watching opens the full match screen, skipping resolves
 // it instantly. Plus a third option to fast-forward every CPU tie between
 // here and the player's own next fixture.
+// Laid out as a hierarchy rather than one flat stack of equal-weight buttons:
+// the gold CTA is the thing to do next, the skip row is how to get past it,
+// and the utility row (squads / restart) is quieter and sits underneath.
 function MatchActions({ nextMatchup, primaryLabel, isCpuVsCpu, hasHumanLater, playNextMatch, startSkip, startSkipToHuman, children }) {
-  if (isCpuVsCpu) {
-    return (
-      <div className="bw-series-actions">
-        <button className="bw-cta-arcade" onClick={playNextMatch}>
-          👁 WATCH — {nextMatchup.label || primaryLabel}
-        </button>
-        <button className="bw-cta-secondary" onClick={startSkip}>
-          ⏭ SKIP · INSTANT RESULT
-        </button>
-        {hasHumanLater && (
-          <button className="bw-cta-secondary" onClick={startSkipToHuman}>
-            ⏩ SKIP TO MY NEXT MATCH
-          </button>
-        )}
-        {children}
-      </div>
-    );
-  }
   return (
     <div className="bw-series-actions">
-      <button className="bw-cta-arcade" onClick={playNextMatch}>▶ {primaryLabel}</button>
-      {children}
+      {isCpuVsCpu ? (
+        <>
+          <button className="bw-cta-arcade bw-cta-watch" onClick={playNextMatch}>
+            <span className="bw-cta-kicker">CPU vs CPU</span>
+            <span className="bw-cta-main">👁 WATCH {nextMatchup.label || primaryLabel}</span>
+          </button>
+          <div className="bw-series-skiprow">
+            <button className="bw-cta-secondary bw-cta-skip" onClick={startSkip}>
+              <span className="bw-cta-skip-icon">⏭</span>
+              <span className="bw-cta-skip-label">SKIP</span>
+              <span className="bw-cta-skip-sub">instant result</span>
+            </button>
+            {hasHumanLater && (
+              <button className="bw-cta-secondary bw-cta-skip" onClick={startSkipToHuman}>
+                <span className="bw-cta-skip-icon">⏩</span>
+                <span className="bw-cta-skip-label">SKIP AHEAD</span>
+                <span className="bw-cta-skip-sub">to my next match</span>
+              </button>
+            )}
+          </div>
+        </>
+      ) : (
+        <button className="bw-cta-arcade" onClick={playNextMatch}>▶ {primaryLabel}</button>
+      )}
+      <div className="bw-series-utilrow">{children}</div>
     </div>
   );
 }
@@ -379,7 +389,7 @@ function TwoPlayerSeriesHub({ draft, series, managers, nextMatchup, isHost, acti
               {...actions}
             >
               <button className="bw-cta-secondary" onClick={() => setScreen("squads")}>TEAM MANAGEMENT</button>
-              <RestartControl restartCount={restartCount} onRestart={onRestart} isTournament={false} />
+              <RestartControl onRestart={onRestart} isTournament={false} />
             </MatchActions>
           ) : (
             <div className="mp-waiting-screen">
@@ -396,12 +406,26 @@ function TwoPlayerSeriesHub({ draft, series, managers, nextMatchup, isHost, acti
 }
 
 // Bracket row score: dash until a leg is played (avoids a phantom 0-0 before
-// kick-off). Two-legged ties show the running aggregate in brackets, as is
-// standard in football; single-leg ties show the plain scoreline.
+// kick-off).
+//
+// On a two-legged tie the headline number is the scoreline of the most recent
+// leg, with the running aggregate in brackets after it — the football
+// convention, and the thing you actually want to read after leg 2. Only
+// showing the aggregate made leg 2 impossible to follow.
+//
+// Saves made before per-leg scores were recorded have no `legs`, so those fall
+// back to the old aggregate-only display rather than showing nonsense.
 function bracketScore(slot, idx, singleLeg) {
   if (!slot || !(slot.legsPlayed > 0)) return "–";
-  const g = slot.goals?.[idx] ?? 0;
-  return singleLeg ? g : `(${g})`;
+  const agg = slot.goals?.[idx] ?? 0;
+  if (singleLeg) return agg;
+
+  const legs = slot.legs;
+  if (!legs?.length) return `(${agg})`;
+
+  const latest = legs[legs.length - 1]?.[idx] ?? 0;
+  // After leg 1 the aggregate is just that leg — repeating it reads as noise.
+  return legs.length < 2 ? `${latest}` : `${latest} (${agg})`;
 }
 
 // One side of a tie. `score` is pre-formatted by the caller because the final
@@ -462,9 +486,18 @@ function BracketTie({ tie, managers, label, uid, scoreFor, isLive, isFinal }) {
 // once; on mobile the track becomes a carousel — each round is 100% wide and
 // the track is translated by the active index, driven by the ‹ › arrows. That
 // keeps a single source of truth rather than two divergent renderers.
-function TournamentBracket({ series, managers }) {
+function TournamentBracket({ series, managers, nextMatchup }) {
   const quarters = series.quarters || [];
   const semis = series.semis || [];
+
+  // Which single tie is actually up next. Derived from the fixture the hub is
+  // about to play, so the pulsing marker means "this one now" rather than
+  // "somewhere in this round".
+  const liveKey = !nextMatchup ? null
+    : nextMatchup.quarterIdx != null ? `qf${nextMatchup.quarterIdx}`
+    : nextMatchup.semiIdx != null ? `sf${nextMatchup.semiIdx}`
+    : nextMatchup.label === "GRAND FINAL" ? "final0"
+    : null;
 
   // Rounds, in bracket order (earliest first) — this is the reading order for
   // a real bracket, unlike the old reverse-chronological card stack.
@@ -473,7 +506,7 @@ function TournamentBracket({ series, managers }) {
     rounds.push({
       title: "QUARTER-FINALS",
       short: "QF",
-      ties: quarters.map((q, i) => ({ tie: q, label: `QF ${i + 1}` })),
+      ties: quarters.map((q, i) => ({ tie: q, label: `QF ${i + 1}`, key: `qf${i}` })),
       scoreFor: (t, i) => bracketScore(t, i, series.singleLeg),
     });
   }
@@ -483,23 +516,25 @@ function TournamentBracket({ series, managers }) {
     rounds.push({
       title: "SEMI-FINALS",
       short: "SF",
-      ties: slots.map((sm, i) => ({ tie: sm, label: `SEMI-FINAL ${i + 1}` })),
+      ties: slots.map((sm, i) => ({ tie: sm, label: `SEMI-FINAL ${i + 1}`, key: `sf${i}` })),
       scoreFor: (t, i) => bracketScore(t, i, series.singleLeg),
     });
   }
   rounds.push({
     title: "GRAND FINAL",
     short: "FINAL",
-    ties: [{ tie: series.final || null, label: "⭐ GRAND FINAL" }],
+    ties: [{ tie: series.final || null, label: "⭐ GRAND FINAL", key: "final0" }],
     scoreFor: (t, i) => (t.winner !== null && t.winner !== undefined ? t.wins[i] : "–"),
     isFinal: true,
   });
 
-  // The live round is the earliest one still holding an undecided tie — that's
-  // where the next match is, so it's what mobile should open on.
-  const liveRound = Math.max(0, rounds.findIndex(r =>
-    r.ties.some(({ tie }) => !tie || tie.winner === null || tie.winner === undefined)
-  ));
+  // The round mobile should open on: the one holding the next fixture, falling
+  // back to the earliest unresolved round if there's no fixture (tournament over).
+  const liveRound = Math.max(0, liveKey
+    ? rounds.findIndex(r => r.ties.some(t => t.key === liveKey))
+    : rounds.findIndex(r =>
+        r.ties.some(({ tie }) => !tie || tie.winner === null || tie.winner === undefined)
+      ));
 
   const [active, setActive] = useState(liveRound);
   // Follow the tournament forward as rounds resolve, but don't yank the view
@@ -552,7 +587,7 @@ function TournamentBracket({ series, managers }) {
             <div key={ri} className={`bw-bracket-round ${r.isFinal ? "bw-bracket-round-final" : ""}`}>
               <div className="bw-bracket-round-title">{r.title}</div>
               <div className="bw-bracket-round-ties">
-                {r.ties.map(({ tie, label }, ti) => (
+                {r.ties.map(({ tie, label, key }, ti) => (
                   <div key={ti} className="bw-bracket-slot">
                     <BracketTie
                       tie={tie}
@@ -561,7 +596,7 @@ function TournamentBracket({ series, managers }) {
                       uid={`bkt${ri}${ti}`}
                       scoreFor={r.scoreFor}
                       isFinal={!!r.isFinal}
-                      isLive={ri === liveRound && (!tie || tie.winner === null || tie.winner === undefined)}
+                      isLive={key === liveKey}
                     />
                   </div>
                 ))}
@@ -1041,10 +1076,11 @@ function TournamentResults({ tournamentStats, managers }) {
 }
 
 // `fast` shortens both beats so a chain of skipped fixtures reels past at a
-// watchable pace instead of costing ~4.6s each.
+// watchable pace instead of costing ~4.6s each. The dwell carries most of the
+// budget — that's the part you actually read the scoreline in.
 function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone, fast = false, onCancel = null }) {
-  const spinMs = fast ? 260 : 1600;
-  const dwellMs = fast ? 620 : 3000;
+  const spinMs = fast ? 340 : 1600;
+  const dwellMs = fast ? 1450 : 3000;
   const { managers, series } = draft;
   const [phase, setPhase] = useState("spinning");
   const [simResult, setSimResult] = useState(null);
@@ -1382,7 +1418,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
           </div>
 
           <div className="bw-series-body">
-            <TournamentBracket series={series} managers={managers} />
+            <TournamentBracket series={series} managers={managers} nextMatchup={nextMatchup} />
 
             <TournamentStats tournamentStats={draft.tournamentStats} managers={managers} />
 
@@ -1394,7 +1430,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
                   {...actions}
                 >
                   <button className="bw-cta-secondary" onClick={() => setScreen("squads")}>TEAM MANAGEMENT</button>
-                  <RestartControl restartCount={restartCount} onRestart={canRestart} isTournament={isTournamentFmt} />
+                  <RestartControl onRestart={canRestart} isTournament={isTournamentFmt} />
                 </MatchActions>
               ) : (
                 <div className="mp-waiting-screen">
