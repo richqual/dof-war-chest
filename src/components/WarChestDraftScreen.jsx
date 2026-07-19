@@ -185,7 +185,6 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
                 placeholder="Search player or club..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                autoFocus
               />
             </div>
             {boundsMax > boundsMin && (

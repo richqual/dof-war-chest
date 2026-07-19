@@ -2588,6 +2588,10 @@ html.light-mode .bw-mgr-card.recommended .bw-mgr-card-name { color: var(--bw-tex
   color: var(--bw-text-hi);
 }
 .bw-search-input::placeholder { color: var(--bw-text-low); }
+/* iOS auto-zooms any input rendered below 16px on focus — keep it at 16 on touch widths */
+@media (max-width: 640px) {
+  .bw-search-input { font-size: 16px; }
+}
 .bw-search-input:focus { outline: none; }
 
 .bw-filter-chips { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
