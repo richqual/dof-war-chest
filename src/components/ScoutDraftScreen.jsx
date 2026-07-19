@@ -44,6 +44,7 @@ export default function ScoutDraftScreen({
   const [missionCandidates, setMissionCandidates] = useState([]);
   const [missionMiss, setMissionMiss] = useState(false);
   const [bargainOpen, setBargainOpen] = useState(false);
+  const [reScoutMenuOpen, setReScoutMenuOpen] = useState(false);
 
   // Auto-run CPU turns (batch) after a short beat for readability.
   useEffect(() => {
@@ -60,6 +61,7 @@ export default function ScoutDraftScreen({
     setLastTurnKey(turnKey);
     setMissionOpen(false); setMissionCandidates([]); setMissionMiss(false);
     setMissionLeague(""); setMissionEra(""); setMissionPos(""); setBargainOpen(false);
+    setReScoutMenuOpen(false);
   }
 
   const isSubSlot = positionIndex >= 11;
@@ -236,14 +238,43 @@ export default function ScoutDraftScreen({
                 </p>
               </div>
               <div className="scout-head-actions">
-                <button
-                  className="bw-cta-secondary scout-head-btn"
-                  disabled={reScoutsLeft <= 0}
-                  onClick={() => reScoutsLeft > 0 && reScout()}
-                  title={reScoutsLeft <= 0 ? "No re-scouts left this game" : `${reScoutsLeft} re-scout${reScoutsLeft === 1 ? "" : "s"} left`}
-                >
-                  🔄 RE-SCOUT ({reScoutsLeft})
-                </button>
+                {(() => {
+                  const group = SUB_POSITIONS[currentPos.key] || [];
+                  const canChoose = isSubSlot && group.length > 1; // GKSUB / starters skip
+                  // Target one position (or the whole group) for this one re-scout.
+                  // Setting the filter first keeps the shown hand and the swap aligned.
+                  const doReScout = (sel) => {
+                    if (reScoutsLeft <= 0) return;
+                    setReScoutMenuOpen(false);
+                    if (canChoose && setScoutFilter) setScoutFilter(sel); // null = whole group
+                    reScout();
+                  };
+                  return (
+                    <div className="scout-rescout-wrap">
+                      <button
+                        className="bw-cta-secondary scout-head-btn"
+                        disabled={reScoutsLeft <= 0}
+                        onClick={() => {
+                          if (reScoutsLeft <= 0) return;
+                          if (canChoose) setReScoutMenuOpen(o => !o);
+                          else reScout();
+                        }}
+                        title={reScoutsLeft <= 0 ? "No re-scouts left this game" : `${reScoutsLeft} re-scout${reScoutsLeft === 1 ? "" : "s"} left`}
+                      >
+                        🔄 RE-SCOUT ({reScoutsLeft})
+                      </button>
+                      {canChoose && reScoutMenuOpen && (
+                        <div className="scout-rescout-menu">
+                          <span className="scout-rescout-menu-label">Re-scout for:</span>
+                          <button className="scout-filter-pill" onClick={() => doReScout(null)}>ALL</button>
+                          {group.map(pos => (
+                            <button key={pos} className="scout-filter-pill" onClick={() => doReScout([pos])}>{pos}</button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {isSubSlot && !missionUsed && (
                   <button className="bw-cta-secondary scout-head-btn" onClick={() => setMissionOpen(o => !o)}>
