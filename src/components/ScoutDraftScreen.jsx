@@ -261,7 +261,9 @@ export default function ScoutDraftScreen({
               const active = draft.scoutPosFilter; // null = whole group
               const isOn = (pos) => !active || active.includes(pos);
               const toggle = (pos) => {
-                const base = active ? active.filter(p => group.includes(p)) : [...group];
+                // From ALL, clicking a position scouts for THAT position only.
+                if (!active) { setScoutFilter([pos]); return; }
+                const base = active.filter(p => group.includes(p));
                 const next = base.includes(pos) ? base.filter(p => p !== pos) : [...base, pos];
                 // Empty or full selection both mean "scout the whole group".
                 setScoutFilter(next.length === 0 || next.length === group.length ? null : next);

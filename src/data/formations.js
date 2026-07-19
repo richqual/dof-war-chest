@@ -127,26 +127,31 @@ export const FORMATIONS = {
 // Standard elig by natural position. Wing-back and back-three slots differ per
 // formation, handled by ELIG_OVERRIDE below (the RM/LM/CB labels mean different
 // things in a 3-at-the-back shape than in a flat four).
+// Wide positions are SIDE-LOCKED: right slots only ever draw from the right
+// chain (RB↔RM↔RW), left slots from the left chain (LB↔LM↔LW) — a left/right
+// swap is never eligible. Central positions (CB/DM/CM/CAM/ST) have no side, so
+// they may reach either wing.
 const ELIG_STD = {
   GK:  [],
   CB:  [],                        // strict in a back four/five
-  RB:  ["LB", "RM"],
-  LB:  ["RB", "LM"],
+  RB:  ["RM"],                    // right chain only
+  LB:  ["LM"],                    // left chain only
   DM:  ["CM", "CB"],
   CM:  ["DM", "CAM"],
-  CAM: ["CM", "RW", "LW"],
-  RM:  ["RW", "RB"],              // orthodox wide mid
-  LM:  ["LW", "LB"],              // orthodox wide mid
-  RW:  ["RM", "LW", "ST", "CAM"],
-  LW:  ["LM", "RW", "ST", "CAM"],
-  ST:  ["RW", "LW", "CAM"],
+  CAM: ["CM", "RW", "LW"],        // central → either wing
+  RM:  ["RW"],                    // orthodox wide mid → right winger only
+  LM:  ["LW"],                    // orthodox wide mid → left winger only
+  RW:  ["RM", "ST", "CAM"],
+  LW:  ["LM", "ST", "CAM"],
+  ST:  ["RW", "LW", "CAM"],       // central striker → either wing
 };
 
 // Per-formation, per-slot overrides. Keys are slot indices into FORMATIONS.
 // In 3-5-2 / 3-4-3: slots 1&2 (labelled RM/LM) are wing-backs, and the three
-// centre-backs (slots 3,4,5) may be filled by full-backs at a penalty.
-const WB_R = { natural: "RB", elig: ["RM", "LB", "RW", "LW", "LM"] };
-const WB_L = { natural: "LB", elig: ["LM", "RB", "RW", "LW", "RM"] };
+// centre-backs (slots 3,4,5) may be filled by full-backs at a penalty. The
+// wing-backs stay side-locked: right draws RB/RM, left draws LB/LM.
+const WB_R = { natural: "RB", elig: ["RM"] };
+const WB_L = { natural: "LB", elig: ["LM"] };
 const CB3  = { elig: ["RB", "LB"] };
 const BACK_THREE_OVERRIDE = { 1: WB_R, 2: WB_L, 3: CB3, 4: CB3, 5: CB3 };
 const ELIG_OVERRIDE = {
