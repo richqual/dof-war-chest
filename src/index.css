@@ -3985,6 +3985,36 @@ html.wc-theme .bw-roulette-team { background: linear-gradient(90deg, #2a1610, #2
   line-height: 1.4;
 }
 
+.global-menu-gameinfo {
+  border-top: 1px solid var(--bw-border, var(--border));
+  padding: 0.7rem 1.15rem 0.8rem;
+}
+.global-menu-gameinfo-head {
+  font-family: var(--bw-font-display, inherit);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--bw-gold, var(--amber));
+  margin-bottom: 0.45rem;
+}
+.global-menu-gameinfo-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  font-family: var(--bw-font-body, inherit);
+  font-size: 0.74rem;
+  line-height: 1.5;
+}
+.global-menu-gameinfo-label {
+  color: var(--bw-text-mid, var(--text2));
+  flex: 0 0 5.2rem;
+}
+.global-menu-gameinfo-value {
+  color: var(--bw-text-hi, var(--text1));
+  font-weight: 600;
+  flex: 1;
+}
+
 .global-menu-account {
   padding: 0.7rem 1.15rem 0.3rem;
   border-top: 1px solid var(--bw-border, var(--border));

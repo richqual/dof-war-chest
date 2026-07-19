@@ -57,8 +57,40 @@ class ErrorBoundary extends Component {
   }
 }
 
-function GlobalMenu({ light, onToggle, largeText, onToggleLargeText, hasGame, onAbandon, abandonLabel = "✕ QUIT & RETURN TO HOME", abandonWarn = "Abandons the current game and returns to the setup screen.", onAbout, extraOptions, user, isGuest, onSignIn, onSignInGuest, onLinkGoogle, onSignOut, onProfile, onMySquads }) {
+// Compact "what am I playing?" readout for the pull-out menu — handy when you
+// come back to a continued game and can't remember the setup you chose.
+const SERIES_LABELS = {
+  bo3: "Best of 3", bo5: "Best of 5", bo7: "Best of 7", single: "Single match",
+  tournament: "4-team tournament", tournament8: "8-team tournament",
+};
+
+function describeGame(d) {
+  if (!d) return null;
+  const rows = [];
+  const mode = d.scout ? "Scout Mode" : d.warChest ? "War Chest" : "Classic Draft";
+  rows.push(["Mode", mode]);
+
+  const humans = d.managers.filter(m => !m.isComputer).length;
+  rows.push(["Managers", `${d.managers.length} (${humans} human)`]);
+  rows.push(["Format", SERIES_LABELS[d.series?.format] || "Single match"]);
+  if (d.difficulty) rows.push(["Difficulty", d.difficulty[0].toUpperCase() + d.difficulty.slice(1)]);
+
+  const on = [];
+  if (d.hideRatings) on.push("Hidden ratings");
+  if (d.realTeams) on.push("Real Teams");
+  if (d.draftRoulette?.enabled) on.push("Draft Roulette");
+  if (d.dynamicForm) on.push("Dynamic form");
+  if (d.positionMode === "flexible") on.push("Flexible positions");
+  if (d.managerTiming === "after") on.push("Managers after draft");
+  if (d.tierCaps) on.push("Tier caps");
+  if (on.length) rows.push(["Options", on.join(" · ")]);
+
+  return rows;
+}
+
+function GlobalMenu({ light, onToggle, largeText, onToggleLargeText, hasGame, onAbandon, abandonLabel = "✕ QUIT & RETURN TO HOME", abandonWarn = "Abandons the current game and returns to the setup screen.", onAbout, extraOptions, user, isGuest, onSignIn, onSignInGuest, onLinkGoogle, onSignOut, onProfile, onMySquads, draft }) {
   const [open, setOpen] = useState(false);
+  const gameRows = describeGame(draft);
 
   function abandon() {
     setOpen(false);
@@ -84,6 +116,18 @@ function GlobalMenu({ light, onToggle, largeText, onToggleLargeText, hasGame, on
             <button className="global-menu-item" onClick={() => setOpen(false)}>
               ▶ CONTINUE
             </button>
+
+            {gameRows && (
+              <div className="global-menu-gameinfo">
+                <div className="global-menu-gameinfo-head">CURRENT GAME</div>
+                {gameRows.map(([label, value]) => (
+                  <div key={label} className="global-menu-gameinfo-row">
+                    <span className="global-menu-gameinfo-label">{label}</span>
+                    <span className="global-menu-gameinfo-value">{value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {extraOptions && (
               <>
@@ -289,6 +333,7 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
       largeText={largeText}
       onToggleLargeText={() => setLargeText(t => !t)}
       hasGame={!!draft}
+      draft={draft}
       onAbandon={() => { if (isHost) actions.restartGame(); else handleLeave(); }}
       abandonLabel={isHost ? "✕ END GAME FOR EVERYONE" : "✕ LEAVE GAME"}
       abandonWarn={isHost ? "Ends the game for all players and returns everyone to setup." : "You'll leave the game — the other players can continue without you."}
@@ -355,6 +400,7 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
           largeText={largeText}
           onToggleLargeText={() => setLargeText(t => !t)}
           hasGame={true}
+          draft={draft}
           onAbandon={() => { if (isHost) actions.restartGame(); else handleLeave(); }}
           abandonLabel={isHost ? "✕ END GAME FOR EVERYONE" : "✕ LEAVE GAME"}
           abandonWarn={isHost ? "Ends the game for all players and returns everyone to setup." : "You'll leave the game — the other players can continue without you."}
@@ -660,6 +706,7 @@ function AppInner({ onMultiplayer, auth }) {
       largeText={largeText}
       onToggleLargeText={() => setLargeText(t => !t)}
       hasGame={hasGame}
+      draft={draft}
       onAbandon={handleAbandon}
       onAbout={() => setShowAbout(true)}
       screen={screen}
@@ -948,7 +995,7 @@ function AppInner({ onMultiplayer, auth }) {
   if (screen === "draft" && draft?.scout && currentPos) {
     return (
       <>
-        <GlobalMenu light={lightMode} onToggle={() => setLightMode(l => !l)} hasGame={true} onAbandon={restartGame} />
+        <GlobalMenu light={lightMode} onToggle={() => setLightMode(l => !l)} hasGame={true} draft={draft} onAbandon={restartGame} />
         <ScoutDraftScreen
           draft={draft}
           activeManager={activeManager}
@@ -980,6 +1027,7 @@ function AppInner({ onMultiplayer, auth }) {
           light={lightMode}
           onToggle={() => setLightMode(l => !l)}
           hasGame={true}
+          draft={draft}
           onAbandon={restartGame}
           extraOptions={draftMenuOptions}
         />
@@ -1088,7 +1136,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "4.2.8";
+const APP_VERSION = "4.2.9";
 
 function AppFooter() {
   return (
