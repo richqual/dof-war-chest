@@ -638,7 +638,7 @@ export function useDraftState() {
   }
 
   // The report ids for whoever is on the clock, at the current slot + budget.
-  function scoutReportIds(d) {
+  function scoutReportIds(d, excludeIds = null) {
     const activeIdx = d.currentOrder[d.turnIndex];
     const m = d.managers[activeIdx];
     const bucket = scoutBucketForSlot(m.formation, d.positionIndex);
@@ -646,12 +646,13 @@ export function useDraftState() {
       livePool: d.livePool, bucket, takenIds: d.takenIds,
       squad: m.squad, budget: d.currentBudget ?? 0,
       tierCaps: d.tierCaps, tenets: m.tenets || [],
-      valueOf: scoutValueOf(d),
+      valueOf: scoutValueOf(d), excludeIds,
+      restrictPositions: d.positionIndex >= 11 ? d.scoutPosFilter : null,
     });
   }
 
-  function computeScoutReport(d) {
-    return scoutReportIds(d).map(id => resolveScoutPlayer(d, id));
+  function computeScoutReport(d, excludeIds = null) {
+    return scoutReportIds(d, excludeIds).map(id => resolveScoutPlayer(d, id));
   }
 
   // The genuine £0 free agents in the pool for whoever's on the clock — the
@@ -757,7 +758,11 @@ export function useDraftState() {
       if ((m.reScoutsLeft ?? 0) <= 0) return prev;
       const managers = prev.managers.map((mm, i) => i === activeIdx ? { ...mm, reScoutsLeft: mm.reScoutsLeft - 1 } : mm);
       const next = { ...prev, managers, ratingsRevealed: false };
-      return { ...next, currentReport: computeScoutReport(next) };
+      // Exclude the players currently on show so a re-scout deals a genuinely
+      // fresh hand (still tier-/budget-capped); falls back to the full pool only
+      // if too few others remain — see buildScoutReport.
+      const exclude = new Set((prev.currentReport || []).map(p => p.id));
+      return { ...next, currentReport: computeScoutReport(next, exclude) };
     });
   }
 
@@ -775,9 +780,20 @@ export function useDraftState() {
   function pickScoutPlayer(player) {
     if (!draft) return;
     if (draft.currentBudget === null || player.value > draft.currentBudget) return;
-    const next = { ...applyPick(draft, player), currentReport: null };
+    const next = { ...applyPick(draft, player), currentReport: null, scoutPosFilter: null };
     setDraft(next);
     if (next.phase === "complete") setScreen(draft.managerTiming === "before" ? "squads" : "manager-draft");
+  }
+
+  // Set the per-turn position filter on a sub slot (subset of the group's concrete
+  // positions; null/empty = whole group) and recompute the report in place.
+  function setScoutFilter(positions) {
+    setDraft(prev => {
+      if (!prev?.scout || prev.currentBudget === null || prev.positionIndex < 11) return prev;
+      const filter = positions && positions.length ? positions : null;
+      const next = { ...prev, scoutPosFilter: filter, ratingsRevealed: false };
+      return { ...next, currentReport: computeScoutReport(next) };
+    });
   }
 
   // Preview a scouting-mission candidate (does not commit). Only valid on a sub
@@ -806,7 +822,7 @@ export function useDraftState() {
     let next = applyPick(draft, chargeable);
     next = {
       ...next,
-      currentReport: null,
+      currentReport: null, scoutPosFilter: null,
       managers: next.managers.map((mm, i) => i === activeIdx ? { ...mm, missionUsed: true } : mm),
     };
     setDraft(next);
@@ -847,7 +863,7 @@ export function useDraftState() {
       }
       const pick = cpuScoutPick(d);
       if (!pick) { d = { ...d, currentBudget: null, noCarryoverNext: true }; continue; }
-      d = { ...applyPick(d, pick), currentReport: null };
+      d = { ...applyPick(d, pick), currentReport: null, scoutPosFilter: null };
     }
     setDraft(d);
     if (d.phase === "complete") setScreen(d.managerTiming === "before" ? "squads" : "manager-draft");
@@ -866,7 +882,7 @@ export function useDraftState() {
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
     startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
-    startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, revealScoutRatings, commissionMission, confirmMission, scoutSkipCpuTurns,
+    startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, revealScoutRatings, setScoutFilter, commissionMission, confirmMission, scoutSkipCpuTurns,
     scoutFreeAgents,
   };
 }

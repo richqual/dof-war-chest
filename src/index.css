@@ -6009,6 +6009,30 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
 }
 .scout-head-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
+/* Per-turn position filter on sub slots (narrow the group, e.g. DEFSUB → RB) */
+.scout-filter-strip {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  margin: 0 0 12px; padding: 8px 10px;
+  background: var(--bw-panel2, rgba(255,255,255,0.04));
+  border: 1px solid var(--bw-line, rgba(255,255,255,0.12));
+  border-radius: 8px !important;
+}
+.scout-filter-label {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em;
+  color: var(--text3); margin-right: 2px;
+}
+.scout-filter-pill {
+  width: auto; padding: 4px 11px; font-size: 0.72rem; font-weight: 800;
+  letter-spacing: 0.04em; cursor: pointer;
+  color: var(--text2); background: transparent;
+  border: 1px solid var(--bw-line, rgba(255,255,255,0.22));
+  border-radius: 999px !important;
+}
+.scout-filter-pill.on {
+  color: #0a0f0b; background: var(--bw-gold, #f5c542);
+  border-color: var(--bw-gold, #f5c542);
+}
+
 .scout-cards-row { display: flex; flex-direction: column; gap: 14px; }
 .scout-card-wrap { position: relative; padding-top: 14px; }
 .scout-card-tier {

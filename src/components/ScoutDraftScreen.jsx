@@ -15,7 +15,7 @@ const SUB_LABELS = { GKSUB: "GKS", DEFSUB: "DEF", MIDSUB: "MID", WIDSUB: "WID", 
 
 export default function ScoutDraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
-  confirmScoutBudget, pickScoutPlayer, reScout, revealScoutRatings, commissionMission, confirmMission,
+  confirmScoutBudget, pickScoutPlayer, reScout, revealScoutRatings, setScoutFilter, commissionMission, confirmMission,
   scoutSkipCpuTurns, respin, getTakenPlayers, freeAgents = [],
   myTurn = true,
 }) {
@@ -255,9 +255,42 @@ export default function ScoutDraftScreen({
               </div>
             </div>
 
+            {isSubSlot && setScoutFilter && (() => {
+              const group = SUB_POSITIONS[currentPos.key] || [];
+              if (group.length <= 1) return null; // GK sub — nothing to narrow
+              const active = draft.scoutPosFilter; // null = whole group
+              const isOn = (pos) => !active || active.includes(pos);
+              const toggle = (pos) => {
+                const base = active ? active.filter(p => group.includes(p)) : [...group];
+                const next = base.includes(pos) ? base.filter(p => p !== pos) : [...base, pos];
+                // Empty or full selection both mean "scout the whole group".
+                setScoutFilter(next.length === 0 || next.length === group.length ? null : next);
+              };
+              return (
+                <div className="scout-filter-strip">
+                  <span className="scout-filter-label">Scout for:</span>
+                  <button
+                    className={`scout-filter-pill ${!active ? "on" : ""}`}
+                    onClick={() => setScoutFilter(null)}
+                  >ALL</button>
+                  {group.map(pos => (
+                    <button
+                      key={pos}
+                      className={`scout-filter-pill ${active && isOn(pos) ? "on" : ""}`}
+                      onClick={() => toggle(pos)}
+                    >{pos}</button>
+                  ))}
+                </div>
+              );
+            })()}
+
             {report.length === 0 ? (
               <div className="scout-empty">
-                <p>Every player in the <strong>{currentPos.label}</strong> pool has already been signed. Re-scout to double-check for anyone freed up.</p>
+                {isSubSlot && draft.scoutPosFilter ? (
+                  <p>No affordable options for <strong>{draft.scoutPosFilter.join(" / ")}</strong> right now. Widen the filter (tap <strong>ALL</strong>), re-scout, or spin a bigger budget.</p>
+                ) : (
+                  <p>Every player in the <strong>{currentPos.label}</strong> pool has already been signed. Re-scout to double-check for anyone freed up.</p>
+                )}
                 <div className="scout-empty-actions">
                   {respin && <button className="bw-cta-secondary" onClick={respin}>🎡 RE-SPIN BUDGET</button>}
                 </div>

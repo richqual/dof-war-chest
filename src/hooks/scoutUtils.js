@@ -57,6 +57,9 @@ export const SCOUT_TUNING = {
   missionTenetDiscount: 0.15, // premium reduced by this if mission matches a tenet
   tenetBiasWeight: 3,      // relative draw weight of a tenet-matching candidate
   revealFee: 5,            // flat £m charged to reveal hidden ratings on a report
+  subPosFloor: 2,          // sub buckets: guaranteed options per concrete position
+                           // (best-effort, capped by availability) so a per-turn
+                           // position filter (e.g. DEFSUB → RB only) still has picks
 };
 
 // ── Pool size (setup option) ──
@@ -242,13 +245,37 @@ const LOW_TIERS = ["T3", "T4", "T5"];
 // the elite targets, then fill the remainder with plentiful low tiers. Falls back
 // to the full master list only when the disjoint pool can't cover demand (the
 // "free transfer" case). Returns the picked id set; caller clears `remaining`.
-function drawBatch(masterIds, remaining, target, need, elite = {}) {
+function drawBatch(masterIds, remaining, target, need, elite = {}, posFloor = null) {
   const picked = new Set();
   const tierCount = {};
   const addId = (id) => {
     picked.add(id);
     const t = PLAYER_BY_ID.get(id)?.tier;
     tierCount[t] = (tierCount[t] || 0) + 1;
+  };
+
+  // Per-position floor (sub buckets): guarantee up to `posFloor[pos]` players of
+  // EACH concrete position in the group before the tier fill, so a manager who
+  // narrows the report (e.g. DEFSUB → RB only) still has real options. Best-effort
+  // — capped by how many of that position actually exist in the pool. Prefers the
+  // disjoint `remaining` set, then falls back to the shared master list.
+  const reservePass = (sourceIds) => {
+    if (!posFloor) return;
+    const wantByPos = {};
+    for (const id of picked) {
+      const pos = PLAYER_BY_ID.get(id)?.pos;
+      if (pos != null) wantByPos[pos] = (wantByPos[pos] || 0) + 1;
+    }
+    for (const id of sourceIds) {
+      if (picked.size >= target) break;
+      if (picked.has(id)) continue;
+      const pos = PLAYER_BY_ID.get(id)?.pos;
+      const cap = posFloor[pos];
+      if (cap == null) continue;
+      if ((wantByPos[pos] || 0) >= cap) continue;
+      addId(id);
+      wantByPos[pos] = (wantByPos[pos] || 0) + 1;
+    }
   };
   const fillPass = (sourceIds) => {
     const byTier = new Map(TIERS.map(t => [t, []]));
@@ -270,8 +297,9 @@ function drawBatch(masterIds, remaining, target, need, elite = {}) {
     // 3) Fill the rest from plentiful low tiers (never exceed elite targets).
     for (const t of LOW_TIERS) take(t, Infinity);
   };
+  reservePass(masterIds.filter(id => remaining.has(id)));
   fillPass(masterIds.filter(id => remaining.has(id)));
-  if (picked.size < need) fillPass(masterIds);
+  if (picked.size < need) { reservePass(masterIds); fillPass(masterIds); }
   return picked;
 }
 
@@ -312,9 +340,15 @@ export function buildScoutLivePool(formation, numPlayers, options = {}) {
       const positions = bucketPositions(base, formation, slotOfBucket.get(list[0]));
       const masterIds = shuffle(masterIdsForPositions(positions, filterFn));
       const remaining = new Set(avoidUsed ? masterIds.filter(id => !globalUsed.has(id)) : masterIds);
+      // Sub buckets span several concrete positions and are filterable per turn, so
+      // guarantee a per-position floor of options. Starter buckets (single natural
+      // position) don't need one.
+      const posFloor = (SUB_POSITIONS[base] && positions.length > 1)
+        ? Object.fromEntries(positions.map(p => [p, SCOUT_TUNING.subPosFloor]))
+        : null;
       for (const bucket of list) {
         const need = demand[bucket];
-        const picked = drawBatch(masterIds, remaining, need + surplus, need, eliteTargets);
+        const picked = drawBatch(masterIds, remaining, need + surplus, need, eliteTargets, posFloor);
         for (const id of picked) { remaining.delete(id); globalUsed.add(id); }
         livePool[bucket] = [...picked];
       }
@@ -372,16 +406,29 @@ export function allowedTiers(squad, tierCaps) {
 export function buildScoutReport({
   livePool, bucket, takenIds, squad, budget, tierCaps, tenets, valueOf = defaultValueOf,
   size = SCOUT_TUNING.reportSize, minOptions = SCOUT_TUNING.minReportOptions,
+  excludeIds = null, restrictPositions = null,
 }) {
   const taken = new Set(takenIds);
   const poolIds = livePool[bucket] || [];
 
-  const availablePlayers = () => {
+  // Optional per-turn position filter (sub slots only): the manager narrows the
+  // group's concrete positions (e.g. DEFSUB → RB only). null/empty = no filter.
+  const restrict = restrictPositions instanceof Set
+    ? restrictPositions
+    : (restrictPositions && restrictPositions.length ? new Set(restrictPositions) : null);
+
+  // On a re-scout we exclude the players currently on show so the new hand is
+  // genuinely fresh. Honoured only while enough OTHER players remain to fill the
+  // report — otherwise we drop the exclusion so a re-scout is never a dead end.
+  const exclude = excludeIds instanceof Set ? excludeIds : (excludeIds ? new Set(excludeIds) : null);
+
+  const availablePlayers = (skipExcluded = false) => {
     const out = [];
     for (const id of poolIds) {
       if (taken.has(id)) continue;
+      if (skipExcluded && exclude && exclude.has(id)) continue;
       const p = PLAYER_BY_ID.get(id);
-      if (p) out.push(p);
+      if (p && (!restrict || restrict.has(p.pos))) out.push(p);
     }
     return out;
   };
@@ -390,9 +437,16 @@ export function buildScoutReport({
   // AFFORDABLE only — the scout never offers a player you can't sign. When you
   // spin too low for anyone here, the report is empty and the always-on £0 free
   // agents (buildScoutFreeAgents) are your fallback.
-  let candidates = availablePlayers().filter(p => allowed.has(p.tier) && valueOf(p) <= budget);
+  const affordable = (skipExcluded) => availablePlayers(skipExcluded)
+    .filter(p => allowed.has(p.tier) && valueOf(p) <= budget);
+
+  // Try to build the fresh (excluded) hand first; only fall back to the full
+  // set if excluding would leave us short of a proper report.
+  let candidates = affordable(!!exclude);
+  if (exclude && candidates.length < Math.min(size, minOptions + 1)) candidates = affordable(false);
   // Tier caps blocked the whole affordable hand — relax them so you still see options.
-  if (!candidates.length) candidates = availablePlayers().filter(p => valueOf(p) <= budget);
+  if (!candidates.length) candidates = availablePlayers(!!exclude).filter(p => valueOf(p) <= budget);
+  if (!candidates.length && exclude) candidates = availablePlayers(false).filter(p => valueOf(p) <= budget);
   if (candidates.length <= size) {
     return [...candidates].sort((a, b) => valueOf(b) - valueOf(a)).map(p => p.id);
   }

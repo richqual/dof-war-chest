@@ -1421,7 +1421,7 @@ export const SUB_POSITIONS = {
   DEFSUB: ["RB", "LB", "CB"],
   MIDSUB: ["DM", "CM", "CAM"],
   WIDSUB: ["RM", "LM", "RW", "LW"],
-  ATTSUB: ["ST"],
+  ATTSUB: ["ST", "CAM"],
 };
 
 export const ERA_LABELS = { classic: "Classic 98-08", golden: "Golden 08-16", modern: "Modern 16-", legend: "Legend" };
