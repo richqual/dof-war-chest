@@ -5,6 +5,42 @@ import { FORMATIONS } from "../data/formations";
 import { squadRating } from "./SquadScreen";
 import { generateEvents, buildEffectiveSquad } from "./MatchSim";
 
+// Small tally shown while a tournament/series is in progress once it's been
+// restarted at least once — a soft "it's taken a few goes" indicator.
+function AttemptChip({ restartCount }) {
+  if (!restartCount) return null;
+  return (
+    <div className="bw-attempt-chip">
+      ATTEMPT #{restartCount + 1} · {restartCount} RESTART{restartCount > 1 ? "S" : ""}
+    </div>
+  );
+}
+
+// RESTART button with an inline two-tap confirm. Re-runs the whole tournament
+// from the draw (or a 2-player series from 0–0) while keeping every squad.
+function RestartControl({ restartCount, onRestart, isTournament }) {
+  const [confirming, setConfirming] = useState(false);
+  if (!onRestart) return null;
+  if (confirming) {
+    return (
+      <div className="bw-restart-confirm">
+        <div className="bw-restart-confirm-msg">
+          Restart the {isTournament ? "tournament from the draw" : "series from 0–0"}? Your drafted squads are kept.
+        </div>
+        <div className="bw-restart-confirm-btns">
+          <button className="bw-cta-secondary bw-restart-yes" onClick={onRestart}>↻ YES, RESTART</button>
+          <button className="bw-cta-secondary" onClick={() => setConfirming(false)}>CANCEL</button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <button className="bw-cta-secondary bw-restart-btn" onClick={() => setConfirming(true)}>
+      ↻ RESTART{restartCount > 0 ? ` · ATTEMPT ${restartCount + 1}` : ""}
+    </button>
+  );
+}
+
 function teamName(m) {
   return m.teamName || m.clubName || m.name;
 }
@@ -226,7 +262,7 @@ function BwFixtures({ series }) {
 }
 
 // Series hub — the head-to-head best-of-N spine (mock ref: 2d).
-function TwoPlayerSeriesHub({ draft, series, managers, nextMatchup, isHost, isCpuVsCpu, cpuSimActive, setCpuSimActive, playNextMatch, setScreen, seriesCtxForSim, handleSimDone }) {
+function TwoPlayerSeriesHub({ draft, series, managers, nextMatchup, isHost, isCpuVsCpu, cpuSimActive, setCpuSimActive, playNextMatch, setScreen, seriesCtxForSim, handleSimDone, restartCount = 0, onRestart = null }) {
   const [p0, p1] = series.participants;
   const m0 = managers[p0], m1 = managers[p1];
   const [w0, w1] = series.wins;
@@ -244,6 +280,7 @@ function TwoPlayerSeriesHub({ draft, series, managers, nextMatchup, isHost, isCp
       <div className="bw-banner">
         <div className="bw-banner-title">GRAND FINAL</div>
         <div className="bw-banner-subtitle">{subtitle}</div>
+        <AttemptChip restartCount={restartCount} />
       </div>
 
       <div className="bw-series-body">
@@ -273,6 +310,7 @@ function TwoPlayerSeriesHub({ draft, series, managers, nextMatchup, isHost, isCp
                 </button>
               )}
               <button className="bw-cta-secondary" onClick={() => setScreen("squads")}>TEAM MANAGEMENT</button>
+              <RestartControl restartCount={restartCount} onRestart={onRestart} isTournament={false} />
             </div>
           ) : (
             <div className="mp-waiting-screen">
@@ -1000,11 +1038,15 @@ function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone }) {
   );
 }
 
-export default function SeriesScreen({ draft, setScreen, recordMatchResult, restartGame, onSaveSquad, saveState, isHost = true }) {
+export default function SeriesScreen({ draft, setScreen, recordMatchResult, restartGame, restartTournament, onSaveSquad, saveState, isHost = true }) {
   const { managers, series } = draft;
   const [cpuSimActive, setCpuSimActive] = useState(false);
 
   if (!series) return null;
+
+  const restartCount = draft.restartCount || 0;
+  const isTournamentFmt = series.format === "tournament" || series.format === "tournament8";
+  const canRestart = isHost && restartTournament ? restartTournament : null;
 
   const nextMatchup = getNextMatchup(series);
   const isChampion = series.stage === "champion";
@@ -1079,6 +1121,11 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
             <div className="bw-champ-dof">
               Director of Football: {champion.dofName || champion.name}
             </div>
+            {restartCount > 0 && (
+              <div className="bw-champ-attempt">
+                🏆 Won on attempt #{restartCount + 1} · took {restartCount} restart{restartCount > 1 ? "s" : ""}
+              </div>
+            )}
 
             {/* Full squad */}
             <ChampionSquad manager={champion} onSaveSquad={onSaveSquad} saveState={saveState} />
@@ -1118,6 +1165,8 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
           setScreen={setScreen}
           seriesCtxForSim={seriesCtxForSim}
           handleSimDone={handleSimDone}
+          restartCount={restartCount}
+          onRestart={canRestart}
         />
       ) : (
         <div className="bw-series-frame bw-series-frame-bracket">
@@ -1126,6 +1175,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
             {nextMatchup && (
               <div className="bw-tourn-title">{nextMatchup.label}</div>
             )}
+            <AttemptChip restartCount={restartCount} />
           </div>
 
           <div className="bw-series-body">
@@ -1145,6 +1195,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
                     </button>
                   )}
                   <button className="bw-cta-secondary" onClick={() => setScreen("squads")}>TEAM MANAGEMENT</button>
+                  <RestartControl restartCount={restartCount} onRestart={canRestart} isTournament={isTournamentFmt} />
                 </div>
               ) : (
                 <div className="mp-waiting-screen">

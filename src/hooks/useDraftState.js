@@ -10,7 +10,7 @@ import {
   buildRealTeamsPool, isDraftableBy, dedupeByName,
   POS_LABELS, getFormArrow,
   buildInitialWarChestDraft, getWarChestPlayersForSlot, autoBuildWarChestSquad, assignWarChestBudget,
-  appendSeriesHistory,
+  appendSeriesHistory, freshSeries,
 } from "./draftUtils";
 import {
   buildScoutLivePool, buildScoutReport, buildScoutFreeAgents, buildScoutMission, scoutBucketForSlot,
@@ -498,6 +498,26 @@ export function useDraftState() {
     localStorage.removeItem(STORAGE_KEY);
   }
 
+  // RESTART — re-run the tournament/series keeping every drafted squad intact.
+  // Wipes accumulated match state (stats, log, injuries/suspensions), resets the
+  // series to its just-drawn state, and bumps the restart counter shown on the
+  // series screen and champion card. Tournaments return to the bracket draw;
+  // two-player series go back to 0–0.
+  function restartTournament() {
+    if (!draft?.series) return;
+    const n = draft.managers.length;
+    const isTournament = draft.series.format === "tournament" || draft.series.format === "tournament8";
+    setDraft(prev => ({
+      ...prev,
+      series: freshSeries(prev.series, n),
+      tournamentStats: {},
+      matchLog: [],
+      playerAbsences: {},
+      restartCount: (prev.restartCount || 0) + 1,
+    }));
+    setScreen(isTournament ? "draw" : "series");
+  }
+
   function setPlayerPool(filter) {
     setDraft(prev => {
       const basePool = selectGamePlayers(filter, { perLeagueDedup: !!prev.realTeams });
@@ -878,7 +898,7 @@ export function useDraftState() {
     screen, setScreen,
     draft, activeManager, activeManagerIdx, currentPos, scoutFreeAgentList,
     startGame, confirmBudget, confirmSlot, pickPlayer, setTeamName,
-    swapSquadPlayers, setTactics, setFormation, setCaptain, restartGame, getAvailablePlayers, getTakenPlayers,
+    swapSquadPlayers, setTactics, setFormation, setCaptain, restartGame, restartTournament, getAvailablePlayers, getTakenPlayers,
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
     startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,

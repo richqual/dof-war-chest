@@ -600,7 +600,7 @@ function AppInner({ onMultiplayer, auth }) {
     screen, setScreen,
     draft, activeManager, activeManagerIdx, currentPos, scoutFreeAgentList,
     startGame, confirmBudget, confirmSlot, pickPlayer, setTeamName,
-    swapSquadPlayers, setTactics, setFormation, setCaptain, restartGame, getAvailablePlayers, getTakenPlayers,
+    swapSquadPlayers, setTactics, setFormation, setCaptain, restartGame, restartTournament, getAvailablePlayers, getTakenPlayers,
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
     startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
@@ -877,6 +877,7 @@ function AppInner({ onMultiplayer, auth }) {
             setScreen={handleSetScreen}
             recordMatchResult={recordMatchResult}
             restartGame={restartGame}
+            restartTournament={restartTournament}
             onSaveSquad={auth.user && !auth.isGuest ? () => {
               const hIdx = draft.managers.findIndex(m => !m.isComputer);
               if (hIdx !== -1) saveSquadHook.saveSquad(draft, hIdx);
@@ -1047,6 +1048,7 @@ function AppInner({ onMultiplayer, auth }) {
           setScreen={handleSetScreen}
           recordMatchResult={recordMatchResult}
           restartGame={restartGame}
+          restartTournament={restartTournament}
           onSaveSquad={auth.user && !auth.isGuest ? () => {
             const hIdx = draft.managers.findIndex(m => !m.isComputer);
             if (hIdx !== -1) saveSquadHook.saveSquad(draft, hIdx);
@@ -1086,7 +1088,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "4.1.11";
+const APP_VERSION = "4.2.0";
 
 function AppFooter() {
   return (

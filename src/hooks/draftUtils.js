@@ -236,6 +236,32 @@ export function buildSeries(n, format) {
   return null;
 }
 
+// Resets an existing series to its just-drawn starting state while preserving
+// its shape (format / participants / singleLeg / target). Used by the RESTART
+// feature so a player can re-run the whole tournament with their built squad —
+// tournaments go back to the bracket draw, 2-player series back to 0–0.
+export function freshSeries(series, n) {
+  if (!series) return series;
+  const { format } = series;
+  if (format === "tournament" || format === "tournament8") {
+    const base = { format, stage: "draw", champion: null, quarters: null, semis: null, final: null };
+    if (series.singleLeg) base.singleLeg = true;
+    return base;
+  }
+  // Two-player best-of-N series
+  return {
+    format,
+    participants: series.participants || Array.from({ length: n }, (_, i) => i),
+    wins: [0, 0],
+    draws: 0,
+    played: 0,
+    target: series.target ?? (FORMAT_TARGETS[format] || 2),
+    stage: "playing",
+    champion: null,
+    history: [],
+  };
+}
+
 // Appends a completed leg to a two-player series' fixture history, always
 // oriented to participants[0]'s perspective so the fixtures strip can render
 // consistently regardless of which side was "home" that particular leg.

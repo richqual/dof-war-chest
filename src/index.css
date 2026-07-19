@@ -1750,6 +1750,55 @@ html.wc-theme .bw-draft-banner { background: linear-gradient(90deg, #2a1610, #24
 }
 .bw-cta-secondary:hover { border-color: var(--bw-gold); color: var(--bw-gold); }
 
+/* ── RESTART tournament/series control + attempt counter ─────────────────── */
+.bw-restart-btn { opacity: .82; }
+.bw-restart-btn:hover { border-color: #e0864a; color: #e0864a; opacity: 1; }
+.bw-restart-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 12px;
+  border: 1px solid #5a3a1a;
+  border-radius: 6px !important;
+  background: rgba(224,134,74,0.06);
+}
+.bw-restart-confirm-msg {
+  font: 700 11px var(--bw-font-display);
+  letter-spacing: .04em;
+  color: var(--bw-text-mid);
+  text-align: center;
+  line-height: 1.5;
+}
+.bw-restart-confirm-btns { display: flex; gap: 9px; }
+.bw-restart-confirm-btns .bw-cta-secondary { flex: 1; }
+.bw-restart-yes { border-color: #e0864a !important; color: #e0864a !important; }
+.bw-restart-yes:hover { background: rgba(224,134,74,0.12); }
+
+.bw-attempt-chip {
+  margin-top: 8px;
+  align-self: center;
+  display: inline-block;
+  padding: 3px 12px;
+  border: 1px solid var(--bw-gold-border);
+  border-radius: 999px !important;
+  background: var(--bw-gold-bg);
+  color: var(--bw-gold);
+  font: 700 10px var(--bw-font-display);
+  letter-spacing: .12em;
+}
+
+.bw-champ-attempt {
+  margin-top: 10px;
+  padding: 6px 16px;
+  border: 1px solid var(--bw-gold-border);
+  border-radius: 999px !important;
+  background: var(--bw-gold-bg);
+  color: var(--bw-gold);
+  font: 700 12px var(--bw-font-display);
+  letter-spacing: .04em;
+  text-align: center;
+}
+
 @media (max-width: 480px) {
   .bw-series-frame { max-width: 100%; border-radius: 0; box-shadow: none; }
 }
