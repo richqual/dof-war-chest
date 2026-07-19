@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { POSITIONS, SUB_POSITIONS } from "../data/players";
 import { FORMATIONS, FORMATION_DISPLAY_ORDER } from "../data/formations";
 import { DRAFT_ROULETTE_ERAS, DRAFT_ROULETTE_LEAGUES } from "../hooks/draftUtils";
-import { TIERS, squadTierCounts } from "../hooks/scoutUtils";
+import { TIERS, squadTierCounts, tierRangeLabel, SCOUT_TUNING } from "../hooks/scoutUtils";
 import PlayerCard from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
 import KitSwatch from "./KitSwatch";
@@ -15,7 +15,7 @@ const SUB_LABELS = { GKSUB: "GKS", DEFSUB: "DEF", MIDSUB: "MID", WIDSUB: "WID", 
 
 export default function ScoutDraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
-  confirmScoutBudget, pickScoutPlayer, reScout, commissionMission, confirmMission,
+  confirmScoutBudget, pickScoutPlayer, reScout, revealScoutRatings, commissionMission, confirmMission,
   scoutSkipCpuTurns, respin, getTakenPlayers, freeAgents = [],
   myTurn = true,
 }) {
@@ -34,6 +34,7 @@ export default function ScoutDraftScreen({
   const [missionEra, setMissionEra] = useState("");
   const [missionCandidates, setMissionCandidates] = useState([]);
   const [missionMiss, setMissionMiss] = useState(false);
+  const [bargainOpen, setBargainOpen] = useState(false);
 
   // Auto-run CPU turns (batch) after a short beat for readability.
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function ScoutDraftScreen({
   if (turnKey !== lastTurnKey) {
     setLastTurnKey(turnKey);
     setMissionOpen(false); setMissionCandidates([]); setMissionMiss(false);
-    setMissionLeague(""); setMissionEra("");
+    setMissionLeague(""); setMissionEra(""); setBargainOpen(false);
   }
 
   const isSubSlot = positionIndex >= 11;
@@ -65,6 +66,12 @@ export default function ScoutDraftScreen({
     : [];
 
   const capCounts = squadTierCounts(activeManager?.squad);
+
+  // Ratings are hidden by default in Scout mode; a manager can pay a flat fee to
+  // reveal them for this report, or the setup option can force them always-on.
+  const ratingsHidden = !!draft.hideRatings && !draft.ratingsRevealed;
+  const revealFee = SCOUT_TUNING.revealFee ?? 5;
+  const canAffordReveal = budget >= revealFee;
 
   function runMission() {
     const request = {
@@ -210,10 +217,42 @@ export default function ScoutDraftScreen({
         ) : (
           <div className="scout-report-area">
             <div className="scout-report-head">
-              <h2 className="scout-report-title">SCOUT REPORT</h2>
-              <p className="scout-report-sub">
-                Your scouts found {affordableReport.length} option{affordableReport.length === 1 ? "" : "s"}.
-              </p>
+              <div className="scout-report-head-text">
+                <h2 className="scout-report-title">SCOUT REPORT</h2>
+                <p className="scout-report-sub">
+                  Your scouts found {affordableReport.length} option{affordableReport.length === 1 ? "" : "s"}.
+                </p>
+              </div>
+              <div className="scout-head-actions">
+                <button
+                  className="bw-cta-secondary scout-head-btn"
+                  disabled={reScoutsLeft <= 0}
+                  onClick={() => reScoutsLeft > 0 && reScout()}
+                  title={reScoutsLeft <= 0 ? "No re-scouts left this game" : `${reScoutsLeft} re-scout${reScoutsLeft === 1 ? "" : "s"} left`}
+                >
+                  🔄 RE-SCOUT ({reScoutsLeft})
+                </button>
+
+                {isSubSlot && !missionUsed && (
+                  <button className="bw-cta-secondary scout-head-btn" onClick={() => setMissionOpen(o => !o)}>
+                    🌍 MISSION
+                  </button>
+                )}
+                {isSubSlot && missionUsed && (
+                  <span className="scout-mission-used">Mission used</span>
+                )}
+
+                {ratingsHidden && (
+                  <button
+                    className="bw-cta-secondary scout-head-btn"
+                    disabled={!canAffordReveal}
+                    onClick={() => canAffordReveal && revealScoutRatings()}
+                    title={canAffordReveal ? `Reveal ratings for £${revealFee}m` : `Need £${revealFee}m to reveal ratings`}
+                  >
+                    👁 REVEAL (£{revealFee}m)
+                  </button>
+                )}
+              </div>
             </div>
 
             {report.length === 0 ? (
@@ -229,12 +268,12 @@ export default function ScoutDraftScreen({
                   const afford = p.value <= budget;
                   return (
                     <div key={p.id} className="scout-card-wrap">
-                      <div className="scout-card-tier">{p.tier}</div>
+                      <div className="scout-card-tier">{tierRangeLabel(p.tier)}</div>
                       <PlayerCard
                         player={p}
                         onPick={afford ? pickScoutPlayer : undefined}
                         canAfford={afford}
-                        hideRatings={draft.hideRatings}
+                        hideRatings={ratingsHidden}
                         budget={currentBudget}
                       />
                     </div>
@@ -243,26 +282,35 @@ export default function ScoutDraftScreen({
               </div>
             )}
 
-            {/* Free agents — genuine £0 players, always signable no matter your
-                budget or what the report dealt. There's always something here. */}
+            {/* Bargain bucket — genuine £0 free agents, always signable no matter
+                your budget or what the report dealt. Tucked behind a dropdown so
+                it's only in view when you actually need it. */}
             {freeAgents.length > 0 && (
               <div className="scout-free-agents">
-                <div className="bw-section-divider">FREE AGENTS · £0 · SIGN ANYTIME</div>
-                <div className="scout-cards-row">
-                  {freeAgents.map(p => (
-                    <div key={p.id} className="scout-card-wrap">
-                      <div className="scout-card-tier">{p.tier}</div>
-                      <PlayerCard
-                        player={p}
-                        onPick={pickScoutPlayer}
-                        canAfford={true}
-                        hideRatings={draft.hideRatings}
-                        budget={currentBudget}
-                      />
-                      <div className="scout-free-badge">✅ FREE TRANSFER · £0</div>
-                    </div>
-                  ))}
-                </div>
+                <button
+                  className="scout-bargain-toggle"
+                  onClick={() => setBargainOpen(o => !o)}
+                  aria-expanded={bargainOpen}
+                >
+                  🪣 BARGAIN BUCKET · {freeAgents.length} FREE · £0 {bargainOpen ? "▲" : "▼"}
+                </button>
+                {bargainOpen && (
+                  <div className="scout-cards-row">
+                    {freeAgents.map(p => (
+                      <div key={p.id} className="scout-card-wrap">
+                        <div className="scout-card-tier">Bargain bucket</div>
+                        <PlayerCard
+                          player={p}
+                          onPick={pickScoutPlayer}
+                          canAfford={true}
+                          hideRatings={ratingsHidden}
+                          budget={currentBudget}
+                        />
+                        <div className="scout-free-badge">✅ FREE TRANSFER · £0</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -272,32 +320,11 @@ export default function ScoutDraftScreen({
                 <div className="bw-section-divider">ALREADY SIGNED · {currentPos.label}</div>
                 <div className="scout-taken-list">
                   {takenPlayers.map(p => (
-                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={draft.hideRatings} takenBy={p.ownedBy} />
+                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={ratingsHidden} takenBy={p.ownedBy} />
                   ))}
                 </div>
               </div>
             )}
-
-            {/* Re-scout + Mission actions */}
-            <div className="scout-actions">
-              <button
-                className="bw-cta-secondary"
-                disabled={reScoutsLeft <= 0}
-                onClick={() => reScoutsLeft > 0 && reScout()}
-                title={reScoutsLeft <= 0 ? "No re-scouts left this game" : `${reScoutsLeft} re-scout${reScoutsLeft === 1 ? "" : "s"} left`}
-              >
-                🔄 RE-SCOUT ({reScoutsLeft} left)
-              </button>
-
-              {isSubSlot && !missionUsed && (
-                <button className="bw-cta-secondary" onClick={() => setMissionOpen(o => !o)}>
-                  🌍 SCOUTING MISSION
-                </button>
-              )}
-              {isSubSlot && missionUsed && (
-                <span className="scout-mission-used">Mission used</span>
-              )}
-            </div>
 
             {/* Mission panel */}
             {missionOpen && isSubSlot && !missionUsed && (
@@ -333,8 +360,8 @@ export default function ScoutDraftScreen({
                         const afford = cand.missionCost <= currentBudget;
                         return (
                           <div key={cand.id} className="scout-card-wrap">
-                            <div className="scout-card-tier">{cand.tier}</div>
-                            <PlayerCard player={cand} canAfford={afford} hideRatings={draft.hideRatings} budget={currentBudget} />
+                            <div className="scout-card-tier">{tierRangeLabel(cand.tier)}</div>
+                            <PlayerCard player={cand} canAfford={afford} hideRatings={ratingsHidden} budget={currentBudget} />
                             <div className="scout-mission-cost">
                               Fee: <strong>£{cand.missionCost}m</strong>
                               <span className="scout-mission-premium"> (+{Math.round(cand.missionPremium * 100)}%)</span>

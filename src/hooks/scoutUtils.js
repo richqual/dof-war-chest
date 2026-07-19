@@ -26,6 +26,18 @@ const defaultValueOf = (p) => p.value ?? Math.round(((p.valueMin ?? 0) + (p.valu
 
 export const TIERS = ["T1", "T2", "T3", "T4", "T5"];
 
+// Player-facing "range" labels shown on scout cards in place of the raw tier.
+// T1/T2 (elite) → Top, T3 → Middle, T4/T5 → Lower. Free agents get their own
+// "Bargain bucket" label at the call site.
+const TIER_RANGE = {
+  T1: "Top range", T2: "Top range",
+  T3: "Middle range",
+  T4: "Lower range", T5: "Lower range",
+};
+export function tierRangeLabel(tier) {
+  return TIER_RANGE[tier] || "";
+}
+
 const PLAYER_BY_ID = new Map(PLAYERS.map(p => [p.id, p]));
 
 // ── Tuning constants (playtest knobs; the *shape* is the design decision) ──
@@ -44,6 +56,7 @@ export const SCOUT_TUNING = {
   missionPremiumPct: 0.35, // scouting-mission cost = value × (1 + this)
   missionTenetDiscount: 0.15, // premium reduced by this if mission matches a tenet
   tenetBiasWeight: 3,      // relative draw weight of a tenet-matching candidate
+  revealFee: 5,            // flat £m charged to reveal hidden ratings on a report
 };
 
 // ── Pool size (setup option) ──

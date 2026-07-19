@@ -5988,12 +5988,26 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
 
 /* ── Scout report (dealt hand) ── */
 .scout-report-area { padding: 8px 12px 24px; max-width: 820px; margin: 0 auto; width: 100%; }
-.scout-report-head { text-align: center; margin-bottom: 14px; }
+.scout-report-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; text-align: left; margin-bottom: 14px;
+}
+.scout-report-head-text { text-align: left; }
 .scout-report-title {
   font-size: 1.4rem; letter-spacing: 0.06em; color: var(--green-l);
   margin: 0 0 4px;
 }
 .scout-report-sub { color: var(--text2); font-size: 0.85rem; margin: 0; }
+
+/* Compact action buttons that sit alongside the SCOUT REPORT heading. */
+.scout-head-actions {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  margin-left: auto;
+}
+.scout-head-btn {
+  width: auto; padding: 6px 12px; font-size: 0.72rem; letter-spacing: 0.04em;
+}
+.scout-head-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 .scout-cards-row { display: flex; flex-direction: column; gap: 14px; }
 .scout-card-wrap { position: relative; padding-top: 14px; }
@@ -6012,6 +6026,14 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
 }
 
 .scout-free-agents { margin-top: 22px; }
+.scout-bargain-toggle {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 9px 12px; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.06em;
+  color: var(--text2); background: var(--panel2, rgba(255,255,255,0.04));
+  border: 1px dashed var(--border); border-radius: 6px !important; cursor: pointer;
+}
+.scout-bargain-toggle:hover { color: var(--text); border-color: var(--green-l); }
+.scout-free-agents .scout-cards-row { margin-top: 12px; }
 
 .scout-taken { margin-top: 20px; }
 .scout-taken-list { display: flex; flex-direction: column; gap: 10px; opacity: 0.72; }

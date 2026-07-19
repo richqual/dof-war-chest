@@ -718,6 +718,10 @@ export function useDraftState() {
       ...d,
       scout: true,
       livePool,
+      // Scout reports hide ratings by default; a player can pay to reveal them
+      // per report, or flip the setup option to show them always.
+      hideRatings: options.hideRatings ?? true,
+      ratingsRevealed: false,
       // Tier caps are opt-in — the depleting pool already supplies the scarcity.
       tierCaps: options.tierCaps ? tierCapsFor(options.difficulty || "normal") : null,
       currentReport: null,
@@ -742,7 +746,7 @@ export function useDraftState() {
         currentBudget: spunVal + carry,
         managers: prev.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
       };
-      return { ...withBudget, currentReport: computeScoutReport(withBudget) };
+      return { ...withBudget, ratingsRevealed: false, currentReport: computeScoutReport(withBudget) };
     });
   }
 
@@ -752,8 +756,19 @@ export function useDraftState() {
       const m = prev.managers[activeIdx];
       if ((m.reScoutsLeft ?? 0) <= 0) return prev;
       const managers = prev.managers.map((mm, i) => i === activeIdx ? { ...mm, reScoutsLeft: mm.reScoutsLeft - 1 } : mm);
-      const next = { ...prev, managers };
+      const next = { ...prev, managers, ratingsRevealed: false };
       return { ...next, currentReport: computeScoutReport(next) };
+    });
+  }
+
+  // Pay a flat fee out of the current position budget to reveal the ratings on
+  // this report (one-off per report; reset on re-scout / next budget spin).
+  function revealScoutRatings() {
+    setDraft(prev => {
+      if (!prev || prev.currentBudget === null || prev.ratingsRevealed) return prev;
+      const fee = SCOUT_TUNING.revealFee ?? 5;
+      if (prev.currentBudget < fee) return prev;
+      return { ...prev, currentBudget: prev.currentBudget - fee, ratingsRevealed: true };
     });
   }
 
@@ -851,7 +866,7 @@ export function useDraftState() {
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
     startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
-    startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, commissionMission, confirmMission, scoutSkipCpuTurns,
+    startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, revealScoutRatings, commissionMission, confirmMission, scoutSkipCpuTurns,
     scoutFreeAgents,
   };
 }
