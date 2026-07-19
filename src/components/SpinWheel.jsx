@@ -187,7 +187,7 @@ export default function SpinWheel({ carryover, onConfirm, difficulty = "normal",
         </div>
       )}
       {done && finalVal === 0 && (
-        <div className="roller-zero-label">FREE AGENTS ONLY</div>
+        <div className="roller-zero-label">WHEEL &amp; DEAL</div>
       )}
 
       {!done ? (
