@@ -23,7 +23,7 @@ const POS_LABELS = {
 
 export default function ScoutDraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
-  confirmScoutBudget, pickScoutPlayer, reScout, revealScoutRatings, setScoutFilter, commissionMission, confirmMission,
+  confirmScoutBudget, pickScoutPlayer, reScout, dismissReScoutNotice, revealScoutRatings, setScoutFilter, commissionMission, confirmMission,
   scoutSkipCpuTurns, respin, getTakenPlayers, freeAgents = [],
   myTurn = true,
 }) {
@@ -297,6 +297,28 @@ export default function ScoutDraftScreen({
                 )}
               </div>
             </div>
+
+            {/* Why a card didn't change: no affordable same-tier player left in the
+                database. Without this an unswappable card looks like a broken button. */}
+            {draft.reScoutNotice && (
+              <div className="scout-rescout-notice">
+                <span className="scout-rescout-notice-icon">⚠️</span>
+                <div>
+                  {draft.reScoutNotice.all ? (
+                    <p><strong>Nothing left to re-scout.</strong> No affordable alternatives of these tiers remain in the database, so your hand is unchanged — and your re-scout wasn't used.</p>
+                  ) : (
+                    <p>
+                      <strong>{draft.reScoutNotice.stuck.map(s => s.name).join(", ")}</strong>{" "}
+                      couldn't be replaced — no other{" "}
+                      {[...new Set(draft.reScoutNotice.stuck.map(s => s.tier))].join(" / ")} player at this position is within your £{budget}m budget.
+                    </p>
+                  )}
+                </div>
+                {dismissReScoutNotice && (
+                  <button className="scout-rescout-notice-x" onClick={dismissReScoutNotice} aria-label="Dismiss">✕</button>
+                )}
+              </div>
+            )}
 
             {/* Mission panel — sits directly under the MISSION button so it's not missed */}
             {missionOpen && isSubSlot && !missionUsed && (

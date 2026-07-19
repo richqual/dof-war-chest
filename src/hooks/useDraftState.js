@@ -773,7 +773,7 @@ export function useDraftState() {
         currentBudget: spunVal + carry,
         managers: prev.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
       };
-      return { ...withBudget, ratingsRevealed: false, currentReport: computeScoutReport(withBudget) };
+      return { ...withBudget, ratingsRevealed: false, reScoutNotice: null, currentReport: computeScoutReport(withBudget) };
     });
   }
 
@@ -790,7 +790,7 @@ export function useDraftState() {
       // same-tier player from the full DB; the rejected ones leave the game and
       // the fresh ones enter the shared pool (see reScoutSwap). Count + tier mix
       // are preserved, so scarcity holds.
-      const { reportIds, retireIds, addIds } = reScoutSwap({
+      const { reportIds, retireIds, addIds, keptIds } = reScoutSwap({
         report: prev.currentReport || [], livePool: prev.livePool, bucket,
         formation: m.formation, positionIndex: prev.positionIndex,
         takenIds: prev.takenIds, budget: prev.currentBudget ?? 0,
@@ -798,17 +798,27 @@ export function useDraftState() {
         filterFn: (p) => !availableSet || availableSet.has(p.id),
         restrictPositions: prev.positionIndex >= 11 ? prev.scoutPosFilter : null,
       });
-      // Nothing could be swapped (that tier+position is exhausted in the DB) —
-      // don't burn a re-scout on an unchanged hand.
-      if (!retireIds.length) return prev;
+      // Cards we couldn't refresh: no affordable same-tier player left anywhere.
+      // Tell the manager WHY rather than letting it look like a broken button.
+      const stuck = (keptIds || []).map(id => {
+        const c = (prev.currentReport || []).find(p => p.id === id);
+        return c ? { name: c.name, tier: c.tier } : null;
+      }).filter(Boolean);
+      const notice = stuck.length ? { stuck, all: !retireIds.length } : null;
+      // Nothing could be swapped at all — say so, but don't burn a re-scout.
+      if (!retireIds.length) return { ...prev, reScoutNotice: notice };
       const managers = prev.managers.map((mm, i) => i === activeIdx ? { ...mm, reScoutsLeft: mm.reScoutsLeft - 1 } : mm);
       const retire = new Set(retireIds);
       const bucketIds = (prev.livePool[bucket] || []).filter(id => !retire.has(id)).concat(addIds);
       const livePool = { ...prev.livePool, [bucket]: bucketIds };
       const takenIds = [...prev.takenIds, ...retireIds]; // rejected players leave for good
-      const next = { ...prev, managers, livePool, takenIds, ratingsRevealed: false };
+      const next = { ...prev, managers, livePool, takenIds, ratingsRevealed: false, reScoutNotice: notice };
       return { ...next, currentReport: reportIds.map(id => resolveScoutPlayer(next, id)) };
     });
+  }
+
+  function dismissReScoutNotice() {
+    setDraft(prev => (prev?.reScoutNotice ? { ...prev, reScoutNotice: null } : prev));
   }
 
   // Pay a flat fee out of the current position budget to reveal the ratings on
@@ -825,7 +835,7 @@ export function useDraftState() {
   function pickScoutPlayer(player) {
     if (!draft) return;
     if (draft.currentBudget === null || player.value > draft.currentBudget) return;
-    const next = { ...applyPick(draft, player), currentReport: null, scoutPosFilter: null };
+    const next = { ...applyPick(draft, player), currentReport: null, scoutPosFilter: null, reScoutNotice: null };
     setDraft(next);
     if (next.phase === "complete") setScreen(draft.managerTiming === "before" ? "squads" : "manager-draft");
   }
@@ -836,7 +846,7 @@ export function useDraftState() {
     setDraft(prev => {
       if (!prev?.scout || prev.currentBudget === null || prev.positionIndex < 11) return prev;
       const filter = positions && positions.length ? positions : null;
-      const next = { ...prev, scoutPosFilter: filter, ratingsRevealed: false };
+      const next = { ...prev, scoutPosFilter: filter, ratingsRevealed: false, reScoutNotice: null };
       return { ...next, currentReport: computeScoutReport(next) };
     });
   }
@@ -867,7 +877,7 @@ export function useDraftState() {
     let next = applyPick(draft, chargeable);
     next = {
       ...next,
-      currentReport: null, scoutPosFilter: null,
+      currentReport: null, scoutPosFilter: null, reScoutNotice: null,
       managers: next.managers.map((mm, i) => i === activeIdx ? { ...mm, missionUsed: true } : mm),
     };
     setDraft(next);
@@ -908,7 +918,7 @@ export function useDraftState() {
       }
       const pick = cpuScoutPick(d);
       if (!pick) { d = { ...d, currentBudget: null, noCarryoverNext: true }; continue; }
-      d = { ...applyPick(d, pick), currentReport: null, scoutPosFilter: null };
+      d = { ...applyPick(d, pick), currentReport: null, scoutPosFilter: null, reScoutNotice: null };
     }
     setDraft(d);
     if (d.phase === "complete") setScreen(d.managerTiming === "before" ? "squads" : "manager-draft");
@@ -927,7 +937,7 @@ export function useDraftState() {
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
     startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
-    startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, revealScoutRatings, setScoutFilter, commissionMission, confirmMission, scoutSkipCpuTurns,
+    startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, dismissReScoutNotice, revealScoutRatings, setScoutFilter, commissionMission, confirmMission, scoutSkipCpuTurns,
     scoutFreeAgents,
   };
 }

@@ -500,7 +500,8 @@ export function reScoutSwap({
   report, livePool, bucket, formation, positionIndex, takenIds, budget,
   tenets, valueOf = defaultValueOf, filterFn = () => true, restrictPositions = null,
 }) {
-  const empty = { reportIds: (report || []).map(p => p.id), retireIds: [], addIds: [] };
+  const ids = (report || []).map(p => p.id);
+  const empty = { reportIds: ids, retireIds: [], addIds: [], keptIds: ids };
   if (!report || !report.length || !bucket) return empty;
 
   const base = bucketBasePosition(bucket);
@@ -539,7 +540,7 @@ export function reScoutSwap({
   }
 
   const used = new Set();
-  const reportIds = [], retireIds = [], addIds = [];
+  const reportIds = [], retireIds = [], addIds = [], keptIds = [];
   for (const card of report) {
     // Take the freshest rank that actually has someone; only widen if it's empty.
     const ranks = candidatesByTier.get(card.tier) || [[], [], []];
@@ -548,7 +549,8 @@ export function reScoutSwap({
       pool = rank.filter(p => !used.has(p.id));
       if (pool.length) break;
     }
-    if (!pool.length) { reportIds.push(card.id); continue; } // scraps stay scraps
+    // No affordable same-tier player left anywhere — this card can't be swapped.
+    if (!pool.length) { reportIds.push(card.id); keptIds.push(card.id); continue; }
     // Same value-bias + tenet weighting the report uses, so the swap feels native.
     const weights = pool.map(p => {
       const bWt = Math.pow(valueOf(p) + 1, SCOUT_TUNING.reportValueBias);
@@ -566,7 +568,7 @@ export function reScoutSwap({
   }
 
   reportIds.sort((a, b) => valueOf(PLAYER_BY_ID.get(b)) - valueOf(PLAYER_BY_ID.get(a)));
-  return { reportIds, retireIds, addIds };
+  return { reportIds, retireIds, addIds, keptIds };
 }
 
 // ── Free agents (the always-on £0 floor) ──

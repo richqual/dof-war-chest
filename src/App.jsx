@@ -650,7 +650,7 @@ function AppInner({ onMultiplayer, auth }) {
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
     startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
-    startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, revealScoutRatings, setScoutFilter, commissionMission, confirmMission, scoutSkipCpuTurns,
+    startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, dismissReScoutNotice, revealScoutRatings, setScoutFilter, commissionMission, confirmMission, scoutSkipCpuTurns,
   } = useDraftState();
 
   const [preScreen, setPreScreen] = useState("mode-select"); // "mode-select" | "lobby" | "club-creator" | "wc-lobby" | "wc-club-creator"
@@ -1004,6 +1004,7 @@ function AppInner({ onMultiplayer, auth }) {
           confirmScoutBudget={confirmScoutBudget}
           pickScoutPlayer={pickScoutPlayer}
           reScout={reScout}
+          dismissReScoutNotice={dismissReScoutNotice}
           revealScoutRatings={revealScoutRatings}
           setScoutFilter={setScoutFilter}
           commissionMission={commissionMission}
@@ -1136,7 +1137,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "4.2.13";
+const APP_VERSION = "4.2.15";
 
 function AppFooter() {
   return (
