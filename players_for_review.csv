@@ -74,7 +74,6 @@ id,name,club,years,pos,pos2,nation,era,league,tier,archetype,rating,valueMin,val
 218,Ben Davies,Spurs,2014–,LB,,🏴󠁧󠁢󠁷󠁬󠁳󠁿,modern,premier_league,T4,Grinder,82,0,9
 219,Patrick van Aanholt,Crystal Palace,2017–21,LB,,🇳🇱,modern,premier_league,T4,Grinder,81,0,7
 220,Fabian Delph,Man City,2015–19,LB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,T4,Grinder,81,0,7
-221,Benjamin Mendy,Man City,2017–21,LB,,🇫🇷,modern,premier_league,T3,Athlete,86,8,28
 222,Nuno Tavares,Arsenal,2021–22,LB,,🇵🇹,modern,premier_league,T5,Grinder,79,0,2
 223,Paul Konchesky,Fulham,2005–10,LB,,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,T5,Grinder,75,0,2
 224,José Enrique,Liverpool,2011–16,LB,,🇪🇸,golden,premier_league,T5,Grinder,76,0,2
@@ -978,7 +977,6 @@ id,name,club,years,pos,pos2,nation,era,league,tier,archetype,rating,valueMin,val
 5208,David Luiz,PSG,2014–2016,CB,,🇧🇷,golden,ligue_1,T3,Warrior,88,19,39
 5209,Layvin Kurzawa,PSG,2015–2022,LB,,🇩🇪,golden,ligue_1,T4,Grinder,84,1,13
 5210,Jordan Amavi,Nice,2013–2015,LB,,🇫🇷,golden,ligue_1,T4,Grinder,83,0,10
-5211,Benjamin Mendy,Monaco,2016–2017,LB,,🇫🇷,golden,ligue_1,T4,Athlete,84,1,13
 5213,Juan Bernat,PSG,2014–2021,LB,,🇪🇸,modern,ligue_1,T3,Athlete,86,6,26
 5214,Ferland Mendy,Lille,2017–2019,LB,,🇫🇷,modern,ligue_1,T3,Athlete,86,6,26
 5215,Nuno Tavares,Marseille,2021–,LB,,🇵🇹,modern,ligue_1,T4,Grinder,84,1,13
