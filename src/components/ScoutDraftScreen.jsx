@@ -255,6 +255,62 @@ export default function ScoutDraftScreen({
               </div>
             </div>
 
+            {/* Mission panel — sits directly under the MISSION button so it's not missed */}
+            {missionOpen && isSubSlot && !missionUsed && (
+              <div className="scout-mission-panel">
+                <p className="scout-mission-lead">
+                  Commission a one-off search outside your live pool for this bench spot. Costs the player's value plus a premium
+                  {activeManager?.tenets?.length ? " (discounted if it matches a club tenet)" : ""}.
+                </p>
+                <div className="scout-mission-controls">
+                  <label>League
+                    <select value={missionLeague} onChange={e => setMissionLeague(e.target.value)}>
+                      <option value="">Any</option>
+                      {DRAFT_ROULETTE_LEAGUES.map(l => <option key={l.key} value={l.key}>{l.label}</option>)}
+                    </select>
+                  </label>
+                  <label>Era
+                    <select value={missionEra} onChange={e => setMissionEra(e.target.value)}>
+                      <option value="">Any</option>
+                      {DRAFT_ROULETTE_ERAS.map(er => <option key={er.key} value={er.key}>{er.label}</option>)}
+                    </select>
+                  </label>
+                  <button className="bw-cta-secondary" onClick={runMission}>SEARCH</button>
+                </div>
+
+                {missionMiss && <p className="scout-mission-miss">No candidate matched that brief. Try widening it.</p>}
+                {missionCandidates.length > 0 && (
+                  <div className="scout-mission-results">
+                    <p className="scout-mission-shortlist-label">
+                      {missionCandidates.length > 1 ? "Your scouts came back with a shortlist — pick one:" : "Your scouts found one option:"}
+                    </p>
+                    <div className="scout-cards-row">
+                      {missionCandidates.map(cand => {
+                        const afford = cand.missionCost <= currentBudget;
+                        return (
+                          <div key={cand.id} className="scout-card-wrap">
+                            <div className="scout-card-tier">{ratingRangeLabel(cand.rating)}</div>
+                            <PlayerCard player={cand} canAfford={afford} hideRatings={ratingsHidden} budget={currentBudget} />
+                            <div className="scout-mission-cost">
+                              Fee: <strong>£{cand.missionCost}m</strong>
+                              <span className="scout-mission-premium"> (+{Math.round(cand.missionPremium * 100)}%)</span>
+                            </div>
+                            <button
+                              className="bw-cta-primary"
+                              disabled={!afford}
+                              onClick={() => confirmMission(cand)}
+                            >
+                              {afford ? `SIGN FOR £${cand.missionCost}m` : "CAN'T AFFORD"}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {isSubSlot && setScoutFilter && (() => {
               const group = SUB_POSITIONS[currentPos.key] || [];
               if (group.length <= 1) return null; // GK sub — nothing to narrow
@@ -357,62 +413,6 @@ export default function ScoutDraftScreen({
                     <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={ratingsHidden} takenBy={p.ownedBy} />
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* Mission panel */}
-            {missionOpen && isSubSlot && !missionUsed && (
-              <div className="scout-mission-panel">
-                <p className="scout-mission-lead">
-                  Commission a one-off search outside your live pool for this bench spot. Costs the player's value plus a premium
-                  {activeManager?.tenets?.length ? " (discounted if it matches a club tenet)" : ""}.
-                </p>
-                <div className="scout-mission-controls">
-                  <label>League
-                    <select value={missionLeague} onChange={e => setMissionLeague(e.target.value)}>
-                      <option value="">Any</option>
-                      {DRAFT_ROULETTE_LEAGUES.map(l => <option key={l.key} value={l.key}>{l.label}</option>)}
-                    </select>
-                  </label>
-                  <label>Era
-                    <select value={missionEra} onChange={e => setMissionEra(e.target.value)}>
-                      <option value="">Any</option>
-                      {DRAFT_ROULETTE_ERAS.map(er => <option key={er.key} value={er.key}>{er.label}</option>)}
-                    </select>
-                  </label>
-                  <button className="bw-cta-secondary" onClick={runMission}>SEARCH</button>
-                </div>
-
-                {missionMiss && <p className="scout-mission-miss">No candidate matched that brief. Try widening it.</p>}
-                {missionCandidates.length > 0 && (
-                  <div className="scout-mission-results">
-                    <p className="scout-mission-shortlist-label">
-                      {missionCandidates.length > 1 ? "Your scouts came back with a shortlist — pick one:" : "Your scouts found one option:"}
-                    </p>
-                    <div className="scout-cards-row">
-                      {missionCandidates.map(cand => {
-                        const afford = cand.missionCost <= currentBudget;
-                        return (
-                          <div key={cand.id} className="scout-card-wrap">
-                            <div className="scout-card-tier">{ratingRangeLabel(cand.rating)}</div>
-                            <PlayerCard player={cand} canAfford={afford} hideRatings={ratingsHidden} budget={currentBudget} />
-                            <div className="scout-mission-cost">
-                              Fee: <strong>£{cand.missionCost}m</strong>
-                              <span className="scout-mission-premium"> (+{Math.round(cand.missionPremium * 100)}%)</span>
-                            </div>
-                            <button
-                              className="bw-cta-primary"
-                              disabled={!afford}
-                              onClick={() => confirmMission(cand)}
-                            >
-                              {afford ? `SIGN FOR £${cand.missionCost}m` : "CAN'T AFFORD"}
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
               </div>
             )}
           </div>
