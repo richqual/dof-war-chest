@@ -22,16 +22,15 @@ const FORMATIONS_11 = ["4-3-3", "4-4-2", "4-5-1", "4-2-3-1", "3-5-2", "3-4-3", "
 // How deep the live pool runs — mainly how many elite (T1/T2) cards exist per
 // position. Every size still curates hard vs Classic's open browse.
 const POOL_SIZE_INFO = [
-  { key: "small",  label: "SMALL",  hint: "Cut-throat — one genuine elite option per position, everyone fights for it" },
-  { key: "medium", label: "MEDIUM", hint: "Balanced — a handful of elites per position to scrap over" },
-  { key: "large",  label: "LARGE",  hint: "Roomier — nearly one top-tier option per player, more room to build" },
+  { key: "small",  label: "CUT-THROAT", hint: "One genuine elite option per position — everyone fights for it" },
+  { key: "medium", label: "BALANCED",   hint: "A handful of elites per position to scrap over" },
 ];
 
 export default function ScoutLobbyScreen({ onContinue, onBack }) {
-  const [numClubs, setNumClubs] = useState(2);
+  const [numClubs, setNumClubs] = useState(8);
   const [numHumans, setNumHumans] = useState(1);
   const [difficulty, setDifficulty] = useState("normal");
-  const [poolSize, setPoolSize] = useState("medium");
+  const [poolSize, setPoolSize] = useState("small");
   const [formation, setFormation] = useState("4-3-3");
   const [matchType, setMatchType] = useState("series");
   const [seriesLength, setSeriesLength] = useState("bo3");
@@ -63,13 +62,14 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
 
   return (
     <div className="setup-screen">
-      <div className="bw-frame bw-scout-lobby">
+      <div className="bw-frame bw-scout-lobby bw-lobby-frame">
         <div className="bw-banner">
           <div className="bw-banner-title bw-scout-title">SCOUT MODE</div>
           <div className="bw-banner-subtitle">One shared, shrinking pool. A dealt hand each turn. Draft order finally matters.</div>
         </div>
 
-        <div className="bw-body">
+        <div className="bw-body bw-lobby-body">
+         <div className="bw-lobby-col bw-lobby-col-main">
           <div className="bw-setup-row">
             <span className="bw-setup-label">CLUBS</span>
             <div className="bw-setup-select-wrap">
@@ -93,28 +93,6 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
           <div className="bw-setup-hint">
             {numHumans === numClubs ? "All clubs are human-controlled (hot-seat)" : `${numClubs - numHumans} CPU club${numClubs - numHumans > 1 ? "s" : ""} will be auto-generated`}
           </div>
-
-          <div className="bw-setup-row">
-            <span className="bw-setup-label">FORMATION</span>
-            <div className="bw-setup-select-wrap">
-              <select className="bw-setup-select accent" value={formation} onChange={e => setFormation(e.target.value)}>
-                {FORMATIONS_11.map(f => <option key={f} value={f}>{f}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="bw-setup-hint">
-            Shared by every manager — this is what sizes the live pool. You can rearrange your own shape after the draft.
-          </div>
-
-          <div className="bw-setup-row">
-            <span className="bw-setup-label">POOL SIZE</span>
-            <div className="bw-setup-select-wrap">
-              <select className="bw-setup-select accent" value={poolSize} onChange={e => setPoolSize(e.target.value)}>
-                {POOL_SIZE_INFO.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="bw-setup-hint">{POOL_SIZE_INFO.find(p => p.key === poolSize)?.hint}</div>
 
           {numClubs === 2 && (
             <>
@@ -142,6 +120,28 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
           )}
 
           <div className="bw-setup-row">
+            <span className="bw-setup-label">FORMATION</span>
+            <div className="bw-setup-select-wrap">
+              <select className="bw-setup-select accent" value={formation} onChange={e => setFormation(e.target.value)}>
+                {FORMATIONS_11.map(f => <option key={f} value={f}>{f}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="bw-setup-hint">
+            Shared by every manager — this is what sizes the live pool. You can rearrange your own shape after the draft.
+          </div>
+
+          <div className="bw-setup-row">
+            <span className="bw-setup-label">POOL SIZE</span>
+            <div className="bw-setup-select-wrap">
+              <select className="bw-setup-select accent" value={poolSize} onChange={e => setPoolSize(e.target.value)}>
+                {POOL_SIZE_INFO.map(p => <option key={p.key} value={p.key}>{p.label}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="bw-setup-hint">{POOL_SIZE_INFO.find(p => p.key === poolSize)?.hint}</div>
+
+          <div className="bw-setup-row">
             <span className="bw-setup-label">DIFFICULTY</span>
             <div className="bw-setup-select-wrap">
               <select className="bw-setup-select accent" value={difficulty} onChange={e => setDifficulty(e.target.value)}>
@@ -150,7 +150,9 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
             </div>
           </div>
           <div className="bw-setup-hint">{DIFFICULTY_INFO.find(d => d.key === difficulty)?.hint}</div>
+         </div>
 
+         <div className="bw-lobby-col bw-lobby-col-side">
           <button className="bw-collapse-toggle" onClick={() => setShowAdvanced(v => !v)}>
             {showAdvanced ? "▲" : "▼"} ADVANCED OPTIONS
           </button>
@@ -200,6 +202,7 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
 
           <button className="bw-cta-primary" style={{ marginTop: 10 }} onClick={handleContinue}>CONTINUE →</button>
           {onBack && <button className="bw-about-link" onClick={onBack}>← change mode</button>}
+         </div>
         </div>
       </div>
     </div>

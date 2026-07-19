@@ -73,13 +73,15 @@ function filterDistinctKits(pool, takenColors, threshold = 80) {
 function randomCpuIdentity(existingNames = [], takenColors = []) {
   const formation = randomCpuFormation();
   if (Math.random() < 0.25) {
-    // Only pick from egg teams not already in use, so the same team can't be randomised twice
-    const freeEggs = EASTER_EGG_TEAMS.filter(e => !existingNames.includes(e.clubName));
+    // Only pick from egg teams not already in use (by name) AND whose kit colour is
+    // distinct from clubs already assigned, so two clubs can't share a colour.
+    const namedFreeEggs = EASTER_EGG_TEAMS.filter(e => !existingNames.includes(e.clubName));
+    const freeEggs = namedFreeEggs.filter(e => takenColors.every(c => colourDistance(e.primary, c) >= 80));
     if (freeEggs.length > 0) {
       const egg = freeEggs[Math.floor(Math.random() * freeEggs.length)];
       return { clubName: egg.clubName, dofName: egg.dofName, primaryColor: egg.primary, secondaryColor: egg.secondary, pattern: egg.pattern, formation };
     }
-    // All egg teams taken — fall through to a normal random identity
+    // No colour-distinct egg team free — fall through to a normal random identity
   }
   const available = filterDistinctKits(CPU_KITS, takenColors);
   const kit = available[Math.floor(Math.random() * available.length)];
@@ -99,17 +101,19 @@ const ALL_KITS = [
   { primary: "#8b0000", secondary: "#ffd700" },
 ];
 
-function randomHumanIdentity(existingName = "", otherNames = []) {
+function randomHumanIdentity(existingName = "", otherNames = [], takenColors = []) {
   const formation = randomCpuFormation();
   const taken = [existingName, ...otherNames];
   if (Math.random() < 0.25) {
-    const freeEggs = EASTER_EGG_TEAMS.filter(e => !otherNames.includes(e.clubName));
+    const namedFreeEggs = EASTER_EGG_TEAMS.filter(e => !otherNames.includes(e.clubName));
+    const freeEggs = namedFreeEggs.filter(e => takenColors.every(c => colourDistance(e.primary, c) >= 80));
     if (freeEggs.length > 0) {
       const egg = freeEggs[Math.floor(Math.random() * freeEggs.length)];
       return { clubName: egg.clubName, dofName: egg.dofName, primaryColor: egg.primary, secondaryColor: egg.secondary, pattern: egg.pattern, formation };
     }
   }
-  const kit = ALL_KITS[Math.floor(Math.random() * ALL_KITS.length)];
+  const distinctKits = filterDistinctKits(ALL_KITS, takenColors);
+  const kit = distinctKits[Math.floor(Math.random() * distinctKits.length)];
   let name;
   do { name = randomClubName(); } while (taken.includes(name));
   const r = Math.random();
@@ -459,7 +463,8 @@ export default function ClubCreatorScreen({ config, onStart, onBack, profileDefa
                   className="bw-dice-btn"
                   onClick={() => {
                     const otherNames = clubs.filter((_, j) => j !== step).map(c => c.clubName).filter(Boolean);
-                    const identity = randomHumanIdentity(club.clubName, otherNames);
+                    const otherColors = clubs.filter((_, j) => j !== step).map(c => c.primaryColor).filter(Boolean);
+                    const identity = randomHumanIdentity(club.clubName, otherNames, otherColors);
                     updateClub(step, { ...club, ...identity, isComputer: false });
                   }}
                   title="Randomise everything"

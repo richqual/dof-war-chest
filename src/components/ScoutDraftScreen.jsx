@@ -13,6 +13,14 @@ const CPU_SKIP_DELAY = 1100;
 // Sub slots (11..15) are the only place a scouting mission is allowed.
 const SUB_LABELS = { GKSUB: "GKS", DEFSUB: "DEF", MIDSUB: "MID", WIDSUB: "WID", ATTSUB: "ATT" };
 
+// Full-name labels for the concrete positions a bench slot can span, so the
+// mission brief can focus on ONE of them (e.g. ATTSUB → target ST or CAM).
+const POS_LABELS = {
+  GK: "Goalkeeper", RB: "Right Back", LB: "Left Back", CB: "Centre Back",
+  DM: "Def. Mid", CM: "Midfielder", CAM: "Att. Mid", RM: "Right Mid",
+  LM: "Left Mid", RW: "Right Winger", LW: "Left Winger", ST: "Striker",
+};
+
 export default function ScoutDraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
   confirmScoutBudget, pickScoutPlayer, reScout, revealScoutRatings, setScoutFilter, commissionMission, confirmMission,
@@ -32,6 +40,7 @@ export default function ScoutDraftScreen({
   const [missionOpen, setMissionOpen] = useState(false);
   const [missionLeague, setMissionLeague] = useState("");
   const [missionEra, setMissionEra] = useState("");
+  const [missionPos, setMissionPos] = useState("");
   const [missionCandidates, setMissionCandidates] = useState([]);
   const [missionMiss, setMissionMiss] = useState(false);
   const [bargainOpen, setBargainOpen] = useState(false);
@@ -50,7 +59,7 @@ export default function ScoutDraftScreen({
   if (turnKey !== lastTurnKey) {
     setLastTurnKey(turnKey);
     setMissionOpen(false); setMissionCandidates([]); setMissionMiss(false);
-    setMissionLeague(""); setMissionEra(""); setBargainOpen(false);
+    setMissionLeague(""); setMissionEra(""); setMissionPos(""); setBargainOpen(false);
   }
 
   const isSubSlot = positionIndex >= 11;
@@ -73,9 +82,12 @@ export default function ScoutDraftScreen({
   const revealFee = SCOUT_TUNING.revealFee ?? 5;
   const canAffordReveal = budget >= revealFee;
 
+  const missionSlotPositions = SUB_POSITIONS[currentPos.key] || [currentPos.key];
+
   function runMission() {
     const request = {
-      positions: SUB_POSITIONS[currentPos.key] || [currentPos.key],
+      // Focus the brief on ONE position when chosen, else search the whole slot group.
+      positions: missionPos ? [missionPos] : missionSlotPositions,
       league: missionLeague || null,
       era: missionEra || null,
     };
@@ -263,6 +275,16 @@ export default function ScoutDraftScreen({
                   {activeManager?.tenets?.length ? " (discounted if it matches a club tenet)" : ""}.
                 </p>
                 <div className="scout-mission-controls">
+                  {missionSlotPositions.length > 1 && (
+                    <label>Position
+                      <select value={missionPos} onChange={e => setMissionPos(e.target.value)}>
+                        <option value="">Any</option>
+                        {missionSlotPositions.map(p => (
+                          <option key={p} value={p}>{POS_LABELS[p] || p}</option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
                   <label>League
                     <select value={missionLeague} onChange={e => setMissionLeague(e.target.value)}>
                       <option value="">Any</option>
@@ -349,7 +371,10 @@ export default function ScoutDraftScreen({
                   <p>Every player in the <strong>{currentPos.label}</strong> pool has already been signed. Re-scout to double-check for anyone freed up.</p>
                 )}
                 <div className="scout-empty-actions">
-                  {respin && <button className="bw-cta-secondary" onClick={respin}>🎡 RE-SPIN BUDGET</button>}
+                  {respin && freeAgents.length === 0 && <button className="bw-cta-secondary" onClick={respin}>🎡 RE-SPIN BUDGET</button>}
+                  {freeAgents.length > 0 && (
+                    <p className="scout-bargain-hint">Sign a free agent from the <strong>Bargain Bucket</strong> below before re-spinning.</p>
+                  )}
                 </div>
               </div>
             ) : (
