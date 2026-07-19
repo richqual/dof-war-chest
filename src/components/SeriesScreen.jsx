@@ -281,8 +281,61 @@ function BwFixtures({ series }) {
   );
 }
 
+// The play/watch/skip button cluster, shared by the 2-player hub and the
+// tournament bracket view so the two can't drift apart.
+//
+// For a CPU vs CPU fixture the old single "AUTO-SIMULATE" button read as a
+// second, equally-weighted way to play the match. It's now an explicit
+// WATCH / SKIP pair: watching opens the full match screen, skipping resolves
+// it instantly. Plus a third option to fast-forward every CPU tie between
+// here and the player's own next fixture.
+function MatchActions({ nextMatchup, primaryLabel, isCpuVsCpu, hasHumanLater, playNextMatch, startSkip, startSkipToHuman, children }) {
+  if (isCpuVsCpu) {
+    return (
+      <div className="bw-series-actions">
+        <button className="bw-cta-arcade" onClick={playNextMatch}>
+          👁 WATCH — {nextMatchup.label || primaryLabel}
+        </button>
+        <button className="bw-cta-secondary" onClick={startSkip}>
+          ⏭ SKIP · INSTANT RESULT
+        </button>
+        {hasHumanLater && (
+          <button className="bw-cta-secondary" onClick={startSkipToHuman}>
+            ⏩ SKIP TO MY NEXT MATCH
+          </button>
+        )}
+        {children}
+      </div>
+    );
+  }
+  return (
+    <div className="bw-series-actions">
+      <button className="bw-cta-arcade" onClick={playNextMatch}>▶ {primaryLabel}</button>
+      {children}
+    </div>
+  );
+}
+
+// Mounts the instant-result overlay. Keyed on simTick so each match in a skip
+// chain gets a fresh mount (the overlay generates its result on mount).
+function SimOverlayHost({ draft, nextMatchup, seriesCtxForSim, cpuSimActive, skipMode, simTick, handleSimDone, cancelSkip }) {
+  if (!cpuSimActive || !nextMatchup) return null;
+  return (
+    <CpuSimOverlay
+      key={`${nextMatchup.homeIdx}-${nextMatchup.awayIdx}-${simTick}`}
+      draft={draft}
+      homeIdx={nextMatchup.homeIdx}
+      awayIdx={nextMatchup.awayIdx}
+      seriesCtx={seriesCtxForSim}
+      onDone={handleSimDone}
+      fast={skipMode === "toHuman"}
+      onCancel={skipMode === "toHuman" ? cancelSkip : null}
+    />
+  );
+}
+
 // Series hub — the head-to-head best-of-N spine (mock ref: 2d).
-function TwoPlayerSeriesHub({ draft, series, managers, nextMatchup, isHost, isCpuVsCpu, cpuSimActive, setCpuSimActive, playNextMatch, setScreen, seriesCtxForSim, handleSimDone, restartCount = 0, onRestart = null }) {
+function TwoPlayerSeriesHub({ draft, series, managers, nextMatchup, isHost, actions, setScreen, seriesCtxForSim, restartCount = 0, onRestart = null }) {
   const [p0, p1] = series.participants;
   const m0 = managers[p0], m1 = managers[p1];
   const [w0, w1] = series.wins;
@@ -320,18 +373,14 @@ function TwoPlayerSeriesHub({ draft, series, managers, nextMatchup, isHost, isCp
 
         {nextMatchup && (
           isHost ? (
-            <div className="bw-series-actions">
-              <button className="bw-cta-arcade" onClick={playNextMatch}>
-                ▶ {nextMatchup.isSeriesTiebreaker ? "PLAY TIEBREAKER" : `PLAY MATCH ${nextMatchup.matchNum}`}
-              </button>
-              {isCpuVsCpu && (
-                <button className="bw-cta-secondary" onClick={() => setCpuSimActive(true)}>
-                  ⚡ AUTO-SIMULATE
-                </button>
-              )}
+            <MatchActions
+              nextMatchup={nextMatchup}
+              primaryLabel={nextMatchup.isSeriesTiebreaker ? "PLAY TIEBREAKER" : `PLAY MATCH ${nextMatchup.matchNum}`}
+              {...actions}
+            >
               <button className="bw-cta-secondary" onClick={() => setScreen("squads")}>TEAM MANAGEMENT</button>
               <RestartControl restartCount={restartCount} onRestart={onRestart} isTournament={false} />
-            </div>
+            </MatchActions>
           ) : (
             <div className="mp-waiting-screen">
               <div className="mp-waiting-spinner" />
@@ -340,15 +389,7 @@ function TwoPlayerSeriesHub({ draft, series, managers, nextMatchup, isHost, isCp
           )
         )}
 
-        {cpuSimActive && nextMatchup && (
-          <CpuSimOverlay
-            draft={draft}
-            homeIdx={nextMatchup.homeIdx}
-            awayIdx={nextMatchup.awayIdx}
-            seriesCtx={seriesCtxForSim}
-            onDone={handleSimDone}
-          />
-        )}
+        <SimOverlayHost draft={draft} nextMatchup={nextMatchup} seriesCtxForSim={seriesCtxForSim} {...actions} />
       </div>
     </div>
   );
@@ -363,103 +404,176 @@ function bracketScore(slot, idx, singleLeg) {
   return singleLeg ? g : `(${g})`;
 }
 
-// Tournament bracket panel — handles 4-team (semis+final) and 8-team (quarters+semis+final)
+// One side of a tie. `score` is pre-formatted by the caller because the final
+// carries a wins tally while earlier rounds carry goals/aggregate.
+function BracketSide({ mgr, score, state, uid }) {
+  return (
+    <div className={`bw-bracket-row ${state === "won" ? "bw-bracket-winner" : state === "out" ? "bw-bracket-out" : ""}`}>
+      <KitSwatch primary={mgr.primaryColor} secondary={mgr.secondaryColor} pattern={mgr.pattern} uid={uid} size={16} />
+      <span>{mgr.teamName || mgr.clubName || mgr.name}</span>
+      <span className="bw-bracket-score">{score}</span>
+    </div>
+  );
+}
+
+// A single tie in the bracket. Works for quarters, semis and the final — the
+// caller supplies the score formatter so the final can show its wins tally.
+function BracketTie({ tie, managers, label, uid, scoreFor, isLive, isFinal }) {
+  // A tie exists as an empty shell before its feeder round resolves — the
+  // final in particular is created with unfilled slots.
+  const known = tie && tie.p && managers[tie.p[0]] && managers[tie.p[1]];
+  if (!known) {
+    return (
+      <div className="bw-bracket-card bw-bracket-card-tbd">
+        <div className="bw-bracket-card-label">{label}</div>
+        <div className="bw-bracket-row bw-bracket-out"><span /><span>TBD</span><span /></div>
+        <div className="bw-bracket-row bw-bracket-out"><span /><span>TBD</span><span /></div>
+      </div>
+    );
+  }
+  const [a, b] = tie.p;
+  const m0 = managers[a], m1 = managers[b];
+  const decided = tie.winner !== null && tie.winner !== undefined;
+  const stateFor = i => !decided ? "" : tie.winner === tie.p[i] ? "won" : "out";
+
+  return (
+    <div className={`bw-bracket-card ${isFinal ? "bw-bracket-card-final" : ""} ${isLive ? "bw-bracket-card-live" : ""}`}>
+      <div className="bw-bracket-card-label">
+        {label}{isLive && <span className="bw-bracket-live-dot" />}
+      </div>
+      <BracketSide mgr={m0} score={scoreFor(tie, 0)} state={stateFor(0)} uid={`${uid}a`} />
+      <BracketSide mgr={m1} score={scoreFor(tie, 1)} state={stateFor(1)} uid={`${uid}b`} />
+      {decided && (
+        <div className="bw-bracket-adv">
+          {isFinal
+            ? `🏆 ${managers[tie.winner].teamName || managers[tie.winner].name} win`
+            : `→ ${managers[tie.winner].teamName || managers[tie.winner].name} advance`}
+          {tie.wonOnPens ? " (pens)" : ""}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Tournament bracket — handles 4-team (semis+final) and 8-team (QF+SF+final).
+//
+// One DOM, two layouts. Rounds are laid out left-to-right as a flex track with
+// connector spines between them. On widescreen the whole track is visible at
+// once; on mobile the track becomes a carousel — each round is 100% wide and
+// the track is translated by the active index, driven by the ‹ › arrows. That
+// keeps a single source of truth rather than two divergent renderers.
 function TournamentBracket({ series, managers }) {
   const quarters = series.quarters || [];
   const semis = series.semis || [];
 
+  // Rounds, in bracket order (earliest first) — this is the reading order for
+  // a real bracket, unlike the old reverse-chronological card stack.
+  const rounds = [];
+  if (quarters.length > 0) {
+    rounds.push({
+      title: "QUARTER-FINALS",
+      short: "QF",
+      ties: quarters.map((q, i) => ({ tie: q, label: `QF ${i + 1}` })),
+      scoreFor: (t, i) => bracketScore(t, i, series.singleLeg),
+    });
+  }
+  if (semis.length > 0 || quarters.length > 0) {
+    // With 8 teams the semis exist as placeholders before the QFs resolve.
+    const slots = semis.length > 0 ? semis : [null, null];
+    rounds.push({
+      title: "SEMI-FINALS",
+      short: "SF",
+      ties: slots.map((sm, i) => ({ tie: sm, label: `SEMI-FINAL ${i + 1}` })),
+      scoreFor: (t, i) => bracketScore(t, i, series.singleLeg),
+    });
+  }
+  rounds.push({
+    title: "GRAND FINAL",
+    short: "FINAL",
+    ties: [{ tie: series.final || null, label: "⭐ GRAND FINAL" }],
+    scoreFor: (t, i) => (t.winner !== null && t.winner !== undefined ? t.wins[i] : "–"),
+    isFinal: true,
+  });
+
+  // The live round is the earliest one still holding an undecided tie — that's
+  // where the next match is, so it's what mobile should open on.
+  const liveRound = Math.max(0, rounds.findIndex(r =>
+    r.ties.some(({ tie }) => !tie || tie.winner === null || tie.winner === undefined)
+  ));
+
+  const [active, setActive] = useState(liveRound);
+  // Follow the tournament forward as rounds resolve, but don't yank the view
+  // back if the player has deliberately paged to an earlier round.
+  const [lastLive, setLastLive] = useState(liveRound);
+  if (liveRound !== lastLive) {
+    setLastLive(liveRound);
+    setActive(liveRound);
+  }
+
+  const clamped = Math.min(active, rounds.length - 1);
+
   return (
-    <div className="bw-bracket">
-      {/* Grand Final — shown first and made prominent once the semis are through,
-          so the upcoming (or just-played) decider doesn't get buried under
-          rounds that have already been settled. */}
-      {series.final && (
-        <div className="bw-bracket-final">
-          <div className="bw-bracket-final-label">⭐ GRAND FINAL</div>
-          {series.final.p.map((pi, i) => {
-            const m = managers[pi];
-            return (
-              <div key={i} className={`bw-bracket-row ${series.final.winner === pi ? "bw-bracket-winner" : series.final.winner !== null ? "bw-bracket-out" : ""}`}>
-                <KitSwatch primary={m.primaryColor} secondary={m.secondaryColor} pattern={m.pattern} uid={`bf${i}`} size={22} />
-                <span>{m.teamName || m.clubName || m.name}</span>
-                {series.final.winner !== null && <span className="bw-bracket-score">{series.final.wins[i]}</span>}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Semi-finals — shown before quarter-finals so the bracket reads in
-          reverse-chronological order beneath the Grand Final (most recent,
-          most relevant round first). */}
-      {semis.length > 0 && (
-        <div className="bw-bracket-section">
-          {quarters.length > 0 && <div className="bw-bracket-section-title">SEMI-FINALS</div>}
-          <div className="bw-bracket-grid">
-          {semis.map((sm, i) => {
-            const m0 = managers[sm.p[0]], m1 = managers[sm.p[1]];
-            return (
-              <div key={i} className="bw-bracket-card">
-                <div className="bw-bracket-card-label">SEMI-FINAL {i + 1}</div>
-                <div className={`bw-bracket-row ${sm.winner === sm.p[0] ? "bw-bracket-winner" : sm.winner !== null ? "bw-bracket-out" : ""}`}>
-                  <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bs${i}a`} size={16} />
-                  <span>{m0.teamName || m0.clubName || m0.name}</span>
-                  <span className="bw-bracket-score">{bracketScore(sm, 0, series.singleLeg)}</span>
-                </div>
-                <div className={`bw-bracket-row ${sm.winner === sm.p[1] ? "bw-bracket-winner" : sm.winner !== null ? "bw-bracket-out" : ""}`}>
-                  <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bs${i}b`} size={16} />
-                  <span>{m1.teamName || m1.clubName || m1.name}</span>
-                  <span className="bw-bracket-score">{bracketScore(sm, 1, series.singleLeg)}</span>
-                </div>
-                {sm.winner !== null && (
-                  <div className="bw-bracket-adv">
-                    → {managers[sm.winner].teamName || managers[sm.winner].name} advance
-                    {sm.wonOnPens ? " (pens)" : ""}
-                  </div>
-                )}
-              </div>
-            );
-          })}
+    <div className="bw-bracket-wrap">
+      {/* Mobile-only round pager. Hidden on widescreen, where the whole
+          bracket is on screen and there is nothing to page through. */}
+      {rounds.length > 1 && (
+        <div className="bw-bracket-nav">
+          <button
+            className="bw-bracket-nav-arrow"
+            onClick={() => setActive(i => Math.max(0, i - 1))}
+            disabled={clamped === 0}
+            aria-label="Previous round"
+          >‹</button>
+          <div className="bw-bracket-nav-mid">
+            <div className="bw-bracket-nav-title">{rounds[clamped].title}</div>
+            <div className="bw-bracket-nav-dots">
+              {rounds.map((r, i) => (
+                <button
+                  key={i}
+                  className={`bw-bracket-nav-dot ${i === clamped ? "on" : ""} ${i === liveRound ? "live" : ""}`}
+                  onClick={() => setActive(i)}
+                  aria-label={r.title}
+                />
+              ))}
+            </div>
           </div>
+          <button
+            className="bw-bracket-nav-arrow"
+            onClick={() => setActive(i => Math.min(rounds.length - 1, i + 1))}
+            disabled={clamped === rounds.length - 1}
+            aria-label="Next round"
+          >›</button>
         </div>
       )}
 
-      {/* Quarter-finals (8-team only) */}
-      {quarters.length > 0 && (
-        <div className="bw-bracket-section">
-          <div className="bw-bracket-section-title">QUARTER-FINALS</div>
-          <div className="bw-bracket-grid">
-            {quarters.map((q, i) => {
-              const m0 = managers[q.p[0]], m1 = managers[q.p[1]];
-              return (
-                <div key={i} className="bw-bracket-card">
-                  <div className="bw-bracket-card-label">QF {i + 1}</div>
-                  <div className={`bw-bracket-row ${q.winner === q.p[0] ? "bw-bracket-winner" : q.winner !== null ? "bw-bracket-out" : ""}`}>
-                    <KitSwatch primary={m0.primaryColor} secondary={m0.secondaryColor} pattern={m0.pattern} uid={`bq${i}a`} size={16} />
-                    <span>{m0.teamName || m0.clubName || m0.name}</span>
-                    <span className="bw-bracket-score">{bracketScore(q, 0, series.singleLeg)}</span>
+      <div className="bw-bracket-viewport">
+        <div className="bw-bracket-track" style={{ "--bkt-i": clamped, "--bkt-n": rounds.length }}>
+          {rounds.map((r, ri) => (
+            <div key={ri} className={`bw-bracket-round ${r.isFinal ? "bw-bracket-round-final" : ""}`}>
+              <div className="bw-bracket-round-title">{r.title}</div>
+              <div className="bw-bracket-round-ties">
+                {r.ties.map(({ tie, label }, ti) => (
+                  <div key={ti} className="bw-bracket-slot">
+                    <BracketTie
+                      tie={tie}
+                      managers={managers}
+                      label={label}
+                      uid={`bkt${ri}${ti}`}
+                      scoreFor={r.scoreFor}
+                      isFinal={!!r.isFinal}
+                      isLive={ri === liveRound && (!tie || tie.winner === null || tie.winner === undefined)}
+                    />
                   </div>
-                  <div className={`bw-bracket-row ${q.winner === q.p[1] ? "bw-bracket-winner" : q.winner !== null ? "bw-bracket-out" : ""}`}>
-                    <KitSwatch primary={m1.primaryColor} secondary={m1.secondaryColor} pattern={m1.pattern} uid={`bq${i}b`} size={16} />
-                    <span>{m1.teamName || m1.clubName || m1.name}</span>
-                    <span className="bw-bracket-score">{bracketScore(q, 1, series.singleLeg)}</span>
-                  </div>
-                  {q.winner !== null && (
-                    <div className="bw-bracket-adv">
-                      → {(managers[q.winner].teamName || managers[q.winner].name)} advance
-                      {q.wonOnPens ? " (pens)" : ""}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
-      )}
-
+      </div>
     </div>
   );
 }
+
 
 async function drawSquadCard(manager) {
   await document.fonts.ready;
@@ -926,7 +1040,11 @@ function TournamentResults({ tournamentStats, managers }) {
   );
 }
 
-function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone }) {
+// `fast` shortens both beats so a chain of skipped fixtures reels past at a
+// watchable pace instead of costing ~4.6s each.
+function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone, fast = false, onCancel = null }) {
+  const spinMs = fast ? 260 : 1600;
+  const dwellMs = fast ? 620 : 3000;
   const { managers, series } = draft;
   const [phase, setPhase] = useState("spinning");
   const [simResult, setSimResult] = useState(null);
@@ -972,7 +1090,7 @@ function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone }) {
     }
 
     setSimResult({ ...res, winnerIdx });
-    const t = setTimeout(() => setPhase("result"), 1600);
+    const t = setTimeout(() => setPhase("result"), spinMs);
     return () => clearTimeout(t);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -983,7 +1101,7 @@ function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone }) {
 
   useEffect(() => {
     if (phase !== "result" || !simResult) return;
-    const t = setTimeout(confirm, 3000);
+    const t = setTimeout(confirm, dwellMs);
     return () => clearTimeout(t);
   }, [phase, simResult]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1007,6 +1125,14 @@ function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone }) {
     <div className="cpu-sim-overlay" onClick={phase === "result" ? confirm : undefined}>
       <div className="cpu-sim-card" onClick={e => e.stopPropagation()}>
         <div className="cpu-sim-label">{seriesCtx?.label || "CPU vs CPU"}</div>
+        {fast && (
+          <div className="cpu-sim-skipbar">
+            <span className="cpu-sim-skipbar-text">⏩ SKIPPING TO YOUR NEXT MATCH</span>
+            {onCancel && (
+              <button className="cpu-sim-skipbar-stop" onClick={onCancel}>STOP</button>
+            )}
+          </div>
+        )}
 
         <div className="cpu-sim-teams">
           <div className="cpu-sim-team">
@@ -1050,7 +1176,7 @@ function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone }) {
                 </div>
               </div>
             )}
-            <button className="bw-cta-arcade cpu-sim-continue" onClick={confirm}>CONTINUE ▶</button>
+            {!fast && <button className="bw-cta-arcade cpu-sim-continue" onClick={confirm}>CONTINUE ▶</button>}
           </div>
         )}
       </div>
@@ -1061,6 +1187,27 @@ function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone }) {
 export default function SeriesScreen({ draft, setScreen, recordMatchResult, restartGame, restartTournament, onSaveSquad, saveState, isHost = true }) {
   const { managers, series } = draft;
   const [cpuSimActive, setCpuSimActive] = useState(false);
+  // null = not skipping, "one" = resolve just this fixture, "toHuman" = keep
+  // resolving CPU fixtures until one of the player's own comes up.
+  const [skipMode, setSkipMode] = useState(null);
+  // Bumped after each resolved sim so the chain can re-arm with a fresh overlay.
+  const [simTick, setSimTick] = useState(0);
+
+  // Drives the skip-to-my-next-match chain. Each time a fixture resolves this
+  // re-checks who's up: another CPU pairing re-arms the overlay, anything else
+  // (a human fixture, or the tournament finishing) ends the chain and hands
+  // control back.
+  useEffect(() => {
+    if (skipMode !== "toHuman") return;
+    const nm = series ? getNextMatchup(series) : null;
+    const cpuOnly = !!(nm && managers[nm.homeIdx]?.isComputer && managers[nm.awayIdx]?.isComputer);
+    if (!cpuOnly) {
+      setSkipMode(null);
+      setCpuSimActive(false);
+      return;
+    }
+    setCpuSimActive(true);
+  }, [skipMode, simTick]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!series) return null;
 
@@ -1077,16 +1224,55 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
     : false;
   const seriesCtxForSim = nextMatchup ? getSeriesContext(series, managers) : null;
 
+  // Everyone knocked out so far — the loser of every decided tie. Anyone not in
+  // here is still in the competition.
+  const eliminated = new Set();
+  if (isTournamentFmt) {
+    for (const tie of [...(series.quarters || []), ...(series.semis || [])]) {
+      if (tie.winner !== null && tie.winner !== undefined) {
+        eliminated.add(tie.p[0] === tie.winner ? tie.p[1] : tie.p[0]);
+      }
+    }
+  }
+  // Only offer "skip to my next match" when the player actually has one coming:
+  // a human still in the competition, who isn't in the fixture already up.
+  const hasHumanLater = isCpuVsCpu && managers.some(
+    (m, i) => !m.isComputer && !eliminated.has(i)
+  );
+
   function playNextMatch() {
     if (!nextMatchup) return;
     setScreen("match", { homeIdx: nextMatchup.homeIdx, awayIdx: nextMatchup.awayIdx });
   }
 
+  function startSkip() {
+    setSkipMode("one");
+    setCpuSimActive(true);
+  }
+
+  function startSkipToHuman() {
+    setSkipMode("toHuman");
+    setCpuSimActive(true);
+  }
+
+  function cancelSkip() {
+    setSkipMode(null);
+    setCpuSimActive(false);
+  }
+
   function handleSimDone(winnerIdx, score, ratings, events, injuries) {
     const { homeIdx, awayIdx } = nextMatchup;
     setCpuSimActive(false);
+    if (skipMode === "one") setSkipMode(null);
+    setSimTick(t => t + 1);
     recordMatchResult(homeIdx, awayIdx, winnerIdx, score, ratings, events, injuries);
   }
+
+  // Bundled so the two hub layouts share one wiring surface.
+  const actions = {
+    isCpuVsCpu, hasHumanLater, cpuSimActive, skipMode, simTick,
+    playNextMatch, startSkip, startSkipToHuman, cancelSkip, handleSimDone,
+  };
 
   const formatLabel = (series.format === "tournament" || series.format === "tournament8")
     ? "TOURNAMENT"
@@ -1179,13 +1365,9 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
           managers={managers}
           nextMatchup={nextMatchup}
           isHost={isHost}
-          isCpuVsCpu={isCpuVsCpu}
-          cpuSimActive={cpuSimActive}
-          setCpuSimActive={setCpuSimActive}
-          playNextMatch={playNextMatch}
+          actions={actions}
           setScreen={setScreen}
           seriesCtxForSim={seriesCtxForSim}
-          handleSimDone={handleSimDone}
           restartCount={restartCount}
           onRestart={canRestart}
         />
@@ -1206,18 +1388,14 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
 
             {nextMatchup && (
               isHost ? (
-                <div className="bw-series-actions">
-                  <button className="bw-cta-arcade" onClick={playNextMatch}>
-                    ▶ {nextMatchup.label === "GRAND FINAL" ? "PLAY GRAND FINAL" : nextMatchup.matchNum > 1 ? `PLAY MATCH ${nextMatchup.matchNum} — ${nextMatchup.label}` : `PLAY MATCH 1 — ${nextMatchup.label}`}
-                  </button>
-                  {isCpuVsCpu && (
-                    <button className="bw-cta-secondary" onClick={() => setCpuSimActive(true)}>
-                      ⚡ AUTO-SIMULATE
-                    </button>
-                  )}
+                <MatchActions
+                  nextMatchup={nextMatchup}
+                  primaryLabel={nextMatchup.label === "GRAND FINAL" ? "PLAY GRAND FINAL" : `PLAY MATCH ${nextMatchup.matchNum} — ${nextMatchup.label}`}
+                  {...actions}
+                >
                   <button className="bw-cta-secondary" onClick={() => setScreen("squads")}>TEAM MANAGEMENT</button>
                   <RestartControl restartCount={restartCount} onRestart={canRestart} isTournament={isTournamentFmt} />
-                </div>
+                </MatchActions>
               ) : (
                 <div className="mp-waiting-screen">
                   <div className="mp-waiting-spinner" />
@@ -1226,15 +1404,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
               )
             )}
 
-            {cpuSimActive && nextMatchup && (
-              <CpuSimOverlay
-                draft={draft}
-                homeIdx={nextMatchup.homeIdx}
-                awayIdx={nextMatchup.awayIdx}
-                seriesCtx={seriesCtxForSim}
-                onDone={handleSimDone}
-              />
-            )}
+            <SimOverlayHost draft={draft} nextMatchup={nextMatchup} seriesCtxForSim={seriesCtxForSim} {...actions} />
           </div>
         </div>
       )}

@@ -229,11 +229,11 @@ html.wc-theme {
   }
 }
 /* Series (Tier-2): the scoreboard view widens modestly; the tournament-bracket
-   view widens more so semis (now wrapped in .bw-bracket-grid) and quarters sit
-   two-up. */
+   view widens a lot more so the full QF → SF → FINAL bracket fits across
+   without the rounds squeezing. */
 @media (min-width: 900px) {
   .bw-series-frame { max-width: 560px; }
-  .bw-series-frame.bw-series-frame-bracket { max-width: 780px; }
+  .bw-series-frame.bw-series-frame-bracket { max-width: 1000px; }
 }
 
 /* Manager draft (Tier-2): the offered gaffer cards spread 2-up instead of a tall
@@ -1811,43 +1811,147 @@ html.wc-theme .bw-draft-banner { background: linear-gradient(90deg, #2a1610, #24
   margin-top: 10px;
 }
 
-.bw-bracket { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+/* ── TOURNAMENT BRACKET ──────────────────────────────────────────────────
+   One DOM, two layouts. The rounds sit in a horizontal flex track:
+   - mobile: each round is 100% wide and the track slides by --bkt-i, so the
+     ‹ › pager shows exactly one round at a time.
+   - widescreen (>=900px): the slide is cancelled, every round sits side by
+     side, and ::before connector spines join each round to the previous one.
+   ------------------------------------------------------------------------ */
+.bw-bracket-wrap { width: 100%; display: flex; flex-direction: column; gap: 12px; }
 
-.bw-bracket-final {
+.bw-bracket-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.bw-bracket-nav-arrow {
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
   border-radius: var(--bw-radius-card) !important;
-  border: 1px solid var(--bw-gold-border);
-  background: var(--bw-gold-bg);
-  padding: 14px 16px;
-  box-shadow: 0 0 20px rgba(245,197,66,.15);
-}
-.bw-bracket-final-label {
-  font: 400 11px var(--bw-font-marquee);
+  border: 1px solid var(--bw-border);
+  background: var(--bw-panel);
   color: var(--bw-gold);
-  letter-spacing: .06em;
-  text-align: center;
-  margin-bottom: 10px;
-  text-shadow: 0 0 12px rgba(245,197,66,.5);
+  font: 400 22px var(--bw-font-display);
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color .15s, color .15s, opacity .15s;
 }
-.bw-bracket-final .bw-bracket-row { font-size: 15px; padding: 6px 0; }
-.bw-bracket-final .bw-bracket-score { font-size: 18px; }
+.bw-bracket-nav-arrow:hover:not(:disabled) { border-color: var(--bw-gold-border); }
+.bw-bracket-nav-arrow:disabled { opacity: .28; cursor: default; }
 
-.bw-bracket-section {
+.bw-bracket-nav-mid { flex: 1; min-width: 0; text-align: center; }
+.bw-bracket-nav-title {
+  font: 400 12px var(--bw-font-marquee);
+  color: var(--bw-gold);
+  letter-spacing: .08em;
+}
+.bw-bracket-nav-dots { display: flex; gap: 6px; justify-content: center; margin-top: 6px; }
+.bw-bracket-nav-dot {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border-radius: 50% !important;
+  border: 1px solid var(--bw-border);
+  background: transparent;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.bw-bracket-nav-dot.on { background: var(--bw-gold); border-color: var(--bw-gold); }
+.bw-bracket-nav-dot.live:not(.on) { border-color: var(--bw-gold-border); background: var(--bw-gold-bg); }
+
+.bw-bracket-viewport { width: 100%; overflow: hidden; }
+.bw-bracket-track {
+  display: flex;
+  align-items: stretch;
+  transform: translateX(calc(var(--bkt-i) * -100%));
+  transition: transform .28s ease;
+}
+.bw-bracket-round {
+  flex: 0 0 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-.bw-bracket-section-title {
+/* The pager already names the round on mobile — the per-column heading is
+   only needed once every round is on screen together. */
+.bw-bracket-round-title {
+  display: none;
   font: 600 10px var(--bw-font-display);
   color: var(--bw-text-low);
   letter-spacing: .18em;
   text-align: center;
-  margin-bottom: 2px;
+}
+.bw-bracket-round-ties {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.bw-bracket-slot { display: flex; flex-direction: column; justify-content: center; }
+
+/* Widescreen: show the whole bracket at once, with connector spines. */
+@media (min-width: 900px) {
+  .bw-bracket-nav { display: none; }
+  .bw-bracket-viewport { overflow: visible; }
+  .bw-bracket-track { transform: none; gap: 0; }
+  .bw-bracket-round { flex: 1 1 0; }
+  .bw-bracket-round-title { display: block; }
+  /* Spread each round's ties evenly so a round's midpoint lines up with the
+     tie it feeds in the next column — that's what makes the spines read. */
+  .bw-bracket-round-ties { justify-content: space-around; flex: 1; }
+  /* Rounds after the first get a gutter that carries the connector. */
+  .bw-bracket-round + .bw-bracket-round { padding-left: 30px; position: relative; }
+  .bw-bracket-round + .bw-bracket-round .bw-bracket-slot { position: relative; }
+  /* Horizontal stub running left from each tie into the gutter. */
+  .bw-bracket-round + .bw-bracket-round .bw-bracket-slot::before {
+    content: "";
+    position: absolute;
+    left: -30px;
+    top: 50%;
+    width: 30px;
+    height: 1px;
+    background: var(--bw-border);
+  }
+  /* Vertical spine joining the pair of feeder ties in the previous round. */
+  .bw-bracket-round + .bw-bracket-round .bw-bracket-slot::after {
+    content: "";
+    position: absolute;
+    left: -30px;
+    top: 50%;
+    width: 1px;
+    height: calc(50% + 10px);
+    background: var(--bw-border);
+    transform: translateY(-50%);
+  }
+  .bw-bracket-round-final { flex: 0 0 34%; justify-content: center; }
 }
 
-.bw-bracket-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-@media (max-width: 480px) {
-  .bw-bracket-grid { grid-template-columns: 1fr; }
+/* Final tie: gold-forward so the decider still reads as the headline. */
+.bw-bracket-card-final {
+  border-color: var(--bw-gold-border) !important;
+  background: var(--bw-gold-bg) !important;
+  box-shadow: 0 0 20px rgba(245,197,66,.15);
 }
+.bw-bracket-card-final .bw-bracket-row { font-size: 15px; padding: 6px 0; }
+.bw-bracket-card-final .bw-bracket-score { font-size: 18px; }
+
+/* The tie the next match belongs to. */
+.bw-bracket-card-live { border-color: var(--bw-gold-border) !important; }
+.bw-bracket-live-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50% !important;
+  background: var(--bw-gold);
+  margin-left: 6px;
+  vertical-align: middle;
+  animation: bw-bracket-pulse 1.4s ease-in-out infinite;
+}
+@keyframes bw-bracket-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+
+.bw-bracket-card-tbd { opacity: .45; }
 
 .bw-bracket-card {
   border-radius: var(--bw-radius-card) !important;
@@ -4325,6 +4429,31 @@ html.wc-theme .bw-roulette-team { background: linear-gradient(90deg, #2a1610, #2
   text-shadow: 0 0 8px rgba(245,197,66,.4);
   margin-bottom: 18px;
 }
+/* Shown only while fast-forwarding through CPU ties, with the escape hatch. */
+.cpu-sim-skipbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: -10px 0 14px;
+}
+.cpu-sim-skipbar-text {
+  font: 600 10px var(--bw-font-display);
+  letter-spacing: .14em;
+  color: var(--bw-text-low);
+}
+.cpu-sim-skipbar-stop {
+  border-radius: var(--bw-radius-card) !important;
+  border: 1px solid var(--bw-border);
+  background: transparent;
+  color: var(--bw-text-mid);
+  font: 600 10px var(--bw-font-display);
+  letter-spacing: .12em;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+.cpu-sim-skipbar-stop:hover { border-color: var(--bw-gold-border); color: var(--bw-gold); }
+
 .cpu-sim-teams {
   display: flex;
   align-items: center;
