@@ -6112,7 +6112,6 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
 .scout-taken-list { display: flex; flex-direction: column; gap: 10px; opacity: 0.72; }
 .scout-empty { text-align: center; color: var(--text2); padding: 24px 12px; }
 .scout-empty-actions { display: flex; gap: 10px; justify-content: center; margin-top: 12px; flex-wrap: wrap; }
-.scout-bargain-hint { margin: 0; font-size: 0.85rem; opacity: 0.8; text-align: center; }
 
 .scout-actions {
   display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;

@@ -366,15 +366,14 @@ export default function ScoutDraftScreen({
             {report.length === 0 ? (
               <div className="scout-empty">
                 {isSubSlot && draft.scoutPosFilter ? (
-                  <p>No affordable options for <strong>{draft.scoutPosFilter.join(" / ")}</strong> right now. Widen the filter (tap <strong>ALL</strong>), re-scout, or spin a bigger budget.</p>
+                  <p>No <strong>{draft.scoutPosFilter.join(" / ")}</strong> are within your <strong>£{budget}m</strong> budget. Widen the filter (tap <strong>ALL</strong>){freeAgents.length > 0 ? <> or sign a free agent from the <strong>Bargain Bucket</strong> below</> : null}.</p>
+                ) : freeAgents.length > 0 ? (
+                  <p>No <strong>{currentPos.label}</strong> is within your <strong>£{budget}m</strong> budget right now. Sign a free agent from the <strong>Bargain Bucket</strong> below.</p>
                 ) : (
-                  <p>Every player in the <strong>{currentPos.label}</strong> pool has already been signed. Re-scout to double-check for anyone freed up.</p>
+                  <p>Every <strong>{currentPos.label}</strong> has already been signed, and there are no free agents left in this pool.</p>
                 )}
                 <div className="scout-empty-actions">
                   {respin && freeAgents.length === 0 && <button className="bw-cta-secondary" onClick={respin}>🎡 RE-SPIN BUDGET</button>}
-                  {freeAgents.length > 0 && (
-                    <p className="scout-bargain-hint">Sign a free agent from the <strong>Bargain Bucket</strong> below before re-spinning.</p>
-                  )}
                 </div>
               </div>
             ) : (
