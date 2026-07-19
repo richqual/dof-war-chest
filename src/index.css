@@ -1975,8 +1975,21 @@ html.wc-theme .bw-draft-banner { background: linear-gradient(90deg, #2a1610, #24
   .bw-bracket-round { flex: 1 1 0; }
   .bw-bracket-round-title { display: block; }
   /* Spread each round's ties evenly so a round's midpoint lines up with the
-     tie it feeds in the next column — that's what makes the spines read. */
-  .bw-bracket-round-ties { justify-content: space-around; flex: 1; }
+     tie it feeds in the next column — that's what makes the spines read.
+
+     The slots must each take an equal *share of the column height* rather than
+     sizing to their card, because the 25%/75% arms are measured against the
+     slot box. Content-sized slots made those percentages relative to a ~120px
+     card instead of its band, so the arms fell far short of the feeders — most
+     visibly on the final, a single short card in a full-height column.
+     flex:1 on every slot makes band centres land at exactly (i+0.5)/N, which
+     is what puts a later tie's feeders on its own 25% and 75% lines.
+
+     Gap has to be 0 for that to stay exact (it would eat unequally into the
+     bands), so the cards carry their own margin for visual separation. */
+  .bw-bracket-round-ties { justify-content: stretch; gap: 0; flex: 1; }
+  .bw-bracket-round-ties .bw-bracket-slot { flex: 1 1 0; }
+  .bw-bracket-round-ties .bw-bracket-card { margin: 5px 0; }
   /* Rounds after the first get a gutter that carries the connector. */
   .bw-bracket-round + .bw-bracket-round { padding-left: 34px; }
   .bw-bracket-round + .bw-bracket-round .bw-bracket-slot { position: relative; }
