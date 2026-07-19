@@ -296,47 +296,52 @@ const COMMENTARY_RED = [
   (p, team, men) => `What was ${p} thinking?! Second yellow, red card — ${team} are down to ${men}!`,
 ];
 
+// Neutral filler commentary. `s` records who has the ball during the line —
+// "a" or "b" (matching the two name arguments), or null where nobody clearly
+// does (a stoppage, a referee gag, a crowd note). The match screen tints the
+// commentary box in that team's kit colours, so a line about one side's
+// defence holding firm is tagged to whoever is actually attacking.
 const COMMENTARY_NEUTRAL = [
-  (a, b) => `${a} pressing hard but ${b}'s defence is holding firm.`,
-  (a, b) => `${b} counter-attack — good defending to clear the danger.`,
-  (a, b) => `${a} looking comfortable in possession here.`,
-  (a, b) => `End to end stuff now as both sides chase the next goal.`,
-  (a, b) => `${a} corner comes to nothing. ${b} clear.`,
-  (a, b) => `${b} forcing a couple of corners in quick succession.`,
-  (a, b) => `${a} with the ball now — patient build-up play, or just going backwards? Hard to say.`,
-  (a, b) => `The referee is having a bit of a nightmare here, and frankly, who can blame him.`,
-  (a, b) => `At the end of the day, ${a} will be looking to give 110%.`,
-  (a, b) => `${b}'s goalkeeper has had a very quiet afternoon so far. Almost too quiet.`,
-  (a, b) => `The fans are getting restless. ${a} need to do something special — or at least something.`,
-  (a, b) => `${a}'s manager cuts a frustrated figure on the touchline. He's seen something he doesn't like.`,
-  (a, b) => `Incredible scenes. Well — moderately interesting scenes. Football!`,
-  (a, b) => `${a} looking for the killer ball. ${b} holding a very high line — dangerous.`,
-  (a, b) => `It's a game of two halves, and we're firmly in one of them.`,
-  (a, b) => `${b}'s midfield doing a lot of running today. Lots of it. Some of it useful.`,
-  (a, b) => `The ball is in play. Things are happening. Football is definitely occurring.`,
-  (a, b) => `${a} with the throw-in. You wouldn't believe the tension.`,
-  (a, b) => `${a} counter-attacking with pace! But ${b} scramble it clear.`,
-  (a, b) => `${b} struggling to get a foothold in this match, if we're being charitable.`,
-  (a, b) => `Both sets of fans making themselves heard. Lively atmosphere here.`,
-  (a, b) => `${a} looking to exploit the channels. Classic modern football analysis there.`,
-  (a, b) => `He's gone down! The referee waves play on — twelve people disagree loudly.`,
-  (a, b) => `${b}'s centre-back marshalling the defence admirably. A rock. An absolute rock. A slightly nervous rock.`,
-  (a, b) => `Tactical change brewing on the ${a} bench. The manager has stood up. He's sat back down again.`,
-  (a, b) => `${b} looking to win the second ball. They haven't had much luck with the first one either, if we're honest.`,
-  (a, b) => `The linesman raises his flag! Or was he just stretching? He was just stretching.`,
-  (a, b) => `${b}'s striker appeals for a penalty! The referee is unmoved. The striker remains extremely moved.`,
-  (a, b) => `${a} keeping their shape brilliantly. A lovely 4-3-3. Or a 4-5-1. Modern football — who can say.`,
-  (a, b) => `Tremendous character from ${b} here. Some might call it stubbornness. Let's call it character.`,
-  (a, b) => `${a}'s physio has been called on. We're told it's nothing serious. We're always told it's nothing serious.`,
-  (a, b) => `${b} recycling possession patiently. Their manager would call it game management. Others might not.`,
-  (a, b) => `${a} working the ball through the thirds. Or possibly the second third. Geography is hard.`,
-  (a, b) => `There's a coming-together! Both players spring to their feet to demonstrate they are completely fine.`,
-  (a, b) => `${a} free kick. Three players standing over the ball. A brief conference. They decide on the option that doesn't work.`,
-  (a, b) => `The ball has trickled out for a goal kick. We pause here, briefly, in quiet reflection.`,
-  (a, b) => `${b}'s goalkeeper has just kicked the ball very firmly to nobody in particular.`,
-  (a, b) => `${a}'s winger cuts inside! He passes it square instead. A decision has been made.`,
-  (a, b) => `${b} with a long ball over the top — the centre-forward had it all on but... no, he's miles offside.`,
-  (a, b) => `${a}'s substitutes are warming up along the touchline. Whether anyone wants them on is another matter.`,
+  { s: "a", t: (a, b) => `${a} pressing hard but ${b}'s defence is holding firm.` },
+  { s: "b", t: (a, b) => `${b} counter-attack — good defending to clear the danger.` },
+  { s: "a", t: (a, b) => `${a} looking comfortable in possession here.` },
+  { s: null, t: (a, b) => `End to end stuff now as both sides chase the next goal.` },
+  { s: "a", t: (a, b) => `${a} corner comes to nothing. ${b} clear.` },
+  { s: "b", t: (a, b) => `${b} forcing a couple of corners in quick succession.` },
+  { s: "a", t: (a, b) => `${a} with the ball now — patient build-up play, or just going backwards? Hard to say.` },
+  { s: null, t: (a, b) => `The referee is having a bit of a nightmare here, and frankly, who can blame him.` },
+  { s: "a", t: (a, b) => `At the end of the day, ${a} will be looking to give 110%.` },
+  { s: "b", t: (a, b) => `${b}'s goalkeeper has had a very quiet afternoon so far. Almost too quiet.` },
+  { s: "a", t: (a, b) => `The fans are getting restless. ${a} need to do something special — or at least something.` },
+  { s: null, t: (a, b) => `${a}'s manager cuts a frustrated figure on the touchline. He's seen something he doesn't like.` },
+  { s: null, t: (a, b) => `Incredible scenes. Well — moderately interesting scenes. Football!` },
+  { s: "a", t: (a, b) => `${a} looking for the killer ball. ${b} holding a very high line — dangerous.` },
+  { s: null, t: (a, b) => `It's a game of two halves, and we're firmly in one of them.` },
+  { s: "b", t: (a, b) => `${b}'s midfield doing a lot of running today. Lots of it. Some of it useful.` },
+  { s: null, t: (a, b) => `The ball is in play. Things are happening. Football is definitely occurring.` },
+  { s: "a", t: (a, b) => `${a} with the throw-in. You wouldn't believe the tension.` },
+  { s: "a", t: (a, b) => `${a} counter-attacking with pace! But ${b} scramble it clear.` },
+  { s: "a", t: (a, b) => `${b} struggling to get a foothold in this match, if we're being charitable.` },
+  { s: null, t: (a, b) => `Both sets of fans making themselves heard. Lively atmosphere here.` },
+  { s: "a", t: (a, b) => `${a} looking to exploit the channels. Classic modern football analysis there.` },
+  { s: null, t: (a, b) => `He's gone down! The referee waves play on — twelve people disagree loudly.` },
+  { s: "a", t: (a, b) => `${b}'s centre-back marshalling the defence admirably. A rock. An absolute rock. A slightly nervous rock.` },
+  { s: null, t: (a, b) => `Tactical change brewing on the ${a} bench. The manager has stood up. He's sat back down again.` },
+  { s: "b", t: (a, b) => `${b} looking to win the second ball. They haven't had much luck with the first one either, if we're honest.` },
+  { s: null, t: (a, b) => `The linesman raises his flag! Or was he just stretching? He was just stretching.` },
+  { s: "b", t: (a, b) => `${b}'s striker appeals for a penalty! The referee is unmoved. The striker remains extremely moved.` },
+  { s: "b", t: (a, b) => `${a} keeping their shape brilliantly. A lovely 4-3-3. Or a 4-5-1. Modern football — who can say.` },
+  { s: null, t: (a, b) => `Tremendous character from ${b} here. Some might call it stubbornness. Let's call it character.` },
+  { s: null, t: (a, b) => `${a}'s physio has been called on. We're told it's nothing serious. We're always told it's nothing serious.` },
+  { s: "b", t: (a, b) => `${b} recycling possession patiently. Their manager would call it game management. Others might not.` },
+  { s: "a", t: (a, b) => `${a} working the ball through the thirds. Or possibly the second third. Geography is hard.` },
+  { s: null, t: (a, b) => `There's a coming-together! Both players spring to their feet to demonstrate they are completely fine.` },
+  { s: "a", t: (a, b) => `${a} free kick. Three players standing over the ball. A brief conference. They decide on the option that doesn't work.` },
+  { s: null, t: (a, b) => `The ball has trickled out for a goal kick. We pause here, briefly, in quiet reflection.` },
+  { s: "b", t: (a, b) => `${b}'s goalkeeper has just kicked the ball very firmly to nobody in particular.` },
+  { s: "a", t: (a, b) => `${a}'s winger cuts inside! He passes it square instead. A decision has been made.` },
+  { s: "b", t: (a, b) => `${b} with a long ball over the top — the centre-forward had it all on but... no, he's miles offside.` },
+  { s: null, t: (a, b) => `${a}'s substitutes are warming up along the touchline. Whether anyone wants them on is another matter.` },
 ];
 
 const COMMENTARY_PEN_SCORED = [
@@ -964,10 +969,12 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   // With ~10 neutral events and 36 lines, repetition is extremely unlikely.
   const neutralPool = [...COMMENTARY_NEUTRAL].sort(() => Math.random() - 0.5);
   let neutralCursor = 0;
+  // Returns the line plus which side has the ball ("home"/"away"/null), since
+  // callers always pass (homeName, awayName).
   function pickNeutral(a, b) {
-    const fn = neutralPool[neutralCursor % neutralPool.length];
+    const entry = neutralPool[neutralCursor % neutralPool.length];
     neutralCursor++;
-    return fn(a, b);
+    return { text: entry.t(a, b), possSide: entry.s === "a" ? "home" : entry.s === "b" ? "away" : null };
   }
 
   const events = [];
@@ -975,16 +982,16 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   // Inject early contextual commentary (minutes 2-15) for new systems
   const earlyMins = [];
   if (hMomentumRaw === 1 && homeFootballMgr) {
-    earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_WIN)(homeName, lastName(homeFootballMgr.name)) });
+    earlyMins.push({ min: rand(2, 10), possSide: "home", text: pick(MOMENTUM_COMMENTARY_WIN)(homeName, lastName(homeFootballMgr.name)) });
   }
   if (aMomentumRaw === 1 && awayFootballMgr) {
-    earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_WIN)(awayName, lastName(awayFootballMgr.name)) });
+    earlyMins.push({ min: rand(2, 10), possSide: "away", text: pick(MOMENTUM_COMMENTARY_WIN)(awayName, lastName(awayFootballMgr.name)) });
   }
   if (hMomentumRaw === -1 && homeFootballMgr) {
-    earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_LOSS)(homeName, lastName(homeFootballMgr.name)) });
+    earlyMins.push({ min: rand(2, 10), possSide: "home", text: pick(MOMENTUM_COMMENTARY_LOSS)(homeName, lastName(homeFootballMgr.name)) });
   }
   if (aMomentumRaw === -1 && awayFootballMgr) {
-    earlyMins.push({ min: rand(2, 10), text: pick(MOMENTUM_COMMENTARY_LOSS)(awayName, lastName(awayFootballMgr.name)) });
+    earlyMins.push({ min: rand(2, 10), possSide: "away", text: pick(MOMENTUM_COMMENTARY_LOSS)(awayName, lastName(awayFootballMgr.name)) });
   }
   // Cohesion commentary for the team with higher cohesion (>60% match)
   const hCohesionPct = homeFootballMgr?.preferredArchetypes?.length
@@ -994,16 +1001,16 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     ? awaySquad.slice(0, 11).filter(Boolean).filter(p => awayFootballMgr.preferredArchetypes.includes(p.archetype)).length / Math.max(1, awaySquad.slice(0, 11).filter(Boolean).length)
     : 0;
   if (hCohesionPct >= 0.6 && homeFootballMgr) {
-    earlyMins.push({ min: rand(5, 20), text: pick(COHESION_COMMENTARY)(lastName(homeFootballMgr.name), homeName) });
+    earlyMins.push({ min: rand(5, 20), possSide: "home", text: pick(COHESION_COMMENTARY)(lastName(homeFootballMgr.name), homeName) });
   }
   if (aCohesionPct >= 0.6 && awayFootballMgr) {
-    earlyMins.push({ min: rand(5, 20), text: pick(COHESION_COMMENTARY)(lastName(awayFootballMgr.name), awayName) });
+    earlyMins.push({ min: rand(5, 20), possSide: "away", text: pick(COHESION_COMMENTARY)(lastName(awayFootballMgr.name), awayName) });
   }
   // Style matchup commentary (fire once mid-match if there's a clear advantage)
   if (hMatchupBonus > 0) {
-    earlyMins.push({ min: rand(25, 55), text: pick(STYLE_MATCHUP_COMMENTARY)(homeName, awayName) });
+    earlyMins.push({ min: rand(25, 55), possSide: "home", text: pick(STYLE_MATCHUP_COMMENTARY)(homeName, awayName) });
   } else if (aMatchupBonus > 0) {
-    earlyMins.push({ min: rand(25, 55), text: pick(STYLE_MATCHUP_COMMENTARY)(awayName, homeName) });
+    earlyMins.push({ min: rand(25, 55), possSide: "away", text: pick(STYLE_MATCHUP_COMMENTARY)(awayName, homeName) });
   }
   for (const e of earlyMins) {
     events.push({ ...e, type: "commentary", poss: Math.round(ratio * 100) });
@@ -1233,7 +1240,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     if (!pool) return null;
     const mgrName = lastName(fm.name); // last name
     const teamName = isHome ? homeName : awayName;
-    return { min, type: "commentary", text: pick(pool)(mgrName, teamName) };
+    return { min, type: "commentary", possSide: isHome ? "home" : "away", text: pick(pool)(mgrName, teamName) };
   }
 
   for (const entry of timeline) {
@@ -1311,7 +1318,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       // (if uncomfortable) challenge instead.
       if (target && DISCIPLINED_ARCHETYPES.has(target.archetype) && Math.random() < 0.35) {
         possH = possH * 0.94 + ratio * 0.06;
-        events.push({ min, type: "commentary", text: pickNeutral(homeName, awayName), poss: Math.round(possH * 100) });
+        events.push({ min, type: "commentary", ...pickNeutral(homeName, awayName), poss: Math.round(possH * 100) });
       } else if (target) {
         possH = possH * 0.94 + ratio * 0.06;
         if (isHome) hFouls++; else aFouls++;
@@ -1340,7 +1347,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     } else {
       possH = possH * 0.94 + ratio * 0.06;
       const styleEv = maybeStyleComment(Math.random() < 0.5, min);
-      const ev = styleEv || { min, type: "commentary", text: pickNeutral(homeName, awayName) };
+      const ev = styleEv || { min, type: "commentary", ...pickNeutral(homeName, awayName) };
       events.push({ ...ev, poss: Math.round(possH * 100) });
     }
   }
@@ -1413,7 +1420,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
           etEvents.push({ min, type: "miss", team: side, text: pick(COMMENTARY_MISS)(name) });
         }
       } else {
-        etEvents.push({ min, type: "commentary", text: pick(COMMENTARY_NEUTRAL)(homeName, awayName) });
+        etEvents.push({ min, type: "commentary", ...pickNeutral(homeName, awayName) });
       }
     }
 
@@ -1973,11 +1980,36 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
     return style;
   }
 
+  // Who has the ball for a given event. Events with an actor (goal, card,
+  // injury, sub) use that side; filler commentary carries a possSide tag from
+  // the generator. Null means nobody clearly does — a stoppage or a crowd
+  // line — and those stay in neutral colours rather than guessing.
+  function possSideOf(e) {
+    if (!e) return null;
+    if (e.possSide !== undefined && e.possSide !== null) return e.possSide;
+    if (e.team === "home" || e.team === "away") return e.team;
+    return null;
+  }
+
+  // Kit colours for the side in possession, as CSS custom properties.
+  function possStyle(e) {
+    const side = possSideOf(e);
+    if (!side) return {};
+    const mgr = side === "home" ? homeManager : awayManager;
+    return {
+      "--poss-a": mgr.primaryColor,
+      "--poss-b": mgr.secondaryColor,
+      "--poss-ink": readableTextOn(mgr.primaryColor),
+    };
+  }
+
   const currentMin = visibleEvents.length ? visibleEvents[visibleEvents.length - 1].min : 0;
   const latestEvent = visibleEvents.length ? visibleEvents[visibleEvents.length - 1] : null;
   const isPenKick = e => e && (e.type === "pen_goal" || e.type === "pen_miss");
   // Pen kicks live in the dedicated shootout tracker, not the big-moment banner.
-  const showMoment = simulating && latestEvent && isNotable(latestEvent) && !isPenKick(latestEvent);
+  // Everything else gets the banner — it's the running "what's happening now"
+  // line, so restricting it to notable events left it blank most of the match.
+  const showMoment = simulating && latestEvent && !isPenKick(latestEvent);
 
   // --- Penalty shootout tracker state (derived from the visible feed) ---
   const penEventsVisible = visibleEvents.filter(isPenKick);
@@ -2000,7 +2032,33 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
   }
   const motmPlayer = done && result ? [...result.ratings.home, ...result.ratings.away].find(r => r.motm) : null;
 
-  const winText = drewMatch ? "DRAW" : winnerSide === "home" ? `${homeName} WIN` : winnerSide === "away" ? `${awayName} WIN` : "";
+  // On leg 2 of a two-legged tie the scoreline on the night doesn't decide
+  // anything — the aggregate does. Running totals are shown live under the
+  // score, and the full-time badge reports who actually goes through rather
+  // than calling an aggregate-decided tie a "DRAW".
+  const legCtx = seriesContext?.legContext ?? null;
+  const aggNowHome = legCtx ? currentScore.home + legCtx.homeAgg : null;
+  const aggNowAway = legCtx ? currentScore.away + legCtx.awayAgg : null;
+
+  let winText;
+  if (legCtx && done && result) {
+    const ah = result.score.home + legCtx.homeAgg;
+    const aa = result.score.away + legCtx.awayAgg;
+    if (result.penWinner) winText = `${result.penWinner === "home" ? homeName : awayName} WIN ON PENS`;
+    else if (ah !== aa) winText = `${ah > aa ? homeName : awayName} ADVANCE`;
+    else winText = "DRAW";
+  } else {
+    winText = drewMatch ? "DRAW" : winnerSide === "home" ? `${homeName} WIN` : winnerSide === "away" ? `${awayName} WIN` : "";
+  }
+  // Only style it as a draw when the tie really is unresolved.
+  const showDrawStyle = drewMatch && winText === "DRAW";
+
+  let aggNote = "";
+  if (legCtx && (simulating || done)) {
+    if (aggNowHome > aggNowAway) aggNote = `${homeName} ${done ? "go through" : "lead"}`;
+    else if (aggNowAway > aggNowHome) aggNote = `${awayName} ${done ? "go through" : "lead"}`;
+    else aggNote = "Level on aggregate";
+  }
   const ftStats = done && result ? [
     { label: "SHOTS", h: result.stats.hShots, a: result.stats.aShots },
     { label: "ON TARGET", h: result.stats.hOnTarget, a: result.stats.aOnTarget },
@@ -2036,8 +2094,11 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
 
       <div className="bw-match-scoreboard">
         {seriesContext && <div className="bw-match-series-label">{seriesContext.label}</div>}
-        {done && winText && <div className={`bw-match-ft-win ${drewMatch ? "draw" : ""}`}>{winText}</div>}
-        {!done && seriesContext?.standing && <div className="bw-match-series-standing">{seriesContext.standing}</div>}
+        {done && winText && <div className={`bw-match-ft-win ${showDrawStyle ? "draw" : ""}`}>{winText}</div>}
+        {/* Pre-match only: this is the standing *carried in*, so once the ball
+            is rolling the live AGG line below supersedes it — showing both mid
+            match reads as two contradictory aggregates. */}
+        {!simulating && !done && seriesContext?.standing && <div className="bw-match-series-standing">{seriesContext.standing}</div>}
         <div className="bw-match-score-row">
           <div className="bw-match-team home">
             <span className="bw-match-team-name" style={{ color: homeAccent }}>{homeName}</span>
@@ -2060,6 +2121,14 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
             <span className="bw-match-team-name" style={{ color: awayAccent }}>{awayName}</span>
           </div>
         </div>
+
+        {legCtx && (simulating || done) && (
+          <div className="bw-match-agg">
+            <span className="bw-match-agg-label">AGG</span>
+            <span className="bw-match-agg-score">{aggNowHome}–{aggNowAway}</span>
+            <span className="bw-match-agg-note">{aggNote}</span>
+          </div>
+        )}
 
         {penPaused && simulating && isHost && (
           <button className="bw-match-cta pens" onClick={() => { setPenPaused(false); runFeed(speedRef.current); }}>
@@ -2172,7 +2241,15 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
         )}
 
         {showMoment && (
-          <div className={`bw-match-moment ${eventCategory(latestEvent) === "goal" ? "goal" : ""}`} style={eventStyle(latestEvent)}>
+          <div
+            className={[
+              "bw-match-moment",
+              eventCategory(latestEvent) === "goal" ? "goal" : "",
+              eventCategory(latestEvent) === "big" ? "big" : "",
+              possSideOf(latestEvent) ? "has-poss" : "",
+            ].filter(Boolean).join(" ")}
+            style={{ ...possStyle(latestEvent), ...eventStyle(latestEvent) }}
+          >
             <span className="bw-match-moment-min">
               {(latestEvent.type === "pen_goal" || latestEvent.type === "pen_miss") ? "PEN" : `${latestEvent.min}'`}
             </span>
@@ -2219,7 +2296,11 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
             <div className="bw-match-commentary-label">COMMENTARY</div>
             <div className="bw-match-feed">
               {visibleEvents.map((e, i) => ({ e, i })).filter(({ e }) => !isPenKick(e)).reverse().map(({ e, i }) => (
-                <div key={i} className={`bw-match-feed-row ${eventCategory(e)}`}>
+                <div
+                  key={i}
+                  className={`bw-match-feed-row ${eventCategory(e)} ${possSideOf(e) ? "has-poss" : ""}`}
+                  style={possStyle(e)}
+                >
                   <span className="bw-match-feed-min">
                     {(e.type === "pen_goal" || e.type === "pen_miss") ? "PEN" : `${e.min}'`}
                   </span>

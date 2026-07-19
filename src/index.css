@@ -1952,7 +1952,22 @@ html.wc-theme .bw-draft-banner { background: linear-gradient(90deg, #2a1610, #24
 }
 .bw-bracket-slot { display: flex; flex-direction: column; justify-content: center; }
 
-/* Widescreen: show the whole bracket at once, with connector spines. */
+/* Widescreen: show the whole bracket at once, with connector spines.
+   ------------------------------------------------------------------------
+   Connector geometry. Each round's ties are spread with space-around, so
+   every tie sits at the midpoint of an equal band. A tie in round N+1 is fed
+   by exactly two ties in round N, and because the columns share a height
+   those two feeders land at 25% and 75% of the *later* tie's own box.
+   That lets one bordered pseudo-element draw the whole bracket:
+
+       25% ──────┐                    <- border-top     (feeder 1)
+                 │                    <- border-right   (the spine)
+       50%       ├──────── [ tie ]    <- ::after        (into the card)
+                 │
+       75% ──────┘                    <- border-bottom  (feeder 2)
+
+   Drawing it as one box means the corners actually meet, instead of the
+   separate stub + floating spine that left gaps at the joins. */
 @media (min-width: 900px) {
   .bw-bracket-nav { display: none; }
   .bw-bracket-viewport { overflow: visible; }
@@ -1963,30 +1978,36 @@ html.wc-theme .bw-draft-banner { background: linear-gradient(90deg, #2a1610, #24
      tie it feeds in the next column — that's what makes the spines read. */
   .bw-bracket-round-ties { justify-content: space-around; flex: 1; }
   /* Rounds after the first get a gutter that carries the connector. */
-  .bw-bracket-round + .bw-bracket-round { padding-left: 30px; position: relative; }
+  .bw-bracket-round + .bw-bracket-round { padding-left: 34px; }
   .bw-bracket-round + .bw-bracket-round .bw-bracket-slot { position: relative; }
-  /* Horizontal stub running left from each tie into the gutter. */
+
+  /* The bracket itself: two feeder arms joined by the spine. */
   .bw-bracket-round + .bw-bracket-round .bw-bracket-slot::before {
     content: "";
     position: absolute;
-    left: -30px;
-    top: 50%;
-    width: 30px;
-    height: 1px;
-    background: var(--bw-border);
+    left: -34px;
+    width: 17px;
+    top: 25%;
+    height: 50%;
+    border: 1px solid var(--bw-bracket-line, rgba(255,255,255,.18));
+    border-left: 0;
+    border-radius: 0 4px 4px 0 !important;
+    pointer-events: none;
   }
-  /* Vertical spine joining the pair of feeder ties in the previous round. */
+  /* Spine into the card. */
   .bw-bracket-round + .bw-bracket-round .bw-bracket-slot::after {
     content: "";
     position: absolute;
-    left: -30px;
+    left: -17px;
     top: 50%;
-    width: 1px;
-    height: calc(50% + 10px);
-    background: var(--bw-border);
-    transform: translateY(-50%);
+    width: 17px;
+    height: 1px;
+    background: var(--bw-bracket-line, rgba(255,255,255,.18));
+    pointer-events: none;
   }
-  .bw-bracket-round-final { flex: 0 0 34%; justify-content: center; }
+  /* The final is a single tie, so it keeps the same full-height band its two
+     feeders map onto — no extra centring, or the 25/75 arms stop lining up. */
+  .bw-bracket-round-final { flex: 0 0 34%; }
 }
 
 /* Final tie: gold-forward so the decider still reads as the headline. */
@@ -4490,6 +4511,32 @@ html.wc-theme .bw-roulette-team { background: linear-gradient(90deg, #2a1610, #2
   text-shadow: 0 0 8px rgba(245,197,66,.4);
   margin-bottom: 18px;
 }
+/* Aggregate line on leg 2 of a two-legged tie — the score above is only the
+   night's result, this is what actually decides the tie. */
+.cpu-sim-agg {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--bw-border);
+}
+.cpu-sim-agg-label {
+  font: 700 9px var(--bw-font-display);
+  letter-spacing: .2em;
+  color: var(--bw-text-low);
+}
+.cpu-sim-agg-score {
+  font: 700 17px var(--bw-font-display);
+  color: var(--bw-gold);
+}
+.cpu-sim-agg-note {
+  font: 400 12px var(--bw-font-body);
+  color: var(--bw-text-mid);
+}
+
 /* Shown only while fast-forwarding through CPU ties, with the escape hatch. */
 .cpu-sim-skipbar {
   display: flex;
@@ -5527,6 +5574,23 @@ html.light-mode .bw-wc-stage {
 }
 .bw-match-series-label { font: 600 9px var(--bw-font-display); letter-spacing: .2em; color: var(--bw-text-low); margin: 6px 0 8px; }
 .bw-match-series-standing { font-size: 11px; color: var(--bw-text-mid); letter-spacing: .04em; margin-bottom: 8px; }
+
+/* Running aggregate under the scoreline, leg 2 of a two-legged tie only. */
+.bw-match-agg {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.bw-match-agg-label {
+  font: 700 9px var(--bw-font-display);
+  letter-spacing: .2em;
+  color: var(--bw-text-low);
+}
+.bw-match-agg-score { font: 700 16px var(--bw-font-display); color: var(--bw-gold); }
+.bw-match-agg-note { font: 400 12px var(--bw-font-body); color: var(--bw-text-mid); }
 .bw-match-score-row { display: flex; align-items: center; justify-content: center; gap: 14px; }
 .bw-match-team { flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
 .bw-match-team.home { justify-content: flex-end; }
@@ -5550,19 +5614,41 @@ html.light-mode .bw-wc-stage {
 .bw-match-momentum-track { flex: 1; height: 8px; border-radius: 4px !important; overflow: hidden; display: flex; }
 .bw-match-momentum-fill { height: 100%; transition: flex 0.6s ease; }
 
-/* Big-moment banner */
+/* Current-moment banner — the running "what's happening now" line.
+   Centred in its own box, and filled with the kit colours of whichever side
+   has the ball, so possession is readable at a glance (Champ Man style).
+   Full-strength kit colour with a contrast-checked ink colour, matching the
+   goal-flash treatment that already worked here. */
 .bw-match-moment {
-  margin: 12px 16px 4px;
+  margin: 12px auto 4px;
+  width: calc(100% - 32px);
+  max-width: 720px;
+  min-height: 58px;
   border: 1px solid var(--bw-gold-border);
   border-left: 3px solid var(--bw-gold);
   border-radius: 8px !important;
-  background: linear-gradient(90deg, var(--bw-gold-bg), #0e140d);
-  padding: 12px 14px;
+  /* Themed surface rather than a hardcoded green — the match screen is shared
+     with Scout Mode, which re-tokenises --bw-* to a navy palette. */
+  background: linear-gradient(90deg, var(--bw-gold-bg), var(--bw-panel));
+  padding: 12px 16px;
   display: flex;
   gap: 12px;
   align-items: center;
+  justify-content: center;
+  text-align: center;
   flex-shrink: 0;
+  transition: background .3s ease, border-color .3s ease;
 }
+.bw-match-moment.has-poss {
+  background: var(--poss-a);
+  border-color: var(--poss-a);
+  border-left-color: var(--poss-b);
+}
+.bw-match-moment.has-poss .bw-match-moment-min,
+.bw-match-moment.has-poss .bw-match-moment-text { color: var(--poss-ink); }
+/* Big non-goal moments (red card, injury, penalty award) keep a gold edge so
+   they still read as more than routine play. */
+.bw-match-moment.big { border-left-color: var(--bw-gold); border-left-width: 5px; }
 .bw-match-moment.goal {
   animation: bw-match-goal-flash 0.36s steps(1) 6;
 }
@@ -5572,7 +5658,20 @@ html.light-mode .bw-wc-stage {
   100% { background: var(--flash-a); border-left-color: var(--flash-a); }
 }
 .bw-match-moment-min { font: 400 13px var(--bw-font-marquee); color: var(--bw-gold); flex-shrink: 0; }
-.bw-match-moment.goal .bw-match-moment-min, .bw-match-moment.goal .bw-match-moment-text { color: var(--flash-on-a); }
+/* The flash alternates the background between the two kit colours, so the ink
+   has to alternate with it — pinning it to the primary left dark-on-dark text
+   for half of every cycle on kits with a dark secondary. Same duration and
+   timing function keeps the two animations in step. */
+@keyframes bw-match-goal-flash-ink {
+  0%   { color: var(--flash-on-a); }
+  50%  { color: var(--flash-on-b); }
+  100% { color: var(--flash-on-a); }
+}
+.bw-match-moment.goal .bw-match-moment-min,
+.bw-match-moment.goal .bw-match-moment-text {
+  color: var(--flash-on-a);
+  animation: bw-match-goal-flash-ink 0.36s steps(1) 6;
+}
 .bw-match-moment-text { font: 500 14px/1.4 var(--bw-font-body); color: #f7ecd0; }
 
 /* Penalty shootout tracker */
@@ -5629,6 +5728,10 @@ html.light-mode .bw-wc-stage {
 .bw-match-commentary-label { font: 600 9px var(--bw-font-display); letter-spacing: .2em; color: var(--bw-text-low); margin: 6px 0 8px; }
 .bw-match-feed { display: flex; flex-direction: column; }
 .bw-match-feed-row { display: flex; gap: 11px; padding: 8px 0; border-bottom: 1px solid #141c13; align-items: baseline; }
+/* Historic lines carry the same possession read as the banner, but as a kit
+   colour edge rather than a filled row — a full-colour block per line would be
+   unreadable down a long feed. */
+.bw-match-feed-row.has-poss { border-left: 3px solid var(--poss-a); padding-left: 9px; }
 
 /* Desktop: the live-match bars stay full-bleed (broadcast look), but their
    inner content is capped and centred so the scoreboard, possession bar and

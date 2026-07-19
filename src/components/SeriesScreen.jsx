@@ -1171,6 +1171,16 @@ function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone, fast = fals
     ? (simResult.penWinner === "home" ? homeName : awayName)
     : null;
 
+  // Leg 2 of a two-legged tie: the scoreline above is only the night's result,
+  // so the aggregate — the thing that decides it — gets its own line.
+  const legCtx = seriesCtx?.legContext ?? null;
+  const aggHome = legCtx && simResult ? simResult.score.home + legCtx.homeAgg : null;
+  const aggAway = legCtx && simResult ? simResult.score.away + legCtx.awayAgg : null;
+  const aggNote = aggHome == null ? ""
+    : aggHome > aggAway ? `${homeName} go through`
+    : aggAway > aggHome ? `${awayName} go through`
+    : "Level on aggregate";
+
   return (
     <div className="cpu-sim-overlay" onClick={phase === "result" ? confirm : undefined}>
       <div className="cpu-sim-card" onClick={e => e.stopPropagation()}>
@@ -1207,6 +1217,13 @@ function CpuSimOverlay({ draft, homeIdx, awayIdx, seriesCtx, onDone, fast = fals
 
         {phase === "result" && simResult && (
           <div className="cpu-sim-result">
+            {legCtx && (
+              <div className="cpu-sim-agg">
+                <span className="cpu-sim-agg-label">AGG</span>
+                <span className="cpu-sim-agg-score">{aggHome}–{aggAway}</span>
+                {!simResult.penWinner && <span className="cpu-sim-agg-note">{aggNote}</span>}
+              </div>
+            )}
             {simResult.penWinner && (
               <div className="cpu-sim-pens">
                 ⚡ {penWinnerName} win {penEvent?.penScore ? `${penEvent.penScore} ` : ""}on penalties
