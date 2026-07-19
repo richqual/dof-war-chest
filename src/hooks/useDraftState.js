@@ -14,7 +14,7 @@ import {
 } from "./draftUtils";
 import {
   buildScoutLivePool, buildScoutReport, buildScoutFreeAgents, buildScoutMission, scoutBucketForSlot,
-  tierCapsFor, SCOUT_TUNING, randomCpuTenets,
+  reScoutSwap, tierCapsFor, SCOUT_TUNING, randomCpuTenets,
 } from "./scoutUtils";
 
 export { getFormArrow };
@@ -776,13 +776,32 @@ export function useDraftState() {
       const activeIdx = prev.currentOrder[prev.turnIndex];
       const m = prev.managers[activeIdx];
       if ((m.reScoutsLeft ?? 0) <= 0) return prev;
+      const bucket = scoutBucketForSlot(m.formation, prev.positionIndex);
+      const availableSet = prev.availablePlayerIds instanceof Set
+        ? prev.availablePlayerIds
+        : (prev.availablePlayerIds ? new Set(prev.availablePlayerIds) : null);
+      // Tier-preserving identity swap: every shown card becomes a DIFFERENT
+      // same-tier player from the full DB; the rejected ones leave the game and
+      // the fresh ones enter the shared pool (see reScoutSwap). Count + tier mix
+      // are preserved, so scarcity holds.
+      const { reportIds, retireIds, addIds } = reScoutSwap({
+        report: prev.currentReport || [], livePool: prev.livePool, bucket,
+        formation: m.formation, positionIndex: prev.positionIndex,
+        takenIds: prev.takenIds, budget: prev.currentBudget ?? 0,
+        tenets: m.tenets || [], valueOf: scoutValueOf(prev),
+        filterFn: (p) => !availableSet || availableSet.has(p.id),
+        restrictPositions: prev.positionIndex >= 11 ? prev.scoutPosFilter : null,
+      });
+      // Nothing could be swapped (that tier+position is exhausted in the DB) —
+      // don't burn a re-scout on an unchanged hand.
+      if (!retireIds.length) return prev;
       const managers = prev.managers.map((mm, i) => i === activeIdx ? { ...mm, reScoutsLeft: mm.reScoutsLeft - 1 } : mm);
-      const next = { ...prev, managers, ratingsRevealed: false };
-      // Exclude the players currently on show so a re-scout deals a genuinely
-      // fresh hand (still tier-/budget-capped); falls back to the full pool only
-      // if too few others remain — see buildScoutReport.
-      const exclude = new Set((prev.currentReport || []).map(p => p.id));
-      return { ...next, currentReport: computeScoutReport(next, exclude) };
+      const retire = new Set(retireIds);
+      const bucketIds = (prev.livePool[bucket] || []).filter(id => !retire.has(id)).concat(addIds);
+      const livePool = { ...prev.livePool, [bucket]: bucketIds };
+      const takenIds = [...prev.takenIds, ...retireIds]; // rejected players leave for good
+      const next = { ...prev, managers, livePool, takenIds, ratingsRevealed: false };
+      return { ...next, currentReport: reportIds.map(id => resolveScoutPlayer(next, id)) };
     });
   }
 

@@ -41,6 +41,26 @@ function RestartControl({ restartCount, onRestart, isTournament }) {
   );
 }
 
+// Restart button styled for the champion screen (won or lost). Two-tap confirm
+// so a losing finalist can re-run the whole tournament instead of only NEW GAME.
+function ChampRestartButton({ onRestart, isTournament }) {
+  const [confirming, setConfirming] = useState(false);
+  if (!onRestart) return null;
+  if (confirming) {
+    return (
+      <>
+        <button className="bw-champ-btn secondary" onClick={() => setConfirming(false)}>CANCEL</button>
+        <button className="bw-champ-btn restart" onClick={onRestart}>↻ CONFIRM · SQUADS KEPT</button>
+      </>
+    );
+  }
+  return (
+    <button className="bw-champ-btn restart" onClick={() => setConfirming(true)}>
+      ↻ RESTART {isTournament ? "TOURNAMENT" : "SERIES"}
+    </button>
+  );
+}
+
 function teamName(m) {
   return m.teamName || m.clubName || m.name;
 }
@@ -1140,6 +1160,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
             {isHost ? (
               <div className="bw-champ-actions">
                 <button className="bw-champ-btn secondary" onClick={() => setScreen("squads")}>VIEW ALL SQUADS</button>
+                <ChampRestartButton onRestart={canRestart} isTournament={isTournamentFmt} />
                 <button className="bw-champ-btn primary" onClick={restartGame}>NEW GAME →</button>
               </div>
             ) : (

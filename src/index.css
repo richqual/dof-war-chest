@@ -3446,6 +3446,8 @@ html.wc-theme .bw-champ-stage {
 .bw-champ-btn.secondary:hover { border-color: var(--cc-border2); color: var(--cc-text-hi); }
 .bw-champ-btn.primary { background: var(--bw-gold); color: var(--bw-gold-ink); border: none; box-shadow: 0 4px 14px rgba(245,197,66,.28); }
 .bw-champ-btn.primary:hover { filter: brightness(1.05); }
+.bw-champ-btn.restart { background: transparent; color: #e0864a; border: 1px solid #7a4a24; }
+.bw-champ-btn.restart:hover { border-color: #e0864a; background: rgba(224,134,74,0.1); }
 
 /* Champion squad panel */
 .bw-champ-squad {

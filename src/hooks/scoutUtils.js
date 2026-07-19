@@ -475,6 +475,84 @@ export function buildScoutReport({
   return chosen.sort((a, b) => valueOf(b) - valueOf(a)).map(p => p.id); // best value first
 }
 
+// ── Re-scout (tier-preserving identity swap) ──
+//
+// A re-scout is a SWAP, not an injection. Every card currently on show is replaced
+// by a DIFFERENT, still-available player of the SAME TIER, drawn fresh from the
+// full eligible DB (not just the pre-drawn live pool). The rejected players leave
+// the game for good; the fresh ones take their place in the shared live pool, so
+// there's a knock-on for everyone who drafts later.
+//
+// Because a card can only swap for its own tier, the hand's SIZE and TIER MIX are
+// preserved exactly — scarcity is untouched. You can chase a different T1 (Messi
+// over Salah), never a second one; the last picker on scraps only ever re-scouts
+// into DIFFERENT scraps. A tier with no fresh DB candidate left simply keeps its
+// original card — you can't conjure options that don't exist.
+//
+// Replacements stay affordable (value ≤ budget) and honour the game's league/era
+// filter + any per-turn sub position filter, matching how the report was built.
+//
+// Returns { reportIds, retireIds, addIds }:
+//   reportIds – ids for the NEW hand, best value first (same length & tiers as input)
+//   retireIds – outgoing ids to mark taken (removed from the game entirely)
+//   addIds    – incoming ids to splice into the live-pool bucket
+export function reScoutSwap({
+  report, livePool, bucket, formation, positionIndex, takenIds, budget,
+  tenets, valueOf = defaultValueOf, filterFn = () => true, restrictPositions = null,
+}) {
+  const empty = { reportIds: (report || []).map(p => p.id), retireIds: [], addIds: [] };
+  if (!report || !report.length || !bucket) return empty;
+
+  const base = bucketBasePosition(bucket);
+  const posSet = new Set(bucketPositions(
+    base, formation, (positionIndex != null && positionIndex < 11) ? positionIndex : null
+  ));
+  const restrict = restrictPositions instanceof Set
+    ? restrictPositions
+    : (restrictPositions && restrictPositions.length ? new Set(restrictPositions) : null);
+
+  // Everyone already accounted for: taken/retired, plus every player currently
+  // sitting in ANY live-pool bucket (so we never pull a player who's on offer
+  // elsewhere). The outgoing cards are in the bucket too, so they're excluded.
+  const inPlay = new Set(takenIds);
+  for (const ids of Object.values(livePool || {})) for (const id of ids) inPlay.add(id);
+
+  // Fresh, affordable, position-eligible DB candidates, grouped by tier.
+  const candidatesByTier = new Map(TIERS.map(t => [t, []]));
+  for (const p of PLAYERS) {
+    if (!posSet.has(p.pos)) continue;
+    if (restrict && !restrict.has(p.pos)) continue;
+    if (inPlay.has(p.id)) continue;
+    if (!filterFn(p)) continue;
+    if (valueOf(p) > budget) continue;
+    candidatesByTier.get(p.tier)?.push(p);
+  }
+
+  const used = new Set();
+  const reportIds = [], retireIds = [], addIds = [];
+  for (const card of report) {
+    const pool = (candidatesByTier.get(card.tier) || []).filter(p => !used.has(p.id));
+    if (!pool.length) { reportIds.push(card.id); continue; } // scraps stay scraps
+    // Same value-bias + tenet weighting the report uses, so the swap feels native.
+    const weights = pool.map(p => {
+      const bWt = Math.pow(valueOf(p) + 1, SCOUT_TUNING.reportValueBias);
+      const tWt = (tenets || []).some(t => tenetMatches(t, p)) ? SCOUT_TUNING.tenetBiasWeight : 1;
+      return bWt * tWt;
+    });
+    const total = weights.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total, idx = 0;
+    for (; idx < pool.length - 1; idx++) { r -= weights[idx]; if (r <= 0) break; }
+    const pick = pool[idx];
+    used.add(pick.id);
+    reportIds.push(pick.id);
+    retireIds.push(card.id);
+    addIds.push(pick.id);
+  }
+
+  reportIds.sort((a, b) => valueOf(PLAYER_BY_ID.get(b)) - valueOf(PLAYER_BY_ID.get(a)));
+  return { reportIds, retireIds, addIds };
+}
+
 // ── Free agents (the always-on £0 floor) ──
 
 // Genuine free agents: position-eligible, still-available players whose in-game
