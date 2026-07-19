@@ -16,7 +16,7 @@
 //    well-defined: demand = (#slots of that position in the formation) × players.
 
 import { PLAYERS, POSITIONS, SUB_POSITIONS } from "../data/players";
-import { FORMATIONS } from "../data/formations";
+import { FORMATIONS, slotEligibility } from "../data/formations";
 import { shuffle } from "./draftUtils";
 
 // Default value accessor: mid of valueMin/valueMax. Callers with dynamic values
@@ -27,15 +27,15 @@ const defaultValueOf = (p) => p.value ?? Math.round(((p.valueMin ?? 0) + (p.valu
 export const TIERS = ["T1", "T2", "T3", "T4", "T5"];
 
 // Player-facing "range" labels shown on scout cards in place of the raw tier.
-// T1/T2 (elite) → Top, T3 → Middle, T4/T5 → Lower. Free agents get their own
-// "Bargain bucket" label at the call site.
-const TIER_RANGE = {
-  T1: "Top range", T2: "Top range",
-  T3: "Middle range",
-  T4: "Lower range", T5: "Lower range",
-};
-export function tierRangeLabel(tier) {
-  return TIER_RANGE[tier] || "";
+// Derived from the player's RATING (not the stored scarcity tier) so the label
+// never contradicts the number on the card — two 85-rated players always read
+// the same range, even if their authored tiers differ. Free agents get their
+// own "Bargain bucket" label at the call site.
+export function ratingRangeLabel(rating) {
+  const r = rating ?? 0;
+  if (r >= 86) return "Top range";
+  if (r >= 79) return "Middle range";
+  return "Lower range";
 }
 
 const PLAYER_BY_ID = new Map(PLAYERS.map(p => [p.id, p]));
@@ -206,15 +206,27 @@ export function scoutDemand(formation, numPlayers) {
   return demand;
 }
 
-// Candidate master ids for a base position, honouring the game's league/era
-// filter. `base` is a concrete position key (GK/CB/ST…) or a SUB group key
-// (DEFSUB/MIDSUB/WIDSUB/ATTSUB/GKSUB).
-function masterIdsForBucket(base, filterFn) {
-  let accept;
-  if (base === "GKSUB") accept = p => p.pos === "GK";
-  else if (SUB_POSITIONS[base]) accept = p => SUB_POSITIONS[base].includes(p.pos);
-  else accept = p => p.pos === base;
-  return PLAYERS.filter(p => accept(p) && filterFn(p)).map(p => p.id);
+// The set of concrete positions a bucket may draw from. Sub buckets use their
+// SUB group. Starter buckets use the slot's ELIGIBILITY pool from formations.js
+// (natural position + penalised alternatives), so e.g. a 4-4-2 RM/LM slot also
+// pulls RW/LW, and the wing-back / back-three slots in a 3-at-the-back shape
+// pull full-backs. Without a starter slot index we fall back to the bare base
+// position (strict). GK stays strict via its empty eligibility pool.
+function bucketPositions(base, formation, starterSlotIndex) {
+  if (base === "GKSUB") return ["GK"];
+  if (SUB_POSITIONS[base]) return SUB_POSITIONS[base];
+  if (formation != null && starterSlotIndex != null) {
+    const elig = slotEligibility(formation, starterSlotIndex);
+    if (elig?.pool?.length) return elig.pool;
+  }
+  return [base];
+}
+
+// Candidate master ids for a set of positions, honouring the game's league/era
+// filter.
+function masterIdsForPositions(positions, filterFn) {
+  const accept = new Set(positions);
+  return PLAYERS.filter(p => accept.has(p.pos) && filterFn(p)).map(p => p.id);
 }
 
 // The scarce, quantity-controlled tiers (Pool Size dials these). T3–T5 are
@@ -284,6 +296,12 @@ export function buildScoutLivePool(formation, numPlayers, options = {}) {
   const livePool = {};
   const globalUsed = new Set();
 
+  // Map each starter bucket to its slot index so we can resolve its eligibility
+  // pool (same-base starter slots share a base and thus the same pool).
+  const slotOfBucket = new Map(
+    formationStarterBuckets(formation).map((b, i) => [b, i])
+  );
+
   const drawGroup = (buckets, avoidUsed) => {
     // Group by base position so same-position slots draw without overlap.
     const byBase = {};
@@ -291,7 +309,8 @@ export function buildScoutLivePool(formation, numPlayers, options = {}) {
       (byBase[bucketBasePosition(bucket)] ||= []).push(bucket);
     }
     for (const [base, list] of Object.entries(byBase)) {
-      const masterIds = shuffle(masterIdsForBucket(base, filterFn));
+      const positions = bucketPositions(base, formation, slotOfBucket.get(list[0]));
+      const masterIds = shuffle(masterIdsForPositions(positions, filterFn));
       const remaining = new Set(avoidUsed ? masterIds.filter(id => !globalUsed.has(id)) : masterIds);
       for (const bucket of list) {
         const need = demand[bucket];
@@ -417,9 +436,10 @@ export function buildScoutFreeAgents({
   const bucket = scoutBucketForSlot(formation, positionIndex);
   if (!bucket) return [];
   const base = bucketBasePosition(bucket);
+  const positions = bucketPositions(base, formation, positionIndex < 11 ? positionIndex : null);
   const taken = new Set(takenIds);
   const free = [];
-  for (const id of masterIdsForBucket(base, filterFn)) {
+  for (const id of masterIdsForPositions(positions, filterFn)) {
     if (taken.has(id)) continue;
     const p = PLAYER_BY_ID.get(id);
     if (!p || valueOf(p) !== 0) continue;

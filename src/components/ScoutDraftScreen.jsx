@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { POSITIONS, SUB_POSITIONS } from "../data/players";
 import { FORMATIONS, FORMATION_DISPLAY_ORDER } from "../data/formations";
 import { DRAFT_ROULETTE_ERAS, DRAFT_ROULETTE_LEAGUES } from "../hooks/draftUtils";
-import { TIERS, squadTierCounts, tierRangeLabel, SCOUT_TUNING } from "../hooks/scoutUtils";
+import { TIERS, squadTierCounts, ratingRangeLabel, SCOUT_TUNING } from "../hooks/scoutUtils";
 import PlayerCard from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
 import KitSwatch from "./KitSwatch";
@@ -268,7 +268,7 @@ export default function ScoutDraftScreen({
                   const afford = p.value <= budget;
                   return (
                     <div key={p.id} className="scout-card-wrap">
-                      <div className="scout-card-tier">{tierRangeLabel(p.tier)}</div>
+                      <div className="scout-card-tier">{ratingRangeLabel(p.rating)}</div>
                       <PlayerCard
                         player={p}
                         onPick={afford ? pickScoutPlayer : undefined}
@@ -360,7 +360,7 @@ export default function ScoutDraftScreen({
                         const afford = cand.missionCost <= currentBudget;
                         return (
                           <div key={cand.id} className="scout-card-wrap">
-                            <div className="scout-card-tier">{tierRangeLabel(cand.tier)}</div>
+                            <div className="scout-card-tier">{ratingRangeLabel(cand.rating)}</div>
                             <PlayerCard player={cand} canAfford={afford} hideRatings={ratingsHidden} budget={currentBudget} />
                             <div className="scout-mission-cost">
                               Fee: <strong>£{cand.missionCost}m</strong>

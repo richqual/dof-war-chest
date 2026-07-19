@@ -35,7 +35,7 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
   const [formation, setFormation] = useState("4-3-3");
   const [matchType, setMatchType] = useState("series");
   const [seriesLength, setSeriesLength] = useState("bo3");
-  const [hideRatings, setHideRatings] = useState(false);
+  const [hideRatings, setHideRatings] = useState(true);
   const [dynamicValues, setDynamicValues] = useState(true);
   const [tierCaps, setTierCaps] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
