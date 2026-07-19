@@ -127,33 +127,33 @@ export const FORMATIONS = {
 // Standard elig by natural position. Wing-back and back-three slots differ per
 // formation, handled by ELIG_OVERRIDE below (the RM/LM/CB labels mean different
 // things in a 3-at-the-back shape than in a flat four).
-// Wide positions are SIDE-LOCKED: right slots only ever draw from the right
-// chain (RB↔RM↔RW), left slots from the left chain (LB↔LM↔LW) — a left/right
-// swap is never eligible. Central positions (CB/DM/CM/CAM/ST) have no side, so
-// they may reach either wing.
+// Every slot is STRICT to its exact natural position — it draws only players of
+// that position — EXCEPT the wide-mid RM/LM slots. Those are the one genuinely
+// scarce/ambiguous case (the DB has only ~4 RM and ~2 LM), so they broaden to
+// their SAME-SIDE winger to be fillable. Left and right never cross, and no
+// other position gets an out-of-position allowance.
 const ELIG_STD = {
   GK:  [],
-  CB:  [],                        // strict in a back four/five
-  RB:  ["RM"],                    // right chain only
-  LB:  ["LM"],                    // left chain only
-  DM:  ["CM", "CB"],
-  CM:  ["DM", "CAM"],
-  CAM: ["CM", "RW", "LW"],        // central → either wing
-  RM:  ["RW"],                    // orthodox wide mid → right winger only
-  LM:  ["LW"],                    // orthodox wide mid → left winger only
-  RW:  ["RM", "ST", "CAM"],
-  LW:  ["LM", "ST", "CAM"],
-  ST:  ["RW", "LW", "CAM"],       // central striker → either wing
+  CB:  [],
+  RB:  [],
+  LB:  [],
+  DM:  [],
+  CM:  [],
+  CAM: [],
+  RM:  ["RW"],   // scarce wide mid → same-side winger only
+  LM:  ["LW"],   // scarce wide mid → same-side winger only
+  RW:  [],
+  LW:  [],
+  ST:  [],
 };
 
 // Per-formation, per-slot overrides. Keys are slot indices into FORMATIONS.
-// In 3-5-2 / 3-4-3: slots 1&2 (labelled RM/LM) are wing-backs, and the three
-// centre-backs (slots 3,4,5) may be filled by full-backs at a penalty. The
-// wing-backs stay side-locked: right draws RB/RM, left draws LB/LM.
+// In 3-5-2 / 3-4-3 slots 1&2 are the wide RM/LM slots played as WING-BACKS, so
+// (again, only the RM/LM slots get an allowance) they broaden to their same-side
+// FULL-BACK. The three centre-backs stay strict CB via ELIG_STD.
 const WB_R = { natural: "RB", elig: ["RM"] };
 const WB_L = { natural: "LB", elig: ["LM"] };
-const CB3  = { elig: ["RB", "LB"] };
-const BACK_THREE_OVERRIDE = { 1: WB_R, 2: WB_L, 3: CB3, 4: CB3, 5: CB3 };
+const BACK_THREE_OVERRIDE = { 1: WB_R, 2: WB_L };
 const ELIG_OVERRIDE = {
   "3-5-2": BACK_THREE_OVERRIDE,
   "3-4-3": BACK_THREE_OVERRIDE,

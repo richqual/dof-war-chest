@@ -258,14 +258,13 @@ export default function ScoutDraftScreen({
             {isSubSlot && setScoutFilter && (() => {
               const group = SUB_POSITIONS[currentPos.key] || [];
               if (group.length <= 1) return null; // GK sub — nothing to narrow
-              const active = draft.scoutPosFilter; // null = whole group
+              const active = draft.scoutPosFilter; // null = whole group (all on)
+              // When no explicit filter, every position is on (ALL lit too).
               const isOn = (pos) => !active || active.includes(pos);
               const toggle = (pos) => {
-                // From ALL, clicking a position scouts for THAT position only.
-                if (!active) { setScoutFilter([pos]); return; }
-                const base = active.filter(p => group.includes(p));
+                const base = active ? active.filter(p => group.includes(p)) : [...group];
                 const next = base.includes(pos) ? base.filter(p => p !== pos) : [...base, pos];
-                // Empty or full selection both mean "scout the whole group".
+                // Empty or full selection both mean "scout the whole group" (ALL on).
                 setScoutFilter(next.length === 0 || next.length === group.length ? null : next);
               };
               return (
@@ -278,7 +277,7 @@ export default function ScoutDraftScreen({
                   {group.map(pos => (
                     <button
                       key={pos}
-                      className={`scout-filter-pill ${active && isOn(pos) ? "on" : ""}`}
+                      className={`scout-filter-pill ${isOn(pos) ? "on" : ""}`}
                       onClick={() => toggle(pos)}
                     >{pos}</button>
                   ))}
