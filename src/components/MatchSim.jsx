@@ -2033,12 +2033,14 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
   const motmPlayer = done && result ? [...result.ratings.home, ...result.ratings.away].find(r => r.motm) : null;
 
   // On leg 2 of a two-legged tie the scoreline on the night doesn't decide
-  // anything — the aggregate does. Running totals are shown live under the
-  // score, and the full-time badge reports who actually goes through rather
-  // than calling an aggregate-decided tie a "DRAW".
+  // anything — the aggregate does. It's shown the way football (and this app's
+  // own tournament bracket) writes it: the score on the night with the running
+  // aggregate in brackets after it, per side. The full-time badge reports who
+  // actually goes through rather than calling an aggregate-decided tie a "DRAW".
   const legCtx = seriesContext?.legContext ?? null;
   const aggNowHome = legCtx ? currentScore.home + legCtx.homeAgg : null;
   const aggNowAway = legCtx ? currentScore.away + legCtx.awayAgg : null;
+  const showAgg = !!legCtx && (simulating || done);
 
   let winText;
   if (legCtx && done && result) {
@@ -2053,12 +2055,6 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
   // Only style it as a draw when the tie really is unresolved.
   const showDrawStyle = drewMatch && winText === "DRAW";
 
-  let aggNote = "";
-  if (legCtx && (simulating || done)) {
-    if (aggNowHome > aggNowAway) aggNote = `${homeName} ${done ? "go through" : "lead"}`;
-    else if (aggNowAway > aggNowHome) aggNote = `${awayName} ${done ? "go through" : "lead"}`;
-    else aggNote = "Level on aggregate";
-  }
   const ftStats = done && result ? [
     { label: "SHOTS", h: result.stats.hShots, a: result.stats.aShots },
     { label: "ON TARGET", h: result.stats.hOnTarget, a: result.stats.aOnTarget },
@@ -2105,7 +2101,10 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
             <KitSwatch primary={homeManager.primaryColor} secondary={homeManager.secondaryColor} pattern={homeManager.pattern} uid="mh" size={14} />
           </div>
           <div className="bw-match-score-center">
-            <span className="bw-match-score">{simulating || done ? currentScore.home : "–"}</span>
+            <span className="bw-match-score">
+              {simulating || done ? currentScore.home : "–"}
+              {showAgg && <span className="bw-match-score-agg">({aggNowHome})</span>}
+            </span>
             <div className="bw-match-status-mid">
               {penPaused ? <span className="bw-match-status-word">PENS</span>
                 : simulating ? (paused
@@ -2114,7 +2113,10 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
                 : done ? <span className="bw-match-status-word">FT</span>
                 : <span className="bw-match-status-word">VS</span>}
             </div>
-            <span className="bw-match-score">{simulating || done ? currentScore.away : "–"}</span>
+            <span className="bw-match-score">
+              {simulating || done ? currentScore.away : "–"}
+              {showAgg && <span className="bw-match-score-agg">({aggNowAway})</span>}
+            </span>
           </div>
           <div className="bw-match-team away">
             <KitSwatch primary={awayManager.primaryColor} secondary={awayManager.secondaryColor} pattern={awayManager.pattern} uid="ma" size={14} />
@@ -2122,13 +2124,6 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
           </div>
         </div>
 
-        {legCtx && (simulating || done) && (
-          <div className="bw-match-agg">
-            <span className="bw-match-agg-label">AGG</span>
-            <span className="bw-match-agg-score">{aggNowHome}–{aggNowAway}</span>
-            <span className="bw-match-agg-note">{aggNote}</span>
-          </div>
-        )}
 
         {penPaused && simulating && isHost && (
           <button className="bw-match-cta pens" onClick={() => { setPenPaused(false); runFeed(speedRef.current); }}>

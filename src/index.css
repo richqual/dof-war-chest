@@ -4524,30 +4524,14 @@ html.wc-theme .bw-roulette-team { background: linear-gradient(90deg, #2a1610, #2
   text-shadow: 0 0 8px rgba(245,197,66,.4);
   margin-bottom: 18px;
 }
-/* Aggregate line on leg 2 of a two-legged tie — the score above is only the
-   night's result, this is what actually decides the tie. */
-.cpu-sim-agg {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--bw-border);
-}
-.cpu-sim-agg-label {
-  font: 700 9px var(--bw-font-display);
-  letter-spacing: .2em;
-  color: var(--bw-text-low);
-}
-.cpu-sim-agg-score {
-  font: 700 17px var(--bw-font-display);
-  color: var(--bw-gold);
-}
-.cpu-sim-agg-note {
-  font: 400 12px var(--bw-font-body);
+/* Aggregate in brackets after each side's score on leg 2 of a two-legged tie,
+   matching the tournament bracket's notation. Sized down and dimmed so the
+   night's scoreline still reads as the headline number. */
+.cpu-sim-score-agg {
+  font-size: .5em;
   color: var(--bw-text-mid);
+  margin-left: .12em;
+  vertical-align: super;
 }
 
 /* Shown only while fast-forwarding through CPU ties, with the escape hatch. */
@@ -5588,22 +5572,14 @@ html.light-mode .bw-wc-stage {
 .bw-match-series-label { font: 600 9px var(--bw-font-display); letter-spacing: .2em; color: var(--bw-text-low); margin: 6px 0 8px; }
 .bw-match-series-standing { font-size: 11px; color: var(--bw-text-mid); letter-spacing: .04em; margin-bottom: 8px; }
 
-/* Running aggregate under the scoreline, leg 2 of a two-legged tie only. */
-.bw-match-agg {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 8px;
+/* Running aggregate in brackets after each side's score, leg 2 of a two-legged
+   tie only — same notation as the tournament bracket. */
+.bw-match-score-agg {
+  font-size: .45em;
+  color: var(--bw-text-mid);
+  margin-left: .1em;
+  vertical-align: super;
 }
-.bw-match-agg-label {
-  font: 700 9px var(--bw-font-display);
-  letter-spacing: .2em;
-  color: var(--bw-text-low);
-}
-.bw-match-agg-score { font: 700 16px var(--bw-font-display); color: var(--bw-gold); }
-.bw-match-agg-note { font: 400 12px var(--bw-font-body); color: var(--bw-text-mid); }
 .bw-match-score-row { display: flex; align-items: center; justify-content: center; gap: 14px; }
 .bw-match-team { flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
 .bw-match-team.home { justify-content: flex-end; }
