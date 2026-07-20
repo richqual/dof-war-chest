@@ -1374,6 +1374,13 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
   const needsET = !isLeg1 && !isRegularSeriesMatch && !skipToShootout && (legContext ? aggHome() === aggAway() : hGoals === aGoals);
   const needsShootout = skipToShootout && hGoals === aGoals;
 
+  // Extra time is two 15-minute halves — 90 + 30 = 120, not the single 15
+  // minute block this used to add, which ended level games at 105'. Derived
+  // from the match length rather than hardcoded so the shorter formats
+  // (5-a-side, reduced-length knockouts) scale instead of playing a full
+  // real-world half hour on top of a 20 minute game.
+  const extraTimeLength = Math.max(2, Math.round(matchMinutes / 3));
+
   if (needsShootout) {
     etEvents.push({ min: matchMinutes, type: "commentary", text: `FULL TIME — ${hGoals}–${aGoals}. It's level — straight to penalties!`, penStartPause: true });
   }
@@ -1383,7 +1390,7 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
       ? `FULL TIME — ${hGoals}–${aGoals} on the night. ${aggHome()}–${aggAway()} on aggregate. EXTRA TIME!`
       : `FULL TIME — ${hGoals}–${aGoals}. Extra time!`;
     etEvents.push({ min: matchMinutes, type: "commentary", text: ftNote });
-    const etEnd = matchMinutes + 15;
+    const etEnd = matchMinutes + extraTimeLength;
     const etQ = Math.floor((etEnd - matchMinutes) / 4);
     const etMinutes = [
       rand(matchMinutes + 1, matchMinutes + etQ),
@@ -1426,14 +1433,25 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
 
     const stillLevel = legContext ? aggHome() === aggAway() : finalHome === finalAway;
     if (stillLevel) {
-      etEvents.push({ min: matchMinutes + 15, type: "commentary", text: `FULL TIME EXTRA TIME — ${finalHome}–${finalAway}. PENALTY SHOOTOUT!`, penStartPause: true });
+      etEvents.push({ min: matchMinutes + extraTimeLength, type: "commentary", text: `FULL TIME EXTRA TIME — ${finalHome}–${finalAway}. PENALTY SHOOTOUT!`, penStartPause: true });
+    } else {
+      // Decided in extra time — still blow the whistle, otherwise the feed just
+      // stops on whatever the last incident was and the clock appears to end
+      // early (e.g. at 112' rather than 120').
+      etEvents.push({
+        min: matchMinutes + extraTimeLength,
+        type: "commentary",
+        text: legContext
+          ? `FULL TIME EXTRA TIME — ${finalHome}–${finalAway} on the night. ${aggHome()}–${aggAway()} on aggregate.`
+          : `FULL TIME EXTRA TIME — ${finalHome}–${finalAway}.`,
+      });
     }
   }
 
   // Penalties: reached either after ET (still level) or directly (skipToShootout)
   const afterETLevel = needsET && (legContext ? aggHome() === aggAway() : finalHome === finalAway);
   if (afterETLevel || needsShootout) {
-    const penMin = needsShootout ? matchMinutes : matchMinutes + 15;
+    const penMin = needsShootout ? matchMinutes : matchMinutes + extraTimeLength;
 
     // Success scales gently with the taker's finishing — a stacked attack still
     // has to convert its pens, but it's no longer a flat coin flip for everyone.
