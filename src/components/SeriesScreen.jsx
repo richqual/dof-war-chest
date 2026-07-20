@@ -561,8 +561,10 @@ function TournamentBracket({ series, managers, nextMatchup }) {
 
   const clamped = Math.min(active, rounds.length - 1);
 
+  // Round count drives the widescreen sizing — a 4-team bracket is two columns,
+  // not three, and would otherwise stretch its cards across the full frame.
   return (
-    <div className="bw-bracket-wrap">
+    <div className={`bw-bracket-wrap bw-bracket-rounds-${rounds.length}`}>
       {/* Mobile-only round pager. Hidden on widescreen, where the whole
           bracket is on screen and there is nothing to page through. */}
       {rounds.length > 1 && (
@@ -1437,7 +1439,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
           onRestart={canRestart}
         />
       ) : (
-        <div className="bw-series-frame bw-series-frame-bracket">
+        <div className={`bw-series-frame bw-series-frame-bracket bw-series-frame-r${series.quarters?.length ? 3 : 2}`}>
           <div className="bw-banner">
             <div className="bw-banner-title">{formatLabel}</div>
             {nextMatchup && (

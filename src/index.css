@@ -234,6 +234,10 @@ html.wc-theme {
 @media (min-width: 900px) {
   .bw-series-frame { max-width: 560px; }
   .bw-series-frame.bw-series-frame-bracket { max-width: 1000px; }
+  /* A 4-team tournament is two columns rather than three, so the whole panel
+     narrows — otherwise the bracket sits centred in a 1000px frame while the
+     action buttons underneath still run the full width. */
+  .bw-series-frame.bw-series-frame-r2 { max-width: 720px; }
 }
 
 /* Manager draft (Tier-2): the offered gaffer cards spread 2-up instead of a tall
@@ -2021,6 +2025,13 @@ html.wc-theme .bw-draft-banner { background: linear-gradient(90deg, #2a1610, #24
   /* The final is a single tie, so it keeps the same full-height band its two
      feeders map onto — no extra centring, or the 25/75 arms stop lining up. */
   .bw-bracket-round-final { flex: 0 0 34%; }
+
+  /* A 4-team tournament is only two columns (semis + final), so the final gets
+     a bigger share than it does in a three-column bracket — at 34% the semis
+     column would take the rest and stretch its cards, stranding the score miles
+     from the team name. 45% lands both columns at roughly the card width an
+     8-team bracket produces. Panel width is handled by .bw-series-frame-r2. */
+  .bw-bracket-rounds-2 .bw-bracket-round-final { flex: 0 0 45%; }
 }
 
 /* Final tie: gold-forward so the decider still reads as the headline. */
