@@ -6,7 +6,7 @@
 
 - **Live app:** https://transfer-game.vercel.app
 - **Repo:** https://github.com/richqual/dof-war-chest
-- **Current version:** `3.9.68` (see `APP_VERSION` in `src/App.jsx`)
+- **Current version:** `4.2.30` (see `APP_VERSION` in `src/App.jsx`)
 - **Project root:** `/Users/richqual/Documents/Transfer Game/transfer-game/`
 
 ## Contents
@@ -17,6 +17,8 @@
 - [[Data Model]] — players, managers, formations, the draft object
 - [[State & Persistence]] — hooks, localStorage, save/resume
 - [[Multiplayer]] — Firebase real-time sync
+- [[Draw Board]] — what everyone spun and signed, round by round
+- [[Bug Fixes]] — non-obvious bugs and what actually caused them
 - [[Roadmap]] — planning, ideas, and what's shipped
 - [[Version History]] — the story of the build, v1 → now
 

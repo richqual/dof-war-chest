@@ -28,8 +28,8 @@ mode-select → lobby (setup) → [draft-roulette] → order-draw
 | `order-draw` | `OrderDrawScreen.jsx` | Decide pick order |
 | `player-pool` | `PlayerPoolScreen.jsx` | Browse the available player pool |
 | `manager-draft` | `ManagerDraftScreen.jsx` | Draft a manager / Director of Football (timing before or after squad draft) |
-| `draft` | `DraftScreen.jsx` | **Main draft** — spin budget wheel, pick a player per slot |
-| `squads` | `SquadScreen.jsx` | Arrange formation (SVG pitch), bench swaps, review, export |
+| `draft` | `DraftScreen.jsx` | **Main draft** — spin budget wheel, pick a player per slot. Carries the live [[Draw Board]] + its left-edge pull-tab |
+| `squads` | `SquadScreen.jsx` | Arrange formation (SVG pitch), bench swaps, review, export. "▤ VIEW THE FULL DRAW" opens the [[Draw Board]] post-draft |
 
 ### Spin & Position wheels
 - `SpinWheel.jsx` — the **budget wheel** (weighted wedges = the odds). Physically drag/flick-spinnable via `useSpinnableWheel.js`; physics decides where it lands, which stays fair because the wedges *are* the probabilities.
