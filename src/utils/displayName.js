@@ -13,8 +13,13 @@ const PARTICLES = new Set([
 export function lastName(fullName) {
   if (!fullName) return "";
   const parts = fullName.trim().split(/\s+/);
-  // Drop trailing suffixes ("Jr", "III", ...).
-  while (parts.length > 1 && SUFFIXES.has(parts[parts.length - 1].toLowerCase())) {
+  // Drop trailing suffixes ("Jr", "III", ...) and parenthesised qualifiers used
+  // to tell same-named players apart ("Ronaldo (R9)" → "Ronaldo", not "(R9)").
+  while (
+    parts.length > 1 &&
+    (SUFFIXES.has(parts[parts.length - 1].toLowerCase()) ||
+      /^\(.*\)$/.test(parts[parts.length - 1]))
+  ) {
     parts.pop();
   }
   // Start from the last remaining word and absorb any preceding particles.

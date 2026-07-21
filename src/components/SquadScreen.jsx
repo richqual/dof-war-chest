@@ -5,6 +5,7 @@ import { FORMATIONS, FORMATION_LIST } from "../data/formations";
 import { TIER_LABELS, TIER_COLORS, TIER_BG } from "../data/managers";
 import { ARCHETYPE_COLOR } from "./PlayerCard";
 import { getFormArrow } from "../hooks/useDraftState";
+import DrawPanel from "./DrawPanel";
 import KitSwatch, { kitAccent, readableTextOn } from "./KitSwatch";
 import { lastName } from "../utils/displayName";
 
@@ -555,6 +556,7 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
 
 export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setTactics, setFormation, setCaptain, restartGame, setScreen, onBackToSeries, onManagerDraft, onSaveSquad, saveState }) {
   const [viewIdx, setViewIdx] = useState(null);
+  const [drawOpen, setDrawOpen] = useState(false);
   const { managers } = draft;
 
   // Captain is persisted on each manager (manager.captainId). When unset, fall
@@ -608,7 +610,18 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
         <div className="bw-draft-trophy">🏆</div>
         <h2 className="bw-draft-title">DRAFT COMPLETE</h2>
         <p className="bw-draft-sub">Select a squad to adjust your starting XI and tactics</p>
+        {/* Only offered when there's a log to show — drafts saved before the
+            board existed have no pickLog and would open an empty grid. */}
+        {(draft.pickLog || []).length > 0 && (
+          <button className="bw-draft-draw-btn" onClick={() => setDrawOpen(true)}>
+            ▤ VIEW THE FULL DRAW
+          </button>
+        )}
       </div>
+
+      {drawOpen && (
+        <DrawPanel draft={draft} open fullOnly onClose={() => setDrawOpen(false)} />
+      )}
 
       <div className="bw-draft-cards">
         {managers.map((m, i) => {

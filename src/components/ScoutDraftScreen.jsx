@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { POSITIONS, SUB_POSITIONS } from "../data/players";
 import { FORMATIONS, FORMATION_DISPLAY_ORDER } from "../data/formations";
 import { DRAFT_ROULETTE_ERAS, DRAFT_ROULETTE_LEAGUES } from "../hooks/draftUtils";
@@ -7,8 +7,13 @@ import PlayerCard from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
 import KitSwatch from "./KitSwatch";
 import MySquadPanel from "./MySquadPanel";
+import DrawBoard, { roundLabel } from "./DrawBoard";
+import DrawPanel from "./DrawPanel";
 
-const CPU_SKIP_DELAY = 1100;
+// Pace between single CPU picks — deliberately unhurried, since the whole
+// point is that you can read each signing as it lands. Anyone who doesn't want
+// to wait has SKIP, which fills the rest of the board instantly.
+const CPU_STEP_DELAY = 1600;
 
 // Sub slots (11..15) are the only place a scouting mission is allowed.
 const SUB_LABELS = { GKSUB: "GKS", DEFSUB: "DEF", MIDSUB: "MID", WIDSUB: "WID", ATTSUB: "ATT" };
@@ -24,7 +29,7 @@ const POS_LABELS = {
 export default function ScoutDraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
   confirmScoutBudget, pickScoutPlayer, reScout, dismissReScoutNotice, revealScoutRatings, setScoutFilter, commissionMission, confirmMission,
-  scoutSkipCpuTurns, respin, getTakenPlayers, freeAgents = [],
+  scoutSkipCpuTurns, scoutStepCpuTurn, respin, getTakenPlayers, freeAgents = [],
   myTurn = true,
 }) {
   useEffect(() => { window.scrollTo(0, 0); }, []);
@@ -45,13 +50,54 @@ export default function ScoutDraftScreen({
   const [missionMiss, setMissionMiss] = useState(false);
   const [bargainOpen, setBargainOpen] = useState(false);
   const [reScoutMenuOpen, setReScoutMenuOpen] = useState(false);
+  const [drawOpen, setDrawOpen] = useState(false);
+  // Draw-board review acknowledgements live in refs: they must survive re-renders
+  // (a stale value would re-show a gate already tapped through) but they are not
+  // render inputs themselves. `null` = uninitialised, so resuming a saved draft
+  // adopts its position rather than re-gating a round already seen.
+  const ackRoundRef = useRef(null);
+  const ackPicksRef = useRef(0);
+  // After a run of CPU picks, hold on the finished board until the manager taps
+  // CONTINUE — otherwise the last signing is on screen for a single frame
+  // before the wheel replaces it.
+  // Mid-round hold: CPUs have signed since you last looked and now you're up.
+  // Derived from the pick log rather than tracked with a flag, so it can't drift
+  // out of sync with what actually landed.
+  const roundPicks = (draft.pickLog || []).filter(e => e.positionIndex === positionIndex);
+  const reviewPending =
+    !isCpuTurn && myTurn && roundPicks.length > 0 &&
+    ackPicksRef.current < (draft.pickLog || []).length;
 
-  // Auto-run CPU turns (batch) after a short beat for readability.
+  // Round boundary: hold on the COMPLETED round's board until the manager taps
+  // through, whether the round ended on a CPU pick or the human's.
+  //
+  // Derived, not stored: every round below positionIndex is finished by
+  // definition, so the gate is simply "the newest finished round the manager
+  // hasn't acknowledged". A stored flag set from a render-phase comparison
+  // loses the boundary when SKIP crosses it in a single state update — the
+  // whole batch (finish this round + run the next one) lands as one change.
+  const [ackTick, setAckTick] = useState(0); // re-render trigger after an ack is written
+  // A fresh or restarted draft rewinds the acknowledgement, and resuming a
+  // saved draft mid-way adopts where it left off rather than re-gating.
+  if (ackRoundRef.current === null || positionIndex - 1 < ackRoundRef.current) {
+    ackRoundRef.current = positionIndex - 1;
+    ackPicksRef.current = (draft.pickLog || []).length;
+  }
+  const roundReview =
+    draft.phase !== "complete" && positionIndex - 1 > ackRoundRef.current ? positionIndex - 1 : null;
+
+  // Step CPU turns ONE pick at a time so each signing lands on the draw board
+  // where it can be read. The batch skip is still a button away.
   useEffect(() => {
-    if (!isCpuTurn || !scoutSkipCpuTurns) return;
-    const t = setTimeout(() => scoutSkipCpuTurns(), CPU_SKIP_DELAY);
+    if (!isCpuTurn) return;
+    // Freeze the draft behind a review gate — otherwise the next round's CPUs
+    // would pick away underneath the board the manager is still reading.
+    if (roundReview !== null) return;
+    const step = scoutStepCpuTurn || scoutSkipCpuTurns;
+    if (!step) return;
+    const t = setTimeout(() => step(), CPU_STEP_DELAY);
     return () => clearTimeout(t);
-  }, [isCpuTurn, activeManagerIdx, positionIndex, turnIndex]); // eslint-disable-line
+  }, [isCpuTurn, activeManagerIdx, positionIndex, turnIndex, roundReview]); // eslint-disable-line
 
   // Reset the mission panel whenever the turn/slot changes (adjust-state-on-prop-
   // change during render — React's recommended pattern over a setState effect).
@@ -100,6 +146,13 @@ export default function ScoutDraftScreen({
 
   return (
     <div className="bw-draft-screen scout-draft">
+      <DrawPanel
+        draft={draft}
+        open={drawOpen}
+        onOpen={() => setDrawOpen(true)}
+        onClose={() => setDrawOpen(false)}
+      />
+
       {viewingSquadIdx !== null && managers[viewingSquadIdx] && (
         <MySquadPanel
           manager={managers[viewingSquadIdx]}
@@ -205,15 +258,56 @@ export default function ScoutDraftScreen({
 
       {/* Main area */}
       <div className="draft-main">
-        {isCpuTurn ? (
+        {roundReview !== null ? (
           <div className="bw-cpu-area">
-            <span className="bw-badge-pill bw-badge-pill-human">CPU TURN</span>
-            <div className="bw-cpu-name">{activeManager?.clubName || activeManager?.name}</div>
-            <div className="bw-cpu-status">Reading their scout report…</div>
-            <div className="bw-cpu-dots"><span>●</span><span>●</span><span>●</span></div>
-            {scoutSkipCpuTurns && (
+            <span className="bw-badge-pill bw-badge-pill-human">ROUND COMPLETE</span>
+            <div className="bw-cpu-name">{roundLabel(draft, roundReview)}</div>
+            <div className="bw-cpu-status">Every club has signed. Here's how the round went.</div>
+            <div className="bw-draw-live">
+              <DrawBoard draft={draft} round={roundReview} />
+            </div>
+            <button
+              className="bw-cta-primary"
+              style={{ marginTop: "1.2rem", width: "auto" }}
+              onClick={() => {
+                ackRoundRef.current = roundReview;
+                ackPicksRef.current = (draft.pickLog || []).length;
+                setAckTick(t => t + 1);
+              }}
+            >
+              CONTINUE →
+            </button>
+          </div>
+        ) : isCpuTurn || reviewPending ? (
+          <div className="bw-cpu-area">
+            <span className="bw-badge-pill bw-badge-pill-human">
+              {reviewPending ? "ROUND SO FAR" : "CPU TURN"}
+            </span>
+            <div className="bw-cpu-name">
+              {reviewPending ? "You're up next" : (activeManager?.clubName || activeManager?.name)}
+            </div>
+            <div className="bw-cpu-status">
+              {reviewPending ? "Here's how the round's gone so far." : "Reading their scout report…"}
+            </div>
+            {/* The wait IS the draw board — you watch the pool drain in real
+                time instead of staring at thinking dots. */}
+            <div className="bw-draw-live">
+              <DrawBoard draft={draft} />
+            </div>
+            {reviewPending ? (
+              <button
+                className="bw-cta-primary"
+                style={{ marginTop: "1.2rem", width: "auto" }}
+                onClick={() => {
+                  ackPicksRef.current = (draft.pickLog || []).length;
+                  setAckTick(t => t + 1);
+                }}
+              >
+                CONTINUE →
+              </button>
+            ) : scoutSkipCpuTurns && (
               <button className="bw-cta-secondary" style={{ marginTop: "1.2rem", width: "auto" }} onClick={scoutSkipCpuTurns}>
-                ⏭ SKIP CPU
+                ⏭ SKIP TO END OF ROUND
               </button>
             )}
           </div>

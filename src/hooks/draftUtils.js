@@ -153,6 +153,14 @@ export function currentEligPool(d) {
   return e ? e.pool : null;
 }
 
+// Roll a CPU's budget, keeping the RAW wheel value alongside the spendable
+// total. Without this the two are indistinguishable downstream, and a spin
+// plus a big carryover reads as an impossible wheel result on the draw board.
+export function rollBudget(d, carry) {
+  const spun = generateBudget(d.difficulty);
+  return { currentBudget: spun + carry, currentSpun: spun };
+}
+
 export function applyPick(d, player) {
   const activeIdx = d.currentOrder[d.turnIndex];
   const budget = d.currentBudget ?? 0;
@@ -170,19 +178,21 @@ export function applyPick(d, player) {
   });
 
   const takenIds = player ? [...d.takenIds, player.id] : d.takenIds;
+  const pickLog = [...(d.pickLog || []), buildPickEntry(d, player, activeIdx, budget, isRandomStarter)];
   const n = d.currentOrder.length;
   const newTurnIndex = d.turnIndex + 1;
 
   if (newTurnIndex >= n) {
     const newPositionIndex = d.positionIndex + 1;
     if (newPositionIndex >= POSITIONS.length) {
-      return { ...d, managers, takenIds, positionIndex: newPositionIndex, phase: "complete", currentSlot: null };
+      return { ...d, managers, takenIds, pickLog, positionIndex: newPositionIndex, phase: "complete", currentSlot: null };
     }
     const newRound = d.round + 1;
     return {
       ...d,
       managers,
       takenIds,
+      pickLog,
       positionIndex: newPositionIndex,
       turnIndex: 0,
       round: newRound,
@@ -193,7 +203,38 @@ export function applyPick(d, player) {
       phase: "draft",
     };
   }
-  return { ...d, managers, takenIds, turnIndex: newTurnIndex, currentBudget: null, noCarryoverNext: false, currentSlot: null };
+  return { ...d, managers, takenIds, pickLog, turnIndex: newTurnIndex, currentBudget: null, noCarryoverNext: false, currentSlot: null };
+}
+
+// One row of the draw board. Denormalised on purpose: name/rating/value are copied
+// in rather than resolved later, because Scout's shared pool depletes as the draft
+// runs and a player id alone may no longer resolve by the time the board renders.
+// A null player is a genuine outcome (nothing affordable left), not an error — it
+// logs as a skip so the board can show it rather than leaving a silent gap.
+function buildPickEntry(d, player, managerIdx, budget, isRandomStarter) {
+  const slot = (isRandomStarter && d.currentSlot !== null && d.currentSlot !== undefined)
+    ? d.currentSlot
+    : d.positionIndex;
+  const m = d.managers[managerIdx];
+  return {
+    round: d.round,
+    positionIndex: d.positionIndex,
+    slot,
+    slotPos: formationPos(m?.formation || "4-3-3", slot),
+    managerIdx,
+    // `spun` is the raw wheel result; `budget` is what they could actually
+    // spend (spin + carryover from earlier rounds). They diverge whenever
+    // someone banks money, and only `spun` is a possible wheel value.
+    spun: d.currentSpun ?? budget,
+    budget,
+    spent: player ? player.value : 0,
+    carry: d.noCarryoverNext ? 0 : budget - (player ? player.value : 0),
+    playerId: player ? player.id : null,
+    name: player ? player.name : null,
+    pos: player ? player.pos : null,
+    rating: player ? player.rating : null,
+    tier: player ? (player.tier ?? null) : null,
+  };
 }
 
 const FORMAT_TARGETS = { bo3: 2, bo5: 3, bo7: 4, single: 1 };
@@ -482,6 +523,7 @@ export function buildInitialDraft(clubs, options = {}) {
     currentOrder: initialOrder,
     snakeOrder: initialOrder,
     takenIds: [],
+    pickLog: [],
     availablePlayerIds,
     poolIds,
     playerValues,
@@ -624,6 +666,7 @@ export function buildInitialWarChestDraft(clubs, options = {}) {
     wcBuildOrder: null,
     wcBuildCursor: 0,
     takenIds: [],
+    pickLog: [],
     availablePlayerIds,
     playerValues,
     playerForm,

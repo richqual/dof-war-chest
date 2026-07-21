@@ -1,7 +1,7 @@
 import { PLAYERS, SUB_POSITIONS, generateBudget, chooseCpuPick } from "../data/players";
 import {
   serializeDraft, deserializeDraft,
-  applyPick, buildInitialDraft,
+  applyPick, rollBudget, buildInitialDraft,
   availablePlayersFor, getPlayersFromState, currentEligPool,
   autoDrawSlot, resolveCurrentPosKey, resolveCurrentPos,
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder,
@@ -135,6 +135,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
     const next = {
       ...draft,
       currentBudget: spunVal + carry,
+        currentSpun: spunVal,
       managers: draft.managers.map((m, i) =>
         i === activeManagerIdx ? { ...m, carryover: 0 } : m
       ),
@@ -171,6 +172,43 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
     await setDraftAndScreen({ ...draft, currentBudget: null, noCarryoverNext: true }, screen);
   }
 
+  // Advance a CPU turn by exactly ONE visible beat — draw the slot, roll the
+  // budget, or make the pick — then write it. The draft screen calls this on a
+  // timer so online CPU turns play out at the same pace as they do offline.
+  //
+  // It exists because the ordinary confirmSlot/confirmBudget/pickPlayer handlers
+  // are all `isMyTurn`-guarded, and on a CPU turn no client's slot is the active
+  // one — so the screen's own CPU effect can't move the draft along online.
+  // Host-only, like every other CPU path here, so the beat is written once.
+  async function stepCpuTurn() {
+    if (!isHost || !draft) return;
+    const activeIdx = draft.currentOrder[draft.turnIndex];
+    if (!draft.managers[activeIdx]?.isComputer) return;
+
+    const drawn = autoDrawSlot(draft);
+    if (drawn !== draft) return setDraftAndScreen(drawn, screen);
+
+    if (draft.currentBudget === null) {
+      const carry = draft.noCarryoverNext ? 0 : (draft.managers[activeIdx]?.carryover || 0);
+      return setDraftAndScreen({
+        ...draft,
+        ...rollBudget(draft, carry),
+        managers: draft.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
+      }, screen);
+    }
+
+    const posKey = resolveCurrentPosKey(draft);
+    const pick = chooseCpuPick(getPlayersFromState(draft, posKey), draft.currentBudget, posKey);
+    // Nothing affordable — drop the budget and re-roll rather than stall the draft.
+    const next = pick
+      ? applyPick(draft, pick)
+      : { ...draft, currentBudget: null, noCarryoverNext: true };
+    const nextScreen = next.phase === "complete"
+      ? (next.managerTiming === "before" ? "squads" : "manager-draft")
+      : screen;
+    await setDraftAndScreen(next, nextScreen);
+  }
+
   // Host runs CPU turns
   async function skipCpuTurns() {
     if (!isHost || !draft) return;
@@ -184,7 +222,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
         const carry = d.noCarryoverNext ? 0 : (d.managers[activeIdx]?.carryover || 0);
         d = {
           ...d,
-          currentBudget: generateBudget(d.difficulty) + carry,
+          ...rollBudget(d, carry),
           managers: d.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
         };
       }
@@ -213,7 +251,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
         const carry = d.noCarryoverNext ? 0 : (d.managers[activeIdx]?.carryover || 0);
         d = {
           ...d,
-          currentBudget: generateBudget(d.difficulty) + carry,
+          ...rollBudget(d, carry),
           managers: d.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
         };
       }
@@ -600,6 +638,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
     respin,
     autoCompleteDraft,
     skipCpuTurns,
+    stepCpuTurn,
     completeDraw,
     recordMatchResult,
     assignManagers,

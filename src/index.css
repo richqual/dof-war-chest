@@ -6523,3 +6523,189 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
 .scout-tenet-name { font-weight: 800; font-size: 0.95rem; color: var(--green-l); }
 .scout-tenet-desc { font-size: 0.75rem; color: var(--text2); }
 .scout-tenet-card select { margin-top: 6px; padding: 5px 6px; background: var(--bg3); color: var(--text); border: 1px solid var(--border); border-radius: 4px !important; font-size: 0.78rem; }
+
+/* ── DRAW BOARD — what everyone spun and who they took ──────────────────── */
+/* Two densities off one component: .bw-draw-round is the panel-sized live
+   view (one round), .bw-draw-full is the standalone rounds x managers grid.
+   Every radius here needs !important — index.css resets border-radius to 0
+   globally, so an unqualified radius silently renders square. */
+.bw-draw-board { display: flex; flex-direction: column; width: 100%; color: var(--bw-text-hi); }
+
+/* Round nav */
+.bw-draw-nav {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  padding: 8px 4px 10px;
+}
+.bw-draw-nav-label {
+  font: 600 13px var(--bw-font-display); color: var(--bw-gold);
+  letter-spacing: .04em; text-transform: uppercase; min-width: 140px; text-align: center;
+}
+.bw-draw-nav-btn {
+  background: var(--bw-raised); border: 1px solid var(--bw-border);
+  color: var(--bw-text-hi); width: 26px; height: 26px; line-height: 1;
+  font-size: 15px; cursor: pointer;
+  border-radius: var(--bw-radius-chip) !important;
+}
+.bw-draw-nav-btn:disabled { opacity: .3; cursor: default; }
+
+.bw-draw-pot {
+  display: block; font-weight: 400; font-size: 10px;
+  color: var(--bw-text-low); letter-spacing: .02em;
+}
+.bw-draw-legend {
+  display: grid; grid-template-columns: 18px minmax(0, 1fr) auto minmax(0, 1.1fr);
+  align-items: center; gap: 8px; padding: 2px 12px 6px;
+  font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--bw-text-low);
+}
+
+/* Round rows — each pick is its own rounded card, not a ruled table line. */
+.bw-draw-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.bw-draw-row {
+  display: grid; grid-template-columns: 18px minmax(0, 1fr) auto minmax(0, 1.1fr);
+  align-items: center; gap: 8px;
+  padding: 9px 12px; font-size: 13px;
+  background: var(--bw-raised); border: 1px solid var(--bw-border);
+  border-radius: var(--bw-radius-row) !important;
+}
+.bw-draw-row.is-pending { opacity: .45; background: transparent; border-style: dashed; }
+/* Brief flash on the pick that just landed, so a live board reads as live. */
+.bw-draw-row.is-latest { animation: bw-draw-land 1s ease-out; }
+@keyframes bw-draw-land {
+  0%   { background: rgba(245, 197, 66, .22); border-color: var(--bw-gold); }
+  100% { background: var(--bw-raised); border-color: var(--bw-border); }
+}
+.bw-draw-club {
+  display: flex; align-items: center; min-width: 0;
+  color: var(--bw-text-mid); font-weight: 600;
+}
+.bw-draw-club-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.bw-draw-cpu {
+  flex-shrink: 0; margin-left: 5px; font-size: 9px; letter-spacing: .06em;
+  color: var(--bw-text-low); border: 1px solid var(--bw-border2);
+  padding: 1px 3px; border-radius: 3px !important;
+}
+.bw-draw-spin { font-weight: 700; color: var(--bw-gold); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.bw-draw-pick { display: flex; flex-direction: column; min-width: 0; }
+.bw-draw-pick-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.bw-draw-pick-meta { font-size: 10px; color: var(--bw-text-low); letter-spacing: .04em; }
+.bw-draw-pending, .bw-draw-empty { color: var(--bw-text-low); font-style: italic; font-size: 12px; }
+.bw-draw-skip { color: var(--red, #ff5555); font-size: 12px; }
+
+.bw-draw-full-link {
+  margin: 12px auto 4px; background: none; border: none; cursor: pointer;
+  color: var(--bw-gold); font-size: 12px; letter-spacing: .05em; text-transform: uppercase;
+}
+
+/* Full grid — framed card, so the outer corners round and the scroll clips. */
+.bw-draw-scroll {
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--bw-border);
+  border-radius: var(--bw-radius-frame) !important;
+}
+.bw-draw-table { border-collapse: collapse; width: 100%; font-size: 12px; }
+.bw-draw-table th, .bw-draw-table td {
+  border: 1px solid var(--bw-border); padding: 7px 10px; text-align: left; vertical-align: top;
+}
+/* Kill the outer ring so the frame's rounded corners aren't cut square by it. */
+.bw-draw-table tr > *:first-child { border-left: 0; }
+.bw-draw-table tr > *:last-child { border-right: 0; }
+.bw-draw-table thead th { border-top: 0; }
+.bw-draw-table tbody tr:last-child > * { border-bottom: 0; }
+.bw-draw-corner, .bw-draw-round-label {
+  position: sticky; left: 0; z-index: 1; background: var(--bw-panel);
+  color: var(--bw-text-mid); font-weight: 600; white-space: nowrap;
+}
+.bw-draw-head { background: var(--bw-raised); white-space: nowrap; }
+.bw-draw-head:first-of-type { border-top-left-radius: var(--bw-radius-frame) !important; }
+.bw-draw-head:last-child { border-top-right-radius: var(--bw-radius-frame) !important; }
+.bw-draw-corner { border-top-left-radius: var(--bw-radius-frame) !important; }
+.bw-draw-table tbody tr:last-child > *:first-child { border-bottom-left-radius: var(--bw-radius-frame) !important; }
+.bw-draw-table tbody tr:last-child > *:last-child { border-bottom-right-radius: var(--bw-radius-frame) !important; }
+.bw-draw-head-name { margin-left: 6px; vertical-align: middle; }
+.bw-draw-cell { min-width: 110px; }
+.bw-draw-cell .bw-draw-spin { display: block; font-size: 11px; margin-bottom: 2px; }
+
+/* Widescreen: the panel has room for the rows to breathe. */
+@media (min-width: 900px) {
+  .bw-draw-row { font-size: 14px; padding: 11px 14px; }
+  .bw-draw-cell { min-width: 140px; }
+}
+
+/* ── Draw panel — left-edge pull-tab, mirrors the global menu on the right ── */
+.bw-draw-tab {
+  position: fixed; top: 50%; left: 0; transform: translateY(-50%);
+  z-index: 10002; width: 22px; height: 78px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bw-raised); color: var(--bw-gold);
+  border: 1px solid var(--bw-gold); border-left: none;
+  border-radius: 0 8px 8px 0 !important;
+  box-shadow: 4px 0 14px rgba(0,0,0,.4);
+  cursor: pointer; font-size: 9px; letter-spacing: .14em; line-height: 1;
+  writing-mode: vertical-rl;
+  transition: transform .28s cubic-bezier(.4,0,.2,1), filter .15s;
+}
+.bw-draw-tab:hover { filter: brightness(1.15); }
+.bw-draw-tab.is-open { transform: translateY(-50%) translateX(min(380px, 88vw)); }
+
+.bw-draw-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 10003;
+  display: flex; align-items: stretch; justify-content: flex-start;
+  animation: bw-draw-fade .2s ease;
+}
+@keyframes bw-draw-fade { from { opacity: 0; } to { opacity: 1; } }
+.bw-draw-panel {
+  width: min(380px, 88vw); height: 100%; overflow-y: auto;
+  background: var(--bw-recessed); border-right: 1px solid var(--bw-gold);
+  box-shadow: 14px 0 34px rgba(0,0,0,.5);
+  display: flex; flex-direction: column;
+  animation: bw-draw-slide .28s cubic-bezier(.4,0,.2,1);
+}
+@keyframes bw-draw-slide { from { transform: translateX(-100%); } to { transform: translateX(0); } }
+.bw-draw-panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-bottom: 1px solid var(--bw-border); flex-shrink: 0;
+}
+.bw-draw-panel-title {
+  font: 700 .82rem var(--bw-font-display); color: var(--bw-gold);
+  letter-spacing: .1em; text-transform: uppercase;
+}
+.bw-draw-panel-close {
+  background: none; border: none; color: var(--bw-text-mid);
+  font-size: 10px; letter-spacing: .08em; cursor: pointer;
+}
+.bw-draw-panel-body { padding: 6px 12px 20px; }
+/* Inside the narrow panel the full grid gets its own scroll, not the page's. */
+.bw-draw-panel-body .bw-draw-cell { min-width: 96px; }
+
+/* Live board sitting in the CPU-turn area, in place of the thinking dots. */
+.bw-draw-live { width: min(460px, 100%); margin: 4px auto 0; }
+
+/* Desktop: the panel is wide enough to show the full grid comfortably. */
+@media (min-width: 900px) {
+  .bw-draw-panel { width: min(560px, 70vw); }
+  .bw-draw-tab.is-open { transform: translateY(-50%) translateX(min(560px, 70vw)); }
+}
+
+/* Full draw as its own screen — the grid needs the whole viewport at 8 clubs. */
+.bw-draw-screen {
+  position: fixed; inset: 0; z-index: 10004;
+  background: var(--bw-field); display: flex; flex-direction: column;
+  animation: bw-draw-fade .18s ease;
+}
+.bw-draw-screen-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; border-bottom: 1px solid var(--bw-border); flex-shrink: 0;
+}
+.bw-draw-screen-body {
+  flex: 1; min-height: 0; overflow-y: auto; padding: 16px 18px 28px;
+}
+.bw-draw-screen-body .bw-draw-cell { min-width: 120px; }
+
+.bw-draft-draw-btn {
+  margin-top: 12px; padding: 8px 16px; cursor: pointer;
+  background: var(--bw-raised); border: 1px solid var(--bw-gold); color: var(--bw-gold);
+  font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+  border-radius: var(--bw-radius-row) !important;
+}
+.bw-draft-draw-btn:hover { filter: brightness(1.15); }

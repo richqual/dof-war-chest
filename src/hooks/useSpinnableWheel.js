@@ -20,6 +20,8 @@ const MIN_FLICK = 0.15;     // deg/ms — release faster than this commits a rea
 const SOFT_FLOOR = 0.7;     // deg/ms — a committed flick gets at least this much oomph
 const DRIFT = 0.16;         // deg/frame idle drift (~9.5°/s) — the "spin me" affordance
 const SPIN_JITTER = 0.26;   // ± fraction of random speed variation added at spin commit
+const STEP_CAP = 50;        // ms, largest slice of real time we'll *rotate* through at once
+const MAX_SPIN_MS = 12000;  // wall-clock failsafe — never leave a spin hanging forever
 
 export function useSpinnableWheel({ rotorRef, onLive, onLanded, disabled = false }) {
   const [phase, setPhase] = useState("idle"); // idle | dragging | momentum | done
@@ -29,6 +31,8 @@ export function useSpinnableWheel({ rotorRef, onLive, onLanded, disabled = false
   const velRef = useRef(0);       // deg/ms
   const rafRef = useRef(null);
   const lastTRef = useRef(0);
+  const spinStartRef = useRef(0);  // frame clock at spin commit, for the failsafe
+  const failsafeRef = useRef(null);
   const dragRef = useRef(null);
   const moveRef = useRef(null);
   const upRef = useRef(null);
@@ -51,7 +55,14 @@ export function useSpinnableWheel({ rotorRef, onLive, onLanded, disabled = false
   }, []);
 
   const loop = useCallback((t) => {
-    const dt = lastTRef.current ? Math.min(t - lastTRef.current, 50) : FRAME;
+    // `real` is the true elapsed time; `dt` is how much of it we rotate through.
+    // They differ only when frames arrive slowly (backgrounded tab, throttled
+    // renderer, slow device). Rotation stays capped so the wheel never teleports,
+    // but friction is applied over the REAL elapsed time — otherwise a spin's
+    // duration is measured in frames rather than seconds, and a starved tab
+    // leaves the wheel spinning long after it should have come to rest.
+    const real = lastTRef.current ? t - lastTRef.current : FRAME;
+    const dt = Math.min(real, STEP_CAP);
     lastTRef.current = t;
     const p = phaseRef.current;
 
@@ -60,14 +71,20 @@ export function useSpinnableWheel({ rotorRef, onLive, onLanded, disabled = false
       paint();
       rafRef.current = requestAnimationFrame(loop);
     } else if (p === "momentum") {
+      if (!spinStartRef.current) spinStartRef.current = t;
       rotRef.current += velRef.current * dt;
-      velRef.current *= Math.pow(FRICTION, dt / FRAME);
+      velRef.current *= Math.pow(FRICTION, real / FRAME);
       paint();
       liveRef.current?.(rotRef.current, "momentum");
-      if (Math.abs(velRef.current) < STOP_VEL) {
+      const overdue = spinStartRef.current && t - spinStartRef.current > MAX_SPIN_MS;
+      if (Math.abs(velRef.current) < STOP_VEL || overdue) {
         velRef.current = 0;
+        spinStartRef.current = 0;
+        clearTimeout(failsafeRef.current);
         stop();
         goPhase("done");
+        // Landing where the wheel happens to be is still uniform over the
+        // wedges, so the failsafe path keeps the same odds as a natural stop.
         landedRef.current?.(rotRef.current);
       } else {
         rafRef.current = requestAnimationFrame(loop);
@@ -87,9 +104,23 @@ export function useSpinnableWheel({ rotorRef, onLive, onLanded, disabled = false
   // — this only breaks the "I can guess where it'll stop" predictability.
   const commitSpin = useCallback(() => {
     velRef.current *= 1 + (Math.random() * 2 - 1) * SPIN_JITTER;
+    spinStartRef.current = 0; // stamped on the first momentum frame, off the same clock
     goPhase("momentum");
     run();
-  }, [run, goPhase]);
+    // Backstop on a timer rather than inside the frame loop: if the renderer
+    // stops delivering animation frames altogether, anything living in that loop
+    // can't rescue it, and the wheel would read "SPINNING…" forever with the
+    // whole draft stuck behind it. Timers keep firing when frames don't.
+    clearTimeout(failsafeRef.current);
+    failsafeRef.current = setTimeout(() => {
+      if (phaseRef.current !== "momentum") return;
+      velRef.current = 0;
+      spinStartRef.current = 0;
+      stop();
+      goPhase("done");
+      landedRef.current?.(rotRef.current);
+    }, MAX_SPIN_MS);
+  }, [run, goPhase, stop]);
 
   const onPointerDown = useCallback((e) => {
     if (disabledRef.current) return;
@@ -161,6 +192,7 @@ export function useSpinnableWheel({ rotorRef, onLive, onLanded, disabled = false
     if (!disabled) { goPhase("idle"); run(); }
     return () => {
       stop();
+      clearTimeout(failsafeRef.current);
       if (moveRef.current) window.removeEventListener("pointermove", moveRef.current);
       if (upRef.current) {
         window.removeEventListener("pointerup", upRef.current);

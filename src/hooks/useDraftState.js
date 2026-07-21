@@ -3,7 +3,7 @@ import { PLAYERS, SUB_POSITIONS, generateBudget, chooseCpuPick } from "../data/p
 import {
   STORAGE_KEY, STORAGE_VERSION,
   serializeDraft, deserializeDraft,
-  applyPick, buildInitialDraft,
+  applyPick, rollBudget, buildInitialDraft,
   availablePlayersFor, getPlayersFromState, currentEligPool,
   autoDrawSlot, activeFormation, resolveCurrentPosKey, resolveCurrentPos,
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder,
@@ -315,6 +315,7 @@ export function useDraftState() {
       return {
         ...prev,
         currentBudget: spunVal + carry,
+        currentSpun: spunVal,
         managers: prev.managers.map((m, i) =>
           i === activeIdx ? { ...m, carryover: 0 } : m
         ),
@@ -412,7 +413,7 @@ export function useDraftState() {
         const carry = d.noCarryoverNext ? 0 : (d.managers[activeIdx]?.carryover || 0);
         d = {
           ...d,
-          currentBudget: generateBudget(d.difficulty) + carry,
+          ...rollBudget(d, carry),
           managers: d.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
         };
       }
@@ -441,7 +442,7 @@ export function useDraftState() {
         const carry = d.noCarryoverNext ? 0 : (d.managers[activeIdx]?.carryover || 0);
         d = {
           ...d,
-          currentBudget: generateBudget(d.difficulty) + carry,
+          ...rollBudget(d, carry),
           managers: d.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
         };
       }
@@ -771,6 +772,7 @@ export function useDraftState() {
       const withBudget = {
         ...prev,
         currentBudget: spunVal + carry,
+        currentSpun: spunVal,
         managers: prev.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
       };
       return { ...withBudget, ratingsRevealed: false, reScoutNotice: null, currentReport: computeScoutReport(withBudget) };
@@ -901,6 +903,34 @@ export function useDraftState() {
     return scoutEmergencyFreeAgent(d); // null only if the bucket is fully exhausted
   }
 
+  // One CPU pick, then stop — the paced counterpart to scoutSkipCpuTurns below.
+  // The draw board is only watchable if picks land one at a time; the batch
+  // version commits the whole CPU run in a single setDraft, which is right for
+  // "skip" but shows up on the board as everything appearing at once.
+  function scoutStepCpuTurn() {
+    if (!draft) return;
+    let d = draft;
+    if (d.phase === "complete") return;
+    const activeIdx = d.currentOrder[d.turnIndex];
+    if (!d.managers[activeIdx].isComputer) return;
+    if (d.currentBudget === null) {
+      const carry = d.noCarryoverNext ? 0 : (d.managers[activeIdx]?.carryover || 0);
+      d = {
+        ...d,
+        ...rollBudget(d, carry),
+        managers: d.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
+      };
+    }
+    const pick = cpuScoutPick(d);
+    // No pick available: clear the budget and let the next tick move things on,
+    // exactly as the batch loop does, rather than stalling on this manager.
+    d = pick
+      ? { ...applyPick(d, pick), currentReport: null, scoutPosFilter: null, reScoutNotice: null }
+      : { ...d, currentBudget: null, noCarryoverNext: true };
+    setDraft(d);
+    if (d.phase === "complete") setScreen(d.managerTiming === "before" ? "squads" : "manager-draft");
+  }
+
   function scoutSkipCpuTurns() {
     if (!draft) return;
     let d = draft;
@@ -912,7 +942,7 @@ export function useDraftState() {
         const carry = d.noCarryoverNext ? 0 : (d.managers[activeIdx]?.carryover || 0);
         d = {
           ...d,
-          currentBudget: generateBudget(d.difficulty) + carry,
+          ...rollBudget(d, carry),
           managers: d.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
         };
       }
@@ -937,7 +967,7 @@ export function useDraftState() {
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
     startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
-    startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, dismissReScoutNotice, revealScoutRatings, setScoutFilter, commissionMission, confirmMission, scoutSkipCpuTurns,
+    startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, dismissReScoutNotice, revealScoutRatings, setScoutFilter, commissionMission, confirmMission, scoutSkipCpuTurns, scoutStepCpuTurn,
     scoutFreeAgents,
   };
 }

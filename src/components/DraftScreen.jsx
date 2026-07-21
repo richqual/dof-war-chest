@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { POSITIONS, generateBudget, chooseCpuPick, normalizeSearch } from "../data/players";
 import { GROUP_COLORS, FORMATIONS, FORMATION_DISPLAY_ORDER, slotEligibility, OOP_PENALTY } from "../data/formations";
 import { POSITIONS as ALL_POSITIONS } from "../data/players";
@@ -6,6 +6,8 @@ import PlayerCard, { ARCHETYPE_COLOR } from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
 import PositionWheel from "./PositionWheel";
 import TurnTransition from "./TurnTransition";
+import DrawBoard, { roundLabel } from "./DrawBoard";
+import DrawPanel from "./DrawPanel";
 import MySquadPanel from "./MySquadPanel";
 import KitSwatch, { readableTextOn, kitAccent } from "./KitSwatch";
 
@@ -16,6 +18,7 @@ export default function DraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
   confirmBudget, confirmSlot, pickPlayer, getAvailablePlayers, getTakenPlayers,
   skipTurn, respin, autoCompleteDraft, skipCpuTurns,
+  stepCpuTurn, // multiplayer only — see the CPU effect below
   myTurn = true, // false in multiplayer when it's someone else's go
 }) {
   const GK_ARCHETYPES = ["Sweeper Keeper", "Shot Stopper", "Organiser"];
@@ -66,6 +69,7 @@ export default function DraftScreen({
   const [hideBadges, setHideBadges] = useState(false);
   const [showArchetypeLegend, setShowArchetypeLegend] = useState(false);
   const [nameSearch, setNameSearch] = useState("");
+  const [drawOpen, setDrawOpen] = useState(false);
 
   function toggleEra(era) {
     setFilterEra(prev => {
@@ -241,10 +245,43 @@ export default function DraftScreen({
   // CPU turns run themselves: draw slot (random mode), spin budget, then pick.
   // Pauses while a transition screen is up so the human can follow along.
   const isCpuTurn = !!activeManager?.isComputer;
+
+  // Draw-board review gates — same two holds as Scout mode. Classic keeps its
+  // TurnTransition pop-ups; these sit alongside, giving the round a readable
+  // summary rather than replacing the per-pick reveal.
+  // Acknowledgements live in refs: they must survive re-renders (a stale value
+  // would re-show a gate already tapped through) but they are not render inputs
+  // themselves. `null` = uninitialised, so resuming a saved draft adopts its
+  // position rather than re-gating a round already seen.
+  const ackRoundRef = useRef(null);
+  const ackPicksRef = useRef(0);
+  const [ackTick, setAckTick] = useState(0); // re-render trigger after an ack is written
+  if (ackRoundRef.current === null || positionIndex - 1 < ackRoundRef.current) {
+    ackRoundRef.current = positionIndex - 1;
+    ackPicksRef.current = (draft.pickLog || []).length;
+  }
+  const roundPicks = (draft.pickLog || []).filter(e => e.positionIndex === positionIndex);
+  const roundReview =
+    draft.phase !== "complete" && positionIndex - 1 > ackRoundRef.current ? positionIndex - 1 : null;
+  const reviewPending =
+    roundReview === null && !isCpuTurn && myTurn && roundPicks.length > 0 &&
+    ackPicksRef.current < (draft.pickLog || []).length;
+  function ackDraw(round) {
+    if (round !== null && round !== undefined) ackRoundRef.current = round;
+    ackPicksRef.current = (draft.pickLog || []).length;
+    setAckTick(t => t + 1);
+  }
+
   useEffect(() => {
-    if (!isCpuTurn || transition) return;
+    // Freeze CPU picks behind a review gate so the board can't change underneath.
+    if (!isCpuTurn || transition || roundReview !== null) return;
     const t = setTimeout(() => {
-      if (needsSlotDraw) {
+      // Online, the handlers below are all `isMyTurn`-guarded and a CPU turn is
+      // nobody's turn, so the draft would sit still. `stepCpuTurn` does the same
+      // one-beat-per-tick job against shared state, host-side.
+      if (stepCpuTurn) {
+        stepCpuTurn();
+      } else if (needsSlotDraw) {
         // Pick a random unfilled starter slot
         const squad = activeManager?.squad || [];
         const avail = [];
@@ -262,7 +299,7 @@ export default function DraftScreen({
     }, needsSlotDraw ? CPU_SPIN_DELAY : currentBudget === null ? CPU_SPIN_DELAY : CPU_PICK_DELAY);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isCpuTurn, transition, currentBudget, activeManagerIdx, positionIndex, turnIndex, needsSlotDraw]);
+  }, [isCpuTurn, transition, currentBudget, activeManagerIdx, positionIndex, turnIndex, needsSlotDraw, roundReview]);
 
   if (transition) {
     return (
@@ -290,6 +327,13 @@ export default function DraftScreen({
 
   return (
     <div className="draft-screen" style={kitTheme}>
+      <DrawPanel
+        draft={draft}
+        open={drawOpen}
+        onOpen={() => setDrawOpen(true)}
+        onClose={() => setDrawOpen(false)}
+      />
+
       {pendingPlayer && (
         <div className="bw-modal-overlay" onClick={() => setPendingPlayer(null)}>
           <div className="bw-modal-box" onClick={e => e.stopPropagation()}>
@@ -492,7 +536,39 @@ export default function DraftScreen({
 
       {/* Main area */}
       <div className="draft-main">
-        {!myTurn && !isCpuTurn ? (
+        {roundReview !== null ? (
+          <div className="bw-cpu-area">
+            <span className="bw-badge-pill bw-badge-pill-human">ROUND COMPLETE</span>
+            <div className="bw-cpu-name">{roundLabel(draft, roundReview)}</div>
+            <div className="bw-cpu-status">Every club has signed. Here's how the round went.</div>
+            <div className="bw-draw-live">
+              <DrawBoard draft={draft} round={roundReview} />
+            </div>
+            <button
+              className="bw-cta-primary"
+              style={{ marginTop: "1.2rem", width: "auto" }}
+              onClick={() => ackDraw(roundReview)}
+            >
+              CONTINUE →
+            </button>
+          </div>
+        ) : reviewPending ? (
+          <div className="bw-cpu-area">
+            <span className="bw-badge-pill bw-badge-pill-human">ROUND SO FAR</span>
+            <div className="bw-cpu-name">You're up next</div>
+            <div className="bw-cpu-status">Here's how the round's gone so far.</div>
+            <div className="bw-draw-live">
+              <DrawBoard draft={draft} />
+            </div>
+            <button
+              className="bw-cta-primary"
+              style={{ marginTop: "1.2rem", width: "auto" }}
+              onClick={() => ackDraw(null)}
+            >
+              CONTINUE →
+            </button>
+          </div>
+        ) : !myTurn && !isCpuTurn ? (
           <div className="bw-cpu-area">
             <span className="bw-badge-pill bw-badge-pill-cpu">THEIR TURN</span>
             <div className="bw-cpu-name">{activeManager?.clubName || activeManager?.name}</div>
@@ -526,10 +602,14 @@ export default function DraftScreen({
                     ? "Spinning transfer budget…"
                     : `Budget £${currentBudget}m — scouting for a ${currentPos.label}…`}
             </div>
-            <div className="bw-cpu-dots"><span>●</span><span>●</span><span>●</span></div>
+            {/* The wait IS the draw board — watch the round fill in rather
+                than staring at thinking dots. */}
+            <div className="bw-draw-live">
+              <DrawBoard draft={draft} />
+            </div>
             {skipCpuTurns && (
               <button className="bw-cta-secondary" style={{ marginTop: "1.2rem", width: "auto" }} onClick={skipCpuTurns}>
-                ⏭ SKIP CPU
+                ⏭ SKIP TO END OF ROUND
               </button>
             )}
           </div>

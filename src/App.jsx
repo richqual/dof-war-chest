@@ -420,6 +420,7 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
           respin={isMyTurn ? actions.respin : () => {}}
           autoCompleteDraft={isHost ? actions.autoCompleteDraft : null}
           skipCpuTurns={isHost ? actions.skipCpuTurns : () => {}}
+          stepCpuTurn={actions.stepCpuTurn}
           myTurn={isMyTurn}
         />
       </>
@@ -650,8 +651,9 @@ function AppInner({ onMultiplayer, auth }) {
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
     startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
-    startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, dismissReScoutNotice, revealScoutRatings, setScoutFilter, commissionMission, confirmMission, scoutSkipCpuTurns,
+    startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, dismissReScoutNotice, revealScoutRatings, setScoutFilter, commissionMission, confirmMission, scoutSkipCpuTurns, scoutStepCpuTurn,
   } = useDraftState();
+
 
   const [preScreen, setPreScreen] = useState("mode-select"); // "mode-select" | "lobby" | "club-creator" | "wc-lobby" | "wc-club-creator"
   const [showAbout, setShowAbout] = useState(false);
@@ -1010,6 +1012,7 @@ function AppInner({ onMultiplayer, auth }) {
           commissionMission={commissionMission}
           confirmMission={confirmMission}
           scoutSkipCpuTurns={scoutSkipCpuTurns}
+          scoutStepCpuTurn={scoutStepCpuTurn}
           respin={respin}
           getTakenPlayers={getTakenPlayers}
           freeAgents={scoutFreeAgentList}
@@ -1137,7 +1140,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "4.2.20";
+const APP_VERSION = "4.2.30";
 
 function AppFooter() {
   return (
