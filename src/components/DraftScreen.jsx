@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { POSITIONS, generateBudget, chooseCpuPick, normalizeSearch } from "../data/players";
 import { GROUP_COLORS, FORMATIONS, FORMATION_DISPLAY_ORDER, slotEligibility, OOP_PENALTY } from "../data/formations";
+import { cpuSpendCap, BENCH_MIN_FUND } from "../hooks/draftUtils";
 import { POSITIONS as ALL_POSITIONS } from "../data/players";
 import PlayerCard, { ARCHETYPE_COLOR } from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
@@ -203,8 +204,22 @@ export default function DraftScreen({
     setNameSearch("");
   }
 
-  // carryover shown before spin (what the active manager has banked)
-  const pendingCarryover = activeManager?.carryover || 0;
+  // Leftover Lolly: unspent cash banks into a sub fund instead of carrying over,
+  // and from the bench rounds on that fund replaces the wheel entirely — bar the
+  // one top-up spin a manager takes on their first sub.
+  const lolly = !!draft.leftoverLolly;
+  const subFund = activeManager?.subFund || 0;
+  const benchRound = lolly && positionIndex >= 11;
+  const topUpDue = benchRound && !activeManager?.toppedUp;
+  // A bench turn past the top-up loads the fund silently — there's nothing to spin.
+  const autoLoadBudget = benchRound && !topUpDue;
+
+  // What the spin actually adds to. Under Lolly the sub fund is locked during the
+  // XI rounds — it's banked, not spendable — so the wheel must show nothing
+  // carried until the bench, where the fund becomes the whole budget.
+  const pendingCarryover = lolly
+    ? (benchRound ? subFund : 0)
+    : (activeManager?.carryover || 0);
 
   function handlePickPlayer(player) {
     const prevManagerName = activeManager.dofName || activeManager.name;
@@ -245,6 +260,14 @@ export default function DraftScreen({
   // CPU turns run themselves: draw slot (random mode), spin budget, then pick.
   // Pauses while a transition screen is up so the human can follow along.
   const isCpuTurn = !!activeManager?.isComputer;
+
+  // A bench turn past the top-up loads the sub fund silently — there's no wheel
+  // left to spin, so without this the draft would sit on an empty roll area.
+  useEffect(() => {
+    if (!autoLoadBudget || isCpuTurn || transition || currentBudget !== null) return;
+    confirmBudget(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoLoadBudget, isCpuTurn, transition, currentBudget, activeManagerIdx, positionIndex, turnIndex]);
 
   // Draw-board review gates — same two holds as Scout mode. Classic keeps its
   // TurnTransition pop-ups; these sit alongside, giving the round a readable
@@ -290,9 +313,11 @@ export default function DraftScreen({
         const slot = avail[Math.floor(Math.random() * avail.length)];
         confirmSlot(slot);
       } else if (currentBudget === null) {
-        confirmBudget(generateBudget(draft.difficulty));
+        // Bench rounds under Lolly spin nothing (confirmBudget folds in the sub
+        // fund), except the manager's one-off top-up.
+        confirmBudget(benchRound && !topUpDue ? 0 : generateBudget(draft.difficulty));
       } else {
-        const pick = chooseCpuPick(getAvailablePlayers(currentPos.key), currentBudget, currentPos.key, activeManager?.realClub || null);
+        const pick = chooseCpuPick(getAvailablePlayers(currentPos.key), cpuSpendCap(draft, currentBudget), currentPos.key, activeManager?.realClub || null);
         if (pick) handlePickPlayer(pick);
         else skipTurn();
       }
@@ -451,7 +476,14 @@ export default function DraftScreen({
           <span className="bw-signing-meta">signing: <strong>{needsSlotDraw ? "?" : currentPos.label}</strong></span>
         </div>
         <div className="bw-signing-right">
-          {pendingCarryover > 0 && currentBudget === null && (
+          {/* The sub fund is the whole point of Lolly, so it stays on screen all
+              draft — watching it tick up is the feedback for underspending. */}
+          {lolly && !benchRound && (
+            <span className="bw-signing-subfund" title="Unspent cash banks here for your subs">
+              Sub Fund: £{subFund}m
+            </span>
+          )}
+          {!lolly && pendingCarryover > 0 && currentBudget === null && (
             <span className="bw-signing-carryover">Carryover: £{pendingCarryover}m</span>
           )}
           {currentBudget !== null && (
@@ -623,8 +655,31 @@ export default function DraftScreen({
           </div>
         ) : currentBudget === null ? (
           <div className="bw-roll-area">
-            <div className="bw-roll-sub">Spin your transfer budget for <strong>{currentPos.label}</strong></div>
-            <SpinWheel carryover={pendingCarryover} onConfirm={confirmBudget} difficulty={draft.difficulty} />
+            {topUpDue ? (
+              <>
+                <div className="bw-roll-sub">
+                  <strong>Top-up spin</strong> — one last cash injection before you build your bench
+                  <span className="bw-roll-note"> · minimum £{BENCH_MIN_FUND}m guaranteed</span>
+                </div>
+                <SpinWheel
+                  carryover={pendingCarryover}
+                  carryLabel="sub fund"
+                  onConfirm={confirmBudget}
+                  difficulty={draft.difficulty}
+                  minTotal={BENCH_MIN_FUND}
+                />
+              </>
+            ) : (
+              <>
+                <div className="bw-roll-sub">Spin your transfer budget for <strong>{currentPos.label}</strong></div>
+                <SpinWheel
+                  carryover={pendingCarryover}
+                  carryLabel={lolly ? "sub fund" : "carryover"}
+                  onConfirm={confirmBudget}
+                  difficulty={draft.difficulty}
+                />
+              </>
+            )}
           </div>
         ) : (
           <div className="bw-picker">
@@ -796,11 +851,25 @@ export default function DraftScreen({
                 genuinelyNoAfford ? (
                   <div className="bw-no-afford">
                     <div className="bw-no-afford-title">⚠ NO AFFORDABLE PLAYERS</div>
-                    <div className="bw-no-afford-msg">
-                      £{currentBudget}m isn't enough for anyone available. Re-spin for a new budget —
-                      but this money is lost and <strong>no carryover</strong> after this pick.
-                    </div>
-                    <button className="bw-cta-secondary" onClick={respin}>↺ RE-SPIN (NO CARRYOVER)</button>
+                    {/* No wheel is in play on a bench round, so there's nothing to
+                        re-spin — skipping returns the pot to the fund instead. */}
+                    {benchRound ? (
+                      <>
+                        <div className="bw-no-afford-msg">
+                          £{currentBudget}m isn't enough for anyone available. Skip this sub and the
+                          money stays in your <strong>sub fund</strong> for the next one.
+                        </div>
+                        <button className="bw-cta-secondary" onClick={skipTurn}>→ SKIP THIS SUB</button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="bw-no-afford-msg">
+                          £{currentBudget}m isn't enough for anyone available. Re-spin for a new budget —
+                          but this money is lost and <strong>no carryover</strong> after this pick.
+                        </div>
+                        <button className="bw-cta-secondary" onClick={respin}>↺ RE-SPIN (NO CARRYOVER)</button>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <div className="bw-no-results">

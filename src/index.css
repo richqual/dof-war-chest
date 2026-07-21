@@ -830,6 +830,19 @@ input, select { font-family: var(--font); }
 }
 .spin-carryover strong { color: var(--bw-gold, var(--amber)); }
 
+/* Leftover Lolly's guaranteed bench floor. Reads as a reprieve rather than a
+   prize, so it's green against the gold of a normal spin result. */
+.spin-injection {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--bw-green, #4ade80);
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.35);
+  padding: 6px 16px;
+  border-radius: 6px !important;
+}
+.spin-injection strong { color: var(--bw-green, #4ade80); }
+
 .spin-btn {
   background: var(--bw-gold, var(--amber));
   color: var(--bw-gold-ink, #111);
@@ -2717,6 +2730,19 @@ html.light-mode .bw-mgr-card.recommended .bw-mgr-card-name { color: var(--bw-tex
   border-radius: 4px !important;
 }
 
+/* Leftover Lolly's running sub fund. Sits alongside the budget chip all draft,
+   deliberately quieter than it so the spendable number still reads first. */
+.bw-signing-subfund {
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  background: var(--bw-gold-bg);
+  color: var(--bw-gold);
+  border: 1px dashed var(--bw-gold-border);
+  padding: 3px 8px;
+  border-radius: 4px !important;
+  white-space: nowrap;
+}
+
 .bw-pos-strip {
   background: var(--bw-field);
   border-bottom: 1px solid var(--bw-border);
@@ -2761,6 +2787,7 @@ html.light-mode .bw-mgr-card.recommended .bw-mgr-card-name { color: var(--bw-tex
 .bw-roll-area { text-align: center; padding: 20px 16px; }
 .bw-roll-sub { font-size: 13px; color: var(--bw-text-mid); margin-bottom: 8px; }
 .bw-roll-sub strong { color: var(--bw-gold); }
+.bw-roll-note { opacity: 0.75; font-size: 12px; }
 
 .bw-cpu-area { text-align: center; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .bw-cpu-name { font: 600 18px var(--bw-font-display); color: var(--bw-text-hi); }

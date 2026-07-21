@@ -1,7 +1,7 @@
-import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS, realTeamPlayerClubs } from "../data/players";
+import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick, cpuVariancePick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS, realTeamPlayerClubs } from "../data/players";
 import { GROUP_SLOT_INDICES, FORMATIONS, slotEligibility } from "../data/formations";
 
-export { generateBudget, chooseCpuPick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS };
+export { generateBudget, chooseCpuPick, cpuVariancePick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS };
 
 // Draft Roulette pools — legends are excluded (pool too shallow for a hard restriction).
 export const DRAFT_ROULETTE_ERAS = [
@@ -157,8 +157,110 @@ export function currentEligPool(d) {
 // total. Without this the two are indistinguishable downstream, and a spin
 // plus a big carryover reads as an impossible wheel result on the draw board.
 export function rollBudget(d, carry) {
-  const spun = generateBudget(d.difficulty);
-  return { currentBudget: spun + carry, currentSpun: spun };
+  // Bench rounds spin nothing — the sub fund IS the budget — except a manager's
+  // one-off top-up, which spins the full-range budget wheel like any other round.
+  const isTopUp = needsTopUp(d, d.currentOrder[d.turnIndex]);
+  const spun = isBenchRound(d)
+    ? (isTopUp ? generateBudget(d.difficulty) : 0)
+    : generateBudget(d.difficulty);
+  return { currentBudget: withCashInjection(spun + carry, isTopUp), currentSpun: spun };
+}
+
+// The full-range top-up wheel has £0 wedges, so someone who spent to the cap all
+// draft can reach the bench with nothing at all. This is the floor under that:
+// enough to fill a bench with squad players, not enough to buy one star and call
+// it done. Applied once, at the top-up, to the whole pot — not per sub.
+export const BENCH_MIN_FUND = 25;
+
+export function withCashInjection(total, isTopUp) {
+  return isTopUp ? Math.max(total, BENCH_MIN_FUND) : total;
+}
+
+// ── Leftover Lolly ──────────────────────────────────────────────────────────
+// With the option on, unspent cash never rolls into the next spin: it banks
+// into m.subFund, which stays locked until the bench rounds (slot 11+). From
+// there the fund REPLACES the wheel — subs are bought out of one continuous
+// pot, so the bench you get is the residue of how hard you pushed on the XI.
+// The one exception is a manager's first bench turn, which spins the full budget
+// wheel as a top-up — high variance on purpose, so a max-spender still has a
+// shot at a big fund (and a scouting mission) but is never guaranteed one.
+const BENCH_START = 11;
+
+export function isBenchRound(d) {
+  return !!d.leftoverLolly && d.positionIndex >= BENCH_START;
+}
+
+// True only for a manager's first bench turn — the top-up spin still shows a wheel.
+export function needsTopUp(d, mgrIdx) {
+  return isBenchRound(d) && !d.managers[mgrIdx]?.toppedUp;
+}
+
+// The carry the active manager brings into this turn. Under Lolly the XI rounds
+// always carry nothing (that's the whole point) and the bench rounds carry the
+// whole fund; otherwise it's the classic carryover, minus a forfeited re-spin.
+export function carryFor(d, mgrIdx) {
+  const m = d.managers[mgrIdx];
+  if (!m) return 0;
+  if (d.leftoverLolly) return isBenchRound(d) ? (m.subFund || 0) : 0;
+  return d.noCarryoverNext ? 0 : (m.carryover || 0);
+}
+
+// Loading a budget consumes whatever the carry came from, so it can't be
+// double-spent if the manager re-spins mid-turn.
+export function consumeCarry(d, mgrIdx) {
+  return d.managers.map((m, i) => {
+    if (i !== mgrIdx) return m;
+    if (d.leftoverLolly) return isBenchRound(d) ? { ...m, subFund: 0, toppedUp: true } : m;
+    return { ...m, carryover: 0 };
+  });
+}
+
+// Where a turn's unspent money goes. Under Lolly it always lands in the sub
+// fund (the bench rounds zero the fund as they load it, so a plain += is right
+// in both phases); otherwise it's the classic round-to-round carryover.
+function bankLeftover(d, m, leftover) {
+  if (d.leftoverLolly) return { ...m, carryover: 0, subFund: (m.subFund || 0) + leftover };
+  return { ...m, carryover: d.noCarryoverNext ? 0 : leftover };
+}
+
+// ── CPU bench reserve (Leftover Lolly only) ─────────────────────────────────
+// Without this a CPU spends every XI spin to the cap — it has no concept that
+// leftovers now fund the bench — and finishes the draft with empty sub slots.
+// Because leftovers bank themselves, simply bidding below the budget IS the
+// reserve; nothing else needs to change.
+//
+// The rate scales with the spin: £25m has to go on the player in front of you,
+// but £125m rarely needs to, so a big spin banks a bigger slice rather than
+// blowing it on a marginal upgrade. The jitter is deliberate — CPUs are
+// otherwise clinical to a fault, and this is a cheap place to make them
+// occasionally overspend or hoard like a real drafter would.
+const RESERVE_FLOOR_SPIN = 25;   // at or below this, spend it all — splitting it buys nothing
+const RESERVE_FULL_SPIN = 125;   // spin at which the reserve rate maxes out
+const RESERVE_MIN_PCT = 0.10;
+const RESERVE_MAX_PCT = 0.40;
+const RESERVE_JITTER = 0.24;     // total spread, so +/- half this
+const RESERVE_CAP_PCT = 0.55;    // never bank so much they can't sign anyone decent
+
+const BENCH_SPLURGE = 1.35;      // how far above an even split a CPU will stretch
+
+export function cpuSpendCap(d, budget) {
+  if (!d.leftoverLolly || budget <= RESERVE_FLOOR_SPIN) return budget;
+
+  // On the bench the fund is one pot for several slots, so an uncapped CPU
+  // spends the lot on the first sub and leaves the rest empty. Ration it by
+  // what's still unfilled, with a bit of stretch so it can still splurge.
+  if (isBenchRound(d)) {
+    const m = d.managers[d.currentOrder[d.turnIndex]];
+    const slotsLeft = m ? m.squad.slice(11).filter(s => !s).length : 1;
+    if (slotsLeft <= 1) return budget;
+    const share = (budget / slotsLeft) * BENCH_SPLURGE * (0.85 + Math.random() * 0.3);
+    return Math.max(RESERVE_FLOOR_SPIN, Math.min(budget, Math.round(share)));
+  }
+
+  const scale = Math.min(1, budget / RESERVE_FULL_SPIN);
+  const base = RESERVE_MIN_PCT + (RESERVE_MAX_PCT - RESERVE_MIN_PCT) * scale;
+  const pct = Math.max(0, Math.min(RESERVE_CAP_PCT, base + (Math.random() - 0.5) * RESERVE_JITTER));
+  return Math.max(RESERVE_FLOOR_SPIN, Math.round(budget * (1 - pct)));
 }
 
 export function applyPick(d, player) {
@@ -168,13 +270,13 @@ export function applyPick(d, player) {
 
   const managers = d.managers.map((m, i) => {
     if (i !== activeIdx) return m;
-    if (!player) return { ...m, carryover: budget };
+    if (!player) return bankLeftover(d, m, budget);
     const squad = [...m.squad];
     const squadSlot = (isRandomStarter && d.currentSlot !== null && d.currentSlot !== undefined)
       ? d.currentSlot
       : d.positionIndex;
     squad[squadSlot] = { ...player };
-    return { ...m, squad, carryover: d.noCarryoverNext ? 0 : budget - player.value };
+    return { ...bankLeftover(d, m, budget - player.value), squad };
   });
 
   const takenIds = player ? [...d.takenIds, player.id] : d.takenIds;
@@ -228,7 +330,9 @@ function buildPickEntry(d, player, managerIdx, budget, isRandomStarter) {
     spun: d.currentSpun ?? budget,
     budget,
     spent: player ? player.value : 0,
-    carry: d.noCarryoverNext ? 0 : budget - (player ? player.value : 0),
+    carry: d.leftoverLolly
+      ? budget - (player ? player.value : 0) // banked to the sub fund, not carried
+      : (d.noCarryoverNext ? 0 : budget - (player ? player.value : 0)),
     playerId: player ? player.id : null,
     name: player ? player.name : null,
     pos: player ? player.pos : null,
@@ -499,6 +603,8 @@ export function buildInitialDraft(clubs, options = {}) {
       isComputer: !!c.isComputer,
       squad: Array(16).fill(null),
       carryover: 0,
+      subFund: 0,
+      toppedUp: false,
       tactics: "balanced",
       formation: c.formation || "4-3-3",
       assignedEra: rouletteAssignments[i].era,
@@ -531,6 +637,7 @@ export function buildInitialDraft(clubs, options = {}) {
     playerOrder,
     phase: "draft",
     hideRatings: options.hideRatings || false,
+    leftoverLolly: !!options.leftoverLolly,
     difficulty: options.difficulty || "normal",
     dynamicForm: options.dynamicForm !== false,
     series: buildSeries(n, options.format),
@@ -753,8 +860,7 @@ export function autoBuildWarChestSquad(d, managerIdx) {
       .sort((a, b) => b.rating - a.rating);
 
     if (affordable.length > 0) {
-      const topN = affordable.slice(0, Math.min(3, affordable.length));
-      const pick = topN[Math.floor(Math.random() * topN.length)];
+      const pick = cpuVariancePick(affordable);
       squad[slot] = pick;
       takenIds.push(pick.id);
       budgetRemaining -= pick.value;

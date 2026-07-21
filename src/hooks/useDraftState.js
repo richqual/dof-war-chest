@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { PLAYERS, SUB_POSITIONS, generateBudget, chooseCpuPick } from "../data/players";
+import { PLAYERS, SUB_POSITIONS, generateBudget, chooseCpuPick, cpuVariancePick } from "../data/players";
 import {
   STORAGE_KEY, STORAGE_VERSION,
   serializeDraft, deserializeDraft,
   applyPick, rollBudget, buildInitialDraft,
+  carryFor, consumeCarry, isBenchRound, cpuSpendCap, needsTopUp, withCashInjection,
   availablePlayersFor, getPlayersFromState, currentEligPool,
   autoDrawSlot, activeFormation, resolveCurrentPosKey, resolveCurrentPos,
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder,
@@ -308,19 +309,40 @@ export function useDraftState() {
     setDraft(prev => ({ ...prev, currentSlot: slotIndex }));
   }
 
+  // Load the active manager's spendable budget for this turn: the wheel result
+  // plus whatever they bring in, consuming the source so a re-spin can't
+  // double-spend it. Under Leftover Lolly a bench round contributes the whole
+  // sub fund and spins nothing (bar the one top-up), so this covers both.
+  function withBudget(d, spunVal) {
+    const activeIdx = d.currentOrder[d.turnIndex];
+    // Captured before consumeCarry, which is what marks the top-up as taken.
+    const isTopUp = needsTopUp(d, activeIdx);
+    return {
+      ...d,
+      currentBudget: withCashInjection(spunVal + carryFor(d, activeIdx), isTopUp),
+      currentSpun: spunVal,
+      managers: consumeCarry(d, activeIdx),
+    };
+  }
+
+  // Roll the budget for a CPU that hasn't got one yet (used by the auto/skip loops).
+  function rollCpuBudget(d) {
+    const activeIdx = d.currentOrder[d.turnIndex];
+    return { ...d, ...rollBudget(d, carryFor(d, activeIdx)), managers: consumeCarry(d, activeIdx) };
+  }
+
+  // A CPU turn where nothing is affordable. Normally the money is forfeited and
+  // they re-spin, but a Lolly bench round has nothing left to spin — the fund is
+  // already loaded and the wheel is out of play — so re-spinning would loop
+  // forever on a £0 budget. Skip the turn instead, which banks the pot back into
+  // the fund for their next sub.
+  function noAffordablePick(d) {
+    if (isBenchRound(d)) return applyPick(d, null);
+    return { ...d, currentBudget: null, noCarryoverNext: true };
+  }
+
   function confirmBudget(spunVal) {
-    setDraft(prev => {
-      const activeIdx = prev.currentOrder[prev.turnIndex];
-      const carry = prev.managers[activeIdx]?.carryover || 0;
-      return {
-        ...prev,
-        currentBudget: spunVal + carry,
-        currentSpun: spunVal,
-        managers: prev.managers.map((m, i) =>
-          i === activeIdx ? { ...m, carryover: 0 } : m
-        ),
-      };
-    });
+    setDraft(prev => withBudget(prev, spunVal));
   }
 
   function getTakenPlayers(posKey) {
@@ -388,7 +410,7 @@ export function useDraftState() {
   }
 
   function respin() {
-    setDraft(prev => ({
+    setDraft(prev => (isBenchRound(prev) ? prev : {
       ...prev,
       currentBudget: null,
       noCarryoverNext: true,
@@ -408,20 +430,12 @@ export function useDraftState() {
     let guard = 0;
     while (d.phase !== "complete" && guard++ < 500) {
       d = autoDrawSlot(d);
-      if (d.currentBudget === null) {
-        const activeIdx = d.currentOrder[d.turnIndex];
-        const carry = d.noCarryoverNext ? 0 : (d.managers[activeIdx]?.carryover || 0);
-        d = {
-          ...d,
-          ...rollBudget(d, carry),
-          managers: d.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
-        };
-      }
+      if (d.currentBudget === null) d = rollCpuBudget(d);
       const posKey = resolveCurrentPosKey(d);
       const realClub = d.managers[d.currentOrder[d.turnIndex]]?.realClub || null;
-      const pick = chooseCpuPick(getPlayersFromState(d, posKey), d.currentBudget, posKey, realClub);
+      const pick = chooseCpuPick(getPlayersFromState(d, posKey), cpuSpendCap(d, d.currentBudget), posKey, realClub);
       if (!pick) {
-        d = { ...d, currentBudget: null, noCarryoverNext: true };
+        d = noAffordablePick(d);
         continue;
       }
       d = applyPick(d, pick);
@@ -438,19 +452,12 @@ export function useDraftState() {
       const activeIdx = d.currentOrder[d.turnIndex];
       if (!d.managers[activeIdx].isComputer) break;
       d = autoDrawSlot(d);
-      if (d.currentBudget === null) {
-        const carry = d.noCarryoverNext ? 0 : (d.managers[activeIdx]?.carryover || 0);
-        d = {
-          ...d,
-          ...rollBudget(d, carry),
-          managers: d.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
-        };
-      }
+      if (d.currentBudget === null) d = rollCpuBudget(d);
       const posKey = resolveCurrentPosKey(d);
       const realClub = d.managers[activeIdx]?.realClub || null;
-      const pick = chooseCpuPick(getPlayersFromState(d, posKey), d.currentBudget, posKey, realClub);
+      const pick = chooseCpuPick(getPlayersFromState(d, posKey), cpuSpendCap(d, d.currentBudget), posKey, realClub);
       if (!pick) {
-        d = { ...d, currentBudget: null, noCarryoverNext: true };
+        d = noAffordablePick(d);
         continue;
       }
       d = applyPick(d, pick);
@@ -767,15 +774,8 @@ export function useDraftState() {
   // Wheel resolves → set budget (incl. carryover) AND deal the report in one go.
   function confirmScoutBudget(spunVal) {
     setDraft(prev => {
-      const activeIdx = prev.currentOrder[prev.turnIndex];
-      const carry = prev.managers[activeIdx]?.carryover || 0;
-      const withBudget = {
-        ...prev,
-        currentBudget: spunVal + carry,
-        currentSpun: spunVal,
-        managers: prev.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
-      };
-      return { ...withBudget, ratingsRevealed: false, reScoutNotice: null, currentReport: computeScoutReport(withBudget) };
+      const loaded = withBudget(prev, spunVal);
+      return { ...loaded, ratingsRevealed: false, reScoutNotice: null, currentReport: computeScoutReport(loaded) };
     });
   }
 
@@ -886,17 +886,18 @@ export function useDraftState() {
     if (next.phase === "complete") setScreen(draft.managerTiming === "before" ? "squads" : "manager-draft");
   }
 
-  // CPU: pick the highest-rated affordable card from its own scout report. If it
+  // CPU: pick from the affordable cards on its own scout report, rating-ranked but
+  // run through cpuVariancePick so it isn't always the top card. If it
   // can't afford anything, it takes the best genuine £0 free agent, then the
   // emergency £0 floor — the same never-stranded chain a human gets, not a skip.
   function cpuScoutPick(d) {
-    const budget = d.currentBudget ?? 0;
+    const budget = cpuSpendCap(d, d.currentBudget ?? 0);
     const affordable = scoutReportIds(d)
       .map(id => resolveScoutPlayer(d, id))
       .filter(p => p.value <= budget);
     if (affordable.length) {
       affordable.sort((a, b) => b.rating - a.rating);
-      return affordable[0];
+      return cpuVariancePick(affordable);
     }
     const genuine = scoutGenuineFreeAgents(d); // best-rated first, value £0
     if (genuine.length) return genuine[0];
@@ -913,20 +914,13 @@ export function useDraftState() {
     if (d.phase === "complete") return;
     const activeIdx = d.currentOrder[d.turnIndex];
     if (!d.managers[activeIdx].isComputer) return;
-    if (d.currentBudget === null) {
-      const carry = d.noCarryoverNext ? 0 : (d.managers[activeIdx]?.carryover || 0);
-      d = {
-        ...d,
-        ...rollBudget(d, carry),
-        managers: d.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
-      };
-    }
+    if (d.currentBudget === null) d = rollCpuBudget(d);
     const pick = cpuScoutPick(d);
     // No pick available: clear the budget and let the next tick move things on,
     // exactly as the batch loop does, rather than stalling on this manager.
     d = pick
       ? { ...applyPick(d, pick), currentReport: null, scoutPosFilter: null, reScoutNotice: null }
-      : { ...d, currentBudget: null, noCarryoverNext: true };
+      : noAffordablePick(d);
     setDraft(d);
     if (d.phase === "complete") setScreen(d.managerTiming === "before" ? "squads" : "manager-draft");
   }
@@ -938,16 +932,9 @@ export function useDraftState() {
     while (d.phase !== "complete" && guard++ < 500) {
       const activeIdx = d.currentOrder[d.turnIndex];
       if (!d.managers[activeIdx].isComputer) break;
-      if (d.currentBudget === null) {
-        const carry = d.noCarryoverNext ? 0 : (d.managers[activeIdx]?.carryover || 0);
-        d = {
-          ...d,
-          ...rollBudget(d, carry),
-          managers: d.managers.map((m, i) => i === activeIdx ? { ...m, carryover: 0 } : m),
-        };
-      }
+      if (d.currentBudget === null) d = rollCpuBudget(d);
       const pick = cpuScoutPick(d);
-      if (!pick) { d = { ...d, currentBudget: null, noCarryoverNext: true }; continue; }
+      if (!pick) { d = noAffordablePick(d); continue; }
       d = { ...applyPick(d, pick), currentReport: null, scoutPosFilter: null, reScoutNotice: null };
     }
     setDraft(d);

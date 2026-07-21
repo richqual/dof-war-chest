@@ -116,6 +116,8 @@ export default function LobbyScreen({ onContinue, onBack }) {
   const [seriesLength, setSeriesLength] = useState("bo7"); // bo3 | bo5 | bo7
   const [hideRatings, setHideRatings] = useState(true);
   const [dynamicValues, setDynamicValues] = useState(true);
+  // Off by default in Classic — banking cash is the classic hoard-and-splurge game.
+  const [leftoverLolly, setLeftoverLolly] = useState(false);
   const [dynamicForm, setDynamicForm] = useState(true);
   const [realTeams, setRealTeams] = useState(false);
   const [managerTiming, setManagerTiming] = useState("before");
@@ -140,6 +142,7 @@ export default function LobbyScreen({ onContinue, onBack }) {
       positionMode,
       format: activeFormat,
       hideRatings,
+      leftoverLolly,
       dynamicValues,
       dynamicForm,
       managerTiming,
@@ -293,6 +296,18 @@ export default function LobbyScreen({ onContinue, onBack }) {
                 <span className="bw-pool-label-wrap">
                   <span className="bw-pool-label">Hide Ratings</span>
                   <span className="bw-pool-label-sub">Hides player ratings during the draft phase. Trust your gut!</span>
+                </span>
+              </label>
+              <label className={`bw-pool-row ${leftoverLolly ? "checked" : "unchecked"}`}>
+                <input
+                  type="checkbox"
+                  checked={leftoverLolly}
+                  onChange={e => setLeftoverLolly(e.target.checked)}
+                />
+                <span className="bw-pool-check-icon">{leftoverLolly ? "✓" : ""}</span>
+                <span className="bw-pool-label-wrap">
+                  <span className="bw-pool-label">Leftover Lolly</span>
+                  <span className="bw-pool-label-sub">Unspent cash doesn't roll into your next spin — it banks into a sub fund instead. Your bench is then bought straight out of that fund, with one top-up spin before you start.</span>
                 </span>
               </label>
               <label className={`bw-pool-row ${dynamicValues ? "checked" : "unchecked"}`}>

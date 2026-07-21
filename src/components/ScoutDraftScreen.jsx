@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { POSITIONS, SUB_POSITIONS } from "../data/players";
 import { FORMATIONS, FORMATION_DISPLAY_ORDER } from "../data/formations";
-import { DRAFT_ROULETTE_ERAS, DRAFT_ROULETTE_LEAGUES } from "../hooks/draftUtils";
+import { DRAFT_ROULETTE_ERAS, DRAFT_ROULETTE_LEAGUES, BENCH_MIN_FUND } from "../hooks/draftUtils";
 import { TIERS, squadTierCounts, ratingRangeLabel, SCOUT_TUNING } from "../hooks/scoutUtils";
 import PlayerCard from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
@@ -36,7 +36,22 @@ export default function ScoutDraftScreen({
 
   const { currentBudget, currentOrder, turnIndex, positionIndex, managers } = draft;
   const isCpuTurn = !!activeManager?.isComputer;
-  const pendingCarryover = activeManager?.carryover || 0;
+  // Leftover Lolly — see DraftScreen for the full shape. The fund is banked but
+  // locked during the XI rounds, then becomes the entire bench budget.
+  const lolly = !!draft.leftoverLolly;
+  const subFund = activeManager?.subFund || 0;
+  const benchRound = lolly && positionIndex >= 11;
+  const topUpDue = benchRound && !activeManager?.toppedUp;
+  const pendingCarryover = lolly
+    ? (benchRound ? subFund : 0)
+    : (activeManager?.carryover || 0);
+
+  // A bench turn past the top-up has nothing to spin — load the fund and deal.
+  useEffect(() => {
+    if (!lolly || !benchRound || topUpDue || isCpuTurn || !myTurn) return;
+    if (currentBudget !== null) return;
+    confirmScoutBudget(0);
+  }, [lolly, benchRound, topUpDue, isCpuTurn, myTurn, currentBudget, positionIndex, turnIndex]);
   const kitPrimary = activeManager?.primaryColor || "#1a3a6b";
   const kitSecondary = activeManager?.secondaryColor || "#ffffff";
 
@@ -198,7 +213,12 @@ export default function ScoutDraftScreen({
           <span className="bw-signing-meta">scouting: <strong>{currentPos.label}</strong></span>
         </div>
         <div className="bw-signing-right">
-          {pendingCarryover > 0 && currentBudget === null && (
+          {lolly && !benchRound && (
+            <span className="bw-signing-subfund" title="Unspent cash banks here for your subs">
+              Sub Fund: £{subFund}m
+            </span>
+          )}
+          {!lolly && pendingCarryover > 0 && currentBudget === null && (
             <span className="bw-signing-carryover">Carryover: £{pendingCarryover}m</span>
           )}
           {currentBudget !== null && <span className="bw-signing-budget">£{currentBudget}m</span>}
@@ -319,8 +339,19 @@ export default function ScoutDraftScreen({
           </div>
         ) : currentBudget === null ? (
           <div className="bw-roll-area">
-            <div className="bw-roll-sub">Spin your transfer budget for <strong>{currentPos.label}</strong></div>
-            <SpinWheel carryover={pendingCarryover} onConfirm={confirmScoutBudget} difficulty={draft.difficulty} theme="blue" />
+            <div className="bw-roll-sub">
+              {topUpDue
+                ? <><strong>Top-up spin</strong> — one last cash injection before you build your bench<span className="bw-roll-note"> · minimum £{BENCH_MIN_FUND}m guaranteed</span></>
+                : <>Spin your transfer budget for <strong>{currentPos.label}</strong></>}
+            </div>
+            <SpinWheel
+              carryover={pendingCarryover}
+              carryLabel={lolly ? "sub fund" : "carryover"}
+              onConfirm={confirmScoutBudget}
+              difficulty={draft.difficulty}
+              theme="blue"
+              minTotal={topUpDue ? BENCH_MIN_FUND : 0}
+            />
           </div>
         ) : (
           <div className="scout-report-area">

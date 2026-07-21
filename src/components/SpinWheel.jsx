@@ -66,7 +66,10 @@ function RollerHub({ display, isFinal }) {
   );
 }
 
-export default function SpinWheel({ carryover, onConfirm, difficulty = "normal", theme = "green" }) {
+// `carryLabel` names what the carried money is: under Leftover Lolly it's a
+// banked sub fund rather than a round-to-round carryover. `minTotal` is that
+// mode's guaranteed bench floor, shown when the spin lands under it.
+export default function SpinWheel({ carryover, onConfirm, difficulty = "normal", theme = "green", carryLabel = "carryover", minTotal = 0 }) {
   const [finalVal, setFinalVal] = useState(null);
   const [rollerDisplay, setRollerDisplay] = useState(null);
 
@@ -78,6 +81,7 @@ export default function SpinWheel({ carryover, onConfirm, difficulty = "normal",
   const slots = DIFFICULTY_SLOTS[difficulty] || DIFFICULTY_SLOTS.normal;
   const arranged = useMemo(() => shuffleSlots(slots), [difficulty]);
   const segments = arranged.map((value, i) => ({ value, start: i * SLICE_DEG, span: SLICE_DEG }));
+  const injected = minTotal > 0 && finalVal !== null && (finalVal + carryover) < minTotal;
 
   const handleLive = (rot) => {
     const idx = idxAt(rot);
@@ -87,7 +91,7 @@ export default function SpinWheel({ carryover, onConfirm, difficulty = "normal",
   };
 
   const handleLanded = (rot) => {
-    const idx = idxAt(rot);
+    const idx = idxAt(rot, arranged.length);
     setFinalVal(arranged[idx]);
     setRollerDisplay(arranged[idx]);
   };
@@ -183,10 +187,17 @@ export default function SpinWheel({ carryover, onConfirm, difficulty = "normal",
 
       {done && carryover > 0 && (
         <div className="spin-carryover">
-          + £{carryover}m carryover = <strong>£{(finalVal || 0) + carryover}m total</strong>
+          + £{carryover}m {carryLabel} = <strong>£{(finalVal || 0) + carryover}m total</strong>
         </div>
       )}
-      {done && finalVal === 0 && (
+      {/* The floor is applied to the real budget upstream, so it has to be shown
+          here too — otherwise the wheel's sum contradicts the budget you get. */}
+      {done && injected && (
+        <div className="spin-injection">
+          💰 CASH INJECTION — topped up to <strong>£{minTotal}m</strong>
+        </div>
+      )}
+      {done && finalVal === 0 && !injected && (
         <div className="roller-zero-label">WHEEL &amp; DEAL</div>
       )}
 
@@ -200,7 +211,10 @@ export default function SpinWheel({ carryover, onConfirm, difficulty = "normal",
         </button>
       ) : (
         <button className="spin-confirm-btn" onClick={() => onConfirm(finalVal)}>
-          ✓ LOCK IN {finalVal === 0 ? "£0" : formatValue(finalVal)}
+          {/* On an injection show the floor, not the spin: `onConfirm` still gets
+              the raw value (the floor is applied upstream), but a button reading
+              "LOCK IN £0" under a cash-injection notice contradicts itself. */}
+          ✓ LOCK IN {injected ? `£${minTotal}m` : finalVal === 0 ? "£0" : formatValue(finalVal)}
         </button>
       )}
 

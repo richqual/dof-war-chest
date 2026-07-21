@@ -83,6 +83,7 @@ function describeGame(d) {
   if (d.positionMode === "flexible") on.push("Flexible positions");
   if (d.managerTiming === "after") on.push("Managers after draft");
   if (d.tierCaps) on.push("Tier caps");
+  if (d.leftoverLolly) on.push("Leftover Lolly");
   if (on.length) rows.push(["Options", on.join(" · ")]);
 
   return rows;
@@ -1140,7 +1141,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "4.2.30";
+const APP_VERSION = "4.2.35";
 
 function AppFooter() {
   return (

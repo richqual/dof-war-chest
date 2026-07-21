@@ -1565,6 +1565,49 @@ export function managerMatchesRealClub(manager, realClub) {
   return needles.some(n => manager.club.includes(n));
 }
 
+// ── CPU pick variance ───────────────────────────────────────────────────────
+// Every mode ranks its own shortlist by whatever it can "see" (market value in
+// Classic, rating in Scout/War Chest) and then hands the best-first list here.
+// This is what stops a CPU being a machine that always takes row 0: most of the
+// time it takes one of the top few (weighted, so the best is still the odds-on
+// favourite), and now and then it has a mood — a splurge on the headline name or
+// a deliberate bargain hunt further down the list. Variance is uniform across
+// difficulties by design: difficulty already sets the budget, and stacking a
+// second knob on top made easy CPUs feel broken rather than beatable.
+const CPU_SPLURGE_CHANCE = 0.10;  // take the top of the list outright
+const CPU_BARGAIN_CHANCE = 0.12;  // hunt value further down instead
+const CPU_TOP_N = 5;              // how deep the everyday weighted pick reaches
+const CPU_BARGAIN_DEPTH = 9;      // how deep a bargain hunt will look
+
+export function cpuVariancePick(sorted) {
+  if (!sorted || sorted.length === 0) return null;
+  if (sorted.length === 1) return sorted[0];
+
+  const roll = Math.random();
+  if (roll < CPU_SPLURGE_CHANCE) return sorted[0];
+
+  if (roll < CPU_SPLURGE_CHANCE + CPU_BARGAIN_CHANCE) {
+    // Best rating per unit of value among a wider slice — a genuine steal rather
+    // than just "something cheap", so a bargain mood doesn't wreck the squad.
+    const pool = sorted.slice(0, Math.min(CPU_BARGAIN_DEPTH, sorted.length));
+    return pool.reduce((best, p) =>
+      (p.rating / Math.max(p.value, 1)) > (best.rating / Math.max(best.value, 1)) ? p : best
+    );
+  }
+
+  // Weighted pick over the top N: weight decays with rank, so the shortlist
+  // leader still wins most of the time but the chasing pack is live.
+  const pool = sorted.slice(0, Math.min(CPU_TOP_N, sorted.length));
+  const weights = pool.map((_, i) => 1 / Math.pow(i + 1, 1.6));
+  const total = weights.reduce((a, b) => a + b, 0);
+  let t = Math.random() * total;
+  for (let i = 0; i < pool.length; i++) {
+    t -= weights[i];
+    if (t <= 0) return pool[i];
+  }
+  return pool[0];
+}
+
 // realClub: when set (Real Teams mode), the CPU favours players from that club, then
 // players from OTHER leagues (avoiding same-league rivals), before normal preferences.
 export function chooseCpuPick(candidates, budget, posKey, realClub = null) {
@@ -1598,16 +1641,7 @@ export function chooseCpuPick(candidates, budget, posKey, realClub = null) {
   // CPU acts on value (perceived market reputation), not actual ratings it can't see.
   // Since values are randomised per game, this naturally creates squad variety.
   const sorted = [...affordable].sort((a, b) => b.value - a.value || b.rating - a.rating);
-  if (sorted.length === 1) return sorted[0];
-  const r = Math.random();
-  if (r < 0.55) return sorted[0];  // 55%: buy the most expensive they can afford
-  if (r < 0.85) {
-    // 30%: pick randomly from players within 80% of the top value
-    const topVal = sorted[0].value;
-    const nearBest = sorted.filter(p => p.value >= topVal * 0.8);
-    return nearBest[Math.floor(Math.random() * nearBest.length)];
-  }
-  return sorted[Math.min(1 + Math.floor(Math.random() * 2), sorted.length - 1)];  // 15%: 2nd or 3rd
+  return cpuVariancePick(sorted);
 }
 
 export const RANDOM_CLUB_NAMES = [

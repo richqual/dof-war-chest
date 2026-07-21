@@ -37,6 +37,8 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
   const [hideRatings, setHideRatings] = useState(true);
   const [dynamicValues, setDynamicValues] = useState(true);
   const [tierCaps, setTierCaps] = useState(false);
+  // On by default in Scout — the tight, controlled economy is what the mode is about.
+  const [leftoverLolly, setLeftoverLolly] = useState(true);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showRules, setShowRules] = useState(false);
 
@@ -55,7 +57,7 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
   function handleContinue() {
     onContinue({
       numClubs, numHumans, difficulty, format: activeFormat,
-      hideRatings, dynamicValues, dynamicForm: true,
+      hideRatings, dynamicValues, dynamicForm: true, leftoverLolly,
       scout: true, scoutFormation: formation, tierCaps, poolSize,
     });
   }
@@ -172,6 +174,14 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
                 <span className="bw-pool-label-wrap">
                   <span className="bw-pool-label">Randomize player values each game</span>
                   <span className="bw-pool-label-sub">Prices vary by tier — no two games are alike</span>
+                </span>
+              </label>
+              <label className={`bw-pool-row ${leftoverLolly ? "checked" : "unchecked"}`}>
+                <input type="checkbox" checked={leftoverLolly} onChange={e => setLeftoverLolly(e.target.checked)} />
+                <span className="bw-pool-check-icon">{leftoverLolly ? "✓" : ""}</span>
+                <span className="bw-pool-label-wrap">
+                  <span className="bw-pool-label">Leftover Lolly</span>
+                  <span className="bw-pool-label-sub">Unspent cash banks into a sub fund instead of carrying over — your bench (and any scouting mission) is bought from it, after one top-up spin</span>
                 </span>
               </label>
               <label className={`bw-pool-row ${tierCaps ? "checked" : "unchecked"}`}>
