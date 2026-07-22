@@ -49,16 +49,15 @@ export default function PlayerCard({ player, onPick, canAfford, compact = false,
           )}
           {!hideBadges && arch && (
             <span
-              className={`bw-player-tag${isPreferred ? " preferred" : ""}`}
+              className="bw-player-tag"
               style={archColors ? {
                 background: archColors.bg,
                 color: archColors.fg,
-                borderColor: isPreferred ? archColors.fg : `${archColors.fg}44`,
+                borderColor: `${archColors.fg}55`,
                 opacity: preferredArchetypes && !isPreferred ? 0.55 : 1,
               } : undefined}
               title={isPreferred ? `Preferred archetype for your Director of Football` : undefined}
             >
-              {isPreferred && <span className="bw-player-tag-star">★</span>}
               {arch}
             </span>
           )}
