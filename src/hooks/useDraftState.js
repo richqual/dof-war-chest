@@ -8,7 +8,7 @@ import {
   availablePlayersFor, getPlayersFromState, currentEligPool,
   autoDrawSlot, activeFormation, resolveCurrentPosKey, resolveCurrentPos,
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder,
-  buildRealTeamsPool, isDraftableBy, dedupeByName,
+  buildRealTeamsPool, isDraftableBy, dedupeByName, resolveValue,
   POS_LABELS, getFormArrow,
   buildInitialWarChestDraft, getWarChestPlayersForSlot, autoBuildWarChestSquad, assignWarChestBudget,
   appendSeriesHistory, freshSeries,
@@ -367,9 +367,7 @@ export function useDraftState() {
     return candidates.map(player => {
       const owner = draft.managers.find(m => m.squad.some(s => s && s.id === player.id));
       const p = { ...player, ownedBy: owner ? (owner.clubName || owner.name) : null };
-      if (draft?.playerValues && draft.playerValues.has(p.id)) {
-        p.value = draft.playerValues.get(p.id);
-      }
+      p.value = resolveValue(draft?.playerValues, p);
       if (draft?.playerForm && draft.playerForm.has(p.id)) {
         const formBonus = draft.playerForm.get(p.id);
         p.rating = Math.max(0, p.rating + formBonus);
@@ -388,12 +386,7 @@ export function useDraftState() {
       players = players.filter(p => isDraftableBy(draft, activeManager, p.id));
     }
     players = dedupeByName(players, draft, activeManager);
-    if (draft?.playerValues) {
-      players = players.map(p => ({
-        ...p,
-        value: draft.playerValues.get(p.id) ?? p.value,
-      }));
-    }
+    players = players.map(p => ({ ...p, value: resolveValue(draft?.playerValues, p) }));
     return players;
   }
 

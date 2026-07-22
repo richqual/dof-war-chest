@@ -140,6 +140,16 @@ export function availablePlayersFor(posKey, takenIds, rouletteAssignment, eligPo
   return PLAYERS.filter(p => p.pos !== "GK" && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
 }
 
+// The single source of truth for what a player costs. No entry in PLAYERS has a
+// `value` field — only a valueMin..valueMax band — so without the midpoint
+// fallback every value is `undefined` whenever Value for Money is off, nothing
+// is ever affordable, and the draft cannot be completed. Scout already did this;
+// Classic didn't.
+export function resolveValue(playerValues, p) {
+  const dynamic = playerValues instanceof Map ? playerValues.get(p.id) : undefined;
+  return dynamic ?? p.value ?? Math.round(((p.valueMin ?? 0) + (p.valueMax ?? 0)) / 2);
+}
+
 // The eligibility pool (array of acceptable pos strings) for the pick currently
 // on the clock, or null when the slot has no formation-based pool (GK is handled
 // by its own branch, subs by SUB_POSITIONS, War Chest not at all).
@@ -677,7 +687,7 @@ export function getPlayersFromState(d, posKey) {
   players = dedupeByName(players, d, activeManager);
   players = players.map(p => {
     const player = { ...p };
-    if (d.playerValues instanceof Map) player.value = d.playerValues.get(p.id) ?? p.value;
+    player.value = resolveValue(d.playerValues, p);
     return player;
   });
   const acceptable = CPU_POS_ACCEPTABLE[posKey];
@@ -818,7 +828,7 @@ export function getWarChestPlayersForSlot(slotIdx, takenIds, availablePlayerIds,
     )
     .map(p => {
       const player = { ...p };
-      if (playerValues instanceof Map) player.value = playerValues.get(p.id) ?? p.value;
+      player.value = resolveValue(playerValues, p);
       if (playerForm instanceof Map) player.form = playerForm.get(p.id) ?? 0;
       return player;
     });
@@ -871,7 +881,7 @@ export function autoBuildWarChestSquad(d, managerIdx) {
         matchesRoulette(p, rouletteAssignment)
       )
       .map(p => {
-        const value = d.playerValues instanceof Map ? (d.playerValues.get(p.id) ?? p.value) : p.value;
+        const value = resolveValue(d.playerValues, p);
         return { ...p, value };
       })
       .filter(p => p.value <= Math.min(budgetRemaining, maxForSlot))
@@ -919,7 +929,7 @@ export function autoFillWarChestSlot({ chestBudget, wcBudgetRemaining, squad, av
         matchesRoulette(p, rouletteAssignment)
       )
       .map(p => {
-        const value = playerValues instanceof Map ? (playerValues.get(p.id) ?? p.value) : p.value;
+        const value = resolveValue(playerValues, p);
         return { ...p, value };
       })
       .filter(p => p.value <= Math.min(budgetRemaining, maxForSlot))

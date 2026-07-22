@@ -2,7 +2,7 @@ import { PLAYERS, SUB_POSITIONS, generateBudget, chooseCpuPick } from "../data/p
 import {
   serializeDraft, deserializeDraft,
   applyPick, rollBudget, buildInitialDraft,
-  availablePlayersFor, getPlayersFromState, currentEligPool,
+  availablePlayersFor, getPlayersFromState, currentEligPool, resolveValue,
   autoDrawSlot, resolveCurrentPosKey, resolveCurrentPos,
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder,
   getFormArrow,
@@ -532,9 +532,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
     if (draft?.availablePlayerIds) {
       players = players.filter(p => draft.availablePlayerIds.has(p.id));
     }
-    if (draft?.playerValues) {
-      players = players.map(p => ({ ...p, value: draft.playerValues.get(p.id) ?? p.value }));
-    }
+    players = players.map(p => ({ ...p, value: resolveValue(draft?.playerValues, p) }));
     return players;
   }
 
@@ -550,7 +548,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
     return candidates.map(player => {
       const owner = draft.managers.find(m => m.squad.some(s => s && s.id === player.id));
       const p = { ...player, ownedBy: owner ? (owner.clubName || owner.name) : null };
-      if (draft.playerValues?.has(p.id)) p.value = draft.playerValues.get(p.id);
+      p.value = resolveValue(draft.playerValues, p);
       if (draft.playerForm?.has(p.id)) p.rating = Math.max(0, p.rating + draft.playerForm.get(p.id));
       return p;
     });
