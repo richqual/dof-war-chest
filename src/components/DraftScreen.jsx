@@ -897,18 +897,18 @@ export default function DraftScreen({
                 <>
                   <div className="bw-section-divider bw-divider-free">FREE TRANSFERS · {freeTransfers.length} AVAILABLE</div>
                   {freeTransfers.map(p => (
-                    <PlayerCard key={`free-${p.id}`} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.preferredArchetypes} outOfPos={showPosChips && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
+                    <PlayerCard key={`free-${p.id}`} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} outOfPos={showPosChips && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
                   ))}
                 </>
               )}
               {affordable.map(p => (
-                <PlayerCard key={p.id} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.preferredArchetypes} outOfPos={showPosChips && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
+                <PlayerCard key={p.id} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} outOfPos={showPosChips && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
               ))}
               {tooExpensiveShown.length > 0 && (
                 <>
                   <div className="bw-section-divider">OUT OF BUDGET</div>
                   {tooExpensiveShown.map(p => (
-                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} budget={currentBudget} preferredArchetypes={activeManager?.preferredArchetypes} outOfPos={showPosChips && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
+                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} budget={currentBudget} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} outOfPos={showPosChips && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
                   ))}
                 </>
               )}
@@ -916,7 +916,7 @@ export default function DraftScreen({
                 <>
                   <div className="bw-section-divider">ALREADY SIGNED</div>
                   {takenPlayers.map(p => (
-                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} takenBy={p.ownedBy} preferredArchetypes={activeManager?.preferredArchetypes} />
+                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} takenBy={p.ownedBy} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} />
                   ))}
                 </>
               )}
