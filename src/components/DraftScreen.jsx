@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { POSITIONS, generateBudget, chooseCpuPick, normalizeSearch } from "../data/players";
 import { GROUP_COLORS, FORMATIONS, FORMATION_DISPLAY_ORDER, slotEligibility, OOP_PENALTY } from "../data/formations";
-import { cpuSpendCap, BENCH_MIN_FUND } from "../hooks/draftUtils";
+import { cpuSpendCap, BENCH_MIN_FUND, freeTransferOptions } from "../hooks/draftUtils";
 import { POSITIONS as ALL_POSITIONS } from "../data/players";
 import PlayerCard, { ARCHETYPE_COLOR } from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
@@ -186,6 +186,7 @@ export default function DraftScreen({
 
   const affordable = available.filter(p => currentBudget !== null && p.value <= currentBudget);
   const tooExpensive = available.filter(p => currentBudget !== null && p.value > currentBudget);
+
   const takenPlayers = currentBudget !== null ? getTakenPlayers(currentPos.key) : [];
 
   // Whether any filter is narrower than its "show everything" state
@@ -213,6 +214,19 @@ export default function DraftScreen({
   const topUpDue = benchRound && !activeManager?.toppedUp;
   // A bench turn past the top-up loads the fund silently — there's nothing to spin.
   const autoLoadBudget = benchRound && !topUpDue;
+
+  // Free transfers: on a bench round there's no wheel left to re-spin, so a spent
+  // fund would strand the manager entirely. Offered from the unfiltered pool —
+  // this is the safety net, and a stray filter shouldn't be able to hide it.
+  // Declared here, after benchRound: hoisting it up with the other list-building
+  // would put it in the temporal dead zone and crash every bench round.
+  const freeTransfers = (benchRound && genuinelyNoAfford)
+    ? freeTransferOptions(draft, rawAvailable)
+    : [];
+  // Listing the same player twice — once free, once at full price under OUT OF
+  // BUDGET — would just read as a bug.
+  const freeIds = new Set(freeTransfers.map(p => p.id));
+  const tooExpensiveShown = tooExpensive.filter(p => !freeIds.has(p.id));
 
   // What the spin actually adds to. Under Lolly the sub fund is locked during the
   // XI rounds — it's banked, not spendable — so the wheel must show nothing
@@ -856,8 +870,9 @@ export default function DraftScreen({
                     {benchRound ? (
                       <>
                         <div className="bw-no-afford-msg">
-                          £{currentBudget}m isn't enough for anyone available. Skip this sub and the
-                          money stays in your <strong>sub fund</strong> for the next one.
+                          £{currentBudget}m isn't enough for anyone available — so these are available
+                          on a <strong>free transfer</strong>. One per club, best of them to whoever
+                          picks first. Or skip, and the money stays in your sub fund.
                         </div>
                         <button className="bw-cta-secondary" onClick={skipTurn}>→ SKIP THIS SUB</button>
                       </>
@@ -878,13 +893,21 @@ export default function DraftScreen({
                   </div>
                 )
               )}
+              {freeTransfers.length > 0 && (
+                <>
+                  <div className="bw-section-divider bw-divider-free">FREE TRANSFERS · {freeTransfers.length} AVAILABLE</div>
+                  {freeTransfers.map(p => (
+                    <PlayerCard key={`free-${p.id}`} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.preferredArchetypes} outOfPos={showPosChips && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
+                  ))}
+                </>
+              )}
               {affordable.map(p => (
                 <PlayerCard key={p.id} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.preferredArchetypes} outOfPos={showPosChips && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
               ))}
-              {tooExpensive.length > 0 && (
+              {tooExpensiveShown.length > 0 && (
                 <>
                   <div className="bw-section-divider">OUT OF BUDGET</div>
-                  {tooExpensive.map(p => (
+                  {tooExpensiveShown.map(p => (
                     <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} budget={currentBudget} preferredArchetypes={activeManager?.preferredArchetypes} outOfPos={showPosChips && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
                   ))}
                 </>

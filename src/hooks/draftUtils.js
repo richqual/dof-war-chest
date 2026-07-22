@@ -223,6 +223,24 @@ function bankLeftover(d, m, leftover) {
   return { ...m, carryover: d.noCarryoverNext ? 0 : leftover };
 }
 
+// ── Free transfers (Leftover Lolly bench rounds) ────────────────────────────
+// The base data has 30 players with valueMin: 0 but none with an actual value of
+// 0, so with Value for Money on the randomiser reprices everyone out of their
+// min..max band and the free tier can vanish entirely. On a bench round there is
+// no wheel left to spin, so a manager whose fund is spent gets permanently
+// stranded by a £2m sub. These are the escape hatch, and they're genuinely free.
+//
+// One option per manager, cheapest first: everyone stranded in the same round is
+// guaranteed one, and draft order decides who gets the pick of them rather than
+// the last manager being left with nothing.
+export function freeTransferOptions(d, candidates) {
+  if (!candidates || !candidates.length) return [];
+  return [...candidates]
+    .sort((a, b) => a.value - b.value || b.rating - a.rating)
+    .slice(0, d.managers.length)
+    .map(p => ({ ...p, value: 0, freeTransfer: true }));
+}
+
 // ── CPU bench reserve (Leftover Lolly only) ─────────────────────────────────
 // Without this a CPU spends every XI spin to the cap — it has no concept that
 // leftovers now fund the bench — and finishes the draft with empty sub slots.

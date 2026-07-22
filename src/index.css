@@ -830,6 +830,13 @@ input, select { font-family: var(--font); }
 }
 .spin-carryover strong { color: var(--bw-gold, var(--amber)); }
 
+/* Free-transfer section header — green like the cash injection, since both are
+   the game handing you a way out rather than a reward. */
+.bw-divider-free {
+  color: var(--bw-green, #4ade80) !important;
+  border-color: rgba(74, 222, 128, 0.35) !important;
+}
+
 /* Leftover Lolly's guaranteed bench floor. Reads as a reprieve rather than a
    prize, so it's green against the gold of a normal spin result. */
 .spin-injection {

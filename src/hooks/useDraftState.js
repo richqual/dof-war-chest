@@ -4,7 +4,7 @@ import {
   STORAGE_KEY, STORAGE_VERSION,
   serializeDraft, deserializeDraft,
   applyPick, rollBudget, buildInitialDraft,
-  carryFor, consumeCarry, isBenchRound, cpuSpendCap, needsTopUp, withCashInjection,
+  carryFor, consumeCarry, isBenchRound, cpuSpendCap, needsTopUp, withCashInjection, freeTransferOptions,
   availablePlayersFor, getPlayersFromState, currentEligPool,
   autoDrawSlot, activeFormation, resolveCurrentPosKey, resolveCurrentPos,
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder,
@@ -336,9 +336,19 @@ export function useDraftState() {
   // already loaded and the wheel is out of play — so re-spinning would loop
   // forever on a £0 budget. Skip the turn instead, which banks the pot back into
   // the fund for their next sub.
-  function noAffordablePick(d) {
-    if (isBenchRound(d)) return applyPick(d, null);
-    return { ...d, currentBudget: null, noCarryoverNext: true };
+  // `posKey` is optional: Classic passes it so a stranded CPU can take a free
+  // transfer rather than leaving the slot empty. Scout omits it — its Bargain
+  // Bucket already guarantees a £0 option, so it is never stranded.
+  function noAffordablePick(d, posKey = null) {
+    if (!isBenchRound(d)) return { ...d, currentBudget: null, noCarryoverNext: true };
+    if (posKey) {
+      const free = freeTransferOptions(d, getPlayersFromState(d, posKey));
+      if (free.length) {
+        const pick = free.reduce((best, p) => (p.rating > best.rating ? p : best));
+        return applyPick(d, pick);
+      }
+    }
+    return applyPick(d, null);
   }
 
   function confirmBudget(spunVal) {
@@ -435,7 +445,7 @@ export function useDraftState() {
       const realClub = d.managers[d.currentOrder[d.turnIndex]]?.realClub || null;
       const pick = chooseCpuPick(getPlayersFromState(d, posKey), cpuSpendCap(d, d.currentBudget), posKey, realClub);
       if (!pick) {
-        d = noAffordablePick(d);
+        d = noAffordablePick(d, posKey);
         continue;
       }
       d = applyPick(d, pick);
@@ -457,7 +467,7 @@ export function useDraftState() {
       const realClub = d.managers[activeIdx]?.realClub || null;
       const pick = chooseCpuPick(getPlayersFromState(d, posKey), cpuSpendCap(d, d.currentBudget), posKey, realClub);
       if (!pick) {
-        d = noAffordablePick(d);
+        d = noAffordablePick(d, posKey);
         continue;
       }
       d = applyPick(d, pick);
