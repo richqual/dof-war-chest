@@ -1,4 +1,17 @@
 import { useState } from "react";
+import { loadSetupPrefs, saveSetupPrefs, seededFrom } from "../utils/setupPrefs";
+
+// Setup fields that "remember my preferences" persists for Scout. Player/club
+// counts and series length are left out — those are per-game choices.
+const SCOUT_DEFAULTS = {
+  difficulty: "normal",
+  poolSize: "small",
+  formation: "4-3-3",
+  hideRatings: true,
+  dynamicValues: true,
+  tierCaps: false,
+  leftoverLolly: true,
+};
 
 const FORMAT_OPTIONS = [
   { key: "bo3", label: "3", hint: "First to 2 wins" },
@@ -27,18 +40,23 @@ const POOL_SIZE_INFO = [
 ];
 
 export default function ScoutLobbyScreen({ onContinue, onBack }) {
+  // Seed the setup options from the player's remembered preferences (if opted in).
+  const [saved] = useState(() => loadSetupPrefs("scout"));
+  const [init] = useState(() => seededFrom(SCOUT_DEFAULTS, saved.values));
+
   const [numClubs, setNumClubs] = useState(8);
   const [numHumans, setNumHumans] = useState(1);
-  const [difficulty, setDifficulty] = useState("normal");
-  const [poolSize, setPoolSize] = useState("small");
-  const [formation, setFormation] = useState("4-3-3");
+  const [difficulty, setDifficulty] = useState(init.difficulty);
+  const [poolSize, setPoolSize] = useState(init.poolSize);
+  const [formation, setFormation] = useState(init.formation);
   const [matchType, setMatchType] = useState("series");
   const [seriesLength, setSeriesLength] = useState("bo3");
-  const [hideRatings, setHideRatings] = useState(true);
-  const [dynamicValues, setDynamicValues] = useState(true);
-  const [tierCaps, setTierCaps] = useState(false);
+  const [hideRatings, setHideRatings] = useState(init.hideRatings);
+  const [dynamicValues, setDynamicValues] = useState(init.dynamicValues);
+  const [tierCaps, setTierCaps] = useState(init.tierCaps);
   // On by default in Scout — the tight, controlled economy is what the mode is about.
-  const [leftoverLolly, setLeftoverLolly] = useState(true);
+  const [leftoverLolly, setLeftoverLolly] = useState(init.leftoverLolly);
+  const [rememberPrefs, setRememberPrefs] = useState(saved.remember);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showRules, setShowRules] = useState(false);
 
@@ -55,6 +73,9 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
     : undefined;
 
   function handleContinue() {
+    saveSetupPrefs("scout", rememberPrefs, {
+      difficulty, poolSize, formation, hideRatings, dynamicValues, tierCaps, leftoverLolly,
+    });
     onContinue({
       numClubs, numHumans, difficulty, format: activeFormat,
       hideRatings, dynamicValues, dynamicForm: true, leftoverLolly,
@@ -160,6 +181,14 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
           </button>
           {showAdvanced && (
             <div className="bw-pool-list bw-setup-block">
+              <label className={`bw-pool-row ${rememberPrefs ? "checked" : "unchecked"}`}>
+                <input type="checkbox" checked={rememberPrefs} onChange={e => setRememberPrefs(e.target.checked)} />
+                <span className="bw-pool-check-icon">{rememberPrefs ? "✓" : ""}</span>
+                <span className="bw-pool-label-wrap">
+                  <span className="bw-pool-label">Remember My Preferences</span>
+                  <span className="bw-pool-label-sub">Save these advanced options on this device and load them the next time you set up a game</span>
+                </span>
+              </label>
               <label className={`bw-pool-row ${hideRatings ? "checked" : "unchecked"}`}>
                 <input type="checkbox" checked={hideRatings} onChange={e => setHideRatings(e.target.checked)} />
                 <span className="bw-pool-check-icon">{hideRatings ? "✓" : ""}</span>

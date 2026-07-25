@@ -1,5 +1,22 @@
 import { useState } from "react";
 import DraftRouletteToggle from "./DraftRouletteToggle";
+import { loadSetupPrefs, saveSetupPrefs, seededFrom } from "../utils/setupPrefs";
+
+// Setup fields that "remember my preferences" persists for Classic. Player/club
+// counts and one-off series length are deliberately left out — those are
+// per-game choices, not standing preferences.
+const CLASSIC_DEFAULTS = {
+  difficulty: "normal",
+  positionMode: "random",
+  hideRatings: true,
+  dynamicValues: true,
+  leftoverLolly: false,
+  freeSubs: false,
+  dynamicForm: true,
+  realTeams: false,
+  managerTiming: "before",
+  draftRoulette: { enabled: false, era: false, league: true },
+};
 
 const DIFFICULTY_INFO = [
   { key: "generous", label: "GENEROUS", hint: "Big budgets — legends within reach on most spins (avg £81m)" },
@@ -107,23 +124,28 @@ export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onW
 }
 
 export default function LobbyScreen({ onContinue, onBack }) {
+  // Seed the setup options from the player's remembered preferences (if opted in).
+  const [saved] = useState(() => loadSetupPrefs("classic"));
+  const [init] = useState(() => seededFrom(CLASSIC_DEFAULTS, saved.values));
+
   const [numClubs, setNumClubs] = useState(8);
   const [numHumans, setNumHumans] = useState(1);
-  const [difficulty, setDifficulty] = useState("normal");
-  const [positionMode, setPositionMode] = useState("random");
+  const [difficulty, setDifficulty] = useState(init.difficulty);
+  const [positionMode, setPositionMode] = useState(init.positionMode);
   // 2-team match structure: a one-off game or a best-of-N series.
   const [matchType, setMatchType] = useState("series"); // "single" | "series"
   const [seriesLength, setSeriesLength] = useState("bo7"); // bo3 | bo5 | bo7
-  const [hideRatings, setHideRatings] = useState(true);
-  const [dynamicValues, setDynamicValues] = useState(true);
+  const [hideRatings, setHideRatings] = useState(init.hideRatings);
+  const [dynamicValues, setDynamicValues] = useState(init.dynamicValues);
   // Off by default in Classic — banking cash is the classic hoard-and-splurge game.
-  const [leftoverLolly, setLeftoverLolly] = useState(false);
+  const [leftoverLolly, setLeftoverLolly] = useState(init.leftoverLolly);
   // Off by default — the bench normally mirrors your XI's positions.
-  const [freeSubs, setFreeSubs] = useState(false);
-  const [dynamicForm, setDynamicForm] = useState(true);
-  const [realTeams, setRealTeams] = useState(false);
-  const [managerTiming, setManagerTiming] = useState("before");
-  const [draftRoulette, setDraftRoulette] = useState({ enabled: false, era: false, league: true });
+  const [freeSubs, setFreeSubs] = useState(init.freeSubs);
+  const [dynamicForm, setDynamicForm] = useState(init.dynamicForm);
+  const [realTeams, setRealTeams] = useState(init.realTeams);
+  const [managerTiming, setManagerTiming] = useState(init.managerTiming);
+  const [draftRoulette, setDraftRoulette] = useState(init.draftRoulette);
+  const [rememberPrefs, setRememberPrefs] = useState(saved.remember);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showRules, setShowRules] = useState(false);
 
@@ -137,6 +159,19 @@ export default function LobbyScreen({ onContinue, onBack }) {
   }
 
   function handleContinue() {
+    // Persist (or clear) the player's standing setup preferences.
+    saveSetupPrefs("classic", rememberPrefs, {
+      difficulty,
+      positionMode,
+      hideRatings,
+      dynamicValues,
+      leftoverLolly,
+      freeSubs,
+      dynamicForm,
+      realTeams,
+      managerTiming,
+      draftRoulette,
+    });
     onContinue({
       numClubs,
       numHumans,
@@ -277,6 +312,18 @@ export default function LobbyScreen({ onContinue, onBack }) {
 
           {showAdvanced && (
             <div className="bw-pool-list bw-setup-block">
+              <label className={`bw-pool-row ${rememberPrefs ? "checked" : "unchecked"}`}>
+                <input
+                  type="checkbox"
+                  checked={rememberPrefs}
+                  onChange={e => setRememberPrefs(e.target.checked)}
+                />
+                <span className="bw-pool-check-icon">{rememberPrefs ? "✓" : ""}</span>
+                <span className="bw-pool-label-wrap">
+                  <span className="bw-pool-label">Remember My Preferences</span>
+                  <span className="bw-pool-label-sub">Save these advanced options on this device and load them the next time you set up a game.</span>
+                </span>
+              </label>
               <label className={`bw-pool-row ${positionMode === "fixed" ? "checked" : "unchecked"}`}>
                 <input
                   type="checkbox"
