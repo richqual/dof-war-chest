@@ -181,7 +181,7 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
           </button>
           {showAdvanced && (
             <div className="bw-pool-list bw-setup-block">
-              <label className={`bw-pool-row ${rememberPrefs ? "checked" : "unchecked"}`}>
+              <label className={`bw-pool-row bw-pool-util ${rememberPrefs ? "checked" : "unchecked"}`}>
                 <input type="checkbox" checked={rememberPrefs} onChange={e => setRememberPrefs(e.target.checked)} />
                 <span className="bw-pool-check-icon">{rememberPrefs ? "✓" : ""}</span>
                 <span className="bw-pool-label-wrap">

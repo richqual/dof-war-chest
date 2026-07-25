@@ -2339,6 +2339,26 @@ html.wc-theme .bw-draft-banner { background: linear-gradient(90deg, #2a1610, #24
 }
 .bw-pool-row.unchecked .bw-pool-count { color: var(--bw-text-low); background: var(--bw-recessed); border: 1px solid var(--bw-border); }
 
+/* Utility row — a meta control (e.g. "Remember My Preferences") that isn't a
+   game rule. Deliberately smaller and flatter than the gameplay toggles, and
+   divided off from them so it doesn't read as another rule. */
+.bw-pool-row.bw-pool-util {
+  padding: 6px 4px;
+  gap: 8px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--bw-border);
+  border-radius: 0 !important;
+  margin-bottom: 4px;
+  opacity: 1;
+}
+.bw-pool-row.bw-pool-util.checked { border-left: none; }
+.bw-pool-row.bw-pool-util.unchecked { opacity: 1; background: none; }
+.bw-pool-util .bw-pool-check-icon { font-size: 11px; width: 11px; }
+.bw-pool-row.bw-pool-util.unchecked .bw-pool-check-icon { width: 11px; height: 11px; }
+.bw-pool-util .bw-pool-label { font-size: 12px; color: var(--bw-text-mid); }
+.bw-pool-util .bw-pool-label-sub { font-size: 10px; }
+
 .bw-tier-row { display: flex; gap: 7px; }
 .bw-tier-chip {
   flex: 1;

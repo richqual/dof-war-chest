@@ -312,7 +312,7 @@ export default function LobbyScreen({ onContinue, onBack }) {
 
           {showAdvanced && (
             <div className="bw-pool-list bw-setup-block">
-              <label className={`bw-pool-row ${rememberPrefs ? "checked" : "unchecked"}`}>
+              <label className={`bw-pool-row bw-pool-util ${rememberPrefs ? "checked" : "unchecked"}`}>
                 <input
                   type="checkbox"
                   checked={rememberPrefs}
