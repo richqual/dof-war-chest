@@ -1483,8 +1483,8 @@ export const WAR_CHEST_SLOTS = [
   { key: "GK",  label: "Goalkeeper",   posFilter: ["GK"] },
   { key: "DEF", label: "Defender",     posFilter: ["CB", "LB", "RB"] },
   { key: "MID", label: "Midfielder",   posFilter: ["DM", "CM", "CAM", "RM", "LM"] },
-  { key: "ATT", label: "Any Outfield", posFilter: ["DM", "CM", "CAM", "RM", "LM", "RW", "LW", "ST"] },
-  { key: "ATT", label: "Any Outfield", posFilter: ["DM", "CM", "CAM", "RM", "LM", "RW", "LW", "ST"] },
+  { key: "ATT", label: "Midfield / Attack", posFilter: ["DM", "CM", "CAM", "RM", "LM", "RW", "LW", "ST"] },
+  { key: "ATT", label: "Midfield / Attack", posFilter: ["DM", "CM", "CAM", "RM", "LM", "RW", "LW", "ST"] },
 ];
 
 export const RANDOM_MANAGER_NAMES = [

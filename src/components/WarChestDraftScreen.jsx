@@ -32,6 +32,8 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
   const [activeSlot, setActiveSlot] = useState(null);
   const [search, setSearch] = useState("");
   const [priceRange, setPriceRange] = useState(null);
+  const [posFilter, setPosFilter] = useState([]);
+  const [sortBy, setSortBy] = useState("rating");
 
   const humanManagers = draft.managers.filter(m => !m.isComputer);
   const humanManagerCount = humanManagers.length;
@@ -49,6 +51,8 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
     setActiveSlot(slotIdx === activeSlot ? null : slotIdx);
     setSearch("");
     setPriceRange(null);
+    setPosFilter([]);
+    setSortBy("rating");
   }
 
   function handlePick(player) {
@@ -59,6 +63,11 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
   }
 
   const slotPlayers = activeSlot !== null ? getPlayers(activeSlot) : [];
+  // Positions actually present in this slot's pool, ordered as the slot defines
+  // them. Only offered when the slot spans more than one position (i.e. not GK).
+  const slotPosOrder = activeSlot !== null ? (WAR_CHEST_SLOTS[activeSlot].posFilter || []) : [];
+  const availablePositions = slotPosOrder.filter(pos => slotPlayers.some(p => p.pos === pos));
+  const showPosFilter = availablePositions.length > 1;
   const boundsMin = slotPlayers.length ? Math.min(...slotPlayers.map(p => p.value)) : 0;
   const boundsMax = slotPlayers.length ? Math.max(...slotPlayers.map(p => p.value)) : 0;
   // Default the upper handle to what you can actually afford (clamped to the
@@ -70,10 +79,11 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
     ? slotPlayers
         .filter(p => !search || normalizeSearch(p.name).includes(normalizeSearch(search)) || normalizeSearch(p.club).includes(normalizeSearch(search)))
         .filter(p => p.value >= priceMin && p.value <= priceMax)
+        .filter(p => posFilter.length === 0 || posFilter.includes(p.pos))
         .map(p => ({ ...p, affordable: p.value <= remaining }))
         .sort((a, b) => {
           if (a.affordable !== b.affordable) return a.affordable ? -1 : 1;
-          return b.rating - a.rating;
+          return sortBy === "price" ? b.value - a.value : b.rating - a.rating;
         })
     : [];
 
@@ -218,6 +228,40 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
                     value={priceMax}
                     onChange={e => setPriceRange([priceMin, Math.max(Number(e.target.value), priceMin)])}
                   />
+                </div>
+              </div>
+            )}
+            {(showPosFilter || activePlayers.length > 1) && (
+              <div className="bw-wcd-filter-row">
+                {showPosFilter && (
+                  <div className="bw-wcd-pos-chips">
+                    <button
+                      className={`bw-wcd-pos-chip ${posFilter.length === 0 ? "active" : ""}`}
+                      onClick={() => setPosFilter([])}
+                    >ALL</button>
+                    {availablePositions.map(pos => {
+                      const on = posFilter.includes(pos);
+                      return (
+                        <button
+                          key={pos}
+                          className={`bw-wcd-pos-chip ${on ? "active" : ""}`}
+                          style={on ? { background: posGroupColor(pos).bg, color: posGroupColor(pos).fg, borderColor: posGroupColor(pos).bg } : undefined}
+                          onClick={() => setPosFilter(on ? posFilter.filter(x => x !== pos) : [...posFilter, pos])}
+                        >{pos}</button>
+                      );
+                    })}
+                  </div>
+                )}
+                <div className="bw-wcd-sort-toggle">
+                  <span className="bw-wcd-sort-label">SORT</span>
+                  <button
+                    className={`bw-wcd-sort-btn ${sortBy === "rating" ? "active" : ""}`}
+                    onClick={() => setSortBy("rating")}
+                  >RATING</button>
+                  <button
+                    className={`bw-wcd-sort-btn ${sortBy === "price" ? "active" : ""}`}
+                    onClick={() => setSortBy("price")}
+                  >PRICE</button>
                 </div>
               </div>
             )}

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { POSITIONS, generateBudget, chooseCpuPick, normalizeSearch } from "../data/players";
 import { GROUP_COLORS, FORMATIONS, FORMATION_DISPLAY_ORDER, slotEligibility, OOP_PENALTY } from "../data/formations";
-import { cpuSpendCap, BENCH_MIN_FUND, freeTransferOptions } from "../hooks/draftUtils";
+import { cpuSpendCap, BENCH_MIN_FUND, freeTransferOptions, subDisplayLabel } from "../hooks/draftUtils";
 import { POSITIONS as ALL_POSITIONS } from "../data/players";
 import PlayerCard, { ARCHETYPE_COLOR } from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
@@ -11,6 +11,7 @@ import DrawBoard, { roundLabel } from "./DrawBoard";
 import DrawPanel from "./DrawPanel";
 import MySquadPanel from "./MySquadPanel";
 import KitSwatch, { readableTextOn, kitAccent } from "./KitSwatch";
+import { playerPrefKey, loadPrefs, savePrefs } from "../utils/filterPrefs";
 
 const CPU_SPIN_DELAY = 900;
 const CPU_PICK_DELAY = 1300;
@@ -39,9 +40,13 @@ export default function DraftScreen({
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
-  const [filterEra, setFilterEra] = useState(new Set(["classic", "golden", "modern"]));
-  const [filterLeague, setFilterLeague] = useState(new Set(["premier_league", "la_liga", "serie_a", "bundesliga", "ligue_1", "legends"]));
-  const [filterTiers, setFilterTiers] = useState(new Set(["T1", "T2", "T3", "T4", "T5"]));
+  // Per-player filter/sort preferences. Seed the initial state from the active
+  // manager's saved preferences so a returning player gets their setup back, and
+  // swap them whenever the manager on the clock changes (see the effect below).
+  const initialPrefs = useRef(loadPrefs(playerPrefKey(activeManager))).current;
+  const [filterEra, setFilterEra] = useState(initialPrefs.filterEra);
+  const [filterLeague, setFilterLeague] = useState(initialPrefs.filterLeague);
+  const [filterTiers, setFilterTiers] = useState(initialPrefs.filterTiers);
   const [filterArchetypes, setFilterArchetypes] = useState(new Set(relevantArchetypes));
   const [filterPos, setFilterPos] = useState(() => new Set(showPosChips ? posPool : [currentPos.key]));
 
@@ -56,8 +61,35 @@ export default function DraftScreen({
     const prevCat = ["GK", "GKSUB"].includes(lastPosKey) ? "gk" : "outfield";
     if (cat !== prevCat) setFilterArchetypes(new Set(relevantArchetypes));
   }, [currentPos.key]);
-  const [sortBy, setSortBy] = useState("tier");
-  const [sortDir, setSortDir] = useState("asc");
+  const [sortBy, setSortBy] = useState(initialPrefs.sortBy);
+  const [sortDir, setSortDir] = useState(initialPrefs.sortDir);
+
+  // Swap filter/sort preferences when the manager on the clock changes: save the
+  // outgoing player's setup, load the incoming player's. Human players only —
+  // CPU turns (prefKey === null) leave whatever's on screen untouched.
+  const prefKey = playerPrefKey(activeManager);
+  const prevKeyRef = useRef(playerPrefKey(activeManager));
+  useEffect(() => {
+    if (prefKey === prevKeyRef.current) return;
+    savePrefs(prevKeyRef.current, { filterEra, filterLeague, filterTiers, sortBy, sortDir });
+    if (prefKey) {
+      const p = loadPrefs(prefKey);
+      setFilterEra(p.filterEra);
+      setFilterLeague(p.filterLeague);
+      setFilterTiers(p.filterTiers);
+      setSortBy(p.sortBy);
+      setSortDir(p.sortDir);
+    }
+    prevKeyRef.current = prefKey;
+  }, [prefKey]);
+
+  // Persist the current player's preferences as they tweak them, so they survive
+  // across games/sessions even without a turn switch. Writes under the settled
+  // player key (prevKeyRef), which the swap effect updates before its setState
+  // lands — so a manager change never mis-attributes filters to the wrong player.
+  useEffect(() => {
+    savePrefs(prevKeyRef.current, { filterEra, filterLeague, filterTiers, sortBy, sortDir });
+  }, [filterEra, filterLeague, filterTiers, sortBy, sortDir]);
   const [transition, setTransition] = useState(null);
   const [viewingSquadIdx, setViewingSquadIdx] = useState(null);
   const [showOrder, setShowOrder] = useState(false);
@@ -249,7 +281,7 @@ export default function DraftScreen({
         nextManagerIdx = (0 + newRound) % n;
         nextPosLabel = draft.positionMode === "random" && positionIndex + 1 < 11
           ? "?"
-          : POSITIONS[positionIndex + 1]?.label || "";
+          : subDisplayLabel(draft, POSITIONS[positionIndex + 1]?.key, POSITIONS[positionIndex + 1]?.label || "");
       } else {
         nextManagerIdx = currentOrder[turnIndex + 1];
         nextPosLabel = draft.positionMode === "random" && positionIndex < 11
@@ -529,7 +561,7 @@ export default function DraftScreen({
             <span className="bw-pos-chip-divider" />
             {POSITIONS.slice(11).map((p, i) => {
               const absIdx = 11 + i;
-              const label = p.key === "GKSUB" ? "GKS" : p.key === "DEFSUB" ? "DEF" : p.key === "MIDSUB" ? "MID" : p.key === "ATTSUB" ? "ATT" : p.key;
+              const label = p.key === "GKSUB" ? "GKS" : draft.freeSubs ? "SUB" : p.key === "DEFSUB" ? "DEF" : p.key === "MIDSUB" ? "MID" : p.key === "ATTSUB" ? "ATT" : p.key;
               const state = absIdx < positionIndex ? "done" : absIdx === positionIndex ? "current" : "todo";
               return (
                 <span key={absIdx} className={`bw-pos-chip sub ${state}`}>
@@ -552,7 +584,7 @@ export default function DraftScreen({
             <span className="bw-pos-chip-divider" />
             {POSITIONS.slice(11).map((p, i) => {
               const absIdx = 11 + i;
-              const label = p.key === "GKSUB" ? "GKS" : p.key === "DEFSUB" ? "DEF" : p.key === "MIDSUB" ? "MID" : p.key === "ATTSUB" ? "ATT" : p.key;
+              const label = p.key === "GKSUB" ? "GKS" : draft.freeSubs ? "SUB" : p.key === "DEFSUB" ? "DEF" : p.key === "MIDSUB" ? "MID" : p.key === "ATTSUB" ? "ATT" : p.key;
               const state = absIdx < positionIndex ? "done" : absIdx === positionIndex ? "current" : "todo";
               return (
                 <span key={absIdx} className={`bw-pos-chip sub ${state}`}>

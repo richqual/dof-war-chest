@@ -381,7 +381,7 @@ export function useDraftState() {
     const rouletteAssignment = activeManager
       ? { era: activeManager.assignedEra, league: activeManager.assignedLeague }
       : null;
-    let players = availablePlayersFor(posKey, draft ? draft.takenIds : [], rouletteAssignment, draft ? currentEligPool(draft) : null);
+    let players = availablePlayersFor(posKey, draft ? draft.takenIds : [], rouletteAssignment, draft ? currentEligPool(draft) : null, draft?.freeSubs);
     if (draft?.availablePlayerIds) {
       players = players.filter(p => isDraftableBy(draft, activeManager, p.id));
     }

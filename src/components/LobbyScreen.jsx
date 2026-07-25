@@ -118,6 +118,8 @@ export default function LobbyScreen({ onContinue, onBack }) {
   const [dynamicValues, setDynamicValues] = useState(true);
   // Off by default in Classic — banking cash is the classic hoard-and-splurge game.
   const [leftoverLolly, setLeftoverLolly] = useState(false);
+  // Off by default — the bench normally mirrors your XI's positions.
+  const [freeSubs, setFreeSubs] = useState(false);
   const [dynamicForm, setDynamicForm] = useState(true);
   const [realTeams, setRealTeams] = useState(false);
   const [managerTiming, setManagerTiming] = useState("before");
@@ -143,6 +145,7 @@ export default function LobbyScreen({ onContinue, onBack }) {
       format: activeFormat,
       hideRatings,
       leftoverLolly,
+      freeSubs,
       dynamicValues,
       dynamicForm,
       managerTiming,
@@ -308,6 +311,18 @@ export default function LobbyScreen({ onContinue, onBack }) {
                 <span className="bw-pool-label-wrap">
                   <span className="bw-pool-label">Leftover Lolly</span>
                   <span className="bw-pool-label-sub">Unspent cash doesn't roll into your next spin — it banks into a sub fund instead. Your bench is then bought straight out of that fund, with one top-up spin before you start.</span>
+                </span>
+              </label>
+              <label className={`bw-pool-row ${freeSubs ? "checked" : "unchecked"}`}>
+                <input
+                  type="checkbox"
+                  checked={freeSubs}
+                  onChange={e => setFreeSubs(e.target.checked)}
+                />
+                <span className="bw-pool-check-icon">{freeSubs ? "✓" : ""}</span>
+                <span className="bw-pool-label-wrap">
+                  <span className="bw-pool-label">Free Subs</span>
+                  <span className="bw-pool-label-sub">Drop the position rules on the bench. You still need a sub goalkeeper, but the other four sub slots are free hits — pick any outfielder you like.</span>
                 </span>
               </label>
               <label className={`bw-pool-row ${dynamicValues ? "checked" : "unchecked"}`}>

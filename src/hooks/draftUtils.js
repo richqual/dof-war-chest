@@ -120,12 +120,18 @@ function matchesRoulette(p, rouletteAssignment) {
   return true;
 }
 
-export function availablePlayersFor(posKey, takenIds, rouletteAssignment, eligPool = null) {
+export function availablePlayersFor(posKey, takenIds, rouletteAssignment, eligPool = null, freeSubs = false) {
   const taken = new Set(takenIds);
   if (posKey === "GKSUB") {
     return PLAYERS.filter(p => p.pos === "GK" && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
   }
   if (SUB_POSITIONS[posKey]) {
+    // Free Subs (Classic advanced option): outfield bench slots become free hits —
+    // any outfielder qualifies, not just the slot's usual position band. The sub
+    // goalkeeper (GKSUB, handled above) is deliberately never freed.
+    if (freeSubs) {
+      return PLAYERS.filter(p => p.pos !== "GK" && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
+    }
     return PLAYERS.filter(p => SUB_POSITIONS[posKey].includes(p.pos) && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
   }
   if (posKey === "GK") {
@@ -666,6 +672,7 @@ export function buildInitialDraft(clubs, options = {}) {
     phase: "draft",
     hideRatings: options.hideRatings || false,
     leftoverLolly: !!options.leftoverLolly,
+    freeSubs: !!options.freeSubs,
     difficulty: options.difficulty || "normal",
     dynamicForm: options.dynamicForm !== false,
     series: buildSeries(n, options.format),
@@ -680,7 +687,7 @@ export function getPlayersFromState(d, posKey) {
   const rouletteAssignment = activeManager
     ? { era: activeManager.assignedEra, league: activeManager.assignedLeague }
     : null;
-  let players = availablePlayersFor(posKey, d.takenIds, rouletteAssignment, currentEligPool(d));
+  let players = availablePlayersFor(posKey, d.takenIds, rouletteAssignment, currentEligPool(d), d.freeSubs);
   if (d.availablePlayerIds instanceof Set) {
     players = players.filter(p => isDraftableBy(d, activeManager, p.id));
   }
@@ -690,7 +697,9 @@ export function getPlayersFromState(d, posKey) {
     player.value = resolveValue(d.playerValues, p);
     return player;
   });
-  const acceptable = CPU_POS_ACCEPTABLE[posKey];
+  // With Free Subs on, outfield bench slots are free hits for everyone, so don't
+  // narrow the CPU's pool back down to the slot's usual position band.
+  const acceptable = (d.freeSubs && SUB_POSITIONS[posKey]) ? null : CPU_POS_ACCEPTABLE[posKey];
   if (acceptable) {
     const posFiltered = players.filter(p => acceptable.includes(p.pos));
     if (posFiltered.length >= 1) players = posFiltered;
@@ -725,6 +734,17 @@ export function resolveCurrentPosKey(d) {
   return formationPos(formation, d.positionIndex);
 }
 
+// The outfield bench slot keys — the ones Free Subs turns into free hits. The
+// sub goalkeeper (GKSUB) is deliberately excluded: it stays a keeper slot.
+export const FREE_SUB_KEYS = ["DEFSUB", "MIDSUB", "WIDSUB", "ATTSUB"];
+
+// With Free Subs on, an outfield bench slot has no position identity left to
+// name, so it's just "Sub". Everything else keeps its normal label. Pass the
+// slot's position key and the label you'd otherwise show.
+export function subDisplayLabel(d, posKey, fallback) {
+  return (d?.freeSubs && FREE_SUB_KEYS.includes(posKey)) ? "Sub" : fallback;
+}
+
 export function resolveCurrentPos(d) {
   if (!d || d.warChest) return null;
   const slotIndex = (d.positionMode === "random" && d.positionIndex < 11 && d.currentSlot !== null && d.currentSlot !== undefined)
@@ -734,7 +754,7 @@ export function resolveCurrentPos(d) {
   const entry = formationEntry(formation, slotIndex);
   const key = entry.pos;
   const displayKey = entry.label ?? key;
-  return { key, label: POS_LABELS[displayKey] ?? displayKey, slot: slotIndex };
+  return { key, label: subDisplayLabel(d, key, POS_LABELS[displayKey] ?? displayKey), slot: slotIndex };
 }
 
 // ── War Chest mode ──────────────────────────────────────────────────────────

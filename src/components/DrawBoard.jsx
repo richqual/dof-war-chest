@@ -1,4 +1,5 @@
 import { POSITIONS } from "../data/players";
+import { subDisplayLabel } from "../hooks/draftUtils";
 import { lastName } from "../utils/displayName";
 import KitSwatch from "./KitSwatch";
 
@@ -23,7 +24,8 @@ export function roundLabel(draft, positionIndex) {
     m => (m.formation || "4-3-3") === (draft.managers[0]?.formation || "4-3-3")
   );
   if (!sharedFormation) return `Round ${positionIndex + 1}`;
-  return POSITIONS[positionIndex]?.label ?? `Round ${positionIndex + 1}`;
+  const entry = POSITIONS[positionIndex];
+  return subDisplayLabel(draft, entry?.key, entry?.label ?? `Round ${positionIndex + 1}`);
 }
 
 // A manager still to pick in the round being shown — rendered as a waiting row

@@ -528,7 +528,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
   // ── Read helpers ───────────────────────────────────────────────────────
 
   function getAvailablePlayers(posKey) {
-    let players = availablePlayersFor(posKey, draft ? draft.takenIds : [], null, draft ? currentEligPool(draft) : null);
+    let players = availablePlayersFor(posKey, draft ? draft.takenIds : [], null, draft ? currentEligPool(draft) : null, draft?.freeSubs);
     if (draft?.availablePlayerIds) {
       players = players.filter(p => draft.availablePlayerIds.has(p.id));
     }

@@ -84,6 +84,7 @@ function describeGame(d) {
   if (d.managerTiming === "after") on.push("Managers after draft");
   if (d.tierCaps) on.push("Tier caps");
   if (d.leftoverLolly) on.push("Leftover Lolly");
+  if (d.freeSubs) on.push("Free Subs");
   if (on.length) rows.push(["Options", on.join(" · ")]);
 
   return rows;
@@ -452,6 +453,7 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
     return (
       <>{globalMenu}
         <WarChestSelectionScreen
+          key={`wc-select-${mySlotIdx}`}
           draft={{ ...draft, wcCurrentManagerIdx: mySlotIdx }}
           onSelect={actions.selectWarChest}
           deadline={draft.wcDeadline}
@@ -805,6 +807,9 @@ function AppInner({ onMultiplayer, auth }) {
           <ClubCreatorScreen
             config={lobbyConfig}
             profileDefaults={auth.profile?.setupComplete ? auth.profile : null}
+            savedClubs={auth.clubLocker}
+            onSaveClubs={auth.saveClubsToLocker}
+            onRemoveSavedClub={auth.removeClubFromLocker}
             onStart={(clubs, opts) => {
               startWarChestGame(clubs, { ...opts, ...lobbyConfig });
               setPreScreen("mode-select");
@@ -832,6 +837,9 @@ function AppInner({ onMultiplayer, auth }) {
           <ClubCreatorScreen
             config={lobbyConfig}
             profileDefaults={auth.profile?.setupComplete ? auth.profile : null}
+            savedClubs={auth.clubLocker}
+            onSaveClubs={auth.saveClubsToLocker}
+            onRemoveSavedClub={auth.removeClubFromLocker}
             onStart={(clubs, opts) => { setLobbyConfig({ ...lobbyConfig, ...opts, _clubs: clubs }); setPreScreen("scout-tenets"); }}
             onBack={() => setPreScreen("scout-lobby")}
           />
@@ -871,6 +879,9 @@ function AppInner({ onMultiplayer, auth }) {
         <ClubCreatorScreen
           config={lobbyConfig}
           profileDefaults={auth.profile?.setupComplete ? auth.profile : null}
+          savedClubs={auth.clubLocker}
+          onSaveClubs={auth.saveClubsToLocker}
+          onRemoveSavedClub={auth.removeClubFromLocker}
           onStart={(clubs, opts) => { startGame(clubs, opts); setPreScreen("mode-select"); }}
           onBack={() => setPreScreen("lobby")}
         />
@@ -887,7 +898,11 @@ function AppInner({ onMultiplayer, auth }) {
       return (
         <>
           {globalMenu}
-          <WarChestSelectionScreen draft={draft} onSelect={selectWarChest} />
+          <WarChestSelectionScreen
+            key={`wc-select-${draft.wcCurrentManagerIdx}`}
+            draft={draft}
+            onSelect={selectWarChest}
+          />
         </>
       );
     }
@@ -1141,7 +1156,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "4.2.39";
+const APP_VERSION = "4.2.45";
 
 function AppFooter() {
   return (

@@ -355,7 +355,7 @@ function applyRealClubIdentity(club, realClub) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export default function ClubCreatorScreen({ config, onStart, onBack, profileDefaults }) {
+export default function ClubCreatorScreen({ config, onStart, onBack, profileDefaults, savedClubs = [], onSaveClubs, onRemoveSavedClub }) {
   const { numClubs, numHumans, warChest, ...gameOptions } = config;
   // War Chest is fixed 5-a-side; Scout sets one shared formation at game level.
   // Either way the per-club formation picker is meaningless here.
@@ -388,6 +388,8 @@ export default function ClubCreatorScreen({ config, onStart, onBack, profileDefa
   const [step, setStep] = useState(0);
   // null = not editing a CPU club; number = index of CPU club being edited
   const [editingCpuIdx, setEditingCpuIdx] = useState(null);
+  // Whether the "load a saved club" locker panel is open in the human wizard.
+  const [showLocker, setShowLocker] = useState(false);
 
   function updateClub(i, updated) {
     setClubs(prev => prev.map((c, j) => j === i ? updated : c));
@@ -459,6 +461,15 @@ export default function ClubCreatorScreen({ config, onStart, onBack, profileDefa
                     ⚽ USE MY SAVED CLUB
                   </button>
                 )}
+                {savedClubs.length > 0 && (
+                  <button
+                    className="bw-autofill-btn"
+                    type="button"
+                    onClick={() => setShowLocker(o => !o)}
+                  >
+                    📁 LOAD SAVED CLUB
+                  </button>
+                )}
                 <button
                   className="bw-dice-btn"
                   onClick={() => {
@@ -473,6 +484,50 @@ export default function ClubCreatorScreen({ config, onStart, onBack, profileDefa
                 </button>
               </div>
             </div>
+
+            {showLocker && savedClubs.length > 0 && (
+              <div className="bw-locker-panel">
+                <div className="bw-locker-title">SAVED CLUBS</div>
+                <div className="bw-locker-list">
+                  {savedClubs.map((saved, i) => (
+                    <div key={`${saved.clubName}-${saved.dofName}-${i}`} className="bw-locker-row">
+                      <button
+                        className="bw-locker-load"
+                        type="button"
+                        onClick={() => {
+                          updateClub(step, {
+                            ...club,
+                            clubName: saved.clubName,
+                            dofName: saved.dofName,
+                            primaryColor: saved.primaryColor,
+                            secondaryColor: saved.secondaryColor,
+                            pattern: saved.pattern,
+                            isComputer: false,
+                          });
+                          setShowLocker(false);
+                        }}
+                      >
+                        <KitSwatch primary={saved.primaryColor} secondary={saved.secondaryColor} pattern={saved.pattern} size={28} />
+                        <span className="bw-locker-names">
+                          <span className="bw-locker-club">{saved.clubName}</span>
+                          <span className="bw-locker-dof">{saved.dofName}</span>
+                        </span>
+                      </button>
+                      {onRemoveSavedClub && (
+                        <button
+                          className="bw-locker-remove"
+                          type="button"
+                          title="Remove from saved clubs"
+                          onClick={() => onRemoveSavedClub(i)}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <ClubEditorForm club={club} onChange={updated => updateClub(step, updated)} index={step} hideFormation={hideFormation} />
 
@@ -499,6 +554,9 @@ export default function ClubCreatorScreen({ config, onStart, onBack, profileDefa
   function handleStart() {
     if (!humanValid) return;
     const finalClubs = clubs.map(c => ({ ...c, dofName: c.dofName.trim(), clubName: c.clubName.trim() }));
+    // Bank the human clubs so they can be re-used next time (cloud for signed-in
+    // users, localStorage for guests — handled by the locker).
+    onSaveClubs?.(finalClubs.slice(0, numHumans));
     onStart(finalClubs, gameOptions);
   }
 
