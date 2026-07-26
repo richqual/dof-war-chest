@@ -1668,11 +1668,10 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
 }
 
 const SPEEDS = [
-  { label: "CRAWL",   ms: 4000 },
   { label: "SLOW",    ms: 2500 },
-  { label: "NORMAL",  ms: 600  },
-  { label: "FAST",    ms: 200  },
-  { label: "INSTANT", ms: 0   },
+  { label: "NORMAL",  ms: 1400 },
+  { label: "FAST",    ms: 600  },
+  { label: "INSTANT", ms: 0    },
 ];
 
 function ratingClass(r) {
@@ -1831,13 +1830,13 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
   const [simulating, setSimulating] = useState(false);
   const [done, setDone] = useState(false);
   const [summaryCollapsed, setSummaryCollapsed] = useState(false);
-  const [speedIdx, setSpeedIdx] = useState(2); // default NORMAL
+  const [speedIdx, setSpeedIdx] = useState(1); // default NORMAL
   const [paused, setPaused] = useState(false);
   const [penPaused, setPenPaused] = useState(false);
   const [showLineups, setShowLineups] = useState(false);
   const feedRef = useRef(null);
   const timerRef = useRef(null);
-  const speedRef = useRef(SPEEDS[2].ms);
+  const speedRef = useRef(SPEEDS[1].ms);
   const eventsRef = useRef([]);
   const nextIdxRef = useRef(0);
   const externalStartedRef = useRef(false);
