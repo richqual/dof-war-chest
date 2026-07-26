@@ -1670,7 +1670,8 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
 const SPEEDS = [
   { label: "SLOW",    ms: 2500 },
   { label: "NORMAL",  ms: 1400 },
-  { label: "FAST",    ms: 600  },
+  { label: "BRISK",   ms: 600  },
+  { label: "FAST",    ms: 200  },
   { label: "INSTANT", ms: 0    },
 ];
 
