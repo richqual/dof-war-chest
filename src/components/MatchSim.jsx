@@ -1675,6 +1675,32 @@ const SPEEDS = [
   { label: "INSTANT", ms: 0    },
 ];
 
+const DEFAULT_SPEED_IDX = 1; // NORMAL
+
+// Match-sim playback speed is remembered device-level (localStorage), keyed by
+// label so it survives any future reordering of SPEEDS. It's a "how I like to
+// watch" comfort setting, not per-player state, so we persist the last choice
+// silently — no opt-in toggle.
+const SPEED_STORE_KEY = "tg-matchsim-speed";
+
+function loadSpeedIdx() {
+  try {
+    const label = localStorage.getItem(SPEED_STORE_KEY);
+    const idx = SPEEDS.findIndex(s => s.label === label);
+    return idx >= 0 ? idx : DEFAULT_SPEED_IDX;
+  } catch {
+    return DEFAULT_SPEED_IDX;
+  }
+}
+
+function saveSpeedIdx(idx) {
+  try {
+    if (SPEEDS[idx]) localStorage.setItem(SPEED_STORE_KEY, SPEEDS[idx].label);
+  } catch {
+    // localStorage unavailable (private mode / quota) — just won't persist.
+  }
+}
+
 function ratingClass(r) {
   if (r >= 8.5) return "elite";
   if (r >= 7.5) return "good";
@@ -1831,13 +1857,13 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
   const [simulating, setSimulating] = useState(false);
   const [done, setDone] = useState(false);
   const [summaryCollapsed, setSummaryCollapsed] = useState(false);
-  const [speedIdx, setSpeedIdx] = useState(1); // default NORMAL
+  const [speedIdx, setSpeedIdx] = useState(loadSpeedIdx); // remembered device-level
   const [paused, setPaused] = useState(false);
   const [penPaused, setPenPaused] = useState(false);
   const [showLineups, setShowLineups] = useState(false);
   const feedRef = useRef(null);
   const timerRef = useRef(null);
-  const speedRef = useRef(SPEEDS[1].ms);
+  const speedRef = useRef(SPEEDS[speedIdx].ms);
   const eventsRef = useRef([]);
   const nextIdxRef = useRef(0);
   const externalStartedRef = useRef(false);
@@ -1920,6 +1946,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
 
   function changeSpeed(idx) {
     setSpeedIdx(idx);
+    saveSpeedIdx(idx);
     speedRef.current = SPEEDS[idx].ms;
     // If currently simulating, restart the timer at new speed.
     // INSTANT overrides a pause; other speeds wait for resume.
