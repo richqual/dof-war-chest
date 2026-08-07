@@ -28,15 +28,22 @@ export default function DraftScreen({
   const OUTFIELD_POS = ["RB", "LB", "CB", "DM", "CM", "CAM", "RM", "LM", "RW", "LW", "ST"];
   const isGkPos = currentPos.key === "GK" || currentPos.key === "GKSUB";
   const isSubPos = ["DEFSUB", "MIDSUB", "WIDSUB", "ATTSUB"].includes(currentPos.key);
-  const showPosChips = !isGkPos && !isSubPos;
+  // Free Subs turns outfield bench slots into free hits over the whole outfield
+  // pool, so there's a real position choice to make here — surface the position
+  // filter (but with no out-of-position penalty, since every outfielder is fair
+  // game). Normal (non-free) sub slots keep their fixed position band and no chip.
+  const isFreeSub = isSubPos && !!draft.freeSubs;
+  const showPosChips = !isGkPos && (!isSubPos || isFreeSub);
   const relevantArchetypes = isGkPos ? GK_ARCHETYPES : OUTFIELD_ARCHETYPES;
 
   // Position eligibility for the slot on the clock. `posPool` is the hard pool of
   // draftable positions (natural + eligible); `naturalPos` plays with no penalty,
   // anything else in the pool takes the out-of-position match penalty.
-  const slotElig = showPosChips ? slotEligibility(activeManager?.formation || "4-3-3", currentPos.slot) : null;
+  const slotElig = (showPosChips && !isFreeSub) ? slotEligibility(activeManager?.formation || "4-3-3", currentPos.slot) : null;
   const posPool = slotElig?.pool ?? OUTFIELD_POS;
   const naturalPos = slotElig?.natural ?? currentPos.key;
+  // Whether out-of-position marks (★ / −penalty) apply. Off for free subs.
+  const showOop = showPosChips && !isFreeSub;
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -755,7 +762,7 @@ export default function DraftScreen({
                         {posPool.map(pos => (
                           <label key={pos} className="bw-filter-checkbox">
                             <input type="checkbox" checked={filterPos.has(pos)} onChange={() => togglePos(pos)} />
-                            {pos}{pos === naturalPos ? " ★" : ` (−${OOP_PENALTY})`}
+                            {pos}{!showOop ? "" : pos === naturalPos ? " ★" : ` (−${OOP_PENALTY})`}
                           </label>
                         ))}
                       </div>
@@ -929,18 +936,18 @@ export default function DraftScreen({
                 <>
                   <div className="bw-section-divider bw-divider-free">FREE TRANSFERS · {freeTransfers.length} AVAILABLE</div>
                   {freeTransfers.map(p => (
-                    <PlayerCard key={`free-${p.id}`} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} outOfPos={showPosChips && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
+                    <PlayerCard key={`free-${p.id}`} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} outOfPos={showOop && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
                   ))}
                 </>
               )}
               {affordable.map(p => (
-                <PlayerCard key={p.id} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} outOfPos={showPosChips && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
+                <PlayerCard key={p.id} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} outOfPos={showOop && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
               ))}
               {tooExpensiveShown.length > 0 && (
                 <>
                   <div className="bw-section-divider">OUT OF BUDGET</div>
                   {tooExpensiveShown.map(p => (
-                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} budget={currentBudget} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} outOfPos={showPosChips && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
+                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} budget={currentBudget} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} outOfPos={showOop && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
                   ))}
                 </>
               )}
