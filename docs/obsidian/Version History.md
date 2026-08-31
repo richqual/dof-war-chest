@@ -2,7 +2,7 @@
 
 Back to [[The Transfer Wheel]]. Related: [[Roadmap]], [[Game Modes]].
 
-Current: **v4.2.30**. Reconstructed from git history (`git log`). Grouped by the project's major arcs rather than every commit — for the exact log run `git log --oneline`.
+Current: **v4.2.53**. Reconstructed from git history (`git log`). Grouped by the project's major arcs rather than every commit — for the exact log run `git log --oneline`.
 
 > Naming note: the project began as **"DoF War Chest" / "The Football Director"** and became **"The Transfer Wheel"**. The *War Chest* name survives as one of the [[Game Modes|game modes]].
 
@@ -55,6 +55,12 @@ A third core mode, then a run of tournament and draft-visibility work.
 - **v4.2.2–10** Scout copy and empty-state clarity; "Wheel & Deal" zero-spin label; current mode + settings shown in the pull-out menu; iOS zoom/keyboard fix on War Chest search.
 - **v4.2.11–20** 🏆 **Tournament presentation overhaul** — a real bracket, clearer watch/skip controls, leg scores with aggregate, possession-coloured commentary, aligned bracket connectors, full 30 minutes of extra time, widescreen bracket sized to its round count.
 - **v4.2.30** 📋 **[[Draw Board]]** — see what every club spun and signed, round by round, in Classic and Scout. Plus three multiplayer fixes found while testing it: online CPU turns that never advanced, a wheel that could spin forever, and `lastName()` mangling parenthetical names. See [[Bug Fixes]].
+- **v4.2.35–37** 💰 **Leftover Lolly** — unspent cash banks into a sub fund that replaces the wheel for bench rounds, plus one top-up spin with a £25m floor; on in Scout, off in Classic. Also CPU pick variance, a guaranteed free-transfer bench, and a fix for `undefined` values with Value for Money off (widened £0 tier).
+- **v4.2.38–39** Preferred archetypes highlighted in the draft player list (softened to an opacity cue).
+- **v4.2.45** 🔎 **Per-player draft filters + club locker** — pass-and-play draft filters saved per human, plus a reusable "club locker" of past clubs (cloud/localStorage). Keys `tg-filter-prefs` / `tg-club-locker`.
+- **v4.2.46–47** ⭐ **Remember My Preferences** — opt-in toggle saves a device's lobby advanced-options setup and re-seeds it next game (Classic + Scout). Styled as a distinct meta control. Key `tg-setup-prefs`.
+- **v4.2.48–50** ⏩ **Match sim speeds reworked** — SLOW / NORMAL / BRISK / FAST / INSTANT (Crawl dropped, Brisk added, 200ms Fast restored), remembered device-level per label. Key `tg-matchsim-speed`.
+- **v4.2.53** **Free Subs** — position filter on open bench slots.
 
 ---
 

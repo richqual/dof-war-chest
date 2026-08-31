@@ -640,6 +640,21 @@ export function useDraftState() {
     });
   }
 
+  function unpickWarChestPlayer(slot) {
+    setDraft(prev => {
+      const idx = prev.wcCurrentManagerIdx;
+      const removed = prev.managers[idx]?.squad[slot];
+      if (!removed) return prev;
+      const managers = prev.managers.map((m, i) => {
+        if (i !== idx) return m;
+        const squad = [...m.squad];
+        squad[slot] = null;
+        return { ...m, squad, wcBudgetRemaining: m.wcBudgetRemaining + removed.value };
+      });
+      return { ...prev, managers, takenIds: prev.takenIds.filter(id => id !== removed.id) };
+    });
+  }
+
   function completeWarChestSquad() {
     // The human just finished building; advance to the next slot in the drawn
     // build order (auto-building any CPUs that come before the next human).
@@ -956,7 +971,7 @@ export function useDraftState() {
     swapSquadPlayers, setTactics, setFormation, setCaptain, restartGame, restartTournament, getAvailablePlayers, getTakenPlayers,
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
-    startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
+    startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, unpickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
     startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, dismissReScoutNotice, revealScoutRatings, setScoutFilter, commissionMission, confirmMission, scoutSkipCpuTurns, scoutStepCpuTurn,
     scoutFreeAgents,
   };

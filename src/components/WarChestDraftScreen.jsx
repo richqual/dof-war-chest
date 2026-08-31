@@ -19,7 +19,7 @@ function posGroupColor(pos) {
 
 const SLOT_COLORS = ["var(--bw-line-gk)", "var(--bw-line-def-text)", "var(--bw-line-mid-text)", "#c084fc", "#f472b6"];
 
-export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlayers, deadline }) {
+export default function WarChestDraftScreen({ draft, pickPlayer, unpickPlayer, onDone, getPlayers, deadline }) {
   useEffect(() => { window.scrollTo(0, 0); }, []);
   const managerIdx = draft.wcCurrentManagerIdx;
   const manager = draft.managers[managerIdx];
@@ -30,6 +30,7 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
   const pct = budget > 0 ? Math.max(0, Math.min(100, (spent / budget) * 100)) : 0;
 
   const [activeSlot, setActiveSlot] = useState(null);
+  const [pendingPlayer, setPendingPlayer] = useState(null);
   const [search, setSearch] = useState("");
   const [priceRange, setPriceRange] = useState(null);
   const [posFilter, setPosFilter] = useState([]);
@@ -57,9 +58,26 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
 
   function handlePick(player) {
     if (player.value > remaining) return;
-    pickPlayer(activeSlot, player);
+    setPendingPlayer(player);
+  }
+
+  function confirmSign() {
+    if (!pendingPlayer || activeSlot === null) return;
+    pickPlayer(activeSlot, pendingPlayer);
     setActiveSlot(null);
     setSearch("");
+    setPendingPlayer(null);
+  }
+
+  function handleEditSlot(e, slotIdx) {
+    e.stopPropagation();
+    if (!unpickPlayer || !manager.squad[slotIdx]) return;
+    unpickPlayer(slotIdx);
+    setActiveSlot(slotIdx);
+    setSearch("");
+    setPriceRange(null);
+    setPosFilter([]);
+    setSortBy("rating");
   }
 
   const slotPlayers = activeSlot !== null ? getPlayers(activeSlot) : [];
@@ -171,6 +189,16 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
                       <span className="bw-wcd-slot-rating">{player.rating}</span>
                       <span className="bw-wcd-slot-cost">{formatValue(player.value)}</span>
                     </span>
+                    {unpickPlayer && (
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        className="bw-wcd-slot-edit"
+                        title="Change this player"
+                        onClick={e => handleEditSlot(e, idx)}
+                        onKeyDown={e => { if (e.key === "Enter" || e.key === " ") handleEditSlot(e, idx); }}
+                      >✎</span>
+                    )}
                   </div>
                 ) : (
                   <div className="bw-wcd-slot-placeholder">
@@ -318,6 +346,38 @@ export default function WarChestDraftScreen({ draft, pickPlayer, onDone, getPlay
               : (isLastHuman ? "DONE — VIEW SQUADS →" : "DONE — PASS TO NEXT PLAYER →")}
         </button>
       </div>
+
+      {pendingPlayer && (
+        <div className="bw-wcd-confirm-overlay" onClick={() => setPendingPlayer(null)}>
+          <div className="bw-wcd-confirm-card" style={kitTheme} onClick={e => e.stopPropagation()}>
+            <div className="bw-wcd-confirm-title">Sign this player?</div>
+            <div className="bw-wcd-confirm-player">
+              <div
+                className="bw-player-rating"
+                style={{ background: getRatingBg(pendingPlayer.rating), color: getRatingColor(pendingPlayer.rating) }}
+              >
+                {pendingPlayer.rating}
+              </div>
+              <div className="bw-player-info">
+                <div className="bw-player-name-row">
+                  <span className="bw-player-name">{pendingPlayer.name}</span>
+                  <span className="bw-player-tag" style={{ background: posGroupColor(pendingPlayer.pos).bg, color: posGroupColor(pendingPlayer.pos).fg }}>{pendingPlayer.pos}</span>
+                </div>
+                <div className="bw-player-club">{pendingPlayer.club} · {pendingPlayer.years}</div>
+              </div>
+              <div className="bw-player-value">{formatValue(pendingPlayer.value)}</div>
+            </div>
+            <div className="bw-wcd-confirm-budget">
+              <span>Budget after signing</span>
+              <span className="bw-wcd-confirm-budget-val">{formatChest(remaining - pendingPlayer.value)}</span>
+            </div>
+            <div className="bw-wcd-confirm-actions">
+              <button className="bw-wcd-confirm-cancel" onClick={() => setPendingPlayer(null)}>CANCEL</button>
+              <button className="bw-wcd-confirm-sign" onClick={confirmSign}>CONFIRM SIGNING →</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

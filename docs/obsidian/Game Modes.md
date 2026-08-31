@@ -18,6 +18,10 @@ The core draft game. Each manager spins the **budget wheel**, then drafts a real
 - **Solo / Local:** 1–8 players hot-seat on one screen.
 - **Online:** each player joins from their own device. See [[Multiplayer]].
 
+**Leftover Lolly** (Advanced Options; off in Classic, on by default in Scout — v4.2.35). Unspent cash from starter rounds banks into a sub fund that replaces the wheel for bench rounds, plus one top-up spin with a £25m floor and a guaranteed free-transfer bench so you're never stranded.
+
+**Convenience layers** (device-level, see [[State & Persistence#Device-level game prefs opt-in convenience layer]]): opt-in **Remember My Preferences** re-seeds a device's advanced-options setup (v4.2.46); **per-player draft filters** and a reusable **club locker** persist across games (v4.2.45).
+
 ## War Chest
 An alternative economy. Instead of spinning per-pick budgets, players work from a **fixed war chest** and select through a dedicated flow:
 - `WarChestLobbyScreen` → `WarChestSelectionScreen` → `WarChestDraftScreen` → `WarChestSquadScreen`.

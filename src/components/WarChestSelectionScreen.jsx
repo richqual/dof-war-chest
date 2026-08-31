@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { WAR_CHEST_VALUES } from "../hooks/draftUtils";
+import KitSwatch, { readableTextOn, kitAccent } from "./KitSwatch";
 import SquadTimer from "./SquadTimer";
 
 function formatChest(v) {
@@ -66,6 +67,17 @@ export default function WarChestSelectionScreen({ draft, onSelect, deadline }) {
 
   const [pickedIdx, setPickedIdx] = useState(null);
   const [phase, setPhase] = useState("pick"); // pick -> opening -> risen -> obtained
+  const [showHandoff, setShowHandoff] = useState(true);
+
+  const kitPrimary = manager.primaryColor || "#1a3a6b";
+  const kitSecondary = manager.secondaryColor || "#ffffff";
+  const kitTheme = {
+    "--kit-primary": kitPrimary,
+    "--kit-secondary": kitSecondary,
+    "--kit-text": readableTextOn(kitPrimary),
+    "--kit-accent": kitAccent(kitPrimary, kitSecondary),
+  };
+  const managerName = manager.dofName || manager.clubName;
 
   function handlePick(idx) {
     if (pickedIdx !== null) return;
@@ -82,10 +94,27 @@ export default function WarChestSelectionScreen({ draft, onSelect, deadline }) {
 
   const pickedValue = pickedIdx !== null ? values[pickedIdx] : null;
 
+  if (showHandoff) {
+    return (
+      <div className="bw-wc-handoff" style={kitTheme}>
+        <div className="bw-wc-handoff-crest">
+          <KitSwatch primary={manager.primaryColor} secondary={manager.secondaryColor} pattern={manager.pattern} size={96} />
+        </div>
+        <div className="bw-wc-handoff-eyebrow">IT&apos;S YOUR TURN</div>
+        <div className="bw-wc-handoff-name">{managerName}</div>
+        <div className="bw-wc-handoff-club">{manager.clubName}</div>
+        <div className="bw-wc-handoff-sub">Pick your war chest — one holds the biggest budget.</div>
+        <button className="bw-wc-handoff-btn" onClick={() => setShowHandoff(false)}>
+          START PICKING →
+        </button>
+      </div>
+    );
+  }
+
   if (phase !== "pick") {
     return (
-      <div className="bw-wc-screen">
-        <div className="bw-wc-header">
+      <div className="bw-wc-screen" style={kitTheme}>
+        <div className="bw-wc-header bw-wc-header-kit">
           <span className="bw-wc-header-label">WAR CHEST</span>
           <span className="bw-wc-header-meta">{manager.clubName} · {manager.dofName}</span>
         </div>
@@ -111,8 +140,8 @@ export default function WarChestSelectionScreen({ draft, onSelect, deadline }) {
   }
 
   return (
-    <div className="bw-wc-screen">
-      <div className="bw-wc-header">
+    <div className="bw-wc-screen" style={kitTheme}>
+      <div className="bw-wc-header bw-wc-header-kit">
         <span className="bw-wc-header-label">WAR CHEST</span>
         <span className="bw-wc-header-meta">{manager.clubName} · {manager.dofName}</span>
       </div>

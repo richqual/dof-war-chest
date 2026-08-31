@@ -6065,6 +6065,7 @@ html.light-mode .bw-wc-stage {
 .bw-wcd-slots { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1rem; }
 
 .bw-wcd-slot {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -6096,6 +6097,157 @@ html.light-mode .bw-wc-stage {
 .bw-wcd-slot-rating { font: 700 11px var(--bw-font-display); color: var(--bw-text-mid); }
 .bw-wcd-slot-cost { font-size: 13px; color: var(--bw-gold); }
 .bw-wcd-slot-placeholder { font-size: 14px; color: var(--bw-text-low); flex: 1; font-style: italic; }
+
+/* Edit / change-player icon on a filled slot */
+.bw-wcd-slot-edit {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px !important;
+  background: var(--bw-raised);
+  border: 1px solid var(--bw-border);
+  color: var(--bw-text-mid);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s, border-color 0.1s;
+}
+.bw-wcd-slot-edit:hover { background: var(--bw-gold); border-color: var(--bw-gold); color: #000; }
+
+/* Confirm-signing dialog */
+.bw-wcd-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.66);
+  backdrop-filter: blur(2px);
+}
+.bw-wcd-confirm-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--bw-panel);
+  border: 1px solid var(--bw-border);
+  border-top: 4px solid var(--kit-primary, var(--bw-gold));
+  border-radius: 12px !important;
+  padding: 20px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+}
+.bw-wcd-confirm-title {
+  font: 700 13px var(--bw-font-display);
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--bw-text-hi);
+  margin-bottom: 14px;
+}
+.bw-wcd-confirm-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: var(--bw-raised);
+  border-radius: 8px !important;
+}
+.bw-wcd-confirm-budget {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 14px 2px 18px;
+  font-size: 13px;
+  color: var(--bw-text-mid);
+}
+.bw-wcd-confirm-budget-val { font: 700 15px var(--bw-font-display); color: var(--bw-gold); }
+.bw-wcd-confirm-actions { display: flex; gap: 10px; }
+.bw-wcd-confirm-cancel,
+.bw-wcd-confirm-sign {
+  flex: 1;
+  padding: 12px;
+  border-radius: 8px !important;
+  font: 700 12px var(--bw-font-display);
+  letter-spacing: .05em;
+  cursor: pointer;
+  border: 1px solid var(--bw-border);
+}
+.bw-wcd-confirm-cancel { background: transparent; color: var(--bw-text-mid); }
+.bw-wcd-confirm-cancel:hover { border-color: var(--bw-text-mid); color: var(--bw-text-hi); }
+.bw-wcd-confirm-sign {
+  flex: 1.5;
+  background: var(--kit-primary, var(--bw-gold));
+  color: var(--kit-text, #000);
+  border-color: var(--kit-primary, var(--bw-gold));
+}
+.bw-wcd-confirm-sign:hover { filter: brightness(1.08); }
+
+/* Chest-picker turn handoff splash */
+.bw-wc-handoff {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 32px 24px;
+  gap: 6px;
+  background:
+    radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--kit-primary) 45%, transparent), transparent 60%),
+    var(--bw-bg, #0b0d10);
+}
+.bw-wc-handoff-crest { margin-bottom: 18px; }
+.bw-wc-handoff-eyebrow {
+  font: 700 12px var(--bw-font-display);
+  letter-spacing: .18em;
+  color: var(--kit-accent, var(--bw-gold));
+}
+.bw-wc-handoff-name {
+  font: 800 30px var(--bw-font-display);
+  color: var(--bw-text-hi);
+  line-height: 1.1;
+}
+.bw-wc-handoff-club {
+  font-size: 15px;
+  color: var(--bw-text-mid);
+  margin-top: 2px;
+}
+.bw-wc-handoff-sub {
+  font-size: 14px;
+  color: var(--bw-text-low);
+  max-width: 300px;
+  margin: 14px 0 26px;
+}
+.bw-wc-handoff-btn {
+  padding: 15px 34px;
+  border-radius: 10px !important;
+  background: var(--kit-primary, var(--bw-gold));
+  color: var(--kit-text, #000);
+  border: none;
+  font: 800 14px var(--bw-font-display);
+  letter-spacing: .06em;
+  cursor: pointer;
+  box-shadow: 0 10px 30px color-mix(in srgb, var(--kit-primary) 40%, transparent);
+}
+.bw-wc-handoff-btn:hover { filter: brightness(1.08); }
+
+/* Kit accent on chest-picker header */
+/* Full kit-colour banner (matches the squad builder's .draft-header) */
+.bw-wc-header-kit {
+  background: var(--kit-primary, #3a0f0f);
+  border-bottom: 3px solid var(--kit-secondary, var(--bw-line-att));
+}
+.bw-wc-header-kit .bw-wc-header-label {
+  color: var(--kit-text, var(--bw-gold));
+  text-shadow: none;
+}
+.bw-wc-header-kit .bw-wc-header-meta {
+  color: var(--kit-text, #c9a08f);
+  opacity: .82;
+}
 
 /* Player panel */
 .bw-wcd-panel {

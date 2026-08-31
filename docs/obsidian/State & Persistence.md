@@ -27,3 +27,10 @@ Exposes actions that call [[Architecture#2 Logic|draftUtils]] pure functions to 
 ## Theme / prefs
 Small UI prefs are separate localStorage keys, not part of the draft:
 - `tg-theme` (`light`), `tg-text-size` (`large`) — read in `App.jsx`.
+
+## Device-level game prefs (opt-in convenience layer)
+Separate from the draft object, these persist a player's setup choices across games on the same device. All degrade gracefully if localStorage is unavailable (private mode / quota):
+- `tg-setup-prefs` (`utils/setupPrefs.js`) — **Remember My Preferences** (v4.2.46). Opt-in toggle; saves the last-used lobby advanced-options setup and re-seeds it next game (Classic + Scout).
+- `tg-filter-prefs` (`utils/filterPrefs.js`) — **per-player draft filters** (v4.2.45). Pass-and-play draft filters saved per human, restored when the active manager changes.
+- `tg-club-locker` — reusable **club locker** of past clubs (v4.2.45; cloud when signed in, else localStorage).
+- `tg-matchsim-speed` (`components/MatchSim.jsx`) — remembered **match-sim playback speed** label, device-level (v4.2.50).
