@@ -214,7 +214,11 @@ export default function DrawScreen({ draft, onComplete, isHost = true }) {
           <span className="bw-banner-meta">Ball {step + 1} of {n}</span>
         </div>
         <div className="bw-draw-subtitle">
-          Filling <strong>{roundLabel} {pairing + 1}, slot {slotInPairing + 1}</strong>…
+          {slotInPairing === 0 ? (
+            <>Who lands in <strong>{roundLabel} {pairing + 1}</strong>?</>
+          ) : (
+            <>Who faces <strong>{clubName(managers[drawOrder[step - 1]])}</strong> in <strong>{roundLabel} {pairing + 1}</strong>?</>
+          )}
         </div>
 
         <div className="bw-draw-stage">

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import KitSwatch from "./KitSwatch";
+import KitSwatch, { readableTextOn, kitAccent } from "./KitSwatch";
 
 function ordinal(n) {
   if (n === 1) return "1ST";
@@ -45,6 +45,17 @@ export default function OrderDrawScreen({ draft, onStart, warChest = false }) {
   const curMIdx    = pickStep < n ? pickStep : null;
   const curManager = curMIdx !== null ? managers[curMIdx] : null;
   const isHumanTurn = !!(curManager && !curManager.isComputer);
+
+  function kitThemeFor(m) {
+    const primary = m?.primaryColor || "#1a3a6b";
+    const secondary = m?.secondaryColor || "#ffffff";
+    return {
+      "--kit-primary": primary,
+      "--kit-secondary": secondary,
+      "--kit-text": readableTextOn(primary),
+      "--kit-accent": kitAccent(primary, secondary),
+    };
+  }
 
   // CPU auto-draw
   useEffect(() => {
@@ -194,17 +205,28 @@ export default function OrderDrawScreen({ draft, onStart, warChest = false }) {
           <span className="bw-banner-meta">Ball {Math.min(pickStep + 1, n)} of {n}</span>
         </div>
 
-        <div className="bw-draw-subtitle">
-          {phase === "waiting" && curManager && (
-            <>Next up to draw… <strong className="bw-draw-team-callout">{curManager.clubName || curManager.name}</strong>{isHumanTurn ? " — pick your ball!" : " is drawing…"}</>
-          )}
-          {(phase === "drawing" || phase === "revealed") && revealInfo && (
-            <>
-              <strong className="bw-draw-team-callout">{managers[revealInfo.mIdx].clubName || managers[revealInfo.mIdx].name}</strong>
-              {phase === "revealed" ? <> draws the <strong>{ordinal(revealInfo.pos)} pick!</strong></> : " is drawing…"}
-            </>
-          )}
-        </div>
+        {phase === "waiting" && isHumanTurn && curManager ? (
+          <div className="bw-draw-turn-callout" style={kitThemeFor(curManager)}>
+            <KitSwatch primary={curManager.primaryColor} secondary={curManager.secondaryColor} pattern={curManager.pattern || "plain"} uid="turn" size={40} />
+            <div className="bw-draw-turn-text">
+              <div className="bw-draw-turn-eyebrow">YOUR TURN TO DRAW</div>
+              <div className="bw-draw-turn-name">{curManager.dofName || curManager.clubName || curManager.name}</div>
+              <div className="bw-draw-turn-club">{curManager.clubName || curManager.name} — pick your ball!</div>
+            </div>
+          </div>
+        ) : (
+          <div className="bw-draw-subtitle">
+            {phase === "waiting" && curManager && (
+              <>Next up to draw… <strong className="bw-draw-team-callout">{curManager.clubName || curManager.name}</strong> is drawing…</>
+            )}
+            {(phase === "drawing" || phase === "revealed") && revealInfo && (
+              <>
+                <strong className="bw-draw-team-callout">{managers[revealInfo.mIdx].clubName || managers[revealInfo.mIdx].name}</strong>
+                {phase === "revealed" ? <> draws the <strong>{ordinal(revealInfo.pos)} pick!</strong></> : " is drawing…"}
+              </>
+            )}
+          </div>
+        )}
 
         <div className="bw-draw-stage">
           <div className="bw-draw-glow" />
