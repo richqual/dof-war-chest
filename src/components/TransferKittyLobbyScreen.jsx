@@ -1,5 +1,16 @@
 import { useState } from "react";
 import DraftRouletteToggle from "./DraftRouletteToggle";
+import { loadSetupPrefs, saveSetupPrefs, seededFrom } from "../utils/setupPrefs";
+
+// Setup fields that "remember my preferences" persists for Transfer Kitty.
+// Club/player counts and series length are left out — those are per-game choices.
+const TK_DEFAULTS = {
+  difficulty: "normal",
+  drawFormation: "4-4-2",
+  hideRatings: true,
+  dynamicValues: true,
+  draftRoulette: { enabled: false, era: false, league: true },
+};
 
 // Transfer Kitty draft formations. Deliberately a SMALL fixed set (spec §Set
 // formation): the draft formation only fixes slot counts per block so everyone
@@ -25,18 +36,23 @@ const DIFFICULTY_INFO = [
 ];
 
 export default function TransferKittyLobbyScreen({ onContinue, onBack }) {
+  // Seed the setup options from the player's remembered preferences (if opted in).
+  const [saved] = useState(() => loadSetupPrefs("transferKitty"));
+  const [init] = useState(() => seededFrom(TK_DEFAULTS, saved.values));
+
   const [numClubs, setNumClubs] = useState(4);
   const [numHumans, setNumHumans] = useState(1);
-  const [difficulty, setDifficulty] = useState("normal");
-  const [drawFormation, setDrawFormation] = useState("4-4-2");
+  const [difficulty, setDifficulty] = useState(init.difficulty);
+  const [drawFormation, setDrawFormation] = useState(init.drawFormation);
   // 2-team structure: one-off or a best-of-N series (only shown for 2 clubs).
   const [matchType, setMatchType] = useState("series");
   const [seriesLength, setSeriesLength] = useState("bo3");
   // Hidden by default — Transfer Kitty leans into the Classic "pick on reputation"
   // feel, so ratings are off unless the player opts back in via Advanced Options.
-  const [hideRatings, setHideRatings] = useState(true);
-  const [dynamicValues, setDynamicValues] = useState(true);
-  const [draftRoulette, setDraftRoulette] = useState({ enabled: false, era: false, league: true });
+  const [hideRatings, setHideRatings] = useState(init.hideRatings);
+  const [dynamicValues, setDynamicValues] = useState(init.dynamicValues);
+  const [draftRoulette, setDraftRoulette] = useState(init.draftRoulette);
+  const [rememberPrefs, setRememberPrefs] = useState(saved.remember);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showRules, setShowRules] = useState(false);
 
@@ -52,6 +68,9 @@ export default function TransferKittyLobbyScreen({ onContinue, onBack }) {
     : matchType === "single" ? "single" : seriesLength;
 
   function handleContinue() {
+    saveSetupPrefs("transferKitty", rememberPrefs, {
+      difficulty, drawFormation, hideRatings, dynamicValues, draftRoulette,
+    });
     onContinue({
       numClubs, numHumans, difficulty, drawFormation, format: activeFormat,
       hideRatings, dynamicValues, dynamicForm: true, draftRoulette,
@@ -156,6 +175,14 @@ export default function TransferKittyLobbyScreen({ onContinue, onBack }) {
           </button>
           {showAdvanced && (
             <div className="bw-pool-list bw-setup-block">
+              <label className={`bw-pool-row bw-pool-util ${rememberPrefs ? "checked" : "unchecked"}`}>
+                <input type="checkbox" checked={rememberPrefs} onChange={e => setRememberPrefs(e.target.checked)} />
+                <span className="bw-pool-check-icon">{rememberPrefs ? "✓" : ""}</span>
+                <span className="bw-pool-label-wrap">
+                  <span className="bw-pool-label">Remember My Preferences</span>
+                  <span className="bw-pool-label-sub">Save these advanced options on this device and load them the next time you set up a game</span>
+                </span>
+              </label>
               <label className={`bw-pool-row ${hideRatings ? "checked" : "unchecked"}`}>
                 <input type="checkbox" checked={hideRatings} onChange={e => setHideRatings(e.target.checked)} />
                 <span className="bw-pool-check-icon">{hideRatings ? "✓" : ""}</span>
