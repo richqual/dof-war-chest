@@ -26,7 +26,7 @@ export const REEL_SPIN_MS = REEL_BLUR_MS + REEL_DECEL_STEPS.reduce((a, b) => a +
 // ticks past nearby labels before landing exactly on the winner. Stays on a
 // gold "?" until it has actually landed, so the pre-set result isn't
 // spoiled before the handle is pulled.
-function Reel({ options, finalKey, spinning, done, divider }) {
+export function Reel({ options, finalKey, spinning, done, divider }) {
   const n = options.length;
   const finalIdx = Math.max(0, options.findIndex(o => o.key === finalKey));
   const [tick, setTick] = useState(null); // null = idle/blurring, else decel step index

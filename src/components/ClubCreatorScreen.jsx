@@ -357,9 +357,10 @@ function applyRealClubIdentity(club, realClub) {
 
 export default function ClubCreatorScreen({ config, onStart, onBack, profileDefaults, savedClubs = [], onSaveClubs, onRemoveSavedClub }) {
   const { numClubs, numHumans, warChest, ...gameOptions } = config;
-  // War Chest is fixed 5-a-side; Scout sets one shared formation at game level.
-  // Either way the per-club formation picker is meaningless here.
-  const hideFormation = !!warChest || !!gameOptions.scout;
+  // War Chest is fixed 5-a-side; Scout and Transfer Kitty set one shared
+  // formation at game level. Either way the per-club formation picker is
+  // meaningless here.
+  const hideFormation = !!warChest || !!gameOptions.scout || !!gameOptions.transferKitty;
 
   const [clubs, setClubs] = useState(() => {
     const result = [];

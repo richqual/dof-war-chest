@@ -1,4 +1,24 @@
-export const MANAGERS = [
+// The three keeper archetypes are a separate set from the six outfield ones,
+// so a manager's outfield preferredArchetypes can never match a GK. We derive a
+// single preferred GK archetype from the manager's playing style instead.
+export const GK_ARCHETYPES = ["Shot Stopper", "Sweeper Keeper", "Organiser"];
+
+const STYLE_TO_GK = {
+  possession: "Sweeper Keeper", // plays out from the back
+  attacking:  "Sweeper Keeper", // high line needs a sweeper behind it
+  pressing:   "Sweeper Keeper", // space in behind the press
+  counter:    "Shot Stopper",   // last line, soak-and-break
+  defensive:  "Shot Stopper",   // shot-stopping over distribution
+  direct:     "Organiser",      // set-piece & back-line organisation
+  balanced:   "Organiser",
+  wildcard:   "Organiser",
+};
+
+export function gkArchetypeForStyle(style) {
+  return STYLE_TO_GK[style] || "Organiser";
+}
+
+const RAW_MANAGERS = [
   // ── CLASSIC ERA (1998–2008) ──────────────────────────────────────────
   {
     id: "fergie-classic",
@@ -1857,6 +1877,13 @@ export const MANAGERS = [
     preferredArchetypes: ["Athlete","Technician","Grinder"],
   },
 ];
+
+// Stamp a derived preferred GK archetype onto every manager (hand-set values on
+// a raw entry win, so individual managers can still be overridden if needed).
+export const MANAGERS = RAW_MANAGERS.map(m => ({
+  ...m,
+  preferredGkArchetype: m.preferredGkArchetype || gkArchetypeForStyle(m.style),
+}));
 
 export const TIER_LABELS = { elite: "ELITE", established: "ESTABLISHED", journeyman: "JOURNEYMAN" };
 export const TIER_COLORS = { elite: "#b8860b", established: "#888", journeyman: "#7a5c3a" };

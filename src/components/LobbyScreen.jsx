@@ -32,7 +32,7 @@ const FORMAT_OPTIONS_2 = [
   { key: "bo7", label: "BEST OF 7", short: "BO7", hint: "First to 4 wins — NBA Finals style" },
 ];
 
-export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onWcOnline, onScoutSolo, onAbout }) {
+export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onWcOnline, onScoutSolo, onTkSolo, onAbout }) {
   const [selected, setSelected] = useState(null); // null | "classic" | "warchest" | "scout"
 
   return (
@@ -105,6 +105,30 @@ export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onW
             {selected === "scout" && (
               <div className="bw-mode-sub-options">
                 <button className="bw-mode-sub-btn" onClick={onScoutSolo}>
+                  <span className="bw-mode-sub-label">SOLO / LOCAL</span>
+                  <span className="bw-mode-sub-desc">1–8 players on one screen</span>
+                </button>
+                <button className="bw-mode-sub-btn bw-mode-sub-btn-online" disabled style={{ opacity: 0.5, cursor: "not-allowed" }}>
+                  <span className="bw-mode-sub-label">ONLINE</span>
+                  <span className="bw-mode-sub-desc">Coming soon</span>
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className={`bw-mode-card bw-mode-card-tk ${selected === "kitty" ? "bw-mode-card-expanded" : ""}`}>
+            <button className="bw-mode-card-main" onClick={() => setSelected(selected === "kitty" ? null : "kitty")}>
+              <div className="bw-mode-card-text">
+                <div className="bw-mode-card-label">TRANSFER KITTY</div>
+                <div className="bw-mode-card-desc">
+                  A measured kitty per position. Spin a keeper, then build your defence, midfield and attack block by block.
+                </div>
+              </div>
+              <div className="bw-mode-card-cta">{selected === "kitty" ? "▲" : "PLAY →"}</div>
+            </button>
+            {selected === "kitty" && (
+              <div className="bw-mode-sub-options">
+                <button className="bw-mode-sub-btn" onClick={onTkSolo}>
                   <span className="bw-mode-sub-label">SOLO / LOCAL</span>
                   <span className="bw-mode-sub-desc">1–8 players on one screen</span>
                 </button>

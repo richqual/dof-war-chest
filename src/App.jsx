@@ -26,6 +26,11 @@ import WarChestSelectionScreen from "./components/WarChestSelectionScreen";
 import WarChestDraftScreen from "./components/WarChestDraftScreen";
 import WarChestSquadScreen from "./components/WarChestSquadScreen";
 import ScoutLobbyScreen from "./components/ScoutLobbyScreen";
+import TransferKittyLobbyScreen from "./components/TransferKittyLobbyScreen";
+import TransferKittyDraftScreen from "./components/TransferKittyDraftScreen";
+import TransferKittyWheelScreen from "./components/TransferKittyWheelScreen";
+import TransferKittyBankScreen from "./components/TransferKittyBankScreen";
+import TransferKittyBoardScreen from "./components/TransferKittyBoardScreen";
 import ScoutTenetsScreen from "./components/ScoutTenetsScreen";
 import ScoutDraftScreen from "./components/ScoutDraftScreen";
 import SquadTimer from "./components/SquadTimer";
@@ -655,6 +660,8 @@ function AppInner({ onMultiplayer, auth }) {
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
     startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, unpickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
     startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, dismissReScoutNotice, revealScoutRatings, setScoutFilter, commissionMission, confirmMission, scoutSkipCpuTurns, scoutStepCpuTurn,
+    startTransferKittyGame, beginKittyDraft, pickKittyPlayer, unpickKittyPlayer, completeKittyBlock, getKittyPlayers,
+    confirmKittyGkSpin, confirmKittySubsSpin, confirmKittyBankPick, continueKittyAfterBoard,
   } = useDraftState();
 
 
@@ -784,6 +791,7 @@ function AppInner({ onMultiplayer, auth }) {
             onWcSolo={() => setPreScreen("wc-lobby")}
             onWcOnline={() => onMultiplayer("warchest")}
             onScoutSolo={() => setPreScreen("scout-lobby")}
+            onTkSolo={() => setPreScreen("tk-lobby")}
             onAbout={() => setShowAbout(true)}
           />
         </>
@@ -815,6 +823,36 @@ function AppInner({ onMultiplayer, auth }) {
               setPreScreen("mode-select");
             }}
             onBack={() => setPreScreen("wc-lobby")}
+          />
+        </>
+      );
+    }
+    if (preScreen === "tk-lobby") {
+      return (
+        <>
+          {globalMenu}
+          <TransferKittyLobbyScreen
+            onContinue={config => { setLobbyConfig(config); setPreScreen("tk-club-creator"); }}
+            onBack={() => setPreScreen("mode-select")}
+          />
+        </>
+      );
+    }
+    if (preScreen === "tk-club-creator") {
+      return (
+        <>
+          {globalMenu}
+          <ClubCreatorScreen
+            config={lobbyConfig}
+            profileDefaults={auth.profile?.setupComplete ? auth.profile : null}
+            savedClubs={auth.clubLocker}
+            onSaveClubs={auth.saveClubsToLocker}
+            onRemoveSavedClub={auth.removeClubFromLocker}
+            onStart={(clubs, opts) => {
+              startTransferKittyGame(clubs, { ...opts, ...lobbyConfig });
+              setPreScreen("mode-select");
+            }}
+            onBack={() => setPreScreen("tk-lobby")}
           />
         </>
       );
@@ -981,8 +1019,74 @@ function AppInner({ onMultiplayer, auth }) {
     }
   }
 
+  // ── Transfer Kitty screens ───────────────────────────────────────────────
+  if (draft?.transferKitty && screen === "transfer-kitty-wheel") {
+    return (
+      <>
+        {globalMenu}
+        <TransferKittyWheelScreen
+          key={`tk-wheel-${draft.tkPhase}-${draft.turnIndex}`}
+          draft={draft}
+          onConfirm={draft.tkPhase === "subs-wheel" ? confirmKittySubsSpin : confirmKittyGkSpin}
+        />
+      </>
+    );
+  }
+
+  if (draft?.transferKitty && screen === "transfer-kitty-board") {
+    return (
+      <>
+        {globalMenu}
+        <TransferKittyBoardScreen
+          key={`tk-board-${draft.tkBlockIndex}`}
+          draft={draft}
+          onContinue={continueKittyAfterBoard}
+        />
+      </>
+    );
+  }
+
+  if (draft?.transferKitty && screen === "transfer-kitty-banks") {
+    return (
+      <>
+        {globalMenu}
+        <TransferKittyBankScreen
+          key={`tk-banks-${draft.tkBlockIndex}-${draft.turnIndex}`}
+          draft={draft}
+          onConfirm={confirmKittyBankPick}
+        />
+      </>
+    );
+  }
+
+  if (draft?.transferKitty && screen === "transfer-kitty-draft") {
+    return (
+      <>
+        {globalMenu}
+        <TransferKittyDraftScreen
+          key={`tk-${draft.tkBlockIndex}-${draft.turnIndex}`}
+          draft={draft}
+          getPlayers={getKittyPlayers}
+          pickPlayer={pickKittyPlayer}
+          unpickPlayer={unpickKittyPlayer}
+          onDone={completeKittyBlock}
+        />
+      </>
+    );
+  }
+
   if (screen === "draft-roulette" && draft) {
     return <>{globalMenu}<DraftRouletteScreen draft={draft} onStart={() => setScreen("order-draw")} /></>;
+  }
+
+  if (screen === "order-draw" && draft?.transferKitty) {
+    // After the draw: run the merry-go-round first when it's "before", otherwise
+    // go straight into the GK block. There's no player-pool step (the pool is
+    // fixed at lobby time), so the block loop begins right here.
+    const onStart = draft.managerTiming === "before"
+      ? () => setScreen("manager-draft")
+      : () => beginKittyDraft();
+    return <>{globalMenu}<OrderDrawScreen draft={draft} onStart={onStart} /></>;
   }
 
   if (screen === "order-draw" && draft) {
@@ -1157,7 +1261,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "4.2.57";
+const APP_VERSION = "4.3.9";
 
 function AppFooter() {
   return (

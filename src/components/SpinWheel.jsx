@@ -20,6 +20,9 @@ function shuffleSlots(slots) {
 const WHEEL_RAMPS = {
   green: ["#1a2618", "#14351b", "#0e5a2f", "#0b7a3d", "#146b3a", "#2fd06e"],
   blue:  ["#141d28", "#13233a", "#0e3a63", "#0b4f8a", "#14568f", "#3b9dff"],
+  // Transfer Kitty's gold identity — low tiers warm-bronze, ramping to the same
+  // jackpot gold the top wedges use in every theme.
+  gold:  ["#2a2410", "#3a2f12", "#5a4a1a", "#7a651f", "#9a7f22", "#e0c24a"],
 };
 
 function sliceColor(value, theme = "green") {
@@ -69,7 +72,7 @@ function RollerHub({ display, isFinal }) {
 // `carryLabel` names what the carried money is: under Leftover Lolly it's a
 // banked sub fund rather than a round-to-round carryover. `minTotal` is that
 // mode's guaranteed bench floor, shown when the spin lands under it.
-export default function SpinWheel({ carryover, onConfirm, difficulty = "normal", theme = "green", carryLabel = "carryover", minTotal = 0 }) {
+export default function SpinWheel({ carryover, onConfirm, difficulty = "normal", theme = "green", carryLabel = "carryover", minTotal = 0, slotValues = null }) {
   const [finalVal, setFinalVal] = useState(null);
   const [rollerDisplay, setRollerDisplay] = useState(null);
 
@@ -78,8 +81,10 @@ export default function SpinWheel({ carryover, onConfirm, difficulty = "normal",
 
   // generateBudget is a uniform pick over these 16 slots, so landing on a random
   // wedge yields the same odds — the wheel's wedges ARE the distribution.
-  const slots = DIFFICULTY_SLOTS[difficulty] || DIFFICULTY_SLOTS.normal;
-  const arranged = useMemo(() => shuffleSlots(slots), [difficulty]);
+  // A caller can supply its own 16 wedge values (Transfer Kitty's richer subs
+  // wheel); otherwise fall back to the difficulty band.
+  const slots = slotValues || DIFFICULTY_SLOTS[difficulty] || DIFFICULTY_SLOTS.normal;
+  const arranged = useMemo(() => shuffleSlots(slots), [difficulty, slotValues]);
   const segments = arranged.map((value, i) => ({ value, start: i * SLICE_DEG, span: SLICE_DEG }));
   const injected = minTotal > 0 && finalVal !== null && (finalVal + carryover) < minTotal;
 

@@ -40,7 +40,9 @@ export default function MySquadPanel({ manager, onClose, hideRatings = false }) 
                   <span className="bw-msp-name">{player.name}</span>
                   {player.archetype && (() => {
                     const arc = ARCHETYPE_COLOR[player.archetype] || { bg: "#222", fg: "#aaa" };
-                    const preferred = fm?.preferredArchetypes?.includes(player.archetype);
+                    const preferred = player.pos === "GK"
+                      ? (!!fm?.preferredGkArchetype && player.archetype === fm.preferredGkArchetype)
+                      : !!fm?.preferredArchetypes?.includes(player.archetype);
                     return (
                       <span
                         className="bw-msp-arc"

@@ -614,11 +614,19 @@ function styleMatchupBonus(myStyle, oppStyle) {
   return STYLE_MATCHUP[myStyle]?.[oppStyle] ? 3 : 0;
 }
 
+// Whether a player fits the manager's preferences. Keepers are matched against
+// the manager's preferred GK archetype, outfielders against preferredArchetypes.
+function mgrPrefersPlayer(mgr, p) {
+  if (!p) return false;
+  if (p.pos === "GK") return !!mgr?.preferredGkArchetype && p.archetype === mgr.preferredGkArchetype;
+  return !!mgr?.preferredArchetypes?.includes(p.archetype);
+}
+
 function cohesionBonus(squad, mgr) {
-  if (!mgr?.preferredArchetypes?.length) return 0;
+  if (!mgr?.preferredArchetypes?.length && !mgr?.preferredGkArchetype) return 0;
   const starters = squad.slice(0, 11).filter(Boolean);
   if (!starters.length) return 0;
-  const matches = starters.filter(p => mgr.preferredArchetypes.includes(p.archetype)).length;
+  const matches = starters.filter(p => mgrPrefersPlayer(mgr, p)).length;
   const pct = matches / starters.length;
   return pct * 5; // up to +5 at 100% cohesion
 }
@@ -994,11 +1002,11 @@ export function generateEvents(homeSquad, awaySquad, homeName, awayName, legCont
     earlyMins.push({ min: rand(2, 10), possSide: "away", text: pick(MOMENTUM_COMMENTARY_LOSS)(awayName, lastName(awayFootballMgr.name)) });
   }
   // Cohesion commentary for the team with higher cohesion (>60% match)
-  const hCohesionPct = homeFootballMgr?.preferredArchetypes?.length
-    ? homeSquad.slice(0, 11).filter(Boolean).filter(p => homeFootballMgr.preferredArchetypes.includes(p.archetype)).length / Math.max(1, homeSquad.slice(0, 11).filter(Boolean).length)
+  const hCohesionPct = (homeFootballMgr?.preferredArchetypes?.length || homeFootballMgr?.preferredGkArchetype)
+    ? homeSquad.slice(0, 11).filter(Boolean).filter(p => mgrPrefersPlayer(homeFootballMgr, p)).length / Math.max(1, homeSquad.slice(0, 11).filter(Boolean).length)
     : 0;
-  const aCohesionPct = awayFootballMgr?.preferredArchetypes?.length
-    ? awaySquad.slice(0, 11).filter(Boolean).filter(p => awayFootballMgr.preferredArchetypes.includes(p.archetype)).length / Math.max(1, awaySquad.slice(0, 11).filter(Boolean).length)
+  const aCohesionPct = (awayFootballMgr?.preferredArchetypes?.length || awayFootballMgr?.preferredGkArchetype)
+    ? awaySquad.slice(0, 11).filter(Boolean).filter(p => mgrPrefersPlayer(awayFootballMgr, p)).length / Math.max(1, awaySquad.slice(0, 11).filter(Boolean).length)
     : 0;
   if (hCohesionPct >= 0.6 && homeFootballMgr) {
     earlyMins.push({ min: rand(5, 20), possSide: "home", text: pick(COHESION_COMMENTARY)(lastName(homeFootballMgr.name), homeName) });

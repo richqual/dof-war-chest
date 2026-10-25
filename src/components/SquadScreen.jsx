@@ -20,11 +20,19 @@ function lineColors(pos) {
   return { bg: "var(--bw-line-mid)", text: "#fff", label: "var(--bw-line-mid-text)", size: 40 }; // DM, CM, RM, LM, CAM
 }
 
+// Keepers match the manager's preferred GK archetype; outfielders match the
+// preferredArchetypes list.
+function fmPrefersPlayer(fm, p) {
+  if (!p) return false;
+  if (p.pos === "GK") return !!fm?.preferredGkArchetype && p.archetype === fm.preferredGkArchetype;
+  return !!fm?.preferredArchetypes?.includes(p.archetype);
+}
+
 function cohesionPct(squad, fm) {
-  if (!fm?.preferredArchetypes?.length) return null;
+  if (!fm?.preferredArchetypes?.length && !fm?.preferredGkArchetype) return null;
   const starters = squad.slice(0, 11).filter(Boolean);
   if (!starters.length) return null;
-  return Math.round((starters.filter(p => fm.preferredArchetypes.includes(p.archetype)).length / starters.length) * 100);
+  return Math.round((starters.filter(p => fmPrefersPlayer(fm, p)).length / starters.length) * 100);
 }
 
 function squadRating(squad) {
@@ -479,7 +487,7 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
                     <span className="bw-xi-form">{draft?.playerForm && draft.playerForm.has(p.id) ? getFormArrow(draft.playerForm.get(p.id)) : ""}</span>
                     {!hideBadges && p.archetype && (() => {
                       const arc = ARCHETYPE_COLOR[p.archetype] || { bg: "#222", fg: "#aaa" };
-                      const preferred = fm?.preferredArchetypes?.includes(p.archetype);
+                      const preferred = fmPrefersPlayer(fm, p);
                       return (
                         <span
                           className="bw-xi-archetype"
@@ -524,7 +532,7 @@ function SquadDetail({ draft, manager, managerIdx, setTeamName, swapSquadPlayers
                         <span className="bw-xi-form">{draft?.playerForm && draft.playerForm.has(p.id) ? getFormArrow(draft.playerForm.get(p.id)) : ""}</span>
                         {!hideBadges && p.archetype && (() => {
                           const arc = ARCHETYPE_COLOR[p.archetype] || { bg: "#222", fg: "#aaa" };
-                          const preferred = fm?.preferredArchetypes?.includes(p.archetype);
+                          const preferred = fmPrefersPlayer(fm, p);
                           return (
                             <span className="bw-xi-archetype" style={{ background: arc.bg, color: arc.fg, border: `1px solid ${preferred ? arc.fg : arc.fg + "44"}`, opacity: preferred ? 1 : 0.55 }}>
                               {p.archetype}

@@ -12,10 +12,15 @@ export const ARCHETYPE_COLOR = {
   Organiser:        { bg: "#1a1a3a", fg: "#8899ff" },
 };
 
-export default function PlayerCard({ player, onPick, canAfford, compact = false, hideRatings = false, takenBy = null, hideBadges = false, budget = null, preferredArchetypes = null, outOfPos = null }) {
+export default function PlayerCard({ player, onPick, canAfford, compact = false, hideRatings = false, takenBy = null, hideBadges = false, budget = null, preferredArchetypes = null, preferredGkArchetype = null, outOfPos = null }) {
   const arch = player.archetype;
   const archColors = arch ? ARCHETYPE_COLOR[arch] : null;
-  const isPreferred = arch && preferredArchetypes && preferredArchetypes.includes(arch);
+  // Keepers have their own archetype set, so match against the manager's
+  // preferred GK archetype rather than the outfield preferences.
+  const effectivePreferred = player.pos === "GK"
+    ? (preferredGkArchetype ? [preferredGkArchetype] : null)
+    : preferredArchetypes;
+  const isPreferred = arch && effectivePreferred && effectivePreferred.includes(arch);
   const rowClass = takenBy
     ? "bw-player-row taken"
     : `bw-player-row ${canAfford ? "affordable" : "unaffordable"}`;
@@ -54,7 +59,7 @@ export default function PlayerCard({ player, onPick, canAfford, compact = false,
                 background: archColors.bg,
                 color: archColors.fg,
                 borderColor: `${archColors.fg}55`,
-                opacity: preferredArchetypes && !isPreferred ? 0.55 : 1,
+                opacity: effectivePreferred && !isPreferred ? 0.55 : 1,
               } : undefined}
               title={isPreferred ? `Preferred archetype for your Director of Football` : undefined}
             >

@@ -4,7 +4,7 @@ import {
   STORAGE_KEY, STORAGE_VERSION,
   serializeDraft, deserializeDraft,
   applyPick, rollBudget, buildInitialDraft,
-  carryFor, consumeCarry, isBenchRound, cpuSpendCap, needsTopUp, withCashInjection, freeTransferOptions,
+  carryFor, consumeCarry, isBenchRound, cpuSpendCap, needsTopUp, withCashInjection, freeTransferOptions, BENCH_MIN_FUND,
   availablePlayersFor, getPlayersFromState, currentEligPool,
   autoDrawSlot, activeFormation, resolveCurrentPosKey, resolveCurrentPos,
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder,
@@ -17,6 +17,10 @@ import {
   buildScoutLivePool, buildScoutReport, buildScoutFreeAgents, buildScoutMission, scoutBucketForSlot,
   reScoutSwap, tierCapsFor, SCOUT_TUNING, randomCpuTenets,
 } from "./scoutUtils";
+import {
+  kittyBlocks, rollKittyTotal, kittySlotPlayers,
+  autoFillKittyBlock, applyKittyBlockDone, rollSubsReel, kittyBankValues,
+} from "./kittyUtils";
 
 export { getFormArrow };
 
@@ -399,12 +403,19 @@ export function useDraftState() {
   }
 
   function assignManagers(assignments) {
-    setDraft(prev => ({
-      ...prev,
-      managers: prev.managers.map((m, i) =>
+    const next = {
+      ...draft,
+      managers: draft.managers.map((m, i) =>
         assignments[i] ? { ...m, footballManager: assignments[i] } : m
       ),
-    }));
+    };
+    // Transfer Kitty: a "before" merry-go-round hands off into the block loop
+    // (not the Classic "draft" screen); "after" falls through to squads/series.
+    if (draft.transferKitty && draft.managerTiming === "before") {
+      beginKittyDraft(next);
+      return;
+    }
+    setDraft(next);
     if (draft.managerTiming === "before") {
       setScreen("draft");
     } else {
@@ -959,6 +970,257 @@ export function useDraftState() {
     if (d.phase === "complete") setScreen(d.managerTiming === "before" ? "squads" : "manager-draft");
   }
 
+  // ─────────────────────────── Transfer Kitty ───────────────────────────
+  // Block-major budgeted draft (docs/obsidian/Transfer Kitty Mode Spec.md). GK
+  // opens on a spun budget, DEF/MID/ATT are per-block purses over the shared
+  // pool, subs auto-fill from carried-over cash (Leftover Lolly). POC = solo +
+  // pass-and-play; CPUs resolve their whole block instantly, no timers. The
+  // block-major turn machinery is applyKittyBlockDone (kittyUtils) — the coarse
+  // analogue of applyPick. Bookend wheel animations + between-phase Draw Board
+  // are follow-up polish; the budget is still spun, just shown as a number here.
+
+  // Auto-build one CPU's whole current block, returning d with their squad,
+  // takenIds and kittyRemaining set (so applyKittyBlockDone banks the leftover).
+  // A CPU's subs top-up: the same 3-reel slot machine a human pulls (three reels
+  // summed), stacked on the carried-over sub fund, floored like Leftover Lolly's
+  // guaranteed minimum.
+  function rollKittySubsBudget(m) {
+    const topUp = rollSubsReel() + rollSubsReel() + rollSubsReel();
+    return Math.max((m.subFund || 0) + topUp, BENCH_MIN_FUND);
+  }
+
+  function cpuResolveKittyBlock(d, mi) {
+    const block = d.blocks[d.tkBlockIndex];
+    const m = d.managers[mi];
+    let squad, takenIds, remaining, kitty;
+    if (block.key === "GK") {
+      // The CPU "spins" its own keeper budget (same distribution as the wheel).
+      kitty = generateBudget(d.difficulty);
+      const pool = kittySlotPlayers(d, 0, kitty, m);
+      const pick = cpuVariancePick(pool.slice(0, 20)) || pool[0] || null;
+      squad = [...m.squad];
+      takenIds = [...d.takenIds];
+      remaining = kitty;
+      if (pick) { squad[0] = { ...pick }; takenIds.push(pick.id); remaining -= pick.value; }
+    } else if (block.key === "SUBS") {
+      kitty = rollKittySubsBudget(m);
+      const r = autoFillKittyBlock(d, mi, block, kitty);
+      squad = r.squad; takenIds = r.takenIds; remaining = r.remaining;
+    } else {
+      // DEF/MID/ATT: the CPU "smashes" a random piggy bank for this block, plus
+      // whatever carried over from the previous block. Banks scale with the
+      // block's slot count so a 3-man attack gets a bigger kitty than a 2-man.
+      const banks = kittyBankValues(d.difficulty, block.key, block.slotIndices.length);
+      kitty = banks[Math.floor(Math.random() * banks.length)] + (m.carryover || 0);
+      const r = autoFillKittyBlock(d, mi, block, kitty);
+      squad = r.squad; takenIds = r.takenIds; remaining = r.remaining;
+    }
+    const managers = d.managers.map((mm, i) =>
+      i === mi
+        ? {
+            ...mm, squad,
+            gkBudget: block.key === "GK" ? kitty : mm.gkBudget,
+            blockKitty: kitty, kittyRemaining: remaining,
+            carryover: block.build ? 0 : (mm.carryover || 0),
+            subFund: block.key === "SUBS" ? 0 : mm.subFund,
+          }
+        : mm
+    );
+    return { ...d, managers, takenIds };
+  }
+
+  // A build block just finished when applyKittyBlockDone leaves us in
+  // "block-reveal" and the block that was completed (now tkBlockIndex-1) was a
+  // budgeted build. That's when the recap Draw Board shows. (Online, this is also
+  // where clash re-picks would slot in — reveal, flag duplicates, losers re-pick.)
+  function isBuildBlockReveal(d) {
+    return d.tkPhase === "block-reveal" && !!d.blocks[d.tkBlockIndex - 1]?.build;
+  }
+
+  // Walk the block-major loop: resolve CPUs instantly until a human is on the
+  // clock, then show the right screen for the current block — a wheel spin for GK
+  // (opening) and SUBS (closing), the budgeted builder for DEF/MID/ATT, and the
+  // recap Draw Board after each build block completes.
+  function advanceKitty(d) {
+    // Landed here straight after a block completed: show the board for build
+    // blocks; otherwise fold the finished-block phase into its next phase.
+    if (isBuildBlockReveal(d)) {
+      setDraft(d);
+      setScreen("transfer-kitty-board");
+      return;
+    }
+    if (d.tkPhase === "block-reveal") d = { ...d, tkPhase: d.tkNextPhase || "building" };
+
+    let guard = 0;
+    while (guard++ < 200) {
+      const block = d.blocks[d.tkBlockIndex];
+      if (!block) {
+        // Past the final (SUBS) block — the draft is complete.
+        d = { ...d, tkPhase: "complete", phase: "complete" };
+        setDraft(d);
+        setScreen(d.managerTiming === "before" ? "squads" : "manager-draft");
+        return;
+      }
+      const mi = d.currentOrder[d.turnIndex];
+      if (d.managers[mi].isComputer) {
+        d = cpuResolveKittyBlock(d, mi);
+        d = applyKittyBlockDone(d);
+        if (isBuildBlockReveal(d)) {
+          setDraft(d);
+          setScreen("transfer-kitty-board");
+          return;
+        }
+        if (d.tkNextPhase) d = { ...d, tkPhase: d.tkNextPhase };
+        continue;
+      }
+      // Human on the clock — bookend wheels for GK/SUBS, builder for the rest.
+      if (block.key === "GK") {
+        setDraft({ ...d, tkPhase: "gk-wheel" });
+        setScreen("transfer-kitty-wheel");
+        return;
+      }
+      if (block.key === "SUBS") {
+        setDraft({ ...d, tkPhase: "subs-wheel" });
+        setScreen("transfer-kitty-wheel");
+        return;
+      }
+      // DEF/MID/ATT: smash a piggy bank to reveal this block's kitty first.
+      setDraft({ ...d, tkPhase: "banks" });
+      setScreen("transfer-kitty-banks");
+      return;
+    }
+  }
+
+  // The human smashed a piggy bank → that amount (plus carryover) is this block's
+  // kitty; drop into the builder to spend it.
+  function confirmKittyBankPick(value) {
+    const d = draft;
+    const mi = d.currentOrder[d.turnIndex];
+    const kitty = (value || 0) + (d.managers[mi].carryover || 0);
+    const managers = d.managers.map((m, i) =>
+      i === mi ? { ...m, blockKitty: kitty, kittyRemaining: kitty, carryover: 0 } : m
+    );
+    setDraft({ ...d, managers, tkPhase: "building" });
+    setScreen("transfer-kitty-draft");
+  }
+
+  // The human's GK spin resolved → that spun value IS their keeper budget; drop
+  // into the block builder to sign a goalkeeper.
+  function confirmKittyGkSpin(spun) {
+    const d = draft;
+    const mi = d.currentOrder[d.turnIndex];
+    const kitty = spun || 0;
+    const managers = d.managers.map((m, i) =>
+      i === mi ? { ...m, gkBudget: kitty, blockKitty: kitty, kittyRemaining: kitty } : m
+    );
+    setDraft({ ...d, managers, tkPhase: "building" });
+    setScreen("transfer-kitty-draft");
+  }
+
+  // The human's subs top-up spin resolved → bench budget = carried-over sub fund
+  // + the spin, floored to the guaranteed minimum; then pick the five subs.
+  function confirmKittySubsSpin(spun) {
+    const d = draft;
+    const mi = d.currentOrder[d.turnIndex];
+    const m = d.managers[mi];
+    const total = Math.max((spun || 0) + (m.subFund || 0), BENCH_MIN_FUND);
+    const managers = d.managers.map((mm, i) =>
+      i === mi ? { ...mm, blockKitty: total, kittyRemaining: total, subFund: 0 } : mm
+    );
+    setDraft({ ...d, managers, tkPhase: "building" });
+    setScreen("transfer-kitty-draft");
+  }
+
+  function startTransferKittyGame(clubs, options) {
+    const drawFormation = options.drawFormation || "4-4-2";
+    const difficulty = options.difficulty || "normal";
+    // Reuse the Classic builder for the shared depleting pool + manager scaffold,
+    // then overlay the kitty-specific state.
+    const base = buildInitialDraft(clubs, { ...options, positionMode: "fixed" });
+    const managers = base.managers.map(m => ({
+      ...m,
+      formation: drawFormation,
+      squad: Array(16).fill(null),
+      kittyTotal: rollKittyTotal(difficulty),
+      // GK budget is spun (human) or rolled at resolve (CPU) when the GK block
+      // opens — not pre-rolled here.
+      gkBudget: null,
+      blockKitty: null,
+      kittyRemaining: null,
+      carryover: 0,
+      subFund: 0,
+    }));
+    const d = {
+      ...base,
+      managers,
+      transferKitty: true,
+      drawFormation,
+      blocks: kittyBlocks(drawFormation),
+      tkBlockIndex: 0,
+      tkPhase: "building",
+      currentOrder: base.snakeOrder,
+      turnIndex: 0,
+      phase: "draft",
+      difficulty,
+    };
+    // Open on the shared order-draw (seniority theatre) — the block loop begins
+    // only after the draw, and after the manager merry-go-round when it's "before".
+    setDraft(d);
+    setScreen(options?.draftRoulette?.enabled ? "draft-roulette" : "order-draw");
+  }
+
+  // Kick off the block-major loop after the pre-draft screens (order draw, and
+  // the merry-go-round when managerTiming is "before"). Pass an explicit draft so
+  // a just-applied manager assignment isn't lost to a stale closure.
+  function beginKittyDraft(d = draft) {
+    if (d) advanceKitty(d);
+  }
+
+  function pickKittyPlayer(slot, player) {
+    setDraft(prev => {
+      const mi = prev.currentOrder[prev.turnIndex];
+      const managers = prev.managers.map((m, i) => {
+        if (i !== mi) return m;
+        const squad = [...m.squad];
+        squad[slot] = { ...player };
+        return { ...m, squad, kittyRemaining: (m.kittyRemaining ?? 0) - player.value };
+      });
+      return { ...prev, managers, takenIds: [...prev.takenIds, player.id] };
+    });
+  }
+
+  function unpickKittyPlayer(slot) {
+    setDraft(prev => {
+      const mi = prev.currentOrder[prev.turnIndex];
+      const removed = prev.managers[mi]?.squad[slot];
+      if (!removed) return prev;
+      const managers = prev.managers.map((m, i) => {
+        if (i !== mi) return m;
+        const squad = [...m.squad];
+        squad[slot] = null;
+        return { ...m, squad, kittyRemaining: (m.kittyRemaining ?? 0) + removed.value };
+      });
+      return { ...prev, managers, takenIds: prev.takenIds.filter(id => id !== removed.id) };
+    });
+  }
+
+  function completeKittyBlock() {
+    // Don't fold the finished-block phase away here — advanceKitty needs to see
+    // "block-reveal" so it can show the recap board.
+    advanceKitty(applyKittyBlockDone(draft));
+  }
+
+  // Leave the recap Draw Board → carry on into the next phase (bank/wheel/subs).
+  function continueKittyAfterBoard() {
+    advanceKitty({ ...draft, tkPhase: draft.tkNextPhase || "building" });
+  }
+
+  function getKittyPlayers(slot, posOverride = null) {
+    if (!draft) return [];
+    const mi = draft.currentOrder[draft.turnIndex];
+    return kittySlotPlayers(draft, slot, null, draft.managers[mi], posOverride);
+  }
+
   const activeManagerIdx = draft ? draft.currentOrder?.[draft.turnIndex] ?? 0 : 0;
   const activeManager = draft ? draft.managers[activeManagerIdx] : null;
   const currentPos = resolveCurrentPos(draft);
@@ -974,5 +1236,7 @@ export function useDraftState() {
     startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, unpickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
     startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, dismissReScoutNotice, revealScoutRatings, setScoutFilter, commissionMission, confirmMission, scoutSkipCpuTurns, scoutStepCpuTurn,
     scoutFreeAgents,
+    startTransferKittyGame, beginKittyDraft, pickKittyPlayer, unpickKittyPlayer, completeKittyBlock, getKittyPlayers,
+    confirmKittyGkSpin, confirmKittySubsSpin, confirmKittyBankPick, continueKittyAfterBoard,
   };
 }
