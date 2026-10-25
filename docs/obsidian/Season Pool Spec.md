@@ -199,7 +199,7 @@ Suggested tabs:
 
 Build output (suggested): either one composed `players` module, or **one JSON file per season** (`seasons/1999.json` …) that's lazy-loaded when a game starts. Per-season files keep the initial bundle small. Claude Code to pick based on bundle size.
 
-**Step one of the pipeline must reproduce today's `players.js` exactly** (a round-trip with no behaviour change) before anything new is layered on.
+**Step one of the pipeline must reproduce today's `players.js` exactly** (a round-trip with no behaviour change) before anything new is layered on. **Phase 0 carries today's `tier` and `valueMin`/`valueMax` across as-is** — they're authored data, not computed (see "Grounding against the code"), so the round-trip copies them verbatim rather than re-deriving them. Re-tuning them is explicitly later work, made cheap and diffable precisely *because* they now live in the sheet: tier can be re-authored any time from Phase 1 on, and value is reworked onto reputation in Phase 2.
 
 ## Reference sources (for research, not bulk import)
 
@@ -279,5 +279,6 @@ Then **Career Mode** builds on top: start in a chosen season, players age along 
 - **Legends:** All-seasons only, or keep their current behaviour?
 - **Inflation index:** build our own from top-N fees per season, or follow the TPI method?
 - **Tuning values:** reputation decay rate, youth reputation lag, per-position ageing curves. Playtest these, not spec decisions.
+- **Tier: authored or banded?** Today's tiers overlap by rating (T1 87–98, T2 82–92, T3 76–89, T4 74–83, T5 69–77) — possibly an oversight rather than intent. Decision for later (not Phase 0): keep `tier` **hand-authored per keyframe** (an editorial call, which the overlap arguably reflects), or introduce a **rating→tier band** as a tuning knob with per-player overrides. Leaning keep-it-loose/authored for now, with an auto-suggest added later. Phase 0 just carries the current values across unchanged.
 - **Bundle strategy:** one composed module or per-season JSON files (Claude Code's call after measuring).
 - **Data entry help:** how much of phases 1–2 can Claude Code script a first pass of (e.g. drafting spells from Wikipedia career tables, generating default curves from `birthYear` + peak card) for Rich to review in the sheet?
