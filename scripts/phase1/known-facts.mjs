@@ -106,6 +106,25 @@ check("applySeasonStats is a no-op without a season", applySeasonStats(gerrard, 
 check("applySeasonStats is a no-op without birthYear",
   applySeasonStats({ ...gerrard, birthYear: null }, 2005).rating === gerrard.rating);
 
+// Career windows must not run past a plausible playing age — a player should
+// only be draftable in seasons he actually played (Gerrard stops in 2014/15;
+// Zlatan legitimately reaches 41, so the bar is generous). Guards against a
+// `years` spell that overshoots into coaching, or a wrong-namesake birthYear.
+console.log("\n── No player active past a plausible age ──");
+check("no outfielder active past 43 / keeper past 46", (() => {
+  const offenders = [];
+  for (const p of PLAYERS) {
+    if (p.league === "legends" || p.birthYear == null) continue;
+    const w = cardWindow(p);
+    if (!w) continue;
+    const ageEnd = ageInSeason(p.birthYear, w.to); // age in his last active season
+    const cap = p.pos === "GK" ? 46 : 43;
+    if (ageEnd > cap) offenders.push(`${p.name} [${p.pos}] →${w.to} age ${ageEnd}`);
+  }
+  if (offenders.length) console.log("      " + offenders.join("; "));
+  return offenders.length === 0;
+})());
+
 await server.close();
 console.log(`\n${fail ? "FAILED" : "ALL PASS"} — ${pass} passed, ${fail} failed\n`);
 process.exit(fail ? 1 : 0);
