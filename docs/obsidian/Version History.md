@@ -2,7 +2,7 @@
 
 Back to [[The Transfer Wheel]]. Related: [[Roadmap]], [[Game Modes]].
 
-Current: **v4.2.53**. Reconstructed from git history (`git log`). Grouped by the project's major arcs rather than every commit — for the exact log run `git log --oneline`.
+Current: **v5.0.1**. Reconstructed from git history (`git log`). Grouped by the project's major arcs rather than every commit — for the exact log run `git log --oneline`.
 
 > Naming note: the project began as **"DoF War Chest" / "The Football Director"** and became **"The Transfer Wheel"**. The *War Chest* name survives as one of the [[Game Modes|game modes]].
 
@@ -32,7 +32,7 @@ The game goes online and gains real systems.
 - **v2.16–2.20** Creation/finishing split, GK composite rating, automatic substitutions, manager shown on champion screen & saved squads.
 - **v2.21** Tournament bracket polish (grand final promotion, reverse-chronological order).
 
-## v3.9 — The Broadcast redesign era (current)
+## v3.9 — The Broadcast redesign era
 A full visual overhaul plus new modes. (Versioning jumped to 3.9.x here.)
 - **v3.9.23** 🎨 **Broadcast redesign** — every screen reskinned to the new dark-pitch look; CRT scanline removed.
 - **v3.9.25–31** Post-redesign fixes, **drag-to-spin wheels**, global menu → right-edge **pull-tab**.
@@ -61,6 +61,16 @@ A third core mode, then a run of tournament and draft-visibility work.
 - **v4.2.46–47** ⭐ **Remember My Preferences** — opt-in toggle saves a device's lobby advanced-options setup and re-seeds it next game (Classic + Scout). Styled as a distinct meta control. Key `tg-setup-prefs`.
 - **v4.2.48–50** ⏩ **Match sim speeds reworked** — SLOW / NORMAL / BRISK / FAST / INSTANT (Crawl dropped, Brisk added, 200ms Fast restored), remembered device-level per label. Key `tg-matchsim-speed`.
 - **v4.2.53** **Free Subs** — position filter on open bench slots.
+- **v4.2.55** War Chest draft polish — a sign-confirm dialog, editing a signed player to swap them out, and a club-coloured "your turn" handoff splash.
+- **v4.2.57** Draw screens — kit-coloured "your turn" callout and clearer bracket-draw text.
+
+## v4.3 → v5.0 — Transfer Kitty (the gold mode)
+A new multiplayer-first draft mode and the v4 → v5 bump.
+- **v4.3.9** 🐷 **Transfer Kitty mode** — solo/local POC, feature-complete. A gold-themed draft bookended by wheel spins (GK spin → budgeted DEF/MID/ATT *kitty* blocks → SUBS slot machine), a piggy-bank kitty reveal per block carrying over into [[Leftover Lolly]], a draft-locked formation (442/433, editable after), merry-go-round, per-block position filters and a block recap draw board. See the Transfer Kitty Mode Spec.
+- **v4.3.10** Transfer Kitty gains the **Remember My Preferences** toggle (namespace `transferKitty`) for parity with Classic/Scout.
+- **v4.3.11** Home screen shows a **suggested player count per mode**.
+- **v5.0.0** 🚀 **Transfer Kitty launch** — the v4 → v5 bump. Ships solo/local; online MP (simultaneous blind block-building with a host-authoritative clash reveal) is the follow-up.
+- **v5.0.1** 🗃️ **Season Pool — Phase 0** groundwork (no behaviour change). Player data moves to a CSV master → generated module pipeline, with a round-trip gate proving the data is reproduced exactly, a coverage script, and season-convention helpers. See the Season Pool Spec.
 
 ---
 

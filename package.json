@@ -8,7 +8,13 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "sim:sweep": "node scripts/sim-sweep.mjs"
+    "sim:sweep": "node scripts/sim-sweep.mjs",
+    "data:extract": "node scripts/phase0/extract-source.mjs",
+    "data:build": "node scripts/phase0/build-players.mjs",
+    "data:verify": "node scripts/phase0/verify-players.mjs",
+    "coverage": "node scripts/phase0/coverage.mjs",
+    "test:season": "node scripts/phase0/season-check.mjs",
+    "phase0": "npm run data:build && npm run data:verify && npm run test:season && npm run coverage"
   },
   "dependencies": {
     "firebase": "^12.15.0",
