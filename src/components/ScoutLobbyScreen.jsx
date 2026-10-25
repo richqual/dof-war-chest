@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SeasonPicker from "./SeasonPicker";
 import { loadSetupPrefs, saveSetupPrefs, seededFrom } from "../utils/setupPrefs";
 
 // Setup fields that "remember my preferences" persists for Scout. Player/club
@@ -56,6 +57,7 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
   const [tierCaps, setTierCaps] = useState(init.tierCaps);
   // On by default in Scout — the tight, controlled economy is what the mode is about.
   const [leftoverLolly, setLeftoverLolly] = useState(init.leftoverLolly);
+  const [season, setSeason] = useState(null); // Season Pool: end-year, or null = All seasons
   const [rememberPrefs, setRememberPrefs] = useState(saved.remember);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showRules, setShowRules] = useState(false);
@@ -80,6 +82,7 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
       numClubs, numHumans, difficulty, format: activeFormat,
       hideRatings, dynamicValues, dynamicForm: true, leftoverLolly,
       scout: true, scoutFormation: formation, tierCaps, poolSize,
+      playerFilter: season != null ? { season } : undefined,
     });
   }
 
@@ -104,6 +107,8 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
           <div className="bw-setup-hint">
             {numClubs === 2 ? "Head-to-head — build your squads then play" : numClubs === 8 ? "Eight-way knockout — QF, semis, then a Grand Final" : numClubs === 4 ? "Four-way knockout — two-legged semis, then a Grand Final" : "Multi-club draft — more managers means a fiercer scramble for the pool"}
           </div>
+
+          <SeasonPicker value={season} onChange={setSeason} />
 
           <div className="bw-setup-row">
             <span className="bw-setup-label">PLAYERS</span>

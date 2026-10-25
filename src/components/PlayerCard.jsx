@@ -1,4 +1,5 @@
 import { formatValue, getRatingColor, getRatingBg } from "../data/players";
+import { ageInSeason, LATEST_SEASON } from "../utils/season";
 
 export const ARCHETYPE_COLOR = {
   Warrior:          { bg: "#5a1a1a", fg: "#ff6b6b" },
@@ -12,8 +13,11 @@ export const ARCHETYPE_COLOR = {
   Organiser:        { bg: "#1a1a3a", fg: "#8899ff" },
 };
 
-export default function PlayerCard({ player, onPick, canAfford, compact = false, hideRatings = false, takenBy = null, hideBadges = false, budget = null, preferredArchetypes = null, preferredGkArchetype = null, outOfPos = null }) {
+export default function PlayerCard({ player, onPick, canAfford, compact = false, hideRatings = false, takenBy = null, hideBadges = false, budget = null, preferredArchetypes = null, preferredGkArchetype = null, outOfPos = null, season = null }) {
   const arch = player.archetype;
+  // Age at the start of the chosen season (today's season when none is set, i.e.
+  // non-season modes). Null when the player has no enriched birthYear.
+  const age = player.birthYear != null ? ageInSeason(player.birthYear, season ?? LATEST_SEASON) : null;
   const archColors = arch ? ARCHETYPE_COLOR[arch] : null;
   // Keepers have their own archetype set, so match against the manager's
   // preferred GK archetype rather than the outfield preferences.
@@ -68,7 +72,10 @@ export default function PlayerCard({ player, onPick, canAfford, compact = false,
           )}
         </div>
         {!compact && (
-          <div className="bw-player-club">{player.club} · {player.years}</div>
+          <div className="bw-player-club">
+            {player.club} · {player.years}
+            {age != null && <span className="bw-player-age"> · Age {age}</span>}
+          </div>
         )}
       </div>
 

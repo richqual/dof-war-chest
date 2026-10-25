@@ -14,7 +14,12 @@
     "data:verify": "node scripts/phase0/verify-players.mjs",
     "coverage": "node scripts/phase0/coverage.mjs",
     "test:season": "node scripts/phase0/season-check.mjs",
-    "phase0": "npm run data:build && npm run data:verify && npm run test:season && npm run coverage"
+    "test:known": "node scripts/phase1/known-facts.mjs",
+    "phase0": "npm run data:build && npm run data:verify && npm run test:season && npm run coverage",
+    "phase1": "npm run data:build && npm run data:verify && npm run test:season && npm run test:known && npm run coverage",
+    "enrich": "node scripts/phase1/enrich-wikidata.mjs",
+    "data:export": "node scripts/phase1/export-sheet.mjs",
+    "data:populate": "node scripts/phase1/populate-sheet.mjs"
   },
   "dependencies": {
     "firebase": "^12.15.0",

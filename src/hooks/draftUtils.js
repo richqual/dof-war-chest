@@ -1,5 +1,6 @@
 import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick, cpuVariancePick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS, realTeamPlayerClubs } from "../data/players";
 import { GROUP_SLOT_INDICES, FORMATIONS, slotEligibility } from "../data/formations";
+import { cardWindow, activeInSeason } from "../utils/season";
 
 export { generateBudget, chooseCpuPick, cpuVariancePick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS };
 
@@ -485,25 +486,40 @@ export function assignDraftRoulette(n, draftRoulette) {
   return assignments;
 }
 
+// The permanent identity key for a card: its Wikidata Q-ID when enriched, else
+// the name string (the legacy key, kept as a fallback for unmatched cards). This
+// is what collapses the ~151 multi-era duplicate cards into one identity, and it
+// fixes the name-string fragility ("X" vs "X Jr", two Ronaldos, diacritics).
+export function identityKey(player) {
+  return player.wikidataId ? `wd:${player.wikidataId}` : `nm:${player.name}`;
+}
+
 export function selectGamePlayers(filter = {}, { perLeagueDedup = false } = {}) {
-  const { eras, leagues, tiers } = filter;
-  const pool = PLAYERS.filter(p =>
+  const { eras, leagues, tiers, season } = filter;
+  let pool = PLAYERS.filter(p =>
     (!leagues || leagues.includes(p.league)) &&
     (!tiers   || tiers.includes(p.tier)) &&
     // Legends bypass the era filter — they're gated by their own league toggle
     (p.league === "legends" || !eras || eras.includes(p.era))
   );
-  // Normally one card per real player (deduped by name). In Real Teams mode we dedupe
-  // per-league instead, so each league's version survives (e.g. a Man Utd Ronaldo AND a
+  // Season Pool: keep only cards active in the chosen season (by the card's own
+  // career window — see season.js cardWindow). Legends sit outside the season
+  // system (pre-1998, no window), so a specific season drops them; the preset
+  // "All seasons" leaves `season` unset and keeps today's behaviour.
+  if (season != null) {
+    pool = pool.filter(p => p.league !== "legends" && activeInSeason(cardWindow(p), season));
+  }
+  // One card per identity (Q-ID, else name). Real Teams dedupes per-league
+  // instead, so each league's version survives (e.g. a Man Utd Ronaldo AND a
   // Real Madrid Ronaldo) and an assigned CPU can find the card for its own league.
-  const byName = {};
+  const byIdentity = {};
   for (const player of pool) {
-    const key = perLeagueDedup ? `${player.name}|${player.league}` : player.name;
-    if (!byName[key]) byName[key] = [player];
-    else byName[key].push(player);
+    const key = perLeagueDedup ? `${identityKey(player)}|${player.league}` : identityKey(player);
+    if (!byIdentity[key]) byIdentity[key] = [player];
+    else byIdentity[key].push(player);
   }
   const availableIds = new Set();
-  for (const versions of Object.values(byName)) {
+  for (const versions of Object.values(byIdentity)) {
     const selected = versions[Math.floor(Math.random() * versions.length)];
     availableIds.add(selected.id);
   }
@@ -656,6 +672,10 @@ export function buildInitialDraft(clubs, options = {}) {
     managers,
     realTeams: !!options.realTeams,
     draftRoulette: options.draftRoulette || null,
+    // Season Pool: the chosen season (end-year) or null for "All seasons". Part
+    // of the draft object so it serialises for online rooms / saves, and the
+    // manager pool and Age field can read it. null = today's cross-era pool.
+    season: options.playerFilter?.season ?? null,
     positionIndex: 0,
     turnIndex: 0,
     round: 0,

@@ -490,7 +490,7 @@ export default function ScoutDraftScreen({
                         return (
                           <div key={cand.id} className="scout-card-wrap">
                             <div className="scout-card-tier">{ratingRangeLabel(cand.rating)}</div>
-                            <PlayerCard player={cand} canAfford={afford} hideRatings={ratingsHidden} budget={currentBudget} />
+                            <PlayerCard player={cand} season={draft.season} canAfford={afford} hideRatings={ratingsHidden} budget={currentBudget} />
                             <div className="scout-mission-cost">
                               Fee: <strong>£{cand.missionCost}m</strong>
                               <span className="scout-mission-premium"> (+{Math.round(cand.missionPremium * 100)}%)</span>
@@ -563,6 +563,7 @@ export default function ScoutDraftScreen({
                       <div className="scout-card-tier">{ratingRangeLabel(p.rating)}</div>
                       <PlayerCard
                         player={p}
+                        season={draft.season}
                         onPick={afford ? pickScoutPlayer : undefined}
                         canAfford={afford}
                         hideRatings={ratingsHidden}
@@ -593,6 +594,7 @@ export default function ScoutDraftScreen({
                         <div className="scout-card-tier">Bargain bucket</div>
                         <PlayerCard
                           player={p}
+                          season={draft.season}
                           onPick={pickScoutPlayer}
                           canAfford={true}
                           hideRatings={ratingsHidden}
@@ -612,7 +614,7 @@ export default function ScoutDraftScreen({
                 <div className="bw-section-divider">ALREADY SIGNED · {currentPos.label}</div>
                 <div className="scout-taken-list">
                   {takenPlayers.map(p => (
-                    <PlayerCard key={p.id} player={p} canAfford={false} hideRatings={ratingsHidden} takenBy={p.ownedBy} />
+                    <PlayerCard key={p.id} season={draft.season} player={p} canAfford={false} hideRatings={ratingsHidden} takenBy={p.ownedBy} />
                   ))}
                 </div>
               </div>
