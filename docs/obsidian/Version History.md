@@ -2,7 +2,7 @@
 
 Back to [[The Transfer Wheel]]. Related: [[Roadmap]], [[Game Modes]].
 
-Current: **v5.1.1**. Reconstructed from git history (`git log`). Grouped by the project's major arcs rather than every commit — for the exact log run `git log --oneline`.
+Current: **v5.1.2**. Reconstructed from git history (`git log`). Grouped by the project's major arcs rather than every commit — for the exact log run `git log --oneline`.
 
 > Naming note: the project began as **"DoF War Chest" / "The Football Director"** and became **"The Transfer Wheel"**. The *War Chest* name survives as one of the [[Game Modes|game modes]].
 
@@ -73,6 +73,7 @@ A new multiplayer-first draft mode and the v4 → v5 bump.
 - **v5.0.1** 🗃️ **Season Pool — Phase 0** groundwork (no behaviour change). Player data moves to a CSV master → generated module pipeline, with a round-trip gate proving the data is reproduced exactly, a coverage script, and season-convention helpers. See the Season Pool Spec.
 - **v5.1.0** 📅 **Season Pool — Phase 1: career windows + season picker.** Pick a single season (1998/99 → 2025/26) in the Classic and Scout lobbies and the pool shows only players — and managers — active then, at today's ratings; "All seasons" keeps the full cross-era pool. Players carry a Wikidata identity (`wikidataId` + `birthYear` + career window), so the ~151 duplicate-era cards collapse into one identity and cards gain an **Age** field. New pipeline steps: `enrich` (Wikidata), `data:populate`/`data:export` (Google Sheet master ↔ repo), and a known-facts test suite. Range/era presets with a per-player season roll, and per-club-season timelines, come in Phase 2+.
 - **v5.1.1** 🔧 **Season Pool fixes** (playtest feedback). The player-pool and manager league/tier selection steps are now **skipped** in a season game — the year already restricts the pool (they'd otherwise rebuild it and drop the season). The season also survives going back from the club creator, **Age** shows only in a season game (no more today's-age on a peak card), and Wikidata matching now folds accents (César, etc.), lifting birth-year coverage to 96% of cards.
+- **v5.1.2** 🎯 **Season Pool — birth-year accuracy.** A full Wikidata re-match with **club-based disambiguation** (rank a candidate by whether the card's club appears in their real career), **career-spell overlap**, and a **plausibility guard** that blanks rather than guesses. Fixes the wrong-namesake ages playtesting surfaced — Ronaldo (R9), Pelé (was born 1991!), Marcelo, Vicente, Júlio César, Joaquín, Pedro, Raúl and more — and honestly blanks the handful with no confident match instead of showing "age 5". No behaviour or schema change: the new data rides the existing additive columns, so the round-trip gate stays exact.
 
 ---
 
