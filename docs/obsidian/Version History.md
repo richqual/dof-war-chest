@@ -2,7 +2,7 @@
 
 Back to [[The Transfer Wheel]]. Related: [[Roadmap]], [[Game Modes]].
 
-Current: **v5.0.0**. Reconstructed from git history (`git log`). Grouped by the project's major arcs rather than every commit — for the exact log run `git log --oneline`.
+Current: **v5.0.1**. Reconstructed from git history (`git log`). Grouped by the project's major arcs rather than every commit — for the exact log run `git log --oneline`.
 
 > Naming note: the project began as **"DoF War Chest" / "The Football Director"** and became **"The Transfer Wheel"**. The *War Chest* name survives as one of the [[Game Modes|game modes]].
 
@@ -70,6 +70,7 @@ A new multiplayer-first draft mode and the v4 → v5 bump.
 - **v4.3.10** Transfer Kitty gains the **Remember My Preferences** toggle (namespace `transferKitty`) for parity with Classic/Scout.
 - **v4.3.11** Home screen shows a **suggested player count per mode**.
 - **v5.0.0** 🚀 **Transfer Kitty launch** — the v4 → v5 bump. Ships solo/local; online MP (simultaneous blind block-building with a host-authoritative clash reveal) is the follow-up.
+- **v5.0.1** 🗃️ **Season Pool — Phase 0** groundwork (no behaviour change). Player data moves to a CSV master → generated module pipeline, with a round-trip gate proving the data is reproduced exactly, a coverage script, and season-convention helpers. See the Season Pool Spec.
 
 ---
 
