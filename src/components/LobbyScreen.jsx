@@ -51,6 +51,7 @@ export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onW
                 <div className="bw-mode-card-desc">
                   Spin the Transfer Wheel, build your squad, then play. Solo, local, or online.
                 </div>
+                <div className="bw-mode-card-bestfor">Best for 1–2 players</div>
               </div>
               <div className="bw-mode-card-cta">{selected === "classic" ? "▲" : "PLAY →"}</div>
             </button>
@@ -75,6 +76,7 @@ export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onW
                 <div className="bw-mode-card-desc">
                   5-a-side. Pick a mystery chest to reveal your budget, then race to build the best squad you can afford.
                 </div>
+                <div className="bw-mode-card-bestfor">Best for a quick game</div>
               </div>
               <div className="bw-mode-card-cta">{selected === "warchest" ? "▲" : "PLAY →"}</div>
             </button>
@@ -99,6 +101,7 @@ export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onW
                 <div className="bw-mode-card-desc">
                   One shared, shrinking pool of players. Draft order makes all the difference here!
                 </div>
+                <div className="bw-mode-card-bestfor">Best for 2–4 players</div>
               </div>
               <div className="bw-mode-card-cta">{selected === "scout" ? "▲" : "PLAY →"}</div>
             </button>
@@ -123,6 +126,7 @@ export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onW
                 <div className="bw-mode-card-desc">
                   A measured kitty per position. Spin a keeper, then build your defence, midfield and attack block by block.
                 </div>
+                <div className="bw-mode-card-bestfor">Ideal for 4+ players</div>
               </div>
               <div className="bw-mode-card-cta">{selected === "kitty" ? "▲" : "PLAY →"}</div>
             </button>

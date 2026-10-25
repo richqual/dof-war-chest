@@ -5122,6 +5122,21 @@ html.light-mode .bw-mode-card { box-shadow: 0 2px 8px rgba(11,31,20,.06); }
   line-height: 1.35;
   margin-top: 3px;
 }
+/* Suggested player count — a small themed tag under each mode's blurb, tinted
+   to that mode's accent so it reads as a badge, not body copy. */
+.bw-mode-card-bestfor {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-top: 7px;
+  opacity: 0.9;
+}
+.bw-mode-card-classic .bw-mode-card-bestfor { color: #2fd06e; }
+.bw-mode-card-wc .bw-mode-card-bestfor { color: #e0701a; }
+.bw-mode-card-scout .bw-mode-card-bestfor { color: #3b9dff; }
+.bw-mode-card-tk .bw-mode-card-bestfor { color: var(--tk-gold); }
+html.large-text .bw-mode-card-bestfor { font-size: 13px; }
 /* --bw-text-mid carries the app's sage-green neutral cast — swap the War
    Chest card's body copy to a warm-neutral grey so its whole card reads
    warm, not just the label/border/CTA. */
