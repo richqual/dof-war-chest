@@ -1,6 +1,6 @@
 import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick, cpuVariancePick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS, realTeamPlayerClubs } from "../data/players";
 import { GROUP_SLOT_INDICES, FORMATIONS, slotEligibility } from "../data/formations";
-import { cardWindow, activeInSeason } from "../utils/season";
+import { cardWindow, activeInSeason, seasonValueBand, applySeasonStats } from "../utils/season";
 
 export { generateBudget, chooseCpuPick, cpuVariancePick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS };
 
@@ -587,12 +587,16 @@ export function dedupeByName(players, draft, activeManager) {
   return Array.from(chosen.values());
 }
 
-export function randomizePlayerValues(availablePlayerIds) {
+export function randomizePlayerValues(availablePlayerIds, season = null) {
   const playerValues = new Map();
   for (const player of PLAYERS) {
     if (availablePlayerIds.has(player.id)) {
-      const min = player.valueMin || 0;
-      const max = player.valueMax || 0;
+      // In a season game the band is re-centred on that season's reputation
+      // (ageing stars stay dear, wonderkids are cheap); otherwise it's the
+      // authored peak band exactly as before.
+      const band = season != null ? seasonValueBand(player, season) : player;
+      const min = band.valueMin ?? band.min ?? 0;
+      const max = band.valueMax ?? band.max ?? 0;
       const randomValue = min === max ? min : Math.floor(Math.random() * (max - min + 1)) + min;
       playerValues.set(player.id, randomValue);
     }
@@ -665,7 +669,7 @@ export function buildInitialDraft(clubs, options = {}) {
   });
   const basePool = selectGamePlayers(options.playerFilter, { perLeagueDedup: !!options.realTeams });
   const { availablePlayerIds, poolIds } = buildRealTeamsPool(basePool, managers);
-  const playerValues = options.dynamicValues !== false ? randomizePlayerValues(availablePlayerIds) : new Map();
+  const playerValues = options.dynamicValues !== false ? randomizePlayerValues(availablePlayerIds, options.playerFilter?.season ?? null) : new Map();
   const playerForm = options.dynamicForm !== false ? generatePlayerForm(availablePlayerIds) : new Map();
   const playerOrder = generatePlayerOrder(availablePlayerIds);
   return {
@@ -713,8 +717,11 @@ export function getPlayersFromState(d, posKey) {
   }
   players = dedupeByName(players, d, activeManager);
   players = players.map(p => {
-    const player = { ...p };
-    player.value = resolveValue(d.playerValues, p);
+    // Season games: materialise the player as he was that season (rating,
+    // attributes, value band) before the rolled value is read, so the CPU
+    // values — and later drafts into its squad — the right version.
+    const player = applySeasonStats(p, d.season);
+    player.value = resolveValue(d.playerValues, player);
     return player;
   });
   // With Free Subs on, outfield bench slots are free hits for everyone, so don't
@@ -798,7 +805,7 @@ function buildWCSeries(n, format = "bo3") {
 
 export function buildInitialWarChestDraft(clubs, options = {}) {
   const availablePlayerIds = selectGamePlayers(options.playerFilter);
-  const playerValues = options.dynamicValues !== false ? randomizePlayerValues(availablePlayerIds) : new Map();
+  const playerValues = options.dynamicValues !== false ? randomizePlayerValues(availablePlayerIds, options.playerFilter?.season ?? null) : new Map();
   const playerForm = options.dynamicForm !== false ? generatePlayerForm(availablePlayerIds) : new Map();
   const playerOrder = generatePlayerOrder(availablePlayerIds);
 

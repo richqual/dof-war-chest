@@ -123,3 +123,153 @@ export function ageInSeason(birthYear, season) {
   if (birthYear == null || !season) return null;
   return season - 1 - birthYear;
 }
+
+// ── Phase 2: career curves, reputation & value ─────────────────────────────
+// Every card is the player's PEAK spell (its `rating`/`valueMin`/`valueMax` and
+// attributes are the peak). Phase 2 reads those as the peak keyframe and derives
+// a DIFFERENT rating for any other season from a position-based ageing curve +
+// the player's age that season. No hand-authored per-season data yet: the only
+// inputs are the peak card, `pos` and `birthYear` (so a card with no birthYear
+// can't be curved and keeps its peak rating — honest, not wrong).
+//
+// These are deliberately loose, playtestable knobs, NOT spec decisions. One
+// source of truth: display (PlayerCard), the baked squad/match stats and the
+// value band all call through here so a season game is internally consistent.
+
+// Peak age + how fast ability falls after it, by position. Keepers and centre
+// backs peak late and decline gently; pace-reliant wide players peak early and
+// fall away fast. `rise` is how many rating points a player gains per year as
+// they climb towards their peak from youth.
+const POSITION_CURVE = {
+  GK:  { peakAge: 30, decline: 0.7, rise: 1.1 },
+  CB:  { peakAge: 29, decline: 1.0, rise: 1.4 },
+  RB:  { peakAge: 28, decline: 1.5, rise: 1.4 },
+  LB:  { peakAge: 28, decline: 1.5, rise: 1.4 },
+  RWB: { peakAge: 28, decline: 1.6, rise: 1.4 },
+  LWB: { peakAge: 28, decline: 1.6, rise: 1.4 },
+  DM:  { peakAge: 28, decline: 1.1, rise: 1.3 },
+  CM:  { peakAge: 28, decline: 1.1, rise: 1.3 },
+  CAM: { peakAge: 27, decline: 1.3, rise: 1.4 },
+  RM:  { peakAge: 27, decline: 1.6, rise: 1.5 },
+  LM:  { peakAge: 27, decline: 1.6, rise: 1.5 },
+  RW:  { peakAge: 26, decline: 1.8, rise: 1.6 },
+  LW:  { peakAge: 26, decline: 1.8, rise: 1.6 },
+  ST:  { peakAge: 27, decline: 1.5, rise: 1.5 },
+  CF:  { peakAge: 27, decline: 1.5, rise: 1.5 },
+};
+const DEFAULT_CURVE = { peakAge: 27, decline: 1.3, rise: 1.4 };
+const MAX_DROP = 20;       // a season rating never sits more than this below peak
+const RATING_FLOOR = 50;   // nor below this absolute floor
+
+function curveFor(pos) {
+  return POSITION_CURVE[pos] || DEFAULT_CURVE;
+}
+
+// The player's rating in end-year season S, derived from the peak card by the
+// position ageing curve. Returns the peak rating unchanged when the season isn't
+// set or birthYear is unknown (so non-season games are byte-for-byte as before).
+export function seasonRating(card, season) {
+  if (!card || season == null || card.birthYear == null || card.rating == null) {
+    return card ? card.rating : null;
+  }
+  const { peakAge, decline, rise } = curveFor(card.pos);
+  const age = ageInSeason(card.birthYear, season);
+  const peak = card.rating;
+  // Before peak: climb from youth. After peak: decline at the position's rate.
+  const delta = age <= peakAge
+    ? -rise * (peakAge - age)
+    : -decline * (age - peakAge);
+  const floored = Math.max(peak - MAX_DROP, RATING_FLOOR, peak + delta);
+  return Math.round(Math.min(peak, floored));
+}
+
+// Reputation lags ability in BOTH directions and is what price follows:
+//   • declining stars stay expensive for a while (reputation falls slower than
+//     ability) — a trap for the unwary;
+//   • rising youngsters are cheap before their reputation catches up — the
+//     bargains that reward football knowledge.
+// Always ≤ peak (the peak season is the most valuable), so value never exceeds
+// today's authored band. Returns peak when season/birthYear is missing.
+const REP_DECAY = 0.5;       // post-peak reputation loss per year (< ability decline)
+const YOUTH_LAG = 1.1;       // pre-peak reputation sits this far below ability/yr
+const REP_MAX_LAG = 14;      // youth reputation never more than this below ability
+export function seasonReputation(card, season) {
+  if (!card || season == null || card.birthYear == null || card.rating == null) {
+    return card ? card.rating : null;
+  }
+  const { peakAge } = curveFor(card.pos);
+  const age = ageInSeason(card.birthYear, season);
+  const peak = card.rating;
+  const rating = seasonRating(card, season);
+  if (age >= peakAge) {
+    // Past peak: reputation clings to the peak, decaying slowly.
+    return Math.round(Math.min(peak, Math.max(rating, peak - REP_DECAY * (age - peakAge))));
+  }
+  // Pre-peak: reputation sits below current ability (the bargain window).
+  const lag = Math.min(REP_MAX_LAG, YOUTH_LAG * (peakAge - age));
+  return Math.round(Math.max(RATING_FLOOR, rating - lag));
+}
+
+// Re-centre the authored peak value band on reputation for season S. Value grows
+// roughly geometrically with rating, so we scale by 2^((rep − peak)/RATING_PER_DOUBLING):
+// every ~6 reputation points below peak roughly halves the price. reputation ≤ peak,
+// so the multiplier is ≤ 1 (peak season = dearest). Band shape is preserved.
+const RATING_PER_DOUBLING = 6;
+export function seasonValueBand(card, season) {
+  const min = card?.valueMin ?? 0;
+  const max = card?.valueMax ?? 0;
+  if (!card || season == null || card.birthYear == null || card.rating == null) {
+    return { min, max };
+  }
+  const rep = seasonReputation(card, season);
+  const mult = Math.min(1, Math.pow(2, (rep - card.rating) / RATING_PER_DOUBLING));
+  return {
+    min: Math.max(0, Math.round(min * mult)),
+    max: Math.max(0, Math.round(max * mult)),
+  };
+}
+
+// Scale the six attributes with the season rating delta from peak, with an extra
+// pace penalty once a player is past their peak age (legs go first). Clamped to
+// 1..99. A no-op (returns the originals) when the season/birthYear is missing.
+const ATTR_KEYS = ["pac", "sho", "pas", "dri", "def", "phy"];
+const PACE_AGE_PENALTY = 0.6; // extra pac lost per year past peak
+export function seasonAttributes(card, season) {
+  const base = {};
+  for (const k of ATTR_KEYS) if (card?.[k] != null) base[k] = card[k];
+  if (!card || season == null || card.birthYear == null || card.rating == null) {
+    return base;
+  }
+  const delta = seasonRating(card, season) - card.rating; // ≤ 0 mostly
+  const { peakAge } = curveFor(card.pos);
+  const age = ageInSeason(card.birthYear, season);
+  const extraPace = Math.max(0, age - peakAge) * PACE_AGE_PENALTY;
+  const out = {};
+  for (const k of ATTR_KEYS) {
+    if (base[k] == null) continue;
+    const adj = base[k] + delta - (k === "pac" ? extraPace : 0);
+    out[k] = Math.max(1, Math.min(99, Math.round(adj)));
+  }
+  return out;
+}
+
+// Return a card with rating, the six attributes and the value band replaced by
+// their season-S values — the one place the whole draft materialises "the player
+// as he was that season". A no-op (returns the card as-is) outside a season game
+// or when birthYear is unknown, so Classic/Kitty/War Chest and un-enriched cards
+// are byte-for-byte unchanged. Form and the rolled `value` layer on top of this.
+export function applySeasonStats(card, season) {
+  // Always hand back a fresh object — callers mutate `.value`/`.ownedBy` on it,
+  // and must never write through to the shared PLAYERS card.
+  if (!card || season == null || card.birthYear == null || card.rating == null) {
+    return card ? { ...card } : card;
+  }
+  const band = seasonValueBand(card, season);
+  return {
+    ...card,
+    rating: seasonRating(card, season),
+    ...seasonAttributes(card, season),
+    valueMin: band.min,
+    valueMax: band.max,
+  };
+}
