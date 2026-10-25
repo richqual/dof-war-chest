@@ -1,4 +1,5 @@
 import { useState } from "react";
+import SeasonPicker from "./SeasonPicker";
 import { loadSetupPrefs, saveSetupPrefs, seededFrom } from "../utils/setupPrefs";
 
 // Setup fields that "remember my preferences" persists for Scout. Player/club
@@ -39,7 +40,7 @@ const POOL_SIZE_INFO = [
   { key: "medium", label: "BALANCED",   hint: "A handful of elites per position to scrap over" },
 ];
 
-export default function ScoutLobbyScreen({ onContinue, onBack }) {
+export default function ScoutLobbyScreen({ onContinue, onBack, initialSeason = null }) {
   // Seed the setup options from the player's remembered preferences (if opted in).
   const [saved] = useState(() => loadSetupPrefs("scout"));
   const [init] = useState(() => seededFrom(SCOUT_DEFAULTS, saved.values));
@@ -56,6 +57,9 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
   const [tierCaps, setTierCaps] = useState(init.tierCaps);
   // On by default in Scout — the tight, controlled economy is what the mode is about.
   const [leftoverLolly, setLeftoverLolly] = useState(init.leftoverLolly);
+  // Seed from the last config so the pick survives a trip back from the club
+  // creator (the lobby remounts on return). null = All seasons.
+  const [season, setSeason] = useState(initialSeason ?? null);
   const [rememberPrefs, setRememberPrefs] = useState(saved.remember);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showRules, setShowRules] = useState(false);
@@ -80,6 +84,7 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
       numClubs, numHumans, difficulty, format: activeFormat,
       hideRatings, dynamicValues, dynamicForm: true, leftoverLolly,
       scout: true, scoutFormation: formation, tierCaps, poolSize,
+      playerFilter: season != null ? { season } : undefined,
     });
   }
 
@@ -104,6 +109,8 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
           <div className="bw-setup-hint">
             {numClubs === 2 ? "Head-to-head — build your squads then play" : numClubs === 8 ? "Eight-way knockout — QF, semis, then a Grand Final" : numClubs === 4 ? "Four-way knockout — two-legged semis, then a Grand Final" : "Multi-club draft — more managers means a fiercer scramble for the pool"}
           </div>
+
+          <SeasonPicker value={season} onChange={setSeason} />
 
           <div className="bw-setup-row">
             <span className="bw-setup-label">PLAYERS</span>

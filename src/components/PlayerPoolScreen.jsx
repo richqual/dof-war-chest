@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PLAYERS } from "../data/players";
 
 const ERA_CONFIG = [
@@ -24,7 +24,7 @@ const TIER_CONFIG = [
   { key: "T5", label: "T5 — Journeymen",  sub: "Below 78 — grafters" },
 ];
 
-export default function PlayerPoolScreen({ onConfirm, numClubs = 4 }) {
+export default function PlayerPoolScreen({ onConfirm, numClubs = 4, season = null }) {
   const [eras,    setEras]    = useState(ERA_CONFIG.map(e => e.key));
   const [leagues, setLeagues] = useState(LEAGUE_CONFIG.map(l => l.key).filter(k => k !== "legends"));
   const [tiers,   setTiers]   = useState(TIER_CONFIG.map(t => t.key));
@@ -49,6 +49,21 @@ export default function PlayerPoolScreen({ onConfirm, numClubs = 4 }) {
   function handleConfirm() {
     onConfirm({ eras, leagues, tiers });
   }
+
+  // Season Pool: the chosen year already defines who's available, so this
+  // era/league/tier step is redundant — skip it (confirm with everything on;
+  // the season filter does the restricting). Only shown in an All-seasons game.
+  useEffect(() => {
+    if (season != null) {
+      onConfirm({
+        eras: ERA_CONFIG.map(e => e.key),
+        leagues: LEAGUE_CONFIG.map(l => l.key).filter(k => k !== "legends"),
+        tiers: TIER_CONFIG.map(t => t.key),
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  if (season != null) return null;
 
   return (
     <div className="setup-screen">

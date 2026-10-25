@@ -1207,6 +1207,7 @@ html.wc-theme .bw-msp-header { background: linear-gradient(90deg, #2a1610, #240e
   border-color: #e0701a55 !important;
 }
 .bw-player-club { font-size: 12px; color: var(--bw-text-low); margin-top: 2px; }
+.bw-player-age { color: var(--bw-gold, #f5c542); opacity: 0.9; }
 .bw-player-value { font: 700 14px var(--bw-font-display); color: var(--bw-gold); flex-shrink: 0; min-width: 52px; text-align: right; }
 .bw-player-row.unaffordable .bw-player-value { color: #e0701a; }
 .bw-player-sign-btn {

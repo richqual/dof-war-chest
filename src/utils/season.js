@@ -80,3 +80,46 @@ export function eraForSeason(endYear) {
   }
   return null;
 }
+
+// ── Career windows (Phase 1) ──────────────────────────────────────────────
+// A player/manager is "active in season S" when S falls inside their window.
+// Windows are end-year seasons. Two sources, in priority order:
+//   1. Wikidata-derived firstSeason/lastSeason on the card (proper end-years).
+//   2. Fallback: the legacy start-year `years` spell read AT FACE VALUE — the
+//      same (acknowledged undercount) convention coverage.mjs already uses, so
+//      the whole project keeps ONE window interpretation. The earliest offered
+//      season (1999) hides the most common debut off-by-one.
+
+// Face-value window from a legacy `years` spell, or null if unparseable.
+export function yearsWindow(years) {
+  const r = parseYearsRange(years);
+  if (!r) return null;
+  return { from: r.from, to: r.to ?? LATEST_SEASON };
+}
+
+// Resolve a card's (or manager's) active window for availability gating.
+// Prefers the card's OWN `years` spell — it's the most specific, per-spell
+// window, so a multi-card identity gates to the right-era card each season
+// (Henry's Arsenal card covers 2003, his Monaco card does not). Falls back to
+// the enriched identity career window only when `years` is missing/unparseable.
+export function cardWindow(card) {
+  const yw = yearsWindow(card && card.years);
+  if (yw) return yw;
+  if (card && card.firstSeason != null) {
+    return { from: card.firstSeason, to: card.lastSeason ?? LATEST_SEASON };
+  }
+  return null;
+}
+
+// Is a { from, to } window active in end-year season S? Open `to` → still active.
+export function activeInSeason(window, season) {
+  if (!window) return false;
+  return season >= window.from && season <= (window.to ?? LATEST_SEASON);
+}
+
+// Age at the START of a season (e.g. 1998/99 starts in 1998): season − 1 − birthYear.
+// null when birthYear is unknown. (Gerrard, born 1980, is 18 in season 1999.)
+export function ageInSeason(birthYear, season) {
+  if (birthYear == null || !season) return null;
+  return season - 1 - birthYear;
+}

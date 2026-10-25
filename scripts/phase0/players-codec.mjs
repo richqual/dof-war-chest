@@ -13,17 +13,28 @@ export const COLS = [
   "id", "name", "club", "years", "pos", "pos2", "rating", "tier",
   "valueMin", "valueMax", "pac", "sho", "pas", "dri", "def", "phy",
   "nation", "era", "league", "archetype", "nationality_code",
+  // Phase 1 — Season Pool identity + career-window columns (additive).
+  // All optional: a card only carries them once Wikidata enrichment matches it.
+  "wikidataId", "birthYear", "firstSeason", "lastSeason",
 ];
+
+// The original Phase-0 column set (the 21 that reproduce today's players.js).
+// The round-trip anchor compares on these; see diffOriginalCols below.
+export const ORIGINAL_COLS = COLS.slice(0, 21);
 
 // Columns stored as numbers (everything else is a string).
 export const NUMERIC_COLS = new Set([
   "id", "rating", "valueMin", "valueMax", "pac", "sho", "pas", "dri", "def", "phy",
+  "birthYear", "firstSeason", "lastSeason",
 ]);
 
 // Columns that may be absent on a card. An empty cell means "key omitted"
 // (not stored as "" / undefined), so the round-trip matches today's objects
 // exactly — today's cards simply don't carry these keys when unused.
-export const OPTIONAL_COLS = new Set(["pos2", "nationality_code"]);
+export const OPTIONAL_COLS = new Set([
+  "pos2", "nationality_code",
+  "wikidataId", "birthYear", "firstSeason", "lastSeason",
+]);
 
 const FORBIDDEN = /[",\n\r\t]/; // chars that would break the simple CSV
 
@@ -69,6 +80,44 @@ export function parseCsv(text) {
     players.push(p);
   }
   return players;
+}
+
+// Header-driven loose parse: reads a CSV by matching cell positions to the
+// header row's names, tolerant of column count/order (so it works on both the
+// legacy 21-col master and the Phase-1 25-col one). Used by migration /
+// enrichment scripts to read whatever is on disk; the strict parseCsv above
+// stays the gate for the committed master.
+export function parseCsvByHeader(text) {
+  const rows = text.replace(/\n+$/, "").split("\n");
+  const header = rows[0].split(",");
+  const players = [];
+  for (let i = 1; i < rows.length; i++) {
+    const cells = rows[i].split(",");
+    const p = {};
+    header.forEach((col, j) => {
+      const raw = cells[j];
+      if (!COLS.includes(col)) return;            // ignore unknown columns (e.g. a sheet `source` col)
+      if (OPTIONAL_COLS.has(col) && (raw === undefined || raw === "")) return;
+      p[col] = NUMERIC_COLS.has(col) ? Number(raw) : raw;
+    });
+    players.push(p);
+  }
+  return players;
+}
+
+// Anchor comparison: the ORIGINAL 21 columns must still reproduce the golden
+// snapshot exactly. Phase-1 additive columns are ignored here so the round-trip
+// gate keeps protecting the original data without a re-baseline. Returns null
+// if identical, else the first difference.
+export function diffOriginalCols(golden, generated) {
+  if (golden.length !== generated.length) return `length ${golden.length} vs ${generated.length}`;
+  const pick = (o) => Object.fromEntries(ORIGINAL_COLS.filter((c) => c in o).map((c) => [c, o[c]]));
+  const norm = (o) => JSON.stringify(Object.fromEntries(Object.keys(o).sort().map((k) => [k, o[k]])));
+  for (let i = 0; i < golden.length; i++) {
+    const na = norm(pick(golden[i])), nb = norm(pick(generated[i]));
+    if (na !== nb) return `row ${i} (id ${golden[i].id ?? "?"}):\n    golden:    ${na}\n    generated: ${nb}`;
+  }
+  return null;
 }
 
 // Order-independent deep comparison of two player arrays. Returns null if

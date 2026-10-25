@@ -1,5 +1,6 @@
 import { useState } from "react";
 import DraftRouletteToggle from "./DraftRouletteToggle";
+import SeasonPicker from "./SeasonPicker";
 import { loadSetupPrefs, saveSetupPrefs, seededFrom } from "../utils/setupPrefs";
 
 // Setup fields that "remember my preferences" persists for Classic. Player/club
@@ -151,7 +152,7 @@ export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onW
   );
 }
 
-export default function LobbyScreen({ onContinue, onBack }) {
+export default function LobbyScreen({ onContinue, onBack, initialSeason = null }) {
   // Seed the setup options from the player's remembered preferences (if opted in).
   const [saved] = useState(() => loadSetupPrefs("classic"));
   const [init] = useState(() => seededFrom(CLASSIC_DEFAULTS, saved.values));
@@ -173,6 +174,9 @@ export default function LobbyScreen({ onContinue, onBack }) {
   const [realTeams, setRealTeams] = useState(init.realTeams);
   const [managerTiming, setManagerTiming] = useState(init.managerTiming);
   const [draftRoulette, setDraftRoulette] = useState(init.draftRoulette);
+  // Seed from the last config so the pick survives a trip back from the club
+  // creator (the lobby remounts on return). null = All seasons.
+  const [season, setSeason] = useState(initialSeason ?? null);
   const [rememberPrefs, setRememberPrefs] = useState(saved.remember);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showRules, setShowRules] = useState(false);
@@ -214,6 +218,9 @@ export default function LobbyScreen({ onContinue, onBack }) {
       managerTiming,
       draftRoulette,
       realTeams,
+      // Season Pool: gates the pool to players/managers active that season.
+      // Omitted when "All seasons" so today's cross-era behaviour is unchanged.
+      playerFilter: season != null ? { season } : undefined,
     });
   }
 
@@ -244,6 +251,8 @@ export default function LobbyScreen({ onContinue, onBack }) {
           <div className="bw-setup-hint">
             {numClubs === 2 ? "Head-to-head — two clubs, one draft, one winner" : numClubs === 8 ? "Eight-way knockout tournament — QF, two-legged semis, then a Grand Final" : "Four-way knockout tournament — two-legged semis, then a Grand Final"}
           </div>
+
+          <SeasonPicker value={season} onChange={setSeason} />
 
           <div className="bw-setup-row">
             <span className="bw-setup-label">PLAYERS</span>
