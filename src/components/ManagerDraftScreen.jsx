@@ -32,6 +32,11 @@ const TIER_CONFIG = [
   { label: "Journeyman",  key: "journeyman" },
 ];
 
+// The PoolSelector's defaults (everything on, minus Legends) — used to seed a
+// Season Pool game that skips the league/tier step.
+const DEFAULT_MGR_LEAGUES = LEAGUE_CONFIG.map(l => l.key).filter(k => k !== "legends");
+const DEFAULT_MGR_TIERS = TIER_CONFIG.map(t => t.key);
+
 function getManagerLeague(m) {
   return m.league || "la_liga";
 }
@@ -293,11 +298,16 @@ export default function ManagerDraftScreen({
   const isMultiplayer = !!onManagerPick;
   const draftRouletteActive = !!draft.draftRoulette?.enabled;
 
-  const [phase, setPhase] = useState(draftRouletteActive ? "playing" : "league-select");
+  // Season Pool (solo): the year already restricts the managers, so skip the
+  // league/tier selection and go straight to the ride with the season-gated pool.
+  const seasonSkip = draft.season != null && !isMultiplayer && !draftRouletteActive;
+  const [phase, setPhase] = useState(draftRouletteActive || seasonSkip ? "playing" : "league-select");
   const [pickOrder] = useState(() => shuffle(draft.managers.map((_, i) => i)));
-  const [pool, setPool] = useState(() => draftRouletteActive
-    ? shuffle(MANAGERS.filter(m => managerActiveInSeason(m, draft.season)))
-    : []);
+  const [pool, setPool] = useState(() => {
+    if (draftRouletteActive) return shuffle(MANAGERS.filter(m => managerActiveInSeason(m, draft.season)));
+    if (seasonSkip) return shuffle([...withRealClubManagers(getFilteredPool(DEFAULT_MGR_LEAGUES, DEFAULT_MGR_TIERS, draft.season), draft.managers)]);
+    return [];
+  });
   const [turnIdx, setTurnIdx] = useState(0);
   const [offered, setOffered] = useState(null);
   const [revealed, setRevealed] = useState(0);

@@ -40,7 +40,7 @@ const POOL_SIZE_INFO = [
   { key: "medium", label: "BALANCED",   hint: "A handful of elites per position to scrap over" },
 ];
 
-export default function ScoutLobbyScreen({ onContinue, onBack }) {
+export default function ScoutLobbyScreen({ onContinue, onBack, initialSeason = null }) {
   // Seed the setup options from the player's remembered preferences (if opted in).
   const [saved] = useState(() => loadSetupPrefs("scout"));
   const [init] = useState(() => seededFrom(SCOUT_DEFAULTS, saved.values));
@@ -57,7 +57,9 @@ export default function ScoutLobbyScreen({ onContinue, onBack }) {
   const [tierCaps, setTierCaps] = useState(init.tierCaps);
   // On by default in Scout — the tight, controlled economy is what the mode is about.
   const [leftoverLolly, setLeftoverLolly] = useState(init.leftoverLolly);
-  const [season, setSeason] = useState(null); // Season Pool: end-year, or null = All seasons
+  // Seed from the last config so the pick survives a trip back from the club
+  // creator (the lobby remounts on return). null = All seasons.
+  const [season, setSeason] = useState(initialSeason ?? null);
   const [rememberPrefs, setRememberPrefs] = useState(saved.remember);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showRules, setShowRules] = useState(false);

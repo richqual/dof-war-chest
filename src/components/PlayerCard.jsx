@@ -1,5 +1,5 @@
 import { formatValue, getRatingColor, getRatingBg } from "../data/players";
-import { ageInSeason, LATEST_SEASON } from "../utils/season";
+import { ageInSeason } from "../utils/season";
 
 export const ARCHETYPE_COLOR = {
   Warrior:          { bg: "#5a1a1a", fg: "#ff6b6b" },
@@ -15,9 +15,10 @@ export const ARCHETYPE_COLOR = {
 
 export default function PlayerCard({ player, onPick, canAfford, compact = false, hideRatings = false, takenBy = null, hideBadges = false, budget = null, preferredArchetypes = null, preferredGkArchetype = null, outOfPos = null, season = null }) {
   const arch = player.archetype;
-  // Age at the start of the chosen season (today's season when none is set, i.e.
-  // non-season modes). Null when the player has no enriched birthYear.
-  const age = player.birthYear != null ? ageInSeason(player.birthYear, season ?? LATEST_SEASON) : null;
+  // Age at the start of the chosen season. Only shown in a season game — a
+  // player's "age" is only meaningful relative to a season, and showing today's
+  // age on a peak-era card (a 50-year-old Gary Neville) is just confusing.
+  const age = (season != null && player.birthYear != null) ? ageInSeason(player.birthYear, season) : null;
   const archColors = arch ? ARCHETYPE_COLOR[arch] : null;
   // Keepers have their own archetype set, so match against the manager's
   // preferred GK archetype rather than the outfield preferences.

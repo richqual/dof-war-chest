@@ -548,7 +548,10 @@ export function useDraftState() {
 
   function setPlayerPool(filter) {
     setDraft(prev => {
-      const basePool = selectGamePlayers(filter, { perLeagueDedup: !!prev.realTeams });
+      // Keep the chosen season when the player applies era/league/tier filters —
+      // otherwise this rebuild would drop the Season Pool and restore the full
+      // cross-era pool.
+      const basePool = selectGamePlayers({ ...filter, season: prev.season }, { perLeagueDedup: !!prev.realTeams });
       const { availablePlayerIds, poolIds } = buildRealTeamsPool(basePool, prev.managers);
       const playerValues = randomizePlayerValues(availablePlayerIds);
       const playerForm = generatePlayerForm(availablePlayerIds);

@@ -38,6 +38,9 @@ const getArg = (f) => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] :
 const LIMIT = getArg("--limit") ? Number(getArg("--limit")) : null;
 const ONLY = getArg("--names") ? getArg("--names").split(",").map((s) => s.trim()) : null;
 const NO_WRITE = args.includes("--no-write");
+// --refill reprocesses names that are still unmatched (cache null/missing),
+// using the diacritic-tolerant search fallback — so "César" matches "Cesar".
+const REFILL = args.includes("--refill");
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -100,6 +103,50 @@ function queryFor(name) {
 } LIMIT 400`;
 }
 
+// Detail query for a set of candidate Q-IDs (used by the search fallback).
+function queryForQids(qids) {
+  const values = qids.map((q) => `wd:${q}`).join(" ");
+  return `SELECT ?item ?dob ?cc ?team ?start ?end ?league WHERE {
+  VALUES ?item { ${values} }
+  ?item wdt:P106 wd:Q937857 .
+  OPTIONAL { ?item wdt:P569 ?dob. }
+  OPTIONAL { ?item wdt:P27 ?country. OPTIONAL { ?country wdt:P297 ?cc. } }
+  OPTIONAL {
+    ?item p:P54 ?st. ?st ps:P54 ?team.
+    OPTIONAL { ?st pq:P580 ?start. }
+    OPTIONAL { ?st pq:P582 ?end. }
+    OPTIONAL { ?team wdt:P118 ?league. }
+  }
+} LIMIT 400`;
+}
+
+// Diacritic-tolerant candidate lookup via the Wikidata search API (wbsearchentities
+// folds accents, so "Cesar Azpilicueta" finds "César Azpilicueta"). Returns up to
+// 5 Q-IDs to feed queryForQids; the usual ranking then picks the real footballer.
+async function searchCandidates(name, tries = 3) {
+  const url = "https://www.wikidata.org/w/api.php?action=wbsearchentities&format=json" +
+    "&language=en&uselang=en&type=item&limit=5&search=" + encodeURIComponent(name);
+  for (let t = 0; t < tries; t++) {
+    try {
+      const res = await fetch(url, { headers: { "User-Agent": UA } });
+      if (res.ok) return ((await res.json()).search || []).map((r) => r.id);
+      if (res.status === 429 || res.status >= 500) { await sleep(1200 * (t + 1)); continue; }
+      return [];
+    } catch { if (t === tries - 1) return []; await sleep(1000 * (t + 1)); }
+  }
+  return [];
+}
+
+// Resolve one identity: exact English label first, then the search fallback.
+async function enrichOne(name, iso) {
+  let rows = await sparql(queryFor(name));
+  if (!rows.some((r) => r.item)) {
+    const qids = await searchCandidates(name);
+    if (qids.length) { await sleep(120); rows = await sparql(queryForQids(qids)); }
+  }
+  return resolve(rows, iso);
+}
+
 // Turn the flat result rows for one name into candidate identities, then pick
 // the best by (top-5 football played) + (nationality match) + (has birth date).
 function resolve(rows, iso) {
@@ -146,15 +193,18 @@ async function main() {
   if (LIMIT) names = names.slice(0, LIMIT);
 
   const cache = existsSync(CACHE) ? JSON.parse(readFileSync(CACHE, "utf8")) : {};
-  const todo = names.filter((n) => !(n in cache));
-  console.log(`${byName.size} identities · ${names.length} in scope · ${todo.length} to query (rest cached)`);
+  // Normal run: query names not yet in the cache. --refill: retry the ones still
+  // unmatched (null), now with the search fallback.
+  const todo = REFILL
+    ? names.filter((n) => cache[n] == null)
+    : names.filter((n) => !(n in cache));
+  console.log(`${byName.size} identities · ${names.length} in scope · ${todo.length} to ${REFILL ? "refill" : "query"} (rest cached)`);
 
   let done = 0;
   for (const name of todo) {
     const iso = flagToIso(byName.get(name)[0].nation);
     try {
-      const rows = await sparql(queryFor(name));
-      cache[name] = resolve(rows, iso); // may be null (no footballer match)
+      cache[name] = await enrichOne(name, iso); // may be null (no footballer match)
     } catch (e) {
       console.log(`  ! ${name}: ${e.message} (left uncached for retry)`);
     }
