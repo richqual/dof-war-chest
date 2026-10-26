@@ -149,6 +149,34 @@ export function availablePlayersFor(posKey, takenIds, rouletteAssignment, eligPo
   return PLAYERS.filter(p => p.pos !== "GK" && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
 }
 
+// Emergency position widening. In a thin single season the scarce wide roles
+// (LM/RM/LW) can run out of players before every club has filled that slot, even
+// after the normal LM←LW broadening. Rather than leave a slot empty, we widen to
+// adjacent positions and sign an out-of-position stand-in (who plays with the
+// OOP −5 match penalty). Ordered nearest-first.
+const POS_FALLBACK = {
+  RB:  ["RWB", "LB", "LWB", "CB", "RM", "RW"],
+  LB:  ["LWB", "RB", "RWB", "CB", "LM", "LW"],
+  RWB: ["RB", "LWB", "LB", "RM", "RW", "CB"],
+  LWB: ["LB", "RWB", "RB", "LM", "LW", "CB"],
+  CB:  ["LB", "RB", "LWB", "RWB", "DM"],
+  DM:  ["CM", "CB", "CAM"],
+  CM:  ["DM", "CAM", "LM", "RM"],
+  CAM: ["CM", "DM", "RW", "LW", "ST"],
+  RM:  ["RW", "RB", "RWB", "CM", "LM", "CAM"],
+  LM:  ["LW", "LB", "LWB", "CM", "RM", "CAM"],
+  RW:  ["RM", "LW", "ST", "CAM"],
+  LW:  ["LM", "RW", "ST", "CAM"],
+  ST:  ["CF", "RW", "LW", "CAM"],
+  CF:  ["ST", "RW", "LW", "CAM"],
+};
+export const OUTFIELD_POSITIONS = ["RB", "RWB", "CB", "LB", "LWB", "DM", "CM", "CAM", "RM", "LM", "RW", "LW", "ST", "CF"];
+// The slot's own position plus its nearest cover, for widening when exhausted.
+export function widenedEligPool(posKey) {
+  const fb = POS_FALLBACK[posKey];
+  return fb ? [...new Set([posKey, ...fb])] : null;
+}
+
 // The single source of truth for what a player costs. No entry in PLAYERS has a
 // `value` field — only a valueMin..valueMax band — so without the midpoint
 // fallback every value is `undefined` whenever Value for Money is off, nothing
@@ -796,6 +824,18 @@ export function getPlayersFromState(d, posKey) {
   if (d.availablePlayerIds instanceof Set) {
     players = players.filter(p => isDraftableBy(d, activeManager, p.id));
   }
+  // Exhaustion: the slot's own pool (incl. the normal LM←LW broadening) is empty
+  // — a scarce wide role in a thin season. Widen to adjacent positions so the
+  // slot can always be filled by an out-of-position stand-in (OOP −5 in match).
+  let widened = false;
+  if (!players.length && posKey !== "GK" && posKey !== "GKSUB") {
+    for (const pool of [widenedEligPool(posKey), OUTFIELD_POSITIONS]) {
+      if (!pool) continue;
+      let w = availablePlayersFor(posKey, d.takenIds, rouletteAssignment, pool, d.freeSubs);
+      if (d.availablePlayerIds instanceof Set) w = w.filter(p => isDraftableBy(d, activeManager, p.id));
+      if (w.length) { players = w; widened = true; break; }
+    }
+  }
   players = dedupeByName(players, d, activeManager);
   players = players.map(p => {
     // Season games: materialise the player as he was HIS rolled season (rating,
@@ -807,7 +847,9 @@ export function getPlayersFromState(d, posKey) {
   });
   // With Free Subs on, outfield bench slots are free hits for everyone, so don't
   // narrow the CPU's pool back down to the slot's usual position band.
-  const acceptable = (d.freeSubs && SUB_POSITIONS[posKey]) ? null : CPU_POS_ACCEPTABLE[posKey];
+  // Skip the position-band narrowing when we had to widen — it would undo the
+  // widening and leave the exhausted slot empty again.
+  const acceptable = (widened || (d.freeSubs && SUB_POSITIONS[posKey])) ? null : CPU_POS_ACCEPTABLE[posKey];
   if (acceptable) {
     const posFiltered = players.filter(p => acceptable.includes(p.pos));
     if (posFiltered.length >= 1) players = posFiltered;

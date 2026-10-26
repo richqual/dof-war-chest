@@ -10,7 +10,7 @@ const server = await createServer({
   root: process.cwd(), server: { middlewareMode: true }, appType: "custom", logLevel: "silent",
 });
 const { PLAYERS } = await server.ssrLoadModule("/src/data/players.generated.js");
-const { selectGamePlayers, identityKey, resolveSeasonFilter, managerEligibleFor, serializeDraft, deserializeDraft } = await server.ssrLoadModule("/src/hooks/draftUtils.js");
+const { selectGamePlayers, identityKey, resolveSeasonFilter, managerEligibleFor, serializeDraft, deserializeDraft, widenedEligPool } = await server.ssrLoadModule("/src/hooks/draftUtils.js");
 const { MANAGERS } = await server.ssrLoadModule("/src/data/managers.js");
 const season = await server.ssrLoadModule("/src/utils/season.js");
 const { cardWindow, activeInSeason, ageInSeason } = season;
@@ -165,6 +165,25 @@ check("playerSeasons round-trips through serialise/deserialise", (() => {
   const anyId = [...availablePlayerIds][0];
   const round = deserializeDraft(serializeDraft({ playerSeasons, availablePlayerIds: new Set([anyId]) }));
   return round.playerSeasons instanceof Map && round.playerSeasons.get(anyId) === playerSeasons.get(anyId);
+})());
+
+console.log("\n── Empty-slot safety net: scarce slots widen to adjacent positions ──");
+// The scarce wide roles (LM/RM/LW) run dry in thin single seasons; after widening
+// to adjacent positions every 4-4-2 XI slot must have enough players for 8 clubs.
+check("1998/99 LM (0 pure) is fillable after widening", (() => {
+  const { availablePlayerIds } = selectGamePlayers({ season: 1999 });
+  const inPool = new Set(availablePlayerIds);
+  const n = PLAYERS.filter(p => inPool.has(p.id) && widenedEligPool("LM").includes(p.pos)).length;
+  return n >= 8;
+})());
+check("every 4-4-2 outfield slot fills 8 clubs in 1998/99 (with widening)", (() => {
+  const { availablePlayerIds } = selectGamePlayers({ season: 1999 });
+  const inPool = new Set(availablePlayerIds);
+  const countFor = (pos) => {
+    const pool = widenedEligPool(pos) || [pos];
+    return PLAYERS.filter(p => inPool.has(p.id) && pool.includes(p.pos)).length;
+  };
+  return ["RB", "CB", "LB", "RM", "CM", "LM", "ST"].every(pos => countFor(pos) >= 8);
 })());
 
 await server.close();
