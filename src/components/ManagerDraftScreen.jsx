@@ -1,16 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { MANAGERS, TIER_LABELS } from "../data/managers";
 import { ERA_LABELS, REAL_TEAMS, managerMatchesRealClub } from "../data/players";
-import { DRAFT_ROULETTE_ERAS, DRAFT_ROULETTE_LEAGUES } from "../hooks/draftUtils";
+import { DRAFT_ROULETTE_ERAS, DRAFT_ROULETTE_LEAGUES, managerEligibleFor } from "../hooks/draftUtils";
 import { lastName } from "../utils/displayName";
-import { cardWindow, activeInSeason } from "../utils/season";
 
-// Season Pool: a manager is offered only if their managing window (from `years`)
-// covers the chosen season. season == null (All seasons / non-season modes) means
-// no gate — so a 1999 game won't offer Pochettino, but today's modes are unchanged.
-function managerActiveInSeason(m, season) {
-  return season == null || activeInSeason(cardWindow(m), season);
-}
+// Season Pool: a manager is offered only if eligible under the game's season
+// filter — active that season (single), overlapping the range, or any (All
+// seasons / non-season). So a 1999 game won't offer Pochettino.
 
 const DRAFT_ROULETTE_ERA_LABELS = Object.fromEntries(DRAFT_ROULETTE_ERAS.map(e => [e.key, e.label]));
 const DRAFT_ROULETTE_LEAGUE_LABELS = Object.fromEntries(DRAFT_ROULETTE_LEAGUES.map(l => [l.key, l.label]));
@@ -41,10 +37,10 @@ function getManagerLeague(m) {
   return m.league || "la_liga";
 }
 
-function getFilteredPool(leagues, tiers, season = null) {
+function getFilteredPool(leagues, tiers, seasonFilter = null) {
   return MANAGERS.filter(m =>
     leagues.includes(getManagerLeague(m)) && tiers.includes(m.tier) &&
-    managerActiveInSeason(m, season)
+    managerEligibleFor(m, seasonFilter)
   );
 }
 
@@ -298,14 +294,16 @@ export default function ManagerDraftScreen({
   const isMultiplayer = !!onManagerPick;
   const draftRouletteActive = !!draft.draftRoulette?.enabled;
 
-  // Season Pool (solo): the year already restricts the managers, so skip the
-  // league/tier selection and go straight to the ride with the season-gated pool.
-  const seasonSkip = draft.season != null && !isMultiplayer && !draftRouletteActive;
+  // Season Pool (solo): a single season or era range already restricts the
+  // managers, so skip the league/tier selection and go straight to the ride with
+  // the gated pool. All-seasons keeps the selection (full manager pool on offer).
+  const sf = draft.seasonFilter;
+  const seasonSkip = !!sf && (sf.kind === "single" || sf.kind === "range") && !isMultiplayer && !draftRouletteActive;
   const [phase, setPhase] = useState(draftRouletteActive || seasonSkip ? "playing" : "league-select");
   const [pickOrder] = useState(() => shuffle(draft.managers.map((_, i) => i)));
   const [pool, setPool] = useState(() => {
-    if (draftRouletteActive) return shuffle(MANAGERS.filter(m => managerActiveInSeason(m, draft.season)));
-    if (seasonSkip) return shuffle([...withRealClubManagers(getFilteredPool(DEFAULT_MGR_LEAGUES, DEFAULT_MGR_TIERS, draft.season), draft.managers)]);
+    if (draftRouletteActive) return shuffle(MANAGERS.filter(m => managerEligibleFor(m, sf)));
+    if (seasonSkip) return shuffle([...withRealClubManagers(getFilteredPool(DEFAULT_MGR_LEAGUES, DEFAULT_MGR_TIERS, sf), draft.managers)]);
     return [];
   });
   const [turnIdx, setTurnIdx] = useState(0);
@@ -348,7 +346,7 @@ export default function ManagerDraftScreen({
     if (!isMultiplayer || !managerDraftConfig) return;
     if (phase !== "league-select") return;
     const { leagues, tiers } = managerDraftConfig;
-    setPool(shuffle([...withRealClubManagers(getFilteredPool(leagues, tiers, draft.season), draft.managers)]));
+    setPool(shuffle([...withRealClubManagers(getFilteredPool(leagues, tiers, draft.seasonFilter), draft.managers)]));
     setPhase("playing");
     setWaitingForGo(true);
   }, [managerDraftConfig, phase, isMultiplayer]);
@@ -360,7 +358,7 @@ export default function ManagerDraftScreen({
 
   function startWithLeague(leagues, tiers) {
     if (onSetManagerDraftConfig) onSetManagerDraftConfig(leagues, tiers);
-    setPool(shuffle([...withRealClubManagers(getFilteredPool(leagues, tiers, draft.season), draft.managers)]));
+    setPool(shuffle([...withRealClubManagers(getFilteredPool(leagues, tiers, draft.seasonFilter), draft.managers)]));
     setPhase("playing");
     setWaitingForGo(true);
   }

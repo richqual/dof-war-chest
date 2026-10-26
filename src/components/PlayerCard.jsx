@@ -15,10 +15,12 @@ export const ARCHETYPE_COLOR = {
 
 export default function PlayerCard({ player, onPick, canAfford, compact = false, hideRatings = false, takenBy = null, hideBadges = false, budget = null, preferredArchetypes = null, preferredGkArchetype = null, outOfPos = null, season = null }) {
   const arch = player.archetype;
-  // Age at the start of the chosen season. Only shown in a season game — a
-  // player's "age" is only meaningful relative to a season, and showing today's
-  // age on a peak-era card (a 50-year-old Gary Neville) is just confusing.
-  const age = (season != null && player.birthYear != null) ? ageInSeason(player.birthYear, season) : null;
+  // The season this card is pinned to: its own rolled/baked season (range &
+  // All-seasons modes stamp `seasonYear` per card) or the game season prop.
+  // Age at the start of that season — only meaningful relative to a season, so
+  // it's hidden (and the club shows with its `years` spell) in a non-season game.
+  const effSeason = player.seasonYear ?? season;
+  const age = (effSeason != null && player.birthYear != null) ? ageInSeason(player.birthYear, effSeason) : null;
   const archColors = arch ? ARCHETYPE_COLOR[arch] : null;
   // Keepers have their own archetype set, so match against the manager's
   // preferred GK archetype rather than the outfield preferences.
@@ -74,8 +76,13 @@ export default function PlayerCard({ player, onPick, canAfford, compact = false,
         </div>
         {!compact && (
           <div className="bw-player-club">
-            {player.club} · {player.years}
-            {age != null && <span className="bw-player-age"> · Age {age}</span>}
+            {/* In a season game a player is AT the club that season, so the
+                year-range is noise — show just club + Age. The spell range is
+                only useful in a non-season game (which era version you've got). */}
+            {player.club}
+            {age != null
+              ? <span className="bw-player-age"> · Age {age}</span>
+              : <> · {player.years}</>}
           </div>
         )}
       </div>

@@ -66,7 +66,7 @@ export function useMultiplayerDraft({ gameDoc, mySlotIdx, writeGameState, setPha
 
   async function setPlayerPool(filter) {
     if (!isHost || !draft) return;
-    const availablePlayerIds = selectGamePlayers(filter);
+    const { availablePlayerIds } = selectGamePlayers(filter);
     const playerValues = randomizePlayerValues(availablePlayerIds);
     const playerForm = generatePlayerForm(availablePlayerIds);
     const playerOrder = generatePlayerOrder(availablePlayerIds);

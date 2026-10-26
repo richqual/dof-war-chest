@@ -10,7 +10,7 @@ const server = await createServer({
   root: process.cwd(), server: { middlewareMode: true }, appType: "custom", logLevel: "silent",
 });
 const { PLAYERS } = await server.ssrLoadModule("/src/data/players.generated.js");
-const { selectGamePlayers, identityKey } = await server.ssrLoadModule("/src/hooks/draftUtils.js");
+const { selectGamePlayers, identityKey, resolveSeasonFilter, managerEligibleFor, serializeDraft, deserializeDraft } = await server.ssrLoadModule("/src/hooks/draftUtils.js");
 const { MANAGERS } = await server.ssrLoadModule("/src/data/managers.js");
 const season = await server.ssrLoadModule("/src/utils/season.js");
 const { cardWindow, activeInSeason, ageInSeason } = season;
@@ -27,7 +27,7 @@ const identityActive = (name, s) => cardsFor(name).some((c) => activeInSeason(ca
 const mgrActive = (m, s) => s == null || activeInSeason(cardWindow(m), s);
 const mgr = (name) => MANAGERS.find((m) => m.name === name);
 const poolHasName = (filter, name) => {
-  const ids = selectGamePlayers(filter);
+  const { availablePlayerIds: ids } = selectGamePlayers(filter);
   const wanted = new Set(cardsFor(name).map((c) => c.id));
   return [...ids].some((id) => wanted.has(id));
 };
@@ -50,7 +50,7 @@ check("active in 2000", identityActive("Thierry Henry", 2000));
 const henryKeys = new Set(cardsFor("Thierry Henry").map(identityKey));
 check("3 cards collapse to ONE identity (shared wikidataId)", henryKeys.size === 1, `${henryKeys.size} identities`);
 check("one Henry in a no-filter pool", (() => {
-  const ids = selectGamePlayers({});
+  const { availablePlayerIds: ids } = selectGamePlayers({});
   const henryIds = new Set(cardsFor("Thierry Henry").map((c) => c.id));
   return [...ids].filter((id) => henryIds.has(id)).length === 1;
 })());
@@ -67,12 +67,12 @@ check("Pochettino DOES manage in 2014", mgrActive(mgr("Mauricio Pochettino"), 20
 
 console.log("\n── Legends sit outside the season system ──");
 check("no legends in a single-season pool", (() => {
-  const ids = selectGamePlayers({ season: 2005 });
+  const { availablePlayerIds: ids } = selectGamePlayers({ season: 2005 });
   const legendIds = new Set(PLAYERS.filter((p) => p.league === "legends").map((p) => p.id));
   return ![...ids].some((id) => legendIds.has(id));
 })());
 check("legends present in All-seasons pool", (() => {
-  const ids = selectGamePlayers({});
+  const { availablePlayerIds: ids } = selectGamePlayers({});
   const legendIds = new Set(PLAYERS.filter((p) => p.league === "legends").map((p) => p.id));
   return [...ids].some((id) => legendIds.has(id));
 })());
@@ -123,6 +123,48 @@ check("no outfielder active past 43 / keeper past 46", (() => {
   }
   if (offenders.length) console.log("      " + offenders.join("; "));
   return offenders.length === 0;
+})());
+
+console.log("\n── Phase 2b: per-player season roll (ranges & All-seasons) ──");
+const byIdAll = new Map(PLAYERS.map((p) => [p.id, p]));
+// Every rolled season sits inside BOTH the chosen range and the card's own window.
+check("Golden range rolls each player to a 2009–2016 season in his window", (() => {
+  const { availablePlayerIds, playerSeasons } = selectGamePlayers({ range: { from: 2009, to: 2016 }, preset: "golden" });
+  for (const id of availablePlayerIds) {
+    const s = playerSeasons.get(id);
+    if (s == null || s < 2009 || s > 2016) return false;
+    if (!activeInSeason(cardWindow(byIdAll.get(id)), s)) return false;
+  }
+  return availablePlayerIds.size > 0;
+})());
+// Peak/Prime pins a player to roughly his peak age (his own peak season).
+check("Peak mode pins Messi near his peak age", (() => {
+  const { availablePlayerIds, playerSeasons } = selectGamePlayers({ allSeasons: "peak" });
+  const id = [...availablePlayerIds].find((i) => byIdAll.get(i).name === "Lionel Messi");
+  const age = ageInSeason(byIdAll.get(id).birthYear, playerSeasons.get(id));
+  return age >= 24 && age <= 29; // RW peak age ~26
+})());
+// Legends ride along in All-seasons (no rolled season) but never in a single season.
+check("legends present in All-seasons random, none rolled a season", (() => {
+  const { availablePlayerIds, playerSeasons } = selectGamePlayers({ allSeasons: "random" });
+  const legends = [...availablePlayerIds].filter((i) => byIdAll.get(i).league === "legends");
+  return legends.length > 0 && legends.every((i) => !playerSeasons.has(i));
+})());
+check("no legends in a Golden range pool", (() => {
+  const { availablePlayerIds } = selectGamePlayers({ range: { from: 2009, to: 2016 }, preset: "golden" });
+  return ![...availablePlayerIds].some((i) => byIdAll.get(i).league === "legends");
+})());
+// Manager eligibility under each descriptor.
+const wenger = mgr("Arsène Wenger"), poch = mgr("Mauricio Pochettino");
+check("Wenger eligible in a Golden range", managerEligibleFor(wenger, resolveSeasonFilter({ range: { from: 2009, to: 2016 } })));
+check("Pochettino NOT eligible in 1999", !managerEligibleFor(poch, resolveSeasonFilter({ season: 1999 })));
+check("every manager eligible in All-seasons", managerEligibleFor(poch, resolveSeasonFilter({ allSeasons: "peak" })));
+// playerSeasons survives serialisation (online rooms / saves).
+check("playerSeasons round-trips through serialise/deserialise", (() => {
+  const { availablePlayerIds, playerSeasons } = selectGamePlayers({ range: { from: 2009, to: 2016 } });
+  const anyId = [...availablePlayerIds][0];
+  const round = deserializeDraft(serializeDraft({ playerSeasons, availablePlayerIds: new Set([anyId]) }));
+  return round.playerSeasons instanceof Map && round.playerSeasons.get(anyId) === playerSeasons.get(anyId);
 })());
 
 await server.close();

@@ -1,6 +1,11 @@
 import KitSwatch, { readableTextOn, kitAccent } from "./KitSwatch";
+import { ageInSeason } from "../utils/season";
 
 export default function TurnTransition({ prevManager, player, nextManager, posLabel, nextKit, prevKit, onContinue }) {
+  // In a season game the player is at this club THAT season, so show his age
+  // there rather than the career-spell year-range (consistent with the cards).
+  const age = (player.seasonYear != null && player.birthYear != null)
+    ? ageInSeason(player.birthYear, player.seasonYear) : null;
   const signingBg = prevKit?.primaryColor || "#1a3a6b";
   const signingText = readableTextOn(signingBg);
   const signingAccent = prevKit ? kitAccent(prevKit.primaryColor, prevKit.secondaryColor) : "#f5c542";
@@ -26,7 +31,7 @@ export default function TurnTransition({ prevManager, player, nextManager, posLa
             <span className="tt-player-name" style={{ color: signingAccent === signingBg ? signingText : signingAccent }}>{player.name}</span>
           </div>
           <div className="tt-detail" style={{ color: signingText, opacity: 0.75 }}>
-            {player.nation} · {player.pos} · {player.club} · {player.years}
+            {player.nation} · {player.pos} · {player.club} · {age != null ? `Age ${age}` : player.years}
           </div>
         </div>
 
