@@ -8,7 +8,7 @@ import SpinWheel from "./SpinWheel";
 import PositionWheel from "./PositionWheel";
 import TurnTransition from "./TurnTransition";
 import DrawBoard, { roundLabel } from "./DrawBoard";
-import { seasonFilterLabel } from "../utils/season";
+import { seasonFilterLabel, ageInSeason } from "../utils/season";
 import DrawPanel from "./DrawPanel";
 import MySquadPanel from "./MySquadPanel";
 import KitSwatch, { readableTextOn, kitAccent } from "./KitSwatch";
@@ -418,7 +418,11 @@ export default function DraftScreen({
           <div className="bw-modal-box" onClick={e => e.stopPropagation()}>
             <div className="bw-modal-title">CONFIRM SIGNING</div>
             <div className="bw-confirm-name">{pendingPlayer.nation} {pendingPlayer.name}</div>
-            <div className="bw-confirm-detail">{pendingPlayer.pos} · {pendingPlayer.club} · {pendingPlayer.years}</div>
+            <div className="bw-confirm-detail">{pendingPlayer.pos} · {pendingPlayer.club} · {
+              (pendingPlayer.seasonYear != null && pendingPlayer.birthYear != null)
+                ? `Age ${ageInSeason(pendingPlayer.birthYear, pendingPlayer.seasonYear)}`
+                : pendingPlayer.years
+            }</div>
             <div className="bw-confirm-cost">£{pendingPlayer.value}m</div>
             <div className="bw-confirm-btns">
               <button className="bw-cta-primary" onClick={() => { handlePickPlayer(pendingPlayer); setPendingPlayer(null); }}>
