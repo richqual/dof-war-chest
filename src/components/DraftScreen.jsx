@@ -8,6 +8,7 @@ import SpinWheel from "./SpinWheel";
 import PositionWheel from "./PositionWheel";
 import TurnTransition from "./TurnTransition";
 import DrawBoard, { roundLabel } from "./DrawBoard";
+import { seasonFilterLabel } from "../utils/season";
 import DrawPanel from "./DrawPanel";
 import MySquadPanel from "./MySquadPanel";
 import KitSwatch, { readableTextOn, kitAccent } from "./KitSwatch";
@@ -527,6 +528,9 @@ export default function DraftScreen({
           />
           <span className="bw-signing-name">{activeManager?.dofName || activeManager?.name}</span>
           <span className="bw-signing-meta">signing: <strong>{needsSlotDraw ? "?" : currentPos.label}</strong></span>
+          {seasonFilterLabel(draft.seasonFilter) && (
+            <span className="bw-season-badge" title="This game's season">📅 {seasonFilterLabel(draft.seasonFilter)}</span>
+          )}
         </div>
         <div className="bw-signing-right">
           {/* The sub fund is the whole point of Lolly, so it stays on screen all

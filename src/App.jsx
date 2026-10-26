@@ -18,6 +18,7 @@ import SeriesScreen from "./components/SeriesScreen";
 import { getSeriesContext } from "./components/SeriesScreen";
 import ManagerDraftScreen from "./components/ManagerDraftScreen";
 import PlayerPoolScreen from "./components/PlayerPoolScreen";
+import { keyForFilter } from "./utils/season";
 import MultiplayerEntryScreen from "./components/MultiplayerEntryScreen";
 import MultiplayerWaitingRoom from "./components/MultiplayerWaitingRoom";
 import AboutScreen from "./components/AboutScreen";
@@ -533,7 +534,7 @@ function MultiplayerApp({ onBack, initialGameMode = "classic" }) {
     return (
       <>
         {globalMenu}
-        <PlayerPoolScreen numClubs={draft.managers.length} season={draft.season} onConfirm={filter => {
+        <PlayerPoolScreen numClubs={draft.managers.length} seasonFilter={draft.seasonFilter} onConfirm={filter => {
           actions.setPlayerPool(filter);
           mpDraft.setScreen(draft.managerTiming === "before" ? "manager-draft" : "draft");
         }} />
@@ -864,7 +865,7 @@ function AppInner({ onMultiplayer, auth }) {
           <ScoutLobbyScreen
             onContinue={config => { setLobbyConfig(config); setPreScreen("scout-club-creator"); }}
             onBack={() => setPreScreen("mode-select")}
-            initialSeason={lobbyConfig?.playerFilter?.season ?? null}
+            initialSeasonKey={keyForFilter(lobbyConfig?.playerFilter)}
           />
         </>
       );
@@ -908,7 +909,7 @@ function AppInner({ onMultiplayer, auth }) {
           <LobbyScreen
             onContinue={config => { setLobbyConfig(config); setPreScreen("club-creator"); }}
             onBack={() => setPreScreen("mode-select")}
-            initialSeason={lobbyConfig?.playerFilter?.season ?? null}
+            initialSeasonKey={keyForFilter(lobbyConfig?.playerFilter)}
           />
         </>
       );
@@ -1109,7 +1110,7 @@ function AppInner({ onMultiplayer, auth }) {
     return (
       <>
         {globalMenu}
-        <PlayerPoolScreen numClubs={draft.managers.length} season={draft.season} onConfirm={filter => {
+        <PlayerPoolScreen numClubs={draft.managers.length} seasonFilter={draft.seasonFilter} onConfirm={filter => {
           setPlayerPool(filter);
           setScreen(draft.managerTiming === "before" ? "manager-draft" : "draft");
         }} />
@@ -1263,7 +1264,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "5.2.1";
+const APP_VERSION = "5.3.0";
 
 function AppFooter() {
   return (

@@ -72,6 +72,26 @@ export const ERA_PRESETS = {
   modern: { from: 2017, to: 2026 },
 };
 
+// The SeasonPicker works in string keys; these map a key to the lobby
+// playerFilter and back (for re-seeding the control after a back-nav).
+//   "all:peak" | "all:random" | "range:<preset>" | "season:<endYear>"
+export function filterForKey(key) {
+  if (key && key.startsWith("season:")) return { season: Number(key.slice(7)) };
+  if (key && key.startsWith("range:")) {
+    const preset = key.slice(6);
+    return ERA_PRESETS[preset] ? { range: ERA_PRESETS[preset], preset } : { allSeasons: "peak" };
+  }
+  if (key === "all:random") return { allSeasons: "random" };
+  return { allSeasons: "peak" }; // default
+}
+export function keyForFilter(filter) {
+  if (!filter) return "all:peak";
+  if (filter.season != null) return `season:${filter.season}`;
+  if (filter.preset) return `range:${filter.preset}`;
+  if (filter.allSeasons) return `all:${filter.allSeasons}`;
+  return "all:peak";
+}
+
 // Which preset an end-year season falls in ("classic" | "golden" | "modern"),
 // or null if outside. Replaces the hand-entered `era` field once seasons land.
 export function eraForSeason(endYear) {
@@ -253,6 +273,47 @@ export function seasonAttributes(card, season) {
   return out;
 }
 
+// ── Phase 2b: per-player season roll (range presets & All-seasons) ─────────
+// A game can pin every player to ONE season (single-season already does). For a
+// range preset (Classic/Golden/Modern) or All-seasons, each identity instead
+// ROLLS a season within the selected range — so you might draft 2009 Ronaldo or
+// 2014 Ronaldo, not always his peak. "Peak/Prime" mode rolls each player to his
+// own peak season instead of a random one. These helpers answer, for one card:
+// which seasons could it be rolled to, and where is its peak.
+
+// The peak end-year season of a card (where its curve tops out), clamped to its
+// active window — the anchor for Peak/Prime mode and a sensible default age.
+export function peakSeasonOf(card) {
+  const w = cardWindow(card);
+  if (card && card.birthYear != null) {
+    const { peakAge } = curveFor(card.pos);
+    const peak = card.birthYear + peakAge + 1; // the season he turns peakAge
+    if (!w) return Math.max(FIRST_SEASON, Math.min(LATEST_SEASON, peak));
+    return Math.max(w.from, Math.min(w.to, peak));
+  }
+  return w ? Math.round((w.from + w.to) / 2) : null;
+}
+
+// The end-year seasons (within [from, to]) that a card is actually active in,
+// using the same window logic as gating. Empty when it never overlaps the range.
+export function activeSeasonsInRange(card, from, to) {
+  const w = cardWindow(card);
+  if (!w) return [];
+  const lo = Math.max(from, FIRST_SEASON);
+  const hi = Math.min(to, LATEST_SEASON);
+  const out = [];
+  for (let s = lo; s <= hi; s++) if (activeInSeason(w, s)) out.push(s);
+  return out;
+}
+
+// Does a card/manager's window overlap [from, to] at all? (manager range-gating)
+export function windowOverlaps(card, from, to) {
+  for (let s = Math.max(from, FIRST_SEASON); s <= Math.min(to, LATEST_SEASON); s++) {
+    if (activeInSeason(cardWindow(card), s)) return true;
+  }
+  return false;
+}
+
 // Return a card with rating, the six attributes and the value band replaced by
 // their season-S values — the one place the whole draft materialises "the player
 // as he was that season". A no-op (returns the card as-is) outside a season game
@@ -271,5 +332,20 @@ export function applySeasonStats(card, season) {
     ...seasonAttributes(card, season),
     valueMin: band.min,
     valueMax: band.max,
+    // Stamp the season this card was materialised for, so a card carries its own
+    // (possibly rolled) season into display — PlayerCard reads it for the Age
+    // field and to show club-only instead of the club+years spell.
+    seasonYear: season,
   };
+}
+
+// Label for a season-pool descriptor (draft.seasonFilter), for a header badge:
+// "2008/09", "Classic", "All seasons · Random", or null for a non-season game.
+const PRESET_NAME = { classic: "Classic", golden: "Golden", modern: "Modern" };
+export function seasonFilterLabel(sf) {
+  if (!sf) return null;
+  if (sf.kind === "single") return seasonLabel(sf.season);
+  if (sf.kind === "range") return PRESET_NAME[sf.preset] || `${seasonLabel(sf.from)}–${seasonLabel(sf.to)}`;
+  if (sf.kind === "all") return `All seasons · ${sf.mode === "random" ? "Random" : "Peak"}`;
+  return null;
 }

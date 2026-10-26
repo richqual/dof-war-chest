@@ -8,6 +8,7 @@ import SpinWheel from "./SpinWheel";
 import KitSwatch from "./KitSwatch";
 import MySquadPanel from "./MySquadPanel";
 import DrawBoard, { roundLabel } from "./DrawBoard";
+import { seasonFilterLabel } from "../utils/season";
 import DrawPanel from "./DrawPanel";
 
 // Pace between single CPU picks — deliberately unhurried, since the whole
@@ -211,6 +212,9 @@ export default function ScoutDraftScreen({
           <KitSwatch primary={kitPrimary} secondary={kitSecondary} pattern={activeManager?.pattern || "plain"} uid="scout-banner" size={28} />
           <span className="bw-signing-name">{activeManager?.dofName || activeManager?.name}</span>
           <span className="bw-signing-meta">scouting: <strong>{currentPos.label}</strong></span>
+          {seasonFilterLabel(draft.seasonFilter) && (
+            <span className="bw-season-badge" title="This game's season">📅 {seasonFilterLabel(draft.seasonFilter)}</span>
+          )}
         </div>
         <div className="bw-signing-right">
           {lolly && !benchRound && (

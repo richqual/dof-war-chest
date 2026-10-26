@@ -1,14 +1,38 @@
-import { allSeasons, seasonLabel, eraForSeason } from "../utils/season";
+import { allSeasons, seasonLabel, ERA_PRESETS } from "../utils/season";
 
-// Season Pool game-setup control. Picks a single season (end-year) that gates
-// the draftable pool to players (and managers) active then, or "All seasons"
-// for today's cross-era pool. value is a season number or null; onChange gets
-// the same. Range/era presets with a per-player season roll land in Phase 2.
-const ERA_LABEL = { classic: "Classic", golden: "Golden", modern: "Modern" };
+// Season Pool game-setup control. `value`/`onChange` are string KEYS:
+//   "all:peak"   — every player at their peak, one card each (default)
+//   "all:random" — every player at a random point in their career
+//   "range:<preset>" — Classic / Golden / Modern; one rolled season per player
+//   "season:<endYear>" — a single season, everyone pinned to it
+// The lobby turns the key into a playerFilter via filterForKey().
+const PRESETS = [
+  ["classic", "Classic"],
+  ["golden", "Golden"],
+  ["modern", "Modern"],
+];
 
-export default function SeasonPicker({ value, onChange }) {
+function hintFor(key) {
+  if (key === "all:peak")
+    return "Every player at their peak — the classic pool, now with ages";
+  if (key === "all:random")
+    return "Every player at a random point in their career — young bargains and fading veterans alike";
+  if (key.startsWith("range:")) {
+    const p = key.slice(6);
+    const r = ERA_PRESETS[p];
+    return r
+      ? `Only the ${seasonLabel(r.from)}–${seasonLabel(r.to)} era — each player rolled to one season within it`
+      : "";
+  }
+  if (key.startsWith("season:")) {
+    const s = Number(key.slice(7));
+    return `Only players & managers active in ${seasonLabel(s)}, at that season's ratings`;
+  }
+  return "";
+}
+
+export default function SeasonPicker({ value = "all:peak", onChange }) {
   const seasons = allSeasons().slice().reverse(); // newest first
-  const era = value != null ? eraForSeason(value) : null;
   return (
     <>
       <div className="bw-setup-row">
@@ -16,21 +40,29 @@ export default function SeasonPicker({ value, onChange }) {
         <div className="bw-setup-select-wrap">
           <select
             className="bw-setup-select"
-            value={value ?? ""}
-            onChange={(e) => onChange(e.target.value === "" ? null : Number(e.target.value))}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
           >
-            <option value="">All seasons</option>
-            {seasons.map((s) => (
-              <option key={s} value={s}>{seasonLabel(s)}</option>
-            ))}
+            <optgroup label="All seasons">
+              <option value="all:peak">All seasons · Peak</option>
+              <option value="all:random">All seasons · Random</option>
+            </optgroup>
+            <optgroup label="Eras (random season each)">
+              {PRESETS.map(([k, label]) => (
+                <option key={k} value={`range:${k}`}>
+                  {label} ({seasonLabel(ERA_PRESETS[k].from)}–{seasonLabel(ERA_PRESETS[k].to)})
+                </option>
+              ))}
+            </optgroup>
+            <optgroup label="Single season">
+              {seasons.map((s) => (
+                <option key={s} value={`season:${s}`}>{seasonLabel(s)}</option>
+              ))}
+            </optgroup>
           </select>
         </div>
       </div>
-      <div className="bw-setup-hint">
-        {value == null
-          ? "Every era at once — the full player pool (today's default)"
-          : `Only players & managers active in ${seasonLabel(value)}${era ? ` · ${ERA_LABEL[era]} era` : ""}, at today's ratings`}
-      </div>
+      <div className="bw-setup-hint">{hintFor(value)}</div>
     </>
   );
 }

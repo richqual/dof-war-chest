@@ -1,6 +1,7 @@
 import { useState } from "react";
 import DraftRouletteToggle from "./DraftRouletteToggle";
 import SeasonPicker from "./SeasonPicker";
+import { filterForKey } from "../utils/season";
 import { loadSetupPrefs, saveSetupPrefs, seededFrom } from "../utils/setupPrefs";
 
 // Setup fields that "remember my preferences" persists for Classic. Player/club
@@ -152,7 +153,7 @@ export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onW
   );
 }
 
-export default function LobbyScreen({ onContinue, onBack, initialSeason = null }) {
+export default function LobbyScreen({ onContinue, onBack, initialSeasonKey = "all:peak" }) {
   // Seed the setup options from the player's remembered preferences (if opted in).
   const [saved] = useState(() => loadSetupPrefs("classic"));
   const [init] = useState(() => seededFrom(CLASSIC_DEFAULTS, saved.values));
@@ -175,8 +176,8 @@ export default function LobbyScreen({ onContinue, onBack, initialSeason = null }
   const [managerTiming, setManagerTiming] = useState(init.managerTiming);
   const [draftRoulette, setDraftRoulette] = useState(init.draftRoulette);
   // Seed from the last config so the pick survives a trip back from the club
-  // creator (the lobby remounts on return). null = All seasons.
-  const [season, setSeason] = useState(initialSeason ?? null);
+  // creator (the lobby remounts on return). Default: All seasons · Peak.
+  const [seasonKey, setSeasonKey] = useState(initialSeasonKey ?? "all:peak");
   const [rememberPrefs, setRememberPrefs] = useState(saved.remember);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showRules, setShowRules] = useState(false);
@@ -218,9 +219,9 @@ export default function LobbyScreen({ onContinue, onBack, initialSeason = null }
       managerTiming,
       draftRoulette,
       realTeams,
-      // Season Pool: gates the pool to players/managers active that season.
-      // Omitted when "All seasons" so today's cross-era behaviour is unchanged.
-      playerFilter: season != null ? { season } : undefined,
+      // Season Pool: single season / era range / All-seasons (peak|random).
+      // Each mode rolls one season per player; gates the pool and managers.
+      playerFilter: filterForKey(seasonKey),
     });
   }
 
@@ -252,7 +253,7 @@ export default function LobbyScreen({ onContinue, onBack, initialSeason = null }
             {numClubs === 2 ? "Head-to-head — two clubs, one draft, one winner" : numClubs === 8 ? "Eight-way knockout tournament — QF, two-legged semis, then a Grand Final" : "Four-way knockout tournament — two-legged semis, then a Grand Final"}
           </div>
 
-          <SeasonPicker value={season} onChange={setSeason} />
+          <SeasonPicker value={seasonKey} onChange={setSeasonKey} />
 
           <div className="bw-setup-row">
             <span className="bw-setup-label">PLAYERS</span>

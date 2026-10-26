@@ -24,7 +24,11 @@ const TIER_CONFIG = [
   { key: "T5", label: "T5 — Journeymen",  sub: "Below 78 — grafters" },
 ];
 
-export default function PlayerPoolScreen({ onConfirm, numClubs = 4, season = null }) {
+export default function PlayerPoolScreen({ onConfirm, numClubs = 4, seasonFilter = null }) {
+  // A single season or era range already defines the pool by time, so this
+  // era/league/tier step is redundant and gets skipped. All-seasons (peak or
+  // random) keeps it — the full pool is on offer, so narrowing still helps.
+  const skip = !!seasonFilter && (seasonFilter.kind === "single" || seasonFilter.kind === "range");
   const [eras,    setEras]    = useState(ERA_CONFIG.map(e => e.key));
   const [leagues, setLeagues] = useState(LEAGUE_CONFIG.map(l => l.key).filter(k => k !== "legends"));
   const [tiers,   setTiers]   = useState(TIER_CONFIG.map(t => t.key));
@@ -50,11 +54,10 @@ export default function PlayerPoolScreen({ onConfirm, numClubs = 4, season = nul
     onConfirm({ eras, leagues, tiers });
   }
 
-  // Season Pool: the chosen year already defines who's available, so this
-  // era/league/tier step is redundant — skip it (confirm with everything on;
-  // the season filter does the restricting). Only shown in an All-seasons game.
+  // Single season / era range: auto-confirm with everything on (the time window
+  // does the restricting) and render nothing.
   useEffect(() => {
-    if (season != null) {
+    if (skip) {
       onConfirm({
         eras: ERA_CONFIG.map(e => e.key),
         leagues: LEAGUE_CONFIG.map(l => l.key).filter(k => k !== "legends"),
@@ -63,7 +66,7 @@ export default function PlayerPoolScreen({ onConfirm, numClubs = 4, season = nul
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  if (season != null) return null;
+  if (skip) return null;
 
   return (
     <div className="setup-screen">

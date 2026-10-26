@@ -2789,6 +2789,12 @@ html.light-mode .bw-mgr-card.recommended .bw-mgr-card-name { color: var(--bw-tex
 .bw-signing-name { font: 600 14px var(--bw-font-display); letter-spacing: .02em; color: var(--bw-gold); flex-shrink: 0; }
 .bw-signing-meta { font-size: 13px; color: var(--bw-text-mid); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bw-signing-meta strong { color: var(--bw-text-hi); }
+.bw-season-badge {
+  font-size: 12px; font-weight: 700; white-space: nowrap;
+  color: var(--bw-gold); background: rgba(240, 192, 64, 0.12);
+  border: 1px solid rgba(240, 192, 64, 0.35);
+  padding: 2px 8px; border-radius: 999px !important; margin-left: 2px;
+}
 .bw-signing-right { display: flex; gap: 8px; align-items: center; flex-shrink: 0; }
 .bw-signing-budget {
   font: 700 13px var(--bw-font-display);

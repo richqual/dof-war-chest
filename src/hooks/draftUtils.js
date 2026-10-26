@@ -1,6 +1,6 @@
 import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick, cpuVariancePick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS, realTeamPlayerClubs } from "../data/players";
 import { GROUP_SLOT_INDICES, FORMATIONS, slotEligibility } from "../data/formations";
-import { cardWindow, activeInSeason, seasonValueBand, applySeasonStats } from "../utils/season";
+import { cardWindow, activeInSeason, seasonValueBand, applySeasonStats, peakSeasonOf, activeSeasonsInRange, windowOverlaps, FIRST_SEASON, LATEST_SEASON } from "../utils/season";
 
 export { generateBudget, chooseCpuPick, cpuVariancePick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS };
 
@@ -85,6 +85,7 @@ export function serializeDraft(draft) {
     playerValues: mapToObj(draft.playerValues),
     playerForm:   mapToObj(draft.playerForm),
     playerOrder:  mapToObj(draft.playerOrder),
+    playerSeasons: mapToObj(draft.playerSeasons),
   };
 }
 
@@ -105,6 +106,7 @@ export function deserializeDraft(draft) {
     playerValues: objToMap(draft.playerValues),
     playerForm:   objToMap(draft.playerForm),
     playerOrder:  objToMap(draft.playerOrder),
+    playerSeasons: objToMap(draft.playerSeasons),
   };
 }
 
@@ -494,21 +496,75 @@ export function identityKey(player) {
   return player.wikidataId ? `wd:${player.wikidataId}` : `nm:${player.name}`;
 }
 
+const randOf = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+// Resolve a lobby playerFilter into a season-pool descriptor, or null for a
+// non-season game (today's cross-era pool: Kitty, War Chest, or no picker).
+//   { season: S }                 → { kind: "single", season }
+//   { range: {from,to}, preset }  → { kind: "range", from, to, preset }
+//   { allSeasons: "peak"|"random"}→ { kind: "all", mode }
+export function resolveSeasonFilter(filter = {}) {
+  if (!filter) return null;
+  if (filter.season != null) return { kind: "single", season: filter.season };
+  if (filter.range) return { kind: "range", from: filter.range.from, to: filter.range.to, preset: filter.preset || null };
+  if (filter.allSeasons) return { kind: "all", mode: filter.allSeasons === "random" ? "random" : "peak" };
+  return null;
+}
+
+// Roll ONE (card, season) for an identity's set of cards under a season filter,
+// or null if the identity has no card active in the selected range. `season` is
+// null when no season applies (non-season game, or a legend in All-seasons —
+// legends sit outside the season system so they keep their peak card).
+function rollIdentity(versions, sf) {
+  if (!sf) return { id: randOf(versions).id, season: null };
+  const isLegend = versions[0].league === "legends";
+  if (sf.kind === "single") {
+    const active = versions.filter(v => activeInSeason(cardWindow(v), sf.season));
+    return active.length ? { id: randOf(active).id, season: sf.season } : null;
+  }
+  if (sf.kind === "all" && isLegend) {
+    // Legends are pre-1998; they can't be rolled into the 1999+ season system,
+    // so they ride along in All-seasons with no season (their iconic card).
+    return { id: randOf(versions).id, season: null };
+  }
+  const [from, to] = sf.kind === "range" ? [sf.from, sf.to] : [FIRST_SEASON, LATEST_SEASON];
+  if (sf.mode === "peak") {
+    // Peak/Prime: the identity's best card, pinned to that card's peak season.
+    const best = versions.reduce((a, b) => (b.rating > a.rating ? b : a));
+    const s = Math.max(from, Math.min(to, peakSeasonOf(best)));
+    return activeInSeason(cardWindow(best), s) ? { id: best.id, season: s }
+         : (activeSeasonsInRange(best, from, to)[0] != null
+             ? { id: best.id, season: activeSeasonsInRange(best, from, to)[0] } : null);
+  }
+  // Range or All-seasons random: collect every season each card is active in
+  // within the range, roll a season uniformly, then a card active that season.
+  const cardsBySeason = new Map();
+  for (const v of versions) for (const s of activeSeasonsInRange(v, from, to)) {
+    if (!cardsBySeason.has(s)) cardsBySeason.set(s, []);
+    cardsBySeason.get(s).push(v);
+  }
+  if (!cardsBySeason.size) return null;
+  const s = randOf([...cardsBySeason.keys()]);
+  return { id: randOf(cardsBySeason.get(s)).id, season: s };
+}
+
+// Build the draftable pool for a game. Returns the set of chosen card ids and a
+// `playerSeasons` map (id → rolled end-year season) for the season-pool modes.
+// Legends are excluded from single-season and range games (they're pre-1998),
+// kept in non-season and All-seasons games.
 export function selectGamePlayers(filter = {}, { perLeagueDedup = false } = {}) {
-  const { eras, leagues, tiers, season } = filter;
+  const { eras, leagues, tiers } = filter;
+  const sf = resolveSeasonFilter(filter);
+  const dropLegends = sf && (sf.kind === "single" || sf.kind === "range");
   let pool = PLAYERS.filter(p =>
     (!leagues || leagues.includes(p.league)) &&
     (!tiers   || tiers.includes(p.tier)) &&
-    // Legends bypass the era filter — they're gated by their own league toggle
-    (p.league === "legends" || !eras || eras.includes(p.era))
+    (dropLegends ? p.league !== "legends" : true) &&
+    // The era checkbox filter applies to non-season and All-seasons games (where
+    // the full pool is on offer and narrowing by era still makes sense); a single
+    // season or range already defines the era. Legends bypass it (own toggle).
+    ((sf && sf.kind !== "all") || p.league === "legends" || !eras || eras.includes(p.era))
   );
-  // Season Pool: keep only cards active in the chosen season (by the card's own
-  // career window — see season.js cardWindow). Legends sit outside the season
-  // system (pre-1998, no window), so a specific season drops them; the preset
-  // "All seasons" leaves `season` unset and keeps today's behaviour.
-  if (season != null) {
-    pool = pool.filter(p => p.league !== "legends" && activeInSeason(cardWindow(p), season));
-  }
   // One card per identity (Q-ID, else name). Real Teams dedupes per-league
   // instead, so each league's version survives (e.g. a Man Utd Ronaldo AND a
   // Real Madrid Ronaldo) and an assigned CPU can find the card for its own league.
@@ -518,12 +574,32 @@ export function selectGamePlayers(filter = {}, { perLeagueDedup = false } = {}) 
     if (!byIdentity[key]) byIdentity[key] = [player];
     else byIdentity[key].push(player);
   }
-  const availableIds = new Set();
+  const availablePlayerIds = new Set();
+  const playerSeasons = new Map();
   for (const versions of Object.values(byIdentity)) {
-    const selected = versions[Math.floor(Math.random() * versions.length)];
-    availableIds.add(selected.id);
+    const pick = rollIdentity(versions, sf);
+    if (!pick) continue;
+    availablePlayerIds.add(pick.id);
+    if (pick.season != null) playerSeasons.set(pick.id, pick.season);
   }
-  return availableIds;
+  return { availablePlayerIds, playerSeasons };
+}
+
+// The season a given player is pinned to in this draft: his own rolled season
+// (range / All-seasons modes) or the single game season, else null.
+export function effectiveSeason(draft, player) {
+  if (!draft || !player) return null;
+  const rolled = draft.playerSeasons instanceof Map ? draft.playerSeasons.get(player.id) : undefined;
+  return rolled ?? draft.season ?? null;
+}
+
+// Is a manager eligible under a season-pool descriptor? Active that season
+// (single), overlapping the range, or any (All-seasons / non-season game).
+export function managerEligibleFor(manager, sf) {
+  if (!sf) return true;
+  if (sf.kind === "single") return activeInSeason(cardWindow(manager), sf.season);
+  if (sf.kind === "range") return windowOverlaps(manager, sf.from, sf.to);
+  return true; // All seasons
 }
 
 // Real Teams: the card ids a CPU always has access to for its assigned club — every
@@ -587,14 +663,15 @@ export function dedupeByName(players, draft, activeManager) {
   return Array.from(chosen.values());
 }
 
-export function randomizePlayerValues(availablePlayerIds, season = null) {
+export function randomizePlayerValues(availablePlayerIds, playerSeasons = null, season = null) {
   const playerValues = new Map();
   for (const player of PLAYERS) {
     if (availablePlayerIds.has(player.id)) {
-      // In a season game the band is re-centred on that season's reputation
-      // (ageing stars stay dear, wonderkids are cheap); otherwise it's the
-      // authored peak band exactly as before.
-      const band = season != null ? seasonValueBand(player, season) : player;
+      // Each player's value band is re-centred on HIS rolled season's reputation
+      // (ageing stars stay dear, wonderkids are cheap). Falls back to the single
+      // game season, else the authored peak band exactly as before.
+      const s = (playerSeasons instanceof Map ? playerSeasons.get(player.id) : undefined) ?? season;
+      const band = s != null ? seasonValueBand(player, s) : player;
       const min = band.valueMin ?? band.min ?? 0;
       const max = band.valueMax ?? band.max ?? 0;
       const randomValue = min === max ? min : Math.floor(Math.random() * (max - min + 1)) + min;
@@ -667,19 +744,23 @@ export function buildInitialDraft(clubs, options = {}) {
       ownClubIds: realClub ? computeOwnClubIds(realClub) : [],
     };
   });
-  const basePool = selectGamePlayers(options.playerFilter, { perLeagueDedup: !!options.realTeams });
+  const { availablePlayerIds: basePool, playerSeasons } = selectGamePlayers(options.playerFilter, { perLeagueDedup: !!options.realTeams });
   const { availablePlayerIds, poolIds } = buildRealTeamsPool(basePool, managers);
-  const playerValues = options.dynamicValues !== false ? randomizePlayerValues(availablePlayerIds, options.playerFilter?.season ?? null) : new Map();
+  const playerValues = options.dynamicValues !== false ? randomizePlayerValues(availablePlayerIds, playerSeasons, options.playerFilter?.season ?? null) : new Map();
   const playerForm = options.dynamicForm !== false ? generatePlayerForm(availablePlayerIds) : new Map();
   const playerOrder = generatePlayerOrder(availablePlayerIds);
   return {
     managers,
     realTeams: !!options.realTeams,
     draftRoulette: options.draftRoulette || null,
-    // Season Pool: the chosen season (end-year) or null for "All seasons". Part
-    // of the draft object so it serialises for online rooms / saves, and the
-    // manager pool and Age field can read it. null = today's cross-era pool.
+    // Season Pool: the single chosen season (end-year), or null for a range /
+    // All-seasons / non-season game. `seasonFilter` is the full descriptor
+    // (single | range | all | null) and `playerSeasons` maps each player id to
+    // its rolled season. All serialise for online rooms / saves; the manager
+    // pool, Age field and curve read through them. null season = no single year.
     season: options.playerFilter?.season ?? null,
+    seasonFilter: resolveSeasonFilter(options.playerFilter),
+    playerSeasons,
     positionIndex: 0,
     turnIndex: 0,
     round: 0,
@@ -717,10 +798,10 @@ export function getPlayersFromState(d, posKey) {
   }
   players = dedupeByName(players, d, activeManager);
   players = players.map(p => {
-    // Season games: materialise the player as he was that season (rating,
+    // Season games: materialise the player as he was HIS rolled season (rating,
     // attributes, value band) before the rolled value is read, so the CPU
     // values — and later drafts into its squad — the right version.
-    const player = applySeasonStats(p, d.season);
+    const player = applySeasonStats(p, effectiveSeason(d, p));
     player.value = resolveValue(d.playerValues, player);
     return player;
   });
@@ -804,8 +885,8 @@ function buildWCSeries(n, format = "bo3") {
 }
 
 export function buildInitialWarChestDraft(clubs, options = {}) {
-  const availablePlayerIds = selectGamePlayers(options.playerFilter);
-  const playerValues = options.dynamicValues !== false ? randomizePlayerValues(availablePlayerIds, options.playerFilter?.season ?? null) : new Map();
+  const { availablePlayerIds, playerSeasons } = selectGamePlayers(options.playerFilter);
+  const playerValues = options.dynamicValues !== false ? randomizePlayerValues(availablePlayerIds, playerSeasons, options.playerFilter?.season ?? null) : new Map();
   const playerForm = options.dynamicForm !== false ? generatePlayerForm(availablePlayerIds) : new Map();
   const playerOrder = generatePlayerOrder(availablePlayerIds);
 
@@ -853,6 +934,9 @@ export function buildInitialWarChestDraft(clubs, options = {}) {
     playerValues,
     playerForm,
     playerOrder,
+    season: options.playerFilter?.season ?? null,
+    seasonFilter: resolveSeasonFilter(options.playerFilter),
+    playerSeasons,
     hideRatings: options.hideRatings || false,
     difficulty: options.difficulty || "hard",
     dynamicForm: options.dynamicForm !== false,
