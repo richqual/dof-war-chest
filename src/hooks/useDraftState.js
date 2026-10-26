@@ -689,7 +689,9 @@ export function useDraftState() {
         if (i !== idx) return m;
         const squad = [...m.squad];
         squad[slot] = { ...player };
-        return { ...m, squad, wcBudgetRemaining: m.wcBudgetRemaining - player.value };
+        // Clamp at 0: an emergency signing (nothing affordable) tops the chest up
+        // to cover the player rather than going negative.
+        return { ...m, squad, wcBudgetRemaining: Math.max(0, m.wcBudgetRemaining - player.value) };
       });
       return { ...prev, managers, takenIds: [...prev.takenIds, player.id] };
     });
@@ -723,7 +725,7 @@ export function useDraftState() {
       ? { era: activeManager.assignedEra, league: activeManager.assignedLeague }
       : null;
     return getWarChestPlayersForSlot(
-      slotIdx, draft.takenIds, draft.availablePlayerIds, draft.playerValues, draft.playerForm, rouletteAssignment
+      slotIdx, draft.takenIds, draft.availablePlayerIds, draft.playerValues, draft.playerForm, rouletteAssignment, draft.playerSeasons, draft.season
     );
   }
 
