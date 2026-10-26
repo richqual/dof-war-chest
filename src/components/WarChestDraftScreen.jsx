@@ -1,6 +1,14 @@
 import { useState, useEffect } from "react";
 import { WAR_CHEST_SLOTS } from "../hooks/draftUtils";
+import { ageInSeason, seasonFilterLabel } from "../utils/season";
 import { formatValue, getRatingBg, getRatingColor, normalizeSearch } from "../data/players";
+
+// In a season game show the club + Age the player was that season; otherwise the
+// career-spell year-range. Mirrors PlayerCard / the Classic draft.
+function clubLine(p) {
+  const age = (p.seasonYear != null && p.birthYear != null) ? ageInSeason(p.birthYear, p.seasonYear) : null;
+  return age != null ? `${p.club} · Age ${age}` : `${p.club} · ${p.years}`;
+}
 import KitSwatch, { readableTextOn, kitAccent } from "./KitSwatch";
 import SquadTimer from "./SquadTimer";
 
@@ -57,7 +65,7 @@ export default function WarChestDraftScreen({ draft, pickPlayer, unpickPlayer, o
   }
 
   function handlePick(player) {
-    if (player.value > remaining) return;
+    if (player.value > remaining && !player.emergency) return;
     setPendingPlayer(player);
   }
 
@@ -93,12 +101,20 @@ export default function WarChestDraftScreen({ draft, pickPlayer, unpickPlayer, o
   const defaultMax = Math.max(boundsMin, Math.min(remaining, boundsMax));
   const [priceMin, priceMax] = priceRange ?? [boundsMin, defaultMax];
 
+  // Emergency signing: if nothing in this slot is affordable (a lean chest in a
+  // thin season), the single lowest-rated option becomes signable for free — the
+  // chest tops up to cover it — so a slot is never impossible to fill.
+  const anyAffordable = slotPlayers.some(p => p.value <= remaining);
+  const emergencyId = (!anyAffordable && slotPlayers.length)
+    ? [...slotPlayers].sort((a, b) => a.rating - b.rating || a.value - b.value)[0].id
+    : null;
+
   const activePlayers = activeSlot !== null
     ? slotPlayers
         .filter(p => !search || normalizeSearch(p.name).includes(normalizeSearch(search)) || normalizeSearch(p.club).includes(normalizeSearch(search)))
         .filter(p => p.value >= priceMin && p.value <= priceMax)
         .filter(p => posFilter.length === 0 || posFilter.includes(p.pos))
-        .map(p => ({ ...p, affordable: p.value <= remaining }))
+        .map(p => ({ ...p, emergency: p.id === emergencyId, affordable: p.value <= remaining || p.id === emergencyId }))
         .sort((a, b) => {
           if (a.affordable !== b.affordable) return a.affordable ? -1 : 1;
           return sortBy === "price" ? b.value - a.value : b.rating - a.rating;
@@ -136,6 +152,9 @@ export default function WarChestDraftScreen({ draft, pickPlayer, unpickPlayer, o
             <KitSwatch primary={manager.primaryColor} secondary={manager.secondaryColor} pattern={manager.pattern} size={32} />
             <div>
               <div className="bw-wcd-club">{manager.clubName}</div>
+              {seasonFilterLabel(draft.seasonFilter) && (
+                <span className="bw-season-badge" title="This game's season">📅 {seasonFilterLabel(draft.seasonFilter)}</span>
+              )}
               {humanManagerCount > 1 && (
                 <div className="bw-wcd-turn-badge">Pick {currentHumanOrder} of {humanManagerCount}</div>
               )}
@@ -319,7 +338,7 @@ export default function WarChestDraftScreen({ draft, pickPlayer, unpickPlayer, o
                         style={{ background: posGroupColor(p.pos).bg, color: posGroupColor(p.pos).fg }}
                       >{p.pos}</span>
                     </div>
-                    <div className="bw-player-club">{p.club} · {p.years}</div>
+                    <div className="bw-player-club">{clubLine(p)}</div>
                   </div>
                   <div className="bw-player-value">{formatValue(p.value)}</div>
                   {p.affordable ? (
@@ -363,13 +382,13 @@ export default function WarChestDraftScreen({ draft, pickPlayer, unpickPlayer, o
                   <span className="bw-player-name">{pendingPlayer.name}</span>
                   <span className="bw-player-tag" style={{ background: posGroupColor(pendingPlayer.pos).bg, color: posGroupColor(pendingPlayer.pos).fg }}>{pendingPlayer.pos}</span>
                 </div>
-                <div className="bw-player-club">{pendingPlayer.club} · {pendingPlayer.years}</div>
+                <div className="bw-player-club">{clubLine(pendingPlayer)}</div>
               </div>
               <div className="bw-player-value">{formatValue(pendingPlayer.value)}</div>
             </div>
             <div className="bw-wcd-confirm-budget">
-              <span>Budget after signing</span>
-              <span className="bw-wcd-confirm-budget-val">{formatChest(remaining - pendingPlayer.value)}</span>
+              <span>{pendingPlayer.emergency ? "Emergency signing — chest tops up" : "Budget after signing"}</span>
+              <span className="bw-wcd-confirm-budget-val">{formatChest(Math.max(0, remaining - pendingPlayer.value))}</span>
             </div>
             <div className="bw-wcd-confirm-actions">
               <button className="bw-wcd-confirm-cancel" onClick={() => setPendingPlayer(null)}>CANCEL</button>

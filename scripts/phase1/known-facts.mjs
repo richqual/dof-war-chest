@@ -10,7 +10,7 @@ const server = await createServer({
   root: process.cwd(), server: { middlewareMode: true }, appType: "custom", logLevel: "silent",
 });
 const { PLAYERS } = await server.ssrLoadModule("/src/data/players.generated.js");
-const { selectGamePlayers, identityKey, resolveSeasonFilter, managerEligibleFor, serializeDraft, deserializeDraft, widenedEligPool } = await server.ssrLoadModule("/src/hooks/draftUtils.js");
+const { selectGamePlayers, identityKey, resolveSeasonFilter, managerEligibleFor, serializeDraft, deserializeDraft, widenedEligPool, buildInitialWarChestDraft, assignWarChestBudget, autoBuildWarChestSquad } = await server.ssrLoadModule("/src/hooks/draftUtils.js");
 const { MANAGERS } = await server.ssrLoadModule("/src/data/managers.js");
 const season = await server.ssrLoadModule("/src/utils/season.js");
 const { cardWindow, activeInSeason, ageInSeason } = season;
@@ -184,6 +184,19 @@ check("every 4-4-2 outfield slot fills 8 clubs in 1998/99 (with widening)", (() 
     return PLAYERS.filter(p => inPool.has(p.id) && pool.includes(p.pos)).length;
   };
   return ["RB", "CB", "LB", "RM", "CM", "LM", "ST"].every(pos => countFor(pos) >= 8);
+})());
+
+console.log("\n── War Chest fills every slot in a thin, lean season ──");
+check("War Chest auto-build fills all 5 starter slots (1998/99, Brutal x8 clubs)", (() => {
+  const clubs = Array.from({ length: 8 }, (_, i) => ({ clubName: `C${i}`, dofName: `D${i}`, teamName: `C${i}`, isComputer: true, primaryColor: "#111", secondaryColor: "#fff", pattern: "plain" }));
+  let empty = 0;
+  for (let r = 0; r < 10; r++) {
+    let d = buildInitialWarChestDraft(clubs, { playerFilter: { season: 1999 }, difficulty: "brutal" });
+    for (let i = 0; i < 8; i++) d = assignWarChestBudget(d, i);
+    for (let i = 0; i < 8; i++) d = autoBuildWarChestSquad(d, i);
+    for (const m of d.managers) for (const slot of [0, 1, 2, 3, 4]) if (!m.squad[slot]) empty++;
+  }
+  return empty === 0;
 })());
 
 await server.close();

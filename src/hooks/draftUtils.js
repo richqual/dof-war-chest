@@ -988,23 +988,9 @@ export function buildInitialWarChestDraft(clubs, options = {}) {
   };
 }
 
-export function getWarChestPlayersForSlot(slotIdx, takenIds, availablePlayerIds, playerValues, playerForm, rouletteAssignment) {
-  const slotDef = WAR_CHEST_SLOTS[slotIdx];
-  if (!slotDef) return [];
-  const taken = new Set(takenIds);
-  return PLAYERS
-    .filter(p =>
-      slotDef.posFilter.includes(p.pos) &&
-      !taken.has(p.id) &&
-      (!availablePlayerIds || availablePlayerIds.has(p.id)) &&
-      matchesRoulette(p, rouletteAssignment)
-    )
-    .map(p => {
-      const player = { ...p };
-      player.value = resolveValue(playerValues, p);
-      if (playerForm instanceof Map) player.form = playerForm.get(p.id) ?? 0;
-      return player;
-    });
+export function getWarChestPlayersForSlot(slotIdx, takenIds, availablePlayerIds, playerValues, playerForm, rouletteAssignment, playerSeasons = null, season = null) {
+  return wcSlotCandidates(slotIdx, new Set(takenIds), availablePlayerIds, rouletteAssignment, false)
+    .map(p => wcSeasonPlayer(p, playerValues, playerSeasons, season, playerForm));
 }
 
 // Pick ATT slots first so they get the biggest share of budget.
@@ -1014,6 +1000,31 @@ const WC_PICK_ORDER = [3, 4, 0, 2, 1];
 const WC_MAX_FRACTION = { 3: 0.30, 4: 0.26, 0: 0.22, 2: 0.14, 1: 0.08 };
 // ATT slots: exclude purely defensive positions even if posFilter allows them
 const WC_ATT_EXCLUDE_POS = ["CB", "LB", "RB", "DM"];
+
+// Materialise a War Chest candidate at its (rolled) season — rating, attributes,
+// value band and the stamped seasonYear — exactly like the Classic materialisers.
+function wcSeasonPlayer(p, playerValues, playerSeasons, season, playerForm) {
+  const es = (playerSeasons instanceof Map ? playerSeasons.get(p.id) : undefined) ?? season ?? null;
+  const player = applySeasonStats(p, es); // fresh clone; stamps seasonYear
+  player.value = resolveValue(playerValues, player);
+  if (playerForm instanceof Map) player.form = playerForm.get(p.id) ?? 0;
+  return player;
+}
+
+// Eligible raw cards for a War Chest slot, widening to any outfielder when the
+// slot's own positions are exhausted (a scarce season) so a slot is never empty.
+function wcSlotCandidates(slotIdx, takenSet, availablePlayerIds, roulette, attExclude) {
+  const slotDef = WAR_CHEST_SLOTS[slotIdx];
+  if (!slotDef) return [];
+  const match = (positions) => PLAYERS.filter(p =>
+    positions.includes(p.pos) && !takenSet.has(p.id) &&
+    (!availablePlayerIds || availablePlayerIds.has(p.id)) &&
+    (!attExclude || !WC_ATT_EXCLUDE_POS.includes(p.pos)) &&
+    matchesRoulette(p, roulette));
+  let list = match(slotDef.posFilter);
+  if (!list.length && slotDef.key !== "GK") list = match(OUTFIELD_POSITIONS);
+  return list;
+}
 
 // Assign a manager's chest budget without building their squad — used by the
 // up-front "everyone opens their chest first" phase (CPU chests are rolled here;
@@ -1041,30 +1052,23 @@ export function autoBuildWarChestSquad(d, managerIdx) {
     ? { era: activeManager.assignedEra, league: activeManager.assignedLeague }
     : null;
 
+  const takenSet = new Set(takenIds);
   for (const slot of WC_PICK_ORDER) {
-    const slotDef = WAR_CHEST_SLOTS[slot];
     const maxForSlot = Math.floor(budget * WC_MAX_FRACTION[slot]);
     const isAttSlot = slot === 3 || slot === 4;
-    const affordable = PLAYERS
-      .filter(p =>
-        slotDef.posFilter.includes(p.pos) &&
-        !takenIds.includes(p.id) &&
-        d.availablePlayerIds.has(p.id) &&
-        !(isAttSlot && WC_ATT_EXCLUDE_POS.includes(p.pos)) &&
-        matchesRoulette(p, rouletteAssignment)
-      )
-      .map(p => {
-        const value = resolveValue(d.playerValues, p);
-        return { ...p, value };
-      })
-      .filter(p => p.value <= Math.min(budgetRemaining, maxForSlot))
+    const pool = wcSlotCandidates(slot, takenSet, d.availablePlayerIds, rouletteAssignment, isAttSlot)
+      .map(p => wcSeasonPlayer(p, d.playerValues, d.playerSeasons, d.season, d.playerForm))
       .sort((a, b) => b.rating - a.rating);
-
-    if (affordable.length > 0) {
-      const pick = cpuVariancePick(affordable);
+    // Ladder, so a slot is never left empty: within the per-slot cap → within
+    // the remaining chest → Option B (lowest-rated, chest tops up to cover).
+    let pick = cpuVariancePick(pool.filter(p => p.value <= Math.min(budgetRemaining, maxForSlot)))
+      || cpuVariancePick(pool.filter(p => p.value <= budgetRemaining));
+    if (!pick && pool.length) pick = pool.reduce((lo, p) => (p.rating < lo.rating ? p : lo));
+    if (pick) {
       squad[slot] = pick;
       takenIds.push(pick.id);
-      budgetRemaining -= pick.value;
+      takenSet.add(pick.id);
+      budgetRemaining = Math.max(0, budgetRemaining - pick.value);
     }
   }
 
@@ -1081,39 +1085,29 @@ export function autoBuildWarChestSquad(d, managerIdx) {
 // this only avoids repicking a player already sitting in this manager's own squad.
 // Used both to fill an entire squad from scratch (CPU slots, no-show players) and to
 // top up whatever slots a player didn't finish before their timer ran out.
-export function autoFillWarChestSlot({ chestBudget, wcBudgetRemaining, squad, availablePlayerIds, playerValues, difficulty, rouletteAssignment }) {
+export function autoFillWarChestSlot({ chestBudget, wcBudgetRemaining, squad, availablePlayerIds, playerValues, playerForm, playerSeasons = null, season = null, difficulty, rouletteAssignment }) {
   const values = WAR_CHEST_VALUES[difficulty] || WAR_CHEST_VALUES.hard;
   const budget = chestBudget ?? values[Math.floor(Math.random() * values.length)];
   let budgetRemaining = chestBudget == null ? budget : (wcBudgetRemaining ?? budget);
   const filledSquad = squad ? [...squad] : Array(16).fill(null);
-  const takenIds = filledSquad.filter(Boolean).map(p => p.id);
+  const takenSet = new Set(filledSquad.filter(Boolean).map(p => p.id));
 
   for (const slot of WC_PICK_ORDER) {
     if (filledSquad[slot]) continue;
-    const slotDef = WAR_CHEST_SLOTS[slot];
     const maxForSlot = Math.floor(budget * WC_MAX_FRACTION[slot]);
     const isAttSlot = slot === 3 || slot === 4;
-    const affordable = PLAYERS
-      .filter(p =>
-        slotDef.posFilter.includes(p.pos) &&
-        !takenIds.includes(p.id) &&
-        (!availablePlayerIds || availablePlayerIds.has(p.id)) &&
-        !(isAttSlot && WC_ATT_EXCLUDE_POS.includes(p.pos)) &&
-        matchesRoulette(p, rouletteAssignment)
-      )
-      .map(p => {
-        const value = resolveValue(playerValues, p);
-        return { ...p, value };
-      })
-      .filter(p => p.value <= Math.min(budgetRemaining, maxForSlot))
+    const pool = wcSlotCandidates(slot, takenSet, availablePlayerIds, rouletteAssignment, isAttSlot)
+      .map(p => wcSeasonPlayer(p, playerValues, playerSeasons, season, playerForm))
       .sort((a, b) => b.rating - a.rating);
-
-    if (affordable.length > 0) {
-      const topN = affordable.slice(0, Math.min(3, affordable.length));
-      const pick = topN[Math.floor(Math.random() * topN.length)];
+    const topRandom = (list) => list.length ? list[Math.floor(Math.random() * Math.min(3, list.length))] : null;
+    // Same ladder as autoBuild, so a no-show / timed-out squad is never short.
+    let pick = topRandom(pool.filter(p => p.value <= Math.min(budgetRemaining, maxForSlot)))
+      || topRandom(pool.filter(p => p.value <= budgetRemaining));
+    if (!pick && pool.length) pick = pool.reduce((lo, p) => (p.rating < lo.rating ? p : lo));
+    if (pick) {
       filledSquad[slot] = pick;
-      takenIds.push(pick.id);
-      budgetRemaining -= pick.value;
+      takenSet.add(pick.id);
+      budgetRemaining = Math.max(0, budgetRemaining - pick.value);
     }
   }
 

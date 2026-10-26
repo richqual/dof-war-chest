@@ -1,5 +1,7 @@
 import { useState } from "react";
 import DraftRouletteToggle from "./DraftRouletteToggle";
+import SeasonPicker from "./SeasonPicker";
+import { filterForKey } from "../utils/season";
 
 const FORMAT_OPTIONS = [
   { key: "bo3", label: "3", hint: "First to 2 wins" },
@@ -27,6 +29,7 @@ export default function WarChestLobbyScreen({ onContinue, onBack }) {
   const [draftRoulette, setDraftRoulette] = useState({ enabled: false, era: false, league: true });
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showRules, setShowRules] = useState(false);
+  const [seasonKey, setSeasonKey] = useState("all:peak");
 
   function handleNumClubs(n) {
     setNumClubs(n);
@@ -36,7 +39,7 @@ export default function WarChestLobbyScreen({ onContinue, onBack }) {
   const activeFormat = numClubs === 2 ? (matchType === "single" ? "single" : seriesLength) : undefined;
 
   function handleContinue() {
-    onContinue({ numClubs, numHumans, difficulty, format: activeFormat, hideRatings, dynamicValues, dynamicForm: true, draftRoulette });
+    onContinue({ numClubs, numHumans, difficulty, format: activeFormat, hideRatings, dynamicValues, dynamicForm: true, draftRoulette, playerFilter: filterForKey(seasonKey) });
   }
 
   return (
@@ -136,6 +139,8 @@ export default function WarChestLobbyScreen({ onContinue, onBack }) {
           <div className="bw-setup-hint">
             {DIFFICULTY_INFO.find(d => d.key === difficulty)?.hint}
           </div>
+
+          <SeasonPicker value={seasonKey} onChange={setSeasonKey} />
 
           <DraftRouletteToggle value={draftRoulette} onChange={setDraftRoulette} />
 
