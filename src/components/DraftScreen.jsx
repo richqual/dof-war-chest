@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { POSITIONS, generateBudget, chooseCpuPick, normalizeSearch } from "../data/players";
-import { GROUP_COLORS, FORMATIONS, FORMATION_DISPLAY_ORDER, slotEligibility, OOP_PENALTY } from "../data/formations";
+import { GROUP_COLORS, FORMATIONS, FORMATION_DISPLAY_ORDER, slotEligibility, slotPenalty } from "../data/formations";
 import { cpuSpendCap, BENCH_MIN_FUND, freeTransferOptions, subDisplayLabel } from "../hooks/draftUtils";
 import { POSITIONS as ALL_POSITIONS } from "../data/players";
 import PlayerCard, { ARCHETYPE_COLOR } from "./PlayerCard";
@@ -45,6 +45,16 @@ export default function DraftScreen({
   const naturalPos = slotElig?.natural ?? currentPos.key;
   // Whether out-of-position marks (★ / −penalty) apply. Off for free subs.
   const showOop = showPosChips && !isFreeSub;
+  // Per-player OOP tag, distance-scaled to match the real match penalty. Natural
+  // fits (and any 0-penalty role, e.g. RWB in an RB slot) get no tag.
+  // Only flag a meaningful hit on the card (−3 or worse). Small penalties (the
+  // fluid central-mid shuffles, wing-back/back-three cover at −1/−2) are picks you
+  // want freely used, so they're left to the chip's own (−n) label, no card tag.
+  const oopTag = (p) => {
+    if (!showOop) return null;
+    const pen = slotPenalty(slotElig, p.pos);
+    return pen >= 3 ? `OOP −${pen}` : null;
+  };
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -780,7 +790,7 @@ export default function DraftScreen({
                         {posPool.map(pos => (
                           <label key={pos} className="bw-filter-checkbox">
                             <input type="checkbox" checked={filterPos.has(pos)} onChange={() => togglePos(pos)} />
-                            {pos}{!showOop ? "" : pos === naturalPos ? " ★" : ` (−${OOP_PENALTY})`}
+                            {pos}{!showOop ? "" : pos === naturalPos ? " ★" : ` (−${slotPenalty(slotElig, pos)})`}
                           </label>
                         ))}
                       </div>
@@ -960,7 +970,7 @@ export default function DraftScreen({
                 <>
                   <div className="bw-section-divider bw-divider-free">FREE TRANSFERS · {freeTransfers.length} AVAILABLE</div>
                   {freeTransfers.map(p => (
-                    <PlayerCard key={`free-${p.id}`} season={draft.season} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} preferredGkArchetype={activeManager?.footballManager?.preferredGkArchetype} outOfPos={showOop && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
+                    <PlayerCard key={`free-${p.id}`} season={draft.season} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} preferredGkArchetype={activeManager?.footballManager?.preferredGkArchetype} outOfPos={oopTag(p)} />
                   ))}
                 </>
               )}
@@ -968,18 +978,18 @@ export default function DraftScreen({
                 <>
                   <div className="bw-section-divider bw-divider-free">EMERGENCY SIGNINGS · budget tops up to cover</div>
                   {emergencyOptions.map(p => (
-                    <PlayerCard key={`emg-${p.id}`} season={draft.season} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} preferredGkArchetype={activeManager?.footballManager?.preferredGkArchetype} outOfPos={showOop && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
+                    <PlayerCard key={`emg-${p.id}`} season={draft.season} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} preferredGkArchetype={activeManager?.footballManager?.preferredGkArchetype} outOfPos={oopTag(p)} />
                   ))}
                 </>
               )}
               {affordable.map(p => (
-                <PlayerCard key={p.id} season={draft.season} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} preferredGkArchetype={activeManager?.footballManager?.preferredGkArchetype} outOfPos={showOop && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
+                <PlayerCard key={p.id} season={draft.season} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} preferredGkArchetype={activeManager?.footballManager?.preferredGkArchetype} outOfPos={oopTag(p)} />
               ))}
               {tooExpensiveShown.length > 0 && (
                 <>
                   <div className="bw-section-divider">OUT OF BUDGET</div>
                   {tooExpensiveShown.map(p => (
-                    <PlayerCard key={p.id} season={draft.season} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} budget={currentBudget} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} preferredGkArchetype={activeManager?.footballManager?.preferredGkArchetype} outOfPos={showOop && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
+                    <PlayerCard key={p.id} season={draft.season} player={p} canAfford={false} hideRatings={hideRatings} hideBadges={hideBadges} budget={currentBudget} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} preferredGkArchetype={activeManager?.footballManager?.preferredGkArchetype} outOfPos={oopTag(p)} />
                   ))}
                 </>
               )}
