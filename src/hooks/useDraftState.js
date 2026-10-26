@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { PLAYERS, SUB_POSITIONS, generateBudget, chooseCpuPick, cpuVariancePick } from "../data/players";
+import { applySeasonStats } from "../utils/season";
 import {
   STORAGE_KEY, STORAGE_VERSION,
   serializeDraft, deserializeDraft,
@@ -370,7 +371,8 @@ export function useDraftState() {
     }
     return candidates.map(player => {
       const owner = draft.managers.find(m => m.squad.some(s => s && s.id === player.id));
-      const p = { ...player, ownedBy: owner ? (owner.clubName || owner.name) : null };
+      const base = applySeasonStats(player, draft?.season);
+      const p = { ...base, ownedBy: owner ? (owner.clubName || owner.name) : null };
       p.value = resolveValue(draft?.playerValues, p);
       if (draft?.playerForm && draft.playerForm.has(p.id)) {
         const formBonus = draft.playerForm.get(p.id);
@@ -390,7 +392,10 @@ export function useDraftState() {
       players = players.filter(p => isDraftableBy(draft, activeManager, p.id));
     }
     players = dedupeByName(players, draft, activeManager);
-    players = players.map(p => ({ ...p, value: resolveValue(draft?.playerValues, p) }));
+    players = players.map(p => {
+      const base = applySeasonStats(p, draft?.season);
+      return { ...base, value: resolveValue(draft?.playerValues, base) };
+    });
     return players;
   }
 
@@ -553,7 +558,7 @@ export function useDraftState() {
       // cross-era pool.
       const basePool = selectGamePlayers({ ...filter, season: prev.season }, { perLeagueDedup: !!prev.realTeams });
       const { availablePlayerIds, poolIds } = buildRealTeamsPool(basePool, prev.managers);
-      const playerValues = randomizePlayerValues(availablePlayerIds);
+      const playerValues = randomizePlayerValues(availablePlayerIds, prev.season);
       const playerForm = generatePlayerForm(availablePlayerIds);
       const playerOrder = generatePlayerOrder(availablePlayerIds);
       return { ...prev, availablePlayerIds, poolIds, playerValues, playerForm, playerOrder };
@@ -697,7 +702,7 @@ export function useDraftState() {
     d.playerValues?.get(p.id) ?? p.value ?? Math.round(((p.valueMin ?? 0) + (p.valueMax ?? 0)) / 2);
 
   function resolveScoutPlayer(d, id) {
-    const p = { ...PLAYERS.find(x => x.id === id) };
+    const p = applySeasonStats(PLAYERS.find(x => x.id === id), d.season);
     p.value = d.playerValues?.has(id) ? d.playerValues.get(id) : Math.round(((p.valueMin ?? 0) + (p.valueMax ?? 0)) / 2);
     if (d.playerForm?.has(id)) p.rating = Math.max(0, p.rating + d.playerForm.get(id));
     return p;

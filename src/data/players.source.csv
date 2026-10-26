@@ -437,7 +437,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 2619,Nico Williams,Athletic Club,2022–,RW,,85,T3,25,41,99,77,68,87,27,63,🇪🇸,modern,la_liga,Athlete,ESP,Q104414736,2002,2012,2026
 2620,Bryan Gil,Sevilla,2020–2021,RW,,75,T5,4,7,96,69,65,87,22,61,🇪🇸,modern,la_liga,Athlete,ESP,Q60687576,2001,2019,NaN
 2621,Álex Berenguer,Athletic Club,2021–,RW,,72,T5,0,0,96,70,61,82,18,57,🇪🇸,modern,la_liga,Athlete,ESP,Q18022026,1995,2005,2026
-2622,Rubén García,Osasuna,2019–,RW,,73,T5,3,5,92,68,61,83,18,61,🇪🇸,modern,la_liga,Athlete,ESP,Q7376476,1982,,
+2622,Rubén García,Osasuna,2019–,RW,,73,T5,3,5,92,68,61,83,18,61,🇪🇸,modern,la_liga,Athlete,ESP,,1993,,
 2623,Álex Morales,Levante,2018–2021,RW,,72,T5,0,0,91,70,66,82,18,56,🇪🇸,modern,la_liga,Athlete,ESP,,,,
 2701,Rivaldo,Barcelona,1997–2002,LW,,92,T1,79,126,98,81,72,94,28,69,🇧🇷,classic,la_liga,Athlete,BRA,Q483577,1972,1996,2003
 2702,Robert Pires,Villarreal,2006–2010,LW,,80,T4,13,21,90,75,70,85,22,63,🇫🇷,classic,la_liga,Athlete,FRA,Q113156,1973,1998,2011
@@ -877,7 +877,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 4614,Callum Hudson-Odoi,Leverkusen,2023–2024,RW,,78,T4,8,12,98,69,65,84,25,60,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,bundesliga,Athlete,ENG,Q42396622,2000,2017,2026
 4615,Ludovic Ajorque,Mainz,2021–2023,RW,,73,T5,3,5,94,69,67,81,17,62,🇫🇷,modern,bundesliga,Athlete,FRA,Q27671219,1994,,2026
 4616,Ansgar Knauff,Frankfurt,2022–,RW,,73,T5,3,4,92,68,66,82,22,61,🇩🇪,modern,bundesliga,Athlete,GER,Q104035264,2002,2020,2026
-4617,Steffen Baumgart,Augsburg,2016–2018,RW,,72,T5,2,4,89,65,62,85,20,58,🇩🇪,classic,bundesliga,Athlete,GER,Q2338559,1972,2002,2004
+4617,Steffen Baumgart,Augsburg,2002–04,RW,,72,T5,2,4,89,65,62,85,20,58,🇩🇪,classic,bundesliga,Athlete,GER,Q2338559,1972,2002,2004
 4618,Jens Todt,Hamburg,2000–2006,RW,,74,T5,3,6,90,70,66,86,21,58,🇩🇪,classic,bundesliga,Athlete,GER,Q66925,1970,1991,2003
 4700,Franck Ribéry,Bayern,2007–2019,LW,,93,T1,61,110,99,82,73,95,28,71,🇫🇷,golden,bundesliga,Athlete,FRA,Q1918,1983,2003,2021
 4702,Ivan Klasnic,Werder Bremen,2000–2008,LW,,80,T4,11,21,90,74,66,86,24,59,🇭🇷,classic,bundesliga,Athlete,CRO,Q153003,1980,2001,2013
@@ -1145,7 +1145,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 2858,Iker Muniain,Athletic Club,2019–,LW,,83,T3,17,28,99,78,72,87,26,62,🇪🇸,modern,la_liga,Athlete,ESP,Q314259,1992,2005,2024
 2859,Ever Banega,Sevilla,2014–2022,CM,,83,T3,14,24,63,61,89,79,58,64,🇦🇷,golden,la_liga,Technician,ARG,Q19392,1988,2008,2020
 2860,Ivan Rakitic,Sevilla,2011–2014,CM,,84,T3,19,32,66,60,86,77,53,70,🇭🇷,golden,la_liga,Technician,CRO,Q115453,1988,2007,2024
-2861,Nacho Fernández,Sevilla,2011–2015,CB,,78,T4,6,11,59,22,56,35,90,90,🇪🇸,golden,la_liga,Warrior,ESP,Q65553870,1973,,
+2861,Nacho Fernández,Sevilla,2011–2015,CB,,78,T4,6,11,59,22,56,35,90,90,🇪🇸,golden,la_liga,Warrior,ESP,,,,
 2862,Youssef En-Nesyri,Sevilla,2020–,ST,,79,T3,9,16,82,81,57,68,26,80,🇲🇦,modern,la_liga,Grinder,MAR,Q26262219,1997,2016,2024
 2863,Carlos Campos,Málaga,2011–2015,GK,,75,T4,3,5,46,7,64,16,42,71,🇪🇸,golden,la_liga,Organiser,ESP,,,,
 2864,Antúnez Julio,Málaga,2012–2015,LB,,77,T4,6,10,77,34,63,61,75,71,🇦🇷,golden,la_liga,Grinder,ARG,,,,
@@ -1261,7 +1261,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 6108,Graeme Souness,Liverpool,1978–1984,CM,DM,91,T2,54,93,66,63,85,75,69,78,🏴󠁧󠁢󠁳󠁣󠁴󠁿,legend,legends,Leader,SCO,Q310352,1953,1970,1984
 6109,Just Fontaine,Reims,1953–62,ST,,90,T2,55,86,92,93,64,85,21,76,🇫🇷,legend,legends,Athlete,FRA,Q192749,1933,1953,1956
 6110,Grzegorz Lato,Górnik Zabrze,1966–84,RW,,88,T3,46,74,96,80,72,90,26,63,🇵🇱,legend,legends,Athlete,POL,Q271557,1950,,
-6111,Frank Rijkaard,AC Milan,1984–2004,DM,CM,91,T2,41,72,63,56,72,65,92,92,🇳🇱,classic,serie_a,Warrior,NED,Q169098,1962,1988,1993
+6111,Frank Rijkaard,AC Milan,1988–93,DM,CM,91,T2,41,72,63,56,72,65,92,92,🇳🇱,classic,serie_a,Warrior,NED,Q169098,1962,1988,1993
 6112,Michael Laudrup,Barcelona,1983–1998,CAM,,91,T2,54,83,69,76,95,97,27,61,🇩🇰,classic,la_liga,Technician,DEN,Q188720,1964,1983,1996
 6113,John Barnes,Liverpool,1983–1999,LW,,90,T2,53,87,92,84,78,98,26,65,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,Maverick,ENG,,,,
 6114,Jean-Pierre Papin,Marseille,1985–1998,ST,,90,T2,53,97,85,96,67,86,17,75,🇫🇷,classic,ligue_1,Maverick,FRA,Q13494,1963,1986,1996
