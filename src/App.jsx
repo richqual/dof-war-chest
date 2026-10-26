@@ -655,7 +655,7 @@ function AppInner({ onMultiplayer, auth }) {
   const {
     screen, setScreen,
     draft, activeManager, activeManagerIdx, currentPos, scoutFreeAgentList,
-    startGame, confirmBudget, confirmSlot, pickPlayer, setTeamName,
+    startGame, confirmBudget, confirmSlot, pickPlayer, emergencySign, setTeamName,
     swapSquadPlayers, setTactics, setFormation, setCaptain, restartGame, restartTournament, getAvailablePlayers, getTakenPlayers,
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
@@ -1167,6 +1167,7 @@ function AppInner({ onMultiplayer, auth }) {
           confirmBudget={confirmBudget}
           confirmSlot={confirmSlot}
           pickPlayer={pickPlayer}
+          emergencySign={emergencySign}
           getAvailablePlayers={getAvailablePlayers}
           getTakenPlayers={getTakenPlayers}
           skipTurn={skipTurn}
@@ -1264,7 +1265,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "5.3.1";
+const APP_VERSION = "5.3.2";
 
 function AppFooter() {
   return (

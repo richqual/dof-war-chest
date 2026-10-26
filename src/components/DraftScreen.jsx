@@ -19,7 +19,7 @@ const CPU_PICK_DELAY = 1300;
 
 export default function DraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
-  confirmBudget, confirmSlot, pickPlayer, getAvailablePlayers, getTakenPlayers,
+  confirmBudget, confirmSlot, pickPlayer, emergencySign, getAvailablePlayers, getTakenPlayers,
   skipTurn, respin, autoCompleteDraft, skipCpuTurns,
   stepCpuTurn, // multiplayer only — see the CPU effect below
   myTurn = true, // false in multiplayer when it's someone else's go
@@ -263,6 +263,15 @@ export default function DraftScreen({
   const freeTransfers = (benchRound && genuinelyNoAfford)
     ? freeTransferOptions(draft, rawAvailable)
     : [];
+  // Option B emergency signings (XI rounds): when nothing is affordable and
+  // there's no re-spin, offer a short list of the lowest-rated available players
+  // (incl. out-of-position stand-ins when the slot is exhausted). Signing one
+  // tops the budget up to its price — the scraps, never a jackpot re-spin.
+  const emergencyOptions = (!benchRound && genuinelyNoAfford && emergencySign)
+    ? [...rawAvailable].sort((a, b) => a.rating - b.rating || a.value - b.value)
+        .slice(0, Math.min(6, Math.max(3, managers.length)))
+        .map(p => ({ ...p, emergency: true }))
+    : [];
   // Listing the same player twice — once free, once at full price under OUT OF
   // BUDGET — would just read as a bug.
   const freeIds = new Set(freeTransfers.map(p => p.id));
@@ -301,7 +310,8 @@ export default function DraftScreen({
       setTransition({ prevManager: prevManagerName, player, nextManager: nextName, nextPosLabel, nextKit: nextManager, prevKit });
     }
 
-    pickPlayer(player);
+    if (player.emergency) emergencySign(player);
+    else pickPlayer(player);
   }
 
   function handleClickPlayer(player) {
@@ -923,6 +933,12 @@ export default function DraftScreen({
                         </div>
                         <button className="bw-cta-secondary" onClick={skipTurn}>→ SKIP THIS SUB</button>
                       </>
+                    ) : emergencySign ? (
+                      <div className="bw-no-afford-msg">
+                        £{currentBudget}m isn't enough for anyone available — so pick one of these
+                        <strong> emergency signings</strong> below. Your budget tops up to cover it, but
+                        nothing's banked, and you only get the lowest-rated going.
+                      </div>
                     ) : (
                       <>
                         <div className="bw-no-afford-msg">
@@ -945,6 +961,14 @@ export default function DraftScreen({
                   <div className="bw-section-divider bw-divider-free">FREE TRANSFERS · {freeTransfers.length} AVAILABLE</div>
                   {freeTransfers.map(p => (
                     <PlayerCard key={`free-${p.id}`} season={draft.season} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} preferredGkArchetype={activeManager?.footballManager?.preferredGkArchetype} outOfPos={showOop && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
+                  ))}
+                </>
+              )}
+              {emergencyOptions.length > 0 && (
+                <>
+                  <div className="bw-section-divider bw-divider-free">EMERGENCY SIGNINGS · budget tops up to cover</div>
+                  {emergencyOptions.map(p => (
+                    <PlayerCard key={`emg-${p.id}`} season={draft.season} player={p} onPick={handleClickPlayer} canAfford={true} hideRatings={hideRatings} hideBadges={hideBadges} preferredArchetypes={activeManager?.footballManager?.preferredArchetypes} preferredGkArchetype={activeManager?.footballManager?.preferredGkArchetype} outOfPos={showOop && p.pos !== naturalPos ? `OOP −${OOP_PENALTY}` : null} />
                   ))}
                 </>
               )}

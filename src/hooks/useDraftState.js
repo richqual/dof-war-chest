@@ -9,6 +9,7 @@ import {
   availablePlayersFor, getPlayersFromState, currentEligPool,
   autoDrawSlot, activeFormation, resolveCurrentPosKey, resolveCurrentPos,
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder, effectiveSeason,
+  widenedEligPool, OUTFIELD_POSITIONS,
   buildRealTeamsPool, isDraftableBy, dedupeByName, resolveValue,
   POS_LABELS, getFormArrow,
   buildInitialWarChestDraft, getWarChestPlayersForSlot, autoBuildWarChestSquad, assignWarChestBudget,
@@ -345,15 +346,22 @@ export function useDraftState() {
   // transfer rather than leaving the slot empty. Scout omits it — its Bargain
   // Bucket already guarantees a £0 option, so it is never stranded.
   function noAffordablePick(d, posKey = null) {
-    if (!isBenchRound(d)) return { ...d, currentBudget: null, noCarryoverNext: true };
-    if (posKey) {
-      const free = freeTransferOptions(d, getPlayersFromState(d, posKey));
-      if (free.length) {
-        const pick = free.reduce((best, p) => (p.rating > best.rating ? p : best));
-        return applyPick(d, pick);
-      }
+    const key = posKey ?? resolveCurrentPosKey(d);
+    // Candidates for the slot, already widened to adjacent positions by
+    // getPlayersFromState when the slot's own pool is exhausted.
+    const cands = key ? getPlayersFromState(d, key) : [];
+    if (!cands.length) return applyPick(d, null); // nothing left anywhere (near-impossible)
+    if (isBenchRound(d)) {
+      // Bench: the cheapest come free (existing behaviour); now never empty.
+      const free = freeTransferOptions(d, cands);
+      const pick = free.reduce((best, p) => (p.rating > best.rating ? p : best));
+      return applyPick(d, pick);
     }
-    return applyPick(d, null);
+    // XI (Option B): no re-spin. Sign the lowest-rated available, topping the
+    // budget up to its price so nothing is banked — a low spin gets the scraps,
+    // not a second roll at the stars.
+    const pick = cands.reduce((lo, p) => (p.rating < lo.rating ? p : lo));
+    return applyPick({ ...d, currentBudget: Math.max(d.currentBudget ?? 0, pick.value) }, pick);
   }
 
   function confirmBudget(spunVal) {
@@ -391,6 +399,16 @@ export function useDraftState() {
     if (draft?.availablePlayerIds) {
       players = players.filter(p => isDraftableBy(draft, activeManager, p.id));
     }
+    // Exhaustion: a scarce position ran out in a thin season — widen to adjacent
+    // positions so the slot is never empty (signed as an OOP stand-in).
+    if (!players.length && posKey !== "GK" && posKey !== "GKSUB") {
+      for (const pool of [widenedEligPool(posKey), OUTFIELD_POSITIONS]) {
+        if (!pool) continue;
+        let w = availablePlayersFor(posKey, draft.takenIds, rouletteAssignment, pool, draft?.freeSubs);
+        if (draft?.availablePlayerIds) w = w.filter(p => isDraftableBy(draft, activeManager, p.id));
+        if (w.length) { players = w; break; }
+      }
+    }
     players = dedupeByName(players, draft, activeManager);
     players = players.map(p => {
       const base = applySeasonStats(p, effectiveSeason(draft, p));
@@ -403,6 +421,17 @@ export function useDraftState() {
     if (!draft) return;
     if (draft.currentBudget === null || player.value > draft.currentBudget) return;
     const next = applyPick(draft, player);
+    setDraft(next);
+    if (next.phase === "complete") setScreen(draft.managerTiming === "before" ? "squads" : "manager-draft");
+  }
+
+  // Option B emergency signing (XI rounds): when nothing is affordable, the human
+  // signs one of the lowest-rated available players with the budget topped up to
+  // its price (no re-spin, nothing banked). Fair — a low spin gets the scraps.
+  function emergencySign(player) {
+    if (!draft || draft.currentBudget === null) return;
+    const topped = { ...draft, currentBudget: Math.max(draft.currentBudget, player.value) };
+    const next = applyPick(topped, player);
     setDraft(next);
     if (next.phase === "complete") setScreen(draft.managerTiming === "before" ? "squads" : "manager-draft");
   }
@@ -1245,7 +1274,7 @@ export function useDraftState() {
   return {
     screen, setScreen,
     draft, activeManager, activeManagerIdx, currentPos, scoutFreeAgentList,
-    startGame, confirmBudget, confirmSlot, pickPlayer, setTeamName,
+    startGame, confirmBudget, confirmSlot, pickPlayer, emergencySign, setTeamName,
     swapSquadPlayers, setTactics, setFormation, setCaptain, restartGame, restartTournament, getAvailablePlayers, getTakenPlayers,
     skipTurn, respin, autoCompleteDraft, skipCpuTurns,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
