@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import KitSwatch, { readableTextOn, teamAccent } from "./KitSwatch";
 import { TIER_SIM_MODIFIER } from "../data/managers";
-import { FORMATIONS, slotEligibility, OOP_PENALTY } from "../data/formations";
+import { FORMATIONS, slotEligibility, slotPenalty } from "../data/formations";
 import { lastName } from "../utils/displayName";
 
 function teamStrength(squad) {
@@ -436,10 +436,15 @@ function applyPositionPenalty(squad, formation) {
   return squad.map((p, i) => {
     if (!p || i >= 11) return p;
     const e = slotEligibility(formation, i);
-    if (!e || p.pos === e.natural || !e.pool.includes(p.pos)) return p;
-    const penalised = { ...p, rating: Math.max(1, (p.rating ?? 0) - OOP_PENALTY), outOfPosition: true };
+    if (!e) return p;
+    // Distance-scaled hit (with wing-back flat overrides). Covers both in-pool
+    // eligible picks and emergency stand-ins widened in outside the pool (a scarce
+    // season) — both pay by how far their role sits from the slot; natural = 0.
+    const pen = slotPenalty(e, p.pos);
+    if (pen <= 0) return p;
+    const penalised = { ...p, rating: Math.max(1, (p.rating ?? 0) - pen), outOfPosition: true };
     for (const k of OOP_STAT_KEYS) {
-      if (typeof penalised[k] === "number") penalised[k] = Math.max(1, penalised[k] - OOP_PENALTY);
+      if (typeof penalised[k] === "number") penalised[k] = Math.max(1, penalised[k] - pen);
     }
     return penalised;
   });

@@ -137,9 +137,13 @@ const ELIG_STD = {
   CB:  [],
   RB:  [],
   LB:  [],
-  DM:  [],
-  CM:  [],
-  CAM: [],
+  // Central midfield is one fluid trio — DM/CM/CAM interchange, so each central
+  // slot offers the other two as chips. The out-of-position hit is distance-based
+  // (see positionPenalty): one step along the spine (DM↔CM, CM↔CAM) is minimal,
+  // the DM↔CAM extreme a real cost. This is the only non-scarcity broadening.
+  DM:  ["CM", "CAM"],
+  CM:  ["DM", "CAM"],
+  CAM: ["CM", "DM"],
   RM:  ["RW"],   // scarce wide mid → same-side winger only
   LM:  ["LW"],   // scarce wide mid → same-side winger only
   RW:  [],
@@ -148,20 +152,30 @@ const ELIG_STD = {
 };
 
 // Per-formation, per-slot overrides. Keys are slot indices into FORMATIONS.
-// In 3-5-2 / 3-4-3 slots 1&2 are the wide RM/LM slots played as WING-BACKS, so
-// (again, only the RM/LM slots get an allowance) they broaden to their same-side
-// FULL-BACK. The three centre-backs stay strict CB via ELIG_STD.
-const WB_R = { natural: "RB", elig: ["RM"] };
-const WB_L = { natural: "LB", elig: ["LM"] };
-const BACK_THREE_OVERRIDE = { 1: WB_R, 2: WB_L };
+// In 3-5-2 / 3-4-3, slots 1&2 are the wide RM/LM slots played as WING-BACKS and
+// slots 3,4,5 are the three centre-backs. A wing-back runs the whole flank, so a
+// same-side wide mid (RM/LM) is barely out of role — a FLAT `pen` of 1 overrides
+// the distance model (which, anchored to the full-back, would read it as a big
+// vertical jump). The back-three CBs open up to full-backs (RB/LB) as wide centre-
+// halves; those use the distance model (−1, a cheap flank shift). Five-at-the-back
+// (5-3-2 / 5-4-1) keeps its CBs strict — it already has dedicated full-back slots.
+const WB_R = { natural: "RB", elig: ["RM"], pen: 1 };
+const WB_L = { natural: "LB", elig: ["LM"], pen: 1 };
+const BACK_THREE_CB = { natural: "CB", elig: ["RB", "LB"] };
+const BACK_THREE_OVERRIDE = {
+  1: WB_R, 2: WB_L,
+  3: BACK_THREE_CB, 4: BACK_THREE_CB, 5: BACK_THREE_CB,
+};
 const ELIG_OVERRIDE = {
   "3-5-2": BACK_THREE_OVERRIDE,
   "3-4-3": BACK_THREE_OVERRIDE,
 };
 
-// Resolve a slot's eligibility. Returns { natural, elig, pool } or null.
-// `natural` = 0-penalty position; `elig` = penalised alternatives;
-// `pool` = everything draftable into the slot (natural first, deduped).
+// Resolve a slot's eligibility. Returns { natural, elig, pool, pen } or null.
+// `natural` = 0-penalty position; `elig` = penalised alternatives; `pool` =
+// everything draftable into the slot (natural first, deduped); `pen` = a flat
+// penalty for the eligibles that overrides the distance model (wing-backs only),
+// or null to use positionPenalty. Resolve the actual hit with slotPenalty().
 export function slotEligibility(formation, slotIndex) {
   const entry = FORMATIONS[formation]?.[slotIndex];
   if (!entry) return null;
@@ -169,11 +183,62 @@ export function slotEligibility(formation, slotIndex) {
   const natural = ov?.natural ?? entry.pos;
   const elig = ov?.elig ?? ELIG_STD[entry.pos] ?? [];
   const pool = [natural, ...elig.filter(p => p !== natural)];
-  return { natural, elig, pool };
+  return { natural, elig, pool, pen: ov?.pen ?? null };
 }
 
-// Flat rating/attribute penalty for playing an eligible-but-not-natural player.
+// Maximum rating/attribute hit for playing out of position (a genuine mismatch
+// — a defender in attack, a winger in the wrong channel). The actual penalty is
+// scaled by role distance, see positionPenalty; this is the cap.
 export const OOP_PENALTY = 5;
+
+// Role-distance model behind the out-of-position penalty. Each position sits at a
+// BAND (how advanced the role is up the pitch) and a FLANK (left / centre /
+// right). The penalty grows with how far the natural slot and the player's real
+// role sit apart — so the fluid central-mid trio (DM/CM/CAM) interchange for next
+// to nothing, while a defender shoved into midfield, or a winger in the opposite
+// channel, pays close to the full hit. RWB/LWB/CF are included so stand-ins from
+// the draft's emergency widening (POS_FALLBACK) are scored too.
+const POS_BAND = {
+  GK: 0,
+  CB: 1, RB: 1, LB: 1, RWB: 1, LWB: 1,
+  DM: 2,
+  CM: 3,
+  CAM: 4, RM: 4, LM: 4,
+  RW: 5, LW: 5, ST: 5, CF: 5,
+};
+const POS_FLANK = {
+  RB: "R", RWB: "R", RM: "R", RW: "R",
+  LB: "L", LWB: "L", LM: "L", LW: "L",
+  // everything else (CB/DM/CM/CAM/ST/CF/GK) is central
+};
+// Penalty from N bands of vertical separation (index = |Δband|). One band apart
+// (DM↔CM, CM↔CAM, CB↔DM, RM↔RW) is minimal; two (DM↔CAM, CB↔CM) is a real cost;
+// three or more is effectively the full hit. Capped at OOP_PENALTY either way.
+const BAND_STEP_PENALTY = [0, 2, 4, 5, 5, 5];
+
+// The out-of-position penalty (0..OOP_PENALTY) for a player of `playerPos` filling
+// a slot whose natural position is `naturalPos`. 0 = plays at full strength.
+export function positionPenalty(naturalPos, playerPos) {
+  if (!naturalPos || !playerPos || naturalPos === playerPos) return 0;
+  const bN = POS_BAND[naturalPos], bP = POS_BAND[playerPos];
+  if (bN === undefined || bP === undefined) return OOP_PENALTY; // unknown role → full hit
+  const dist = Math.min(Math.abs(bN - bP), BAND_STEP_PENALTY.length - 1);
+  let pen = BAND_STEP_PENALTY[dist];
+  const fN = POS_FLANK[naturalPos], fP = POS_FLANK[playerPos];
+  if (fN && fP && fN !== fP) pen += 3;      // opposite flanks (L↔R)
+  else if (fN !== fP) pen += 1;             // centre↔wide
+  return Math.min(OOP_PENALTY, pen);
+}
+
+// The out-of-position hit for `playerPos` filling a given slot (from
+// slotEligibility). A natural fit is 0; a declared eligible on a slot carrying a
+// flat `pen` (wing-backs) uses that; everything else falls back to the role-
+// distance model. Single source of truth for both the draft tag and the match.
+export function slotPenalty(slotElig, playerPos) {
+  if (!slotElig || !playerPos || playerPos === slotElig.natural) return 0;
+  if (slotElig.pen != null && slotElig.elig.includes(playerPos)) return slotElig.pen;
+  return positionPenalty(slotElig.natural, playerPos);
+}
 
 // Display order for progress bar chips: DEF → MID → ATT.
 // Only formations where slot order differs from logical group order need an entry.
