@@ -7096,6 +7096,28 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
 /* Live board sitting in the CPU-turn area, in place of the thinking dots. */
 .bw-draw-live { width: min(460px, 100%); margin: 4px auto 0; }
 
+/* Draw-speed control + skip, under the live board. Mirrors the match-sim speed
+   picker so the two read as the same "how I like to watch" control. */
+.bw-draw-speed-row {
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: 10px 16px; margin-top: 1.2rem;
+}
+.bw-draw-speed-label {
+  display: inline-flex; align-items: center; gap: 7px;
+  font: 600 10px var(--bw-font-display); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--bw-text-low);
+}
+.bw-draw-speed {
+  font: 600 10px var(--bw-font-display); letter-spacing: .06em;
+  color: var(--bw-gold-ink); background: var(--bw-gold); border: none;
+  padding: 4px 20px 4px 9px; border-radius: 5px !important; cursor: pointer;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%278%27 height=%275%27 viewBox=%270 0 8 5%27%3E%3Cpath fill=%27%230a0f0b%27 d=%27M0 0l4 5 4-5z%27/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 6px center;
+}
+.bw-draw-speed:focus { outline: none; }
+.bw-draw-speed-row .bw-draw-skip-btn { margin: 0; width: auto; }
+
 /* Desktop: the panel is wide enough to show the full grid comfortably. */
 @media (min-width: 900px) {
   .bw-draw-panel { width: min(560px, 70vw); }

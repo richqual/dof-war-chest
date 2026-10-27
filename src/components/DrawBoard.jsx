@@ -159,10 +159,18 @@ export default function DrawBoard({
           const m = managers[entry.managerIdx];
           if (!m) return null;
           const isLatest = !entry.pending && entry === picked[picked.length - 1] && isLive;
+          const kit = m.primaryColor || "#1a3a6b";
           return (
             <li
               key={`${entry.managerIdx}-${n}`}
               className={`bw-draw-row${entry.pending ? " is-pending" : ""}${isLatest ? " is-latest" : ""}`}
+              // Tint the row in the club's kit colour so each team reads at a
+              // glance. backgroundImage layers over the class background, so the
+              // is-latest highlight still shows through the transparent half.
+              style={{
+                borderLeft: `4px solid ${kit}`,
+                backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${kit} 24%, transparent), transparent 58%)`,
+              }}
             >
               <KitSwatch
                 primary={m.primaryColor}

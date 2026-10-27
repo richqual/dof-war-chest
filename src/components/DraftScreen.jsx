@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from "react";
 import { POSITIONS, generateBudget, chooseCpuPick, normalizeSearch } from "../data/players";
 import { GROUP_COLORS, FORMATIONS, FORMATION_DISPLAY_ORDER, slotEligibility, slotPenalty } from "../data/formations";
-import { cpuSpendCap, BENCH_MIN_FUND, freeTransferOptions, subDisplayLabel } from "../hooks/draftUtils";
+import { cpuSpendCap, BENCH_MIN_FUND, freeTransferOptions } from "../hooks/draftUtils";
 import { POSITIONS as ALL_POSITIONS } from "../data/players";
 import PlayerCard, { ARCHETYPE_COLOR } from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
 import PositionWheel from "./PositionWheel";
-import TurnTransition from "./TurnTransition";
 import DrawBoard, { roundLabel } from "./DrawBoard";
 import { seasonFilterLabel, ageInSeason } from "../utils/season";
 import DrawPanel from "./DrawPanel";
@@ -14,8 +13,35 @@ import MySquadPanel from "./MySquadPanel";
 import KitSwatch, { readableTextOn, kitAccent } from "./KitSwatch";
 import { playerPrefKey, loadPrefs, savePrefs } from "../utils/filterPrefs";
 
-const CPU_SPIN_DELAY = 900;
-const CPU_PICK_DELAY = 1300;
+// Draw playback speed — how fast CPU turns reveal on the live board. Mirrors the
+// match-sim speed control: device-level, remembered by label so it survives any
+// reordering. INSTANT (0ms) runs the round straight through. This replaces the
+// old per-pick "TRANSFER COMPLETE … CONTINUE" pop-up; the round just fills in on
+// the live board like the order-draw screen, at the speed you pick.
+const DRAW_SPEEDS = [
+  { label: "SLOW",    pick: 2200, spin: 1400 },
+  { label: "NORMAL",  pick: 1300, spin: 900  },
+  { label: "BRISK",   pick: 650,  spin: 450  },
+  { label: "FAST",    pick: 280,  spin: 200  },
+  { label: "INSTANT", pick: 0,    spin: 0    },
+];
+const DEFAULT_DRAW_SPEED_IDX = 1; // NORMAL
+const DRAW_SPEED_STORE_KEY = "tg-draw-speed";
+function loadDrawSpeedIdx() {
+  try {
+    const idx = DRAW_SPEEDS.findIndex(s => s.label === localStorage.getItem(DRAW_SPEED_STORE_KEY));
+    return idx >= 0 ? idx : DEFAULT_DRAW_SPEED_IDX;
+  } catch {
+    return DEFAULT_DRAW_SPEED_IDX;
+  }
+}
+function saveDrawSpeedIdx(idx) {
+  try {
+    if (DRAW_SPEEDS[idx]) localStorage.setItem(DRAW_SPEED_STORE_KEY, DRAW_SPEEDS[idx].label);
+  } catch {
+    // localStorage unavailable (private mode / quota) — just won't persist.
+  }
+}
 
 export default function DraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
@@ -108,7 +134,11 @@ export default function DraftScreen({
   useEffect(() => {
     savePrefs(prevKeyRef.current, { filterEra, filterLeague, filterTiers, sortBy, sortDir });
   }, [filterEra, filterLeague, filterTiers, sortBy, sortDir]);
-  const [transition, setTransition] = useState(null);
+  const [drawSpeedIdx, setDrawSpeedIdx] = useState(loadDrawSpeedIdx);
+  function changeDrawSpeed(idx) {
+    setDrawSpeedIdx(idx);
+    saveDrawSpeedIdx(idx);
+  }
   const [viewingSquadIdx, setViewingSquadIdx] = useState(null);
   const [showOrder, setShowOrder] = useState(false);
   const [pendingPlayer, setPendingPlayer] = useState(null);
@@ -294,32 +324,10 @@ export default function DraftScreen({
     ? (benchRound ? subFund : 0)
     : (activeManager?.carryover || 0);
 
+  // No per-pick pop-up any more: the pick is applied and the live draw board
+  // fills in the row (latest highlighted), auto-advancing at the chosen draw
+  // speed — the round reveals continuously, like the order-draw screen.
   function handlePickPlayer(player) {
-    const prevManagerName = activeManager.dofName || activeManager.name;
-    const prevKit = activeManager;
-    const n = currentOrder.length;
-    const isLastTurn = turnIndex + 1 >= n;
-    const isLastPosition = isLastTurn && positionIndex + 1 >= POSITIONS.length;
-
-    if (!isLastPosition) {
-      let nextManagerIdx, nextPosLabel;
-      if (isLastTurn) {
-        const newRound = draft.round + 1;
-        nextManagerIdx = (0 + newRound) % n;
-        nextPosLabel = draft.positionMode === "random" && positionIndex + 1 < 11
-          ? "?"
-          : subDisplayLabel(draft, POSITIONS[positionIndex + 1]?.key, POSITIONS[positionIndex + 1]?.label || "");
-      } else {
-        nextManagerIdx = currentOrder[turnIndex + 1];
-        nextPosLabel = draft.positionMode === "random" && positionIndex < 11
-          ? "?"
-          : currentPos.label;  // same round, sub mode or fixed
-      }
-      const nextManager = managers[nextManagerIdx];
-      const nextName = nextManager.dofName || nextManager.name;
-      setTransition({ prevManager: prevManagerName, player, nextManager: nextName, nextPosLabel, nextKit: nextManager, prevKit });
-    }
-
     if (player.emergency) emergencySign(player);
     else pickPlayer(player);
   }
@@ -331,21 +339,21 @@ export default function DraftScreen({
   const isRandomStarter = draft.positionMode === "random" && positionIndex < 11;
   const needsSlotDraw = isRandomStarter && (draft.currentSlot === null || draft.currentSlot === undefined);
 
-  // CPU turns run themselves: draw slot (random mode), spin budget, then pick.
-  // Pauses while a transition screen is up so the human can follow along.
+  // CPU turns run themselves: draw slot (random mode), spin budget, then pick —
+  // revealed live on the draw board at the chosen draw speed (no pop-up).
   const isCpuTurn = !!activeManager?.isComputer;
 
   // A bench turn past the top-up loads the sub fund silently — there's no wheel
   // left to spin, so without this the draft would sit on an empty roll area.
   useEffect(() => {
-    if (!autoLoadBudget || isCpuTurn || transition || currentBudget !== null) return;
+    if (!autoLoadBudget || isCpuTurn || currentBudget !== null) return;
     confirmBudget(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoLoadBudget, isCpuTurn, transition, currentBudget, activeManagerIdx, positionIndex, turnIndex]);
+  }, [autoLoadBudget, isCpuTurn, currentBudget, activeManagerIdx, positionIndex, turnIndex]);
 
-  // Draw-board review gates — same two holds as Scout mode. Classic keeps its
-  // TurnTransition pop-ups; these sit alongside, giving the round a readable
-  // summary rather than replacing the per-pick reveal.
+  // Draw-board review gates — same two holds as Scout mode: a readable "you're up
+  // next" board before the human's turn and a "round complete" summary after each
+  // round (one tap per round, not per pick).
   // Acknowledgements live in refs: they must survive re-renders (a stale value
   // would re-show a gate already tapped through) but they are not render inputs
   // themselves. `null` = uninitialised, so resuming a saved draft adopts its
@@ -371,7 +379,8 @@ export default function DraftScreen({
 
   useEffect(() => {
     // Freeze CPU picks behind a review gate so the board can't change underneath.
-    if (!isCpuTurn || transition || roundReview !== null) return;
+    if (!isCpuTurn || roundReview !== null) return;
+    const speed = DRAW_SPEEDS[drawSpeedIdx] || DRAW_SPEEDS[DEFAULT_DRAW_SPEED_IDX];
     const t = setTimeout(() => {
       // Online, the handlers below are all `isMyTurn`-guarded and a CPU turn is
       // nobody's turn, so the draft would sit still. `stepCpuTurn` does the same
@@ -400,24 +409,10 @@ export default function DraftScreen({
         else if (cpuEmergencyPick) cpuEmergencyPick();
         else skipTurn();
       }
-    }, needsSlotDraw ? CPU_SPIN_DELAY : currentBudget === null ? CPU_SPIN_DELAY : CPU_PICK_DELAY);
+    }, needsSlotDraw ? speed.spin : currentBudget === null ? speed.spin : speed.pick);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isCpuTurn, transition, currentBudget, activeManagerIdx, positionIndex, turnIndex, needsSlotDraw, roundReview]);
-
-  if (transition) {
-    return (
-      <TurnTransition
-        prevManager={transition.prevManager}
-        player={transition.player}
-        nextManager={transition.nextManager}
-        posLabel={transition.nextPosLabel}
-        nextKit={transition.nextKit}
-        prevKit={transition.prevKit}
-        onContinue={() => setTransition(null)}
-      />
-    );
-  }
+  }, [isCpuTurn, currentBudget, activeManagerIdx, positionIndex, turnIndex, needsSlotDraw, roundReview, drawSpeedIdx]);
 
   // CM00/01-style theming: the chrome takes on the active club's kit colours
   const kitPrimary = activeManager?.primaryColor || "#1a3a6b";
@@ -725,11 +720,21 @@ export default function DraftScreen({
             <div className="bw-draw-live">
               <DrawBoard draft={draft} />
             </div>
-            {skipCpuTurns && (
-              <button className="bw-cta-secondary" style={{ marginTop: "1.2rem", width: "auto" }} onClick={skipCpuTurns}>
-                ⏭ SKIP TO END OF ROUND
-              </button>
-            )}
+            <div className="bw-draw-speed-row">
+              <label className="bw-draw-speed-label">
+                Draw speed
+                <select className="bw-draw-speed" value={drawSpeedIdx} onChange={e => changeDrawSpeed(Number(e.target.value))}>
+                  {DRAW_SPEEDS.map((s, i) => (
+                    <option key={s.label} value={i}>{s.label}</option>
+                  ))}
+                </select>
+              </label>
+              {skipCpuTurns && (
+                <button className="bw-cta-secondary bw-draw-skip-btn" onClick={skipCpuTurns}>
+                  ⏭ SKIP TO END OF ROUND
+                </button>
+              )}
+            </div>
           </div>
         ) : needsSlotDraw ? (
           <div className="bw-roll-area">
