@@ -657,7 +657,7 @@ function AppInner({ onMultiplayer, auth }) {
     draft, activeManager, activeManagerIdx, currentPos, scoutFreeAgentList,
     startGame, confirmBudget, confirmSlot, pickPlayer, emergencySign, setTeamName,
     swapSquadPlayers, setTactics, setFormation, setCaptain, restartGame, restartTournament, getAvailablePlayers, getTakenPlayers,
-    skipTurn, respin, autoCompleteDraft, skipCpuTurns,
+    skipTurn, respin, autoCompleteDraft, skipCpuTurns, cpuEmergencyPick,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
     startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, unpickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
     startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, dismissReScoutNotice, revealScoutRatings, setScoutFilter, commissionMission, confirmMission, scoutSkipCpuTurns, scoutStepCpuTurn,
@@ -1174,6 +1174,7 @@ function AppInner({ onMultiplayer, auth }) {
           respin={respin}
           autoCompleteDraft={autoCompleteDraft}
           skipCpuTurns={skipCpuTurns}
+          cpuEmergencyPick={cpuEmergencyPick}
         />
       </>
     );
@@ -1265,7 +1266,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "5.4.5";
+const APP_VERSION = "5.4.6";
 
 function AppFooter() {
   return (

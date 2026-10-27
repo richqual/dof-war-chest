@@ -20,7 +20,7 @@ const CPU_PICK_DELAY = 1300;
 export default function DraftScreen({
   draft, activeManager, activeManagerIdx, currentPos,
   confirmBudget, confirmSlot, pickPlayer, emergencySign, getAvailablePlayers, getTakenPlayers,
-  skipTurn, respin, autoCompleteDraft, skipCpuTurns,
+  skipTurn, respin, autoCompleteDraft, skipCpuTurns, cpuEmergencyPick,
   stepCpuTurn, // multiplayer only — see the CPU effect below
   myTurn = true, // false in multiplayer when it's someone else's go
 }) {
@@ -393,6 +393,11 @@ export default function DraftScreen({
       } else {
         const pick = chooseCpuPick(getAvailablePlayers(currentPos.key), cpuSpendCap(draft, currentBudget), currentPos.key, activeManager?.realClub || null);
         if (pick) handlePickPlayer(pick);
+        // Nothing affordable: take the never-stranded emergency pick (widen/relax
+        // then lowest-rated with a budget top-up, or a free bench transfer) rather
+        // than skipping the slot empty. Falls back to skipTurn only where no
+        // emergency handler is wired (online, which steps CPUs via stepCpuTurn).
+        else if (cpuEmergencyPick) cpuEmergencyPick();
         else skipTurn();
       }
     }, needsSlotDraw ? CPU_SPIN_DELAY : currentBudget === null ? CPU_SPIN_DELAY : CPU_PICK_DELAY);
