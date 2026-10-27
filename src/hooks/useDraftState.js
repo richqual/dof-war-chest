@@ -425,6 +425,19 @@ export function useDraftState() {
     if (next.phase === "complete") setScreen(draft.managerTiming === "before" ? "squads" : "manager-draft");
   }
 
+  // A paced live CPU turn (the DraftScreen effect) where nothing is affordable.
+  // Routes through the never-stranded chain — noAffordablePick widens/relaxes the
+  // pool, then signs the lowest-rated with a budget top-up (XI) or a free bench
+  // transfer — rather than skipTurn(), which banks the money and leaves the slot
+  // empty ("no signing"). The batch autoComplete/skipCpuTurns loops already do
+  // this; this gives the one-pick-per-tick path the same guarantee.
+  function cpuEmergencyPick() {
+    if (!draft) return;
+    const next = noAffordablePick(draft, resolveCurrentPosKey(draft));
+    setDraft(next);
+    if (next.phase === "complete") setScreen(draft.managerTiming === "before" ? "squads" : "manager-draft");
+  }
+
   function assignManagers(assignments) {
     const next = {
       ...draft,
@@ -1267,7 +1280,7 @@ export function useDraftState() {
     draft, activeManager, activeManagerIdx, currentPos, scoutFreeAgentList,
     startGame, confirmBudget, confirmSlot, pickPlayer, emergencySign, setTeamName,
     swapSquadPlayers, setTactics, setFormation, setCaptain, restartGame, restartTournament, getAvailablePlayers, getTakenPlayers,
-    skipTurn, respin, autoCompleteDraft, skipCpuTurns,
+    skipTurn, respin, autoCompleteDraft, skipCpuTurns, cpuEmergencyPick,
     completeDraw, recordMatchResult, assignManagers, setPlayerPool,
     startWarChestGame, beginChestPhase, selectWarChest, beginBuildPhase, pickWarChestPlayer, unpickWarChestPlayer, completeWarChestSquad, getWarChestPlayers,
     startScoutGame, confirmScoutBudget, pickScoutPlayer, reScout, dismissReScoutNotice, revealScoutRatings, setScoutFilter, commissionMission, confirmMission, scoutSkipCpuTurns, scoutStepCpuTurn,
