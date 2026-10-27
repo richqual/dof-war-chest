@@ -6,10 +6,9 @@ import {
   serializeDraft, deserializeDraft,
   applyPick, rollBudget, buildInitialDraft,
   carryFor, consumeCarry, isBenchRound, cpuSpendCap, needsTopUp, withCashInjection, freeTransferOptions, BENCH_MIN_FUND,
-  availablePlayersFor, getPlayersFromState, currentEligPool,
+  slotCandidateIds, getPlayersFromState, currentEligPool,
   autoDrawSlot, activeFormation, resolveCurrentPosKey, resolveCurrentPos,
   selectGamePlayers, randomizePlayerValues, generatePlayerForm, generatePlayerOrder, effectiveSeason,
-  widenedEligPool, OUTFIELD_POSITIONS,
   buildRealTeamsPool, isDraftableBy, dedupeByName, resolveValue,
   POS_LABELS, getFormArrow,
   buildInitialWarChestDraft, getWarChestPlayersForSlot, autoBuildWarChestSquad, assignWarChestBudget,
@@ -391,25 +390,15 @@ export function useDraftState() {
   }
 
   function getAvailablePlayers(posKey) {
-    const activeManager = draft?.managers?.[draft.currentOrder[draft.turnIndex]];
+    if (!draft) return [];
+    const activeManager = draft.managers?.[draft.currentOrder[draft.turnIndex]];
     const rouletteAssignment = activeManager
       ? { era: activeManager.assignedEra, league: activeManager.assignedLeague }
       : null;
-    let players = availablePlayersFor(posKey, draft ? draft.takenIds : [], rouletteAssignment, draft ? currentEligPool(draft) : null, draft?.freeSubs);
-    if (draft?.availablePlayerIds) {
-      players = players.filter(p => isDraftableBy(draft, activeManager, p.id));
-    }
-    // Exhaustion: a scarce position ran out in a thin season — widen to adjacent
-    // positions so the slot is never empty (signed as an OOP stand-in).
-    if (!players.length && posKey !== "GK" && posKey !== "GKSUB") {
-      for (const pool of [widenedEligPool(posKey), OUTFIELD_POSITIONS]) {
-        if (!pool) continue;
-        let w = availablePlayersFor(posKey, draft.takenIds, rouletteAssignment, pool, draft?.freeSubs);
-        if (draft?.availablePlayerIds) w = w.filter(p => isDraftableBy(draft, activeManager, p.id));
-        if (w.length) { players = w; break; }
-      }
-    }
-    players = dedupeByName(players, draft, activeManager);
+    // Same fallback ladder the CPU uses (slice → position-widen → relax the
+    // roulette slice) so a thin season never leaves a human slot empty either.
+    const { players: raw } = slotCandidateIds(draft, posKey, currentEligPool(draft), activeManager, rouletteAssignment);
+    let players = dedupeByName(raw, draft, activeManager);
     players = players.map(p => {
       const base = applySeasonStats(p, effectiveSeason(draft, p));
       return { ...base, value: resolveValue(draft?.playerValues, base) };
