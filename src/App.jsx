@@ -1265,7 +1265,7 @@ function AppInner({ onMultiplayer, auth }) {
   return <>{globalMenu}</>;
 }
 
-const APP_VERSION = "5.4.3";
+const APP_VERSION = "5.4.5";
 
 function AppFooter() {
   return (

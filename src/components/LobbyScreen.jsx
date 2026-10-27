@@ -13,7 +13,12 @@ const CLASSIC_DEFAULTS = {
   hideRatings: true,
   dynamicValues: true,
   leftoverLolly: false,
-  freeSubs: false,
+  // Season mode (always on since the SeasonPicker defaults to a season filter)
+  // pins every card to an era, so the scarce wide roles thin out fast. Default
+  // the bench to open subs — any outfielder, no position band — so a thin
+  // season fills a sensible bench rather than scraping the last wide players.
+  // No cost effect; still toggleable, and "remember preferences" keeps a choice.
+  freeSubs: true,
   dynamicForm: true,
   realTeams: false,
   managerTiming: "before",

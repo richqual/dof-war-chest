@@ -135,7 +135,12 @@ export function availablePlayersFor(posKey, takenIds, rouletteAssignment, eligPo
     if (freeSubs) {
       return PLAYERS.filter(p => p.pos !== "GK" && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
     }
-    return PLAYERS.filter(p => SUB_POSITIONS[posKey].includes(p.pos) && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
+    // Normally a bench slot takes only its own position band. When the
+    // exhaustion path passes a widening pool (the slot's wide/scarce roles ran
+    // dry in a thin season), honour it so the slot takes an out-of-position
+    // stand-in rather than being left empty — the same net the XI already has.
+    const accepted = (eligPool && eligPool.length) ? eligPool : SUB_POSITIONS[posKey];
+    return PLAYERS.filter(p => accepted.includes(p.pos) && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
   }
   if (posKey === "GK") {
     return PLAYERS.filter(p => p.pos === "GK" && !taken.has(p.id) && matchesRoulette(p, rouletteAssignment));
@@ -174,7 +179,18 @@ export const OUTFIELD_POSITIONS = ["RB", "RWB", "CB", "LB", "LWB", "DM", "CM", "
 // The slot's own position plus its nearest cover, for widening when exhausted.
 export function widenedEligPool(posKey) {
   const fb = POS_FALLBACK[posKey];
-  return fb ? [...new Set([posKey, ...fb])] : null;
+  if (fb) return [...new Set([posKey, ...fb])];
+  // Bench sub slots aren't real positions, so they have no POS_FALLBACK entry.
+  // Widen to the slot's own position band plus each member's nearest cover, so
+  // an exhausted sub slot (e.g. WIDSUB in a thin season) fills nearest-first
+  // before the OUTFIELD_POSITIONS catch-all.
+  const subPos = SUB_POSITIONS[posKey];
+  if (subPos) {
+    const widened = new Set(subPos);
+    for (const p of subPos) for (const adj of (POS_FALLBACK[p] || [])) widened.add(adj);
+    return [...widened];
+  }
+  return null;
 }
 
 // The single source of truth for what a player costs. No entry in PLAYERS has a
@@ -815,28 +831,48 @@ export function buildInitialDraft(clubs, options = {}) {
   };
 }
 
+// The full candidate-fetch ladder for a slot, shared by the CPU
+// (getPlayersFromState) and human (getAvailablePlayers) paths. Returns the raw,
+// un-materialised players plus whether position-widening was needed (which the
+// CPU uses to skip its position-band narrowing). The ladder:
+//   1. the slot's own pool within the manager's draft-roulette slice
+//   2. widen to adjacent positions, then any outfielder — scarce roles in thin
+//      seasons; GK/GKSUB never widen (a keeper slot stays a keeper)
+//   3. relax the roulette slice (era/league) as a last resort — a CPU locked to
+//      one era/league can run its slice dry even after position-widening, so
+//      sign anyone available rather than leave the slot empty
+// Only returns empty when the entire remaining pool is genuinely exhausted.
+export function slotCandidateIds(d, posKey, eligPool, activeManager, rouletteAssignment) {
+  const draftable = (list) => (d.availablePlayerIds instanceof Set)
+    ? list.filter(p => isDraftableBy(d, activeManager, p.id))
+    : list;
+  const isGK = posKey === "GK" || posKey === "GKSUB";
+  let players = draftable(availablePlayersFor(posKey, d.takenIds, rouletteAssignment, eligPool, d.freeSubs));
+  let widened = false;
+  if (!players.length && !isGK) {
+    for (const pool of [widenedEligPool(posKey), OUTFIELD_POSITIONS]) {
+      if (!pool) continue;
+      const w = draftable(availablePlayersFor(posKey, d.takenIds, rouletteAssignment, pool, d.freeSubs));
+      if (w.length) { players = w; widened = true; break; }
+    }
+  }
+  if (!players.length && rouletteAssignment && (rouletteAssignment.era || rouletteAssignment.league)) {
+    const pools = isGK ? [eligPool] : [eligPool, widenedEligPool(posKey), OUTFIELD_POSITIONS];
+    for (const pool of pools) {
+      const w = draftable(availablePlayersFor(posKey, d.takenIds, null, pool, d.freeSubs));
+      if (w.length) { players = w; widened = !isGK && pool !== eligPool; break; }
+    }
+  }
+  return { players, widened };
+}
+
 export function getPlayersFromState(d, posKey) {
   const activeManager = d.managers[d.currentOrder[d.turnIndex]];
   const rouletteAssignment = activeManager
     ? { era: activeManager.assignedEra, league: activeManager.assignedLeague }
     : null;
-  let players = availablePlayersFor(posKey, d.takenIds, rouletteAssignment, currentEligPool(d), d.freeSubs);
-  if (d.availablePlayerIds instanceof Set) {
-    players = players.filter(p => isDraftableBy(d, activeManager, p.id));
-  }
-  // Exhaustion: the slot's own pool (incl. the normal LM←LW broadening) is empty
-  // — a scarce wide role in a thin season. Widen to adjacent positions so the
-  // slot can always be filled by an out-of-position stand-in (OOP −5 in match).
-  let widened = false;
-  if (!players.length && posKey !== "GK" && posKey !== "GKSUB") {
-    for (const pool of [widenedEligPool(posKey), OUTFIELD_POSITIONS]) {
-      if (!pool) continue;
-      let w = availablePlayersFor(posKey, d.takenIds, rouletteAssignment, pool, d.freeSubs);
-      if (d.availablePlayerIds instanceof Set) w = w.filter(p => isDraftableBy(d, activeManager, p.id));
-      if (w.length) { players = w; widened = true; break; }
-    }
-  }
-  players = dedupeByName(players, d, activeManager);
+  const { players: raw, widened } = slotCandidateIds(d, posKey, currentEligPool(d), activeManager, rouletteAssignment);
+  let players = dedupeByName(raw, d, activeManager);
   players = players.map(p => {
     // Season games: materialise the player as he was HIS rolled season (rating,
     // attributes, value band) before the rolled value is read, so the CPU
