@@ -16,6 +16,9 @@ export const COLS = [
   // Phase 1 — Season Pool identity + career-window columns (additive).
   // All optional: a card only carries them once Wikidata enrichment matches it.
   "wikidataId", "birthYear", "firstSeason", "lastSeason",
+  // Growth type — per-player career shape (early/late/evergreen/fragile),
+  // additive + optional. Absent → "standard" (the plain position curve).
+  "growth",
 ];
 
 // The original Phase-0 column set (the 21 that reproduce today's players.js).
@@ -34,6 +37,7 @@ export const NUMERIC_COLS = new Set([
 export const OPTIONAL_COLS = new Set([
   "pos2", "nationality_code",
   "wikidataId", "birthYear", "firstSeason", "lastSeason",
+  "growth",
 ]);
 
 const FORBIDDEN = /[",\n\r\t]/; // chars that would break the simple CSV

@@ -187,8 +187,37 @@ const RATING_FLOOR = 50;   // nor below this absolute floor
 const RISE_SCALE = 0.62;
 const DECLINE_SCALE = 0.7;
 
-function curveFor(pos) {
-  return POSITION_CURVE[pos] || DEFAULT_CURVE;
+// Per-player GROWTH TYPES reshape the position curve so careers age in distinct
+// shapes rather than one flat rate. `growth` is optional authored data; absent or
+// unknown → "standard" (the plain position curve, = byte-for-byte prior behaviour).
+//   dPeak       shifts the peak age (early peakers −, late bloomers +)
+//   riseMult    scales the youth climb (lower = stronger younger)
+//   declineMult scales the post-peak fall (lower = ages gracefully)
+//   plateau     flat years held at peak before any decline (evergreens)
+// The V2 global RISE_SCALE/DECLINE_SCALE still apply on top in seasonRating.
+// Values are playtestable knobs, tuned alongside the V2 dials — not spec.
+export const GROWTH_TYPES = {
+  standard:  { dPeak: 0,  riseMult: 1.00, declineMult: 1.00, plateau: 0 },
+  early:     { dPeak: -2, riseMult: 0.70, declineMult: 1.15, plateau: 0 },
+  late:      { dPeak: 3,  riseMult: 1.35, declineMult: 0.70, plateau: 0 },
+  evergreen: { dPeak: 1,  riseMult: 0.85, declineMult: 0.50, plateau: 3 },
+  fragile:   { dPeak: 0,  riseMult: 0.90, declineMult: 2.00, plateau: 0 },
+};
+
+// Resolve a card's effective ageing curve: its position curve adjusted by its
+// growth type. Accepts a card (preferred — reads pos + growth) or a bare pos
+// string. Returns { peakAge, rise, decline, plateau }.
+function curveFor(card) {
+  const pos = typeof card === "string" ? card : card?.pos;
+  const base = POSITION_CURVE[pos] || DEFAULT_CURVE;
+  const growth = (card && typeof card === "object" && card.growth) || "standard";
+  const g = GROWTH_TYPES[growth] || GROWTH_TYPES.standard;
+  return {
+    peakAge: base.peakAge + g.dPeak,
+    rise: base.rise * g.riseMult,
+    decline: base.decline * g.declineMult,
+    plateau: g.plateau,
+  };
 }
 
 // The player's rating in end-year season S, derived from the peak card by the
@@ -198,13 +227,15 @@ export function seasonRating(card, season) {
   if (!card || season == null || card.birthYear == null || card.rating == null) {
     return card ? card.rating : null;
   }
-  const { peakAge, decline, rise } = curveFor(card.pos);
+  const { peakAge, decline, rise, plateau } = curveFor(card);
   const age = ageInSeason(card.birthYear, season);
   const peak = card.rating;
-  // Before peak: climb from youth. After peak: decline at the position's rate.
-  const delta = age <= peakAge
-    ? -rise * RISE_SCALE * (peakAge - age)
-    : -decline * DECLINE_SCALE * (age - peakAge);
+  // Before peak: climb from youth. Through the plateau: hold at peak. After the
+  // plateau: decline at the (growth-adjusted) position rate.
+  let delta;
+  if (age <= peakAge) delta = -rise * RISE_SCALE * (peakAge - age);
+  else if (age <= peakAge + plateau) delta = 0;
+  else delta = -decline * DECLINE_SCALE * (age - peakAge - plateau);
   const floored = Math.max(peak - MAX_DROP, RATING_FLOOR, peak + delta);
   return Math.round(Math.min(peak, floored));
 }
@@ -223,13 +254,14 @@ export function seasonReputation(card, season) {
   if (!card || season == null || card.birthYear == null || card.rating == null) {
     return card ? card.rating : null;
   }
-  const { peakAge } = curveFor(card.pos);
+  const { peakAge, plateau } = curveFor(card);
   const age = ageInSeason(card.birthYear, season);
   const peak = card.rating;
   const rating = seasonRating(card, season);
   if (age >= peakAge) {
-    // Past peak: reputation clings to the peak, decaying slowly.
-    return Math.round(Math.min(peak, Math.max(rating, peak - REP_DECAY * (age - peakAge))));
+    // Past peak: reputation clings to the peak, decaying slowly from the end of
+    // any plateau (so evergreens stay dear right across their flat years).
+    return Math.round(Math.min(peak, Math.max(rating, peak - REP_DECAY * Math.max(0, age - peakAge - plateau))));
   }
   // Pre-peak: reputation sits below current ability (the bargain window).
   const lag = Math.min(REP_MAX_LAG, YOUTH_LAG * (peakAge - age));
@@ -267,7 +299,7 @@ export function seasonAttributes(card, season) {
     return base;
   }
   const delta = seasonRating(card, season) - card.rating; // ≤ 0 mostly
-  const { peakAge } = curveFor(card.pos);
+  const { peakAge } = curveFor(card);
   const age = ageInSeason(card.birthYear, season);
   const extraPace = Math.max(0, age - peakAge) * PACE_AGE_PENALTY;
   const out = {};
@@ -292,7 +324,7 @@ export function seasonAttributes(card, season) {
 export function peakSeasonOf(card) {
   const w = cardWindow(card);
   if (card && card.birthYear != null) {
-    const { peakAge } = curveFor(card.pos);
+    const { peakAge } = curveFor(card);
     const peak = card.birthYear + peakAge + 1; // the season he turns peakAge
     if (!w) return Math.max(FIRST_SEASON, Math.min(LATEST_SEASON, peak));
     return Math.max(w.from, Math.min(w.to, peak));

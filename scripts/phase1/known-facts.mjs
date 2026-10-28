@@ -106,6 +106,34 @@ check("applySeasonStats is a no-op without a season", applySeasonStats(gerrard, 
 check("applySeasonStats is a no-op without birthYear",
   applySeasonStats({ ...gerrard, birthYear: null }, 2005).rating === gerrard.rating);
 
+console.log("\n── Growth types: per-player career shapes ──");
+const { GROWTH_TYPES } = season;
+const asStd = (c) => ({ ...c, growth: "standard" });
+const atAge = (c, age) => c.birthYear + age + 1; // season in which the card is `age`
+// Every authored growth value must be a known type (catches a CSV typo at build).
+check("all authored growth values are known types",
+  PLAYERS.every((p) => p.growth == null || p.growth in GROWTH_TYPES),
+  PLAYERS.filter((p) => p.growth != null && !(p.growth in GROWTH_TYPES)).map((p) => `${p.name}:${p.growth}`).join(", "));
+// The starter set reached the build.
+check("Rooney authored as early", cardsFor("Wayne Rooney").some((c) => c.growth === "early"));
+check("Messi authored as evergreen", cardsFor("Lionel Messi").some((c) => c.growth === "evergreen"));
+// early: stronger young than the SAME card as standard.
+check("early peaker rated higher at 18 than standard", (() => {
+  const c = cardsFor("Wayne Rooney").find((p) => p.birthYear);
+  return c && seasonRating(c, atAge(c, 18)) > seasonRating(asStd(c), atAge(c, 18));
+})());
+// late: weaker young, stronger old than standard.
+check("late bloomer lower at 18 but higher at 31 than standard", (() => {
+  const c = cardsFor("N'Golo Kanté").find((p) => p.birthYear);
+  return c && seasonRating(c, atAge(c, 18)) < seasonRating(asStd(c), atAge(c, 18))
+           && seasonRating(c, atAge(c, 31)) > seasonRating(asStd(c), atAge(c, 31));
+})());
+// evergreen: holds rating better than standard well past the standard peak.
+check("evergreen holds rating better than standard at 31", (() => {
+  const c = cardsFor("Lionel Messi").find((p) => p.birthYear);
+  return c && seasonRating(c, atAge(c, 31)) > seasonRating(asStd(c), atAge(c, 31));
+})());
+
 // Career windows must not run past a plausible playing age — a player should
 // only be draftable in seasons he actually played (Gerrard stops in 2014/15;
 // Zlatan legitimately reaches 41, so the bar is generous). Guards against a
