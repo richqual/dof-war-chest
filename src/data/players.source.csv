@@ -1,4 +1,4 @@
-id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,phy,nation,era,league,archetype,nationality_code,wikidataId,birthYear,firstSeason,lastSeason
+id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,phy,nation,era,league,archetype,nationality_code,wikidataId,birthYear,firstSeason,lastSeason,growth
 1,Peter Schmeichel,Man Utd,1991–99,GK,,90,T1,34,58,58,13,62,22,47,76,🇩🇰,classic,premier_league,Shot Stopper,,Q182314,1963,1991,2003
 2,Edwin van der Sar,Man Utd,2005–11,GK,,88,T2,21,37,48,8,74,25,48,72,🇳🇱,classic,premier_league,Organiser,,Q482955,1970,1990,2011
 3,Pepe Reina,Liverpool,2005–14,GK,,83,T3,14,23,48,12,69,24,46,72,🇪🇸,golden,premier_league,Organiser,,Q163666,1982,2000,2025
@@ -123,7 +123,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 403,Yaya Touré,Man City,2010–18,DM,,89,T2,37,66,63,50,75,62,91,92,🇨🇮,golden,premier_league,Warrior,,Q184277,1983,2006,2018
 404,Steven Gerrard,Liverpool,1998–15,DM,,94,T1,79,135,64,57,75,65,92,89,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,Warrior,,Q459830,1980,1998,2015
 405,Fernandinho,Man City,2013–22,DM,,86,T2,27,43,66,47,69,58,89,88,🇧🇷,golden,premier_league,Grinder,,Q459356,1985,2013,2022
-406,N'Golo Kanté,Chelsea,2016–23,DM,,88,T2,32,58,66,47,71,63,90,87,🇫🇷,modern,premier_league,Grinder,,Q16665941,1991,2016,2023
+406,N'Golo Kanté,Chelsea,2016–23,DM,,88,T2,32,58,66,47,71,63,90,87,🇫🇷,modern,premier_league,Grinder,,Q16665941,1991,2016,2023,late
 407,Rodri,Man City,2019–,DM,,92,T1,64,102,74,50,73,63,95,91,🇪🇸,modern,premier_league,Grinder,,Q20994118,1996,2015,2026
 408,Declan Rice,Arsenal,2023–,DM,,87,T2,30,49,63,49,70,60,88,89,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,Warrior,,Q30007142,1999,2023,2026
 409,Nemanja Matić,Chelsea,2014–17,DM,,81,T3,10,18,60,43,66,59,86,82,🇷🇸,golden,premier_league,Grinder,,Q297603,1988,2009,2026
@@ -148,11 +148,11 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 428,Oriol Romeu,Southampton,2015–22,DM,,69,T5,0,0,59,35,60,48,78,76,🇪🇸,modern,premier_league,Grinder,,Q274523,1991,2010,2025
 429,Lee Cattermole,Sunderland,2009–19,DM,,70,T5,1,2,56,38,62,51,82,78,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,Grinder,,Q83494,1988,2009,2026
 430,Karl Henry,Wolves,2009–15,DM,,69,T5,0,0,55,35,64,49,77,74,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,Grinder,,Q19350,1982,,
-500,Paul Scholes,Man Utd,1993–13,CM,,91,T2,55,91,65,64,89,82,58,69,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,Technician,,Q45613,1974,1993,2013
+500,Paul Scholes,Man Utd,1993–13,CM,,91,T2,55,91,65,64,89,82,58,69,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,Technician,,Q45613,1974,1993,2013,evergreen
 501,Frank Lampard,Chelsea,2001–14,CM,,92,T1,67,105,69,65,78,74,70,85,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,Warrior,,Q41533,1978,2001,2015
 502,Kevin De Bruyne,Man City,2015–,CAM,CM,97,T1,139,229,83,89,90,97,31,70,🇧🇪,modern,premier_league,Maverick,,Q357984,1991,2012,2026
 503,David Beckham,Man Utd,1992–03,RM,RW,89,T2,40,71,75,65,86,89,49,62,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,Technician,,Q10520,1975,1993,2013
-504,Luka Modrić,Spurs,2008–12,CM,,89,T2,39,67,67,66,89,84,56,69,🇭🇷,golden,premier_league,Technician,,Q483837,1985,2008,2026
+504,Luka Modrić,Spurs,2008–12,CM,,89,T2,39,67,67,66,89,84,56,69,🇭🇷,golden,premier_league,Technician,,Q483837,1985,2008,2026,evergreen
 505,Cesc Fàbregas,Arsenal,2003–11,CAM,CM,90,T2,48,78,73,81,92,93,27,64,🇪🇸,golden,premier_league,Technician,,Q17499,1987,1997,2023
 506,Mesut Özil,Arsenal,2013–21,CAM,CM,88,T2,45,69,77,81,86,93,22,63,🇩🇪,golden,premier_league,Maverick,,Q83488,1988,2006,2021
 507,Juan Mata,Chelsea,2011–14,CAM,CM,85,T3,24,41,71,72,92,90,26,62,🇪🇸,golden,premier_league,Technician,,Q168740,1988,2007,2022
@@ -174,7 +174,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 523,Glenn Whelan,Stoke,2008–17,CM,,71,T5,0,0,58,54,79,73,46,62,🇮🇪,golden,premier_league,Technician,,Q316698,1984,2001,2019
 524,Jack Cork,Burnley,2017–23,CM,,71,T5,0,0,63,53,77,74,46,60,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,Technician,,Q438025,1989,2006,2011
 525,Tom Cleverley,Everton,2015–17,CM,,71,T5,0,0,59,51,78,73,50,62,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,Technician,,Q10577,1989,2008,2017
-600,Cristiano Ronaldo,Man Utd,2003–09,RW,,96,T1,102,174,99,85,75,95,30,72,🇵🇹,classic,premier_league,Athlete,,Q11571,1985,2003,2022
+600,Cristiano Ronaldo,Man Utd,2003–09,RW,,96,T1,102,174,99,85,75,95,30,72,🇵🇹,classic,premier_league,Athlete,,Q11571,1985,2003,2022,evergreen
 601,Mohamed Salah,Liverpool,2017–,RW,,97,T1,122,199,99,82,76,94,29,73,🇪🇬,modern,premier_league,Athlete,,Q1354960,1992,2014,2026
 602,Bukayo Saka,Arsenal,2019–,RW,,87,T2,14,44,99,79,75,95,27,71,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,Athlete,,Q59306386,2001,2018,2026
 603,Eden Hazard,Chelsea,2012–19,LW,,92,T1,65,100,92,90,81,98,28,68,🇧🇪,golden,premier_league,Maverick,,Q214204,1991,2007,2023
@@ -202,7 +202,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 625,Matt Ritchie,Newcastle,2016–23,RW,,71,T5,0,0,91,69,65,82,19,55,🏴󠁧󠁢󠁳󠁣󠁴󠁿,modern,premier_league,Athlete,,Q3852031,1989,2013,2024
 626,Jordon Ibe,Bournemouth,2016–20,RW,,71,T5,0,0,90,67,63,81,16,60,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,Athlete,,Q6277526,1995,2012,2014
 700,Thierry Henry,Arsenal,1999–07,LW,,93,T1,84,135,99,80,77,95,29,70,🇫🇷,classic,premier_league,Athlete,,Q45901,1977,1994,2012
-701,Ryan Giggs,Man Utd,1990–14,LW,,95,T1,119,193,99,85,77,98,31,69,🏴󠁧󠁢󠁷󠁬󠁳󠁿,classic,premier_league,Athlete,,Q10524,1973,1990,2014
+701,Ryan Giggs,Man Utd,1990–14,LW,,95,T1,119,193,99,85,77,98,31,69,🏴󠁧󠁢󠁷󠁬󠁳󠁿,classic,premier_league,Athlete,,Q10524,1973,1990,2014,evergreen
 702,Sadio Mané,Liverpool,2016–22,LW,,91,T1,58,90,99,81,75,91,28,68,🇸🇳,modern,premier_league,Athlete,,Q209942,1992,2017,2023
 703,Heung-Min Son,Spurs,2015–,LW,,90,T2,57,92,99,79,75,94,30,68,🇰🇷,modern,premier_league,Athlete,,Q439722,1992,2010,2025
 704,Robert Pires,Arsenal,2000–06,LW,,90,T2,56,89,88,82,86,98,25,59,🇫🇷,classic,premier_league,Technician,,Q113156,1973,1998,2011
@@ -231,13 +231,13 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 801,Alan Shearer,Newcastle,1996–06,ST,,95,T1,126,195,81,91,66,77,32,91,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,Warrior,,Q483583,1970,1996,2006
 802,Harry Kane,Spurs,2014–23,ST,,91,T1,50,85,86,90,77,78,28,93,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,Leader,,Q969725,1993,2009,2026
 803,Ruud van Nistelrooy,Man Utd,2001–06,ST,,90,T1,52,80,80,85,63,77,27,88,🇳🇱,classic,premier_league,Grinder,,Q45626,1976,2001,2012
-804,Didier Drogba,Chelsea,2004–12,ST,,92,T1,79,136,85,89,67,76,29,93,🇨🇮,golden,premier_league,Warrior,,Q48892,1978,1998,2015
-805,Wayne Rooney,Man Utd,2004–17,ST,,90,T1,54,90,82,90,63,74,27,90,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,Warrior,,Q266613,1985,2002,2018
+804,Didier Drogba,Chelsea,2004–12,ST,,92,T1,79,136,85,89,67,76,29,93,🇨🇮,golden,premier_league,Warrior,,Q48892,1978,1998,2015,late
+805,Wayne Rooney,Man Utd,2004–17,ST,,90,T1,54,90,82,90,63,74,27,90,🏴󠁧󠁢󠁥󠁮󠁧󠁿,golden,premier_league,Warrior,,Q266613,1985,2002,2018,early
 806,Robin van Persie,Arsenal,2004–12,ST,,92,T2,65,114,89,99,67,91,18,77,🇳🇱,golden,premier_league,Maverick,,Q2339,1983,2003,2015
-807,Michael Owen,Liverpool,1996–04,ST,,91,T2,61,104,93,88,65,83,25,78,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,Athlete,,Q128829,1979,1995,2013
-808,Fernando Torres,Liverpool,2007–11,ST,,90,T2,55,93,91,90,66,84,22,80,🇪🇸,golden,premier_league,Athlete,,Q42731,1984,1995,2018
+807,Michael Owen,Liverpool,1996–04,ST,,91,T2,61,104,93,88,65,83,25,78,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,Athlete,,Q128829,1979,1995,2013,early
+808,Fernando Torres,Liverpool,2007–11,ST,,90,T2,55,93,91,90,66,84,22,80,🇪🇸,golden,premier_league,Athlete,,Q42731,1984,1995,2018,fragile
 809,Andy Cole,Man Utd,1995–01,ST,,87,T2,41,64,79,83,65,76,26,85,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,Grinder,,Q216928,1971,1989,2008
-810,Robbie Fowler,Liverpool,1993–01,ST,,85,T2,29,48,76,82,60,70,29,80,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,Grinder,,Q206548,1975,1993,2007
+810,Robbie Fowler,Liverpool,1993–01,ST,,85,T2,29,48,76,82,60,70,29,80,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,Grinder,,Q206548,1975,1993,2007,early
 811,Les Ferdinand,Newcastle,1995–97,ST,,86,T2,29,50,75,87,60,74,29,86,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,Warrior,,Q311709,1966,1986,2003
 812,Alexander Isak,Newcastle,2022–,ST,,85,T3,26,42,95,89,60,77,19,76,🇸🇪,modern,premier_league,Athlete,,Q23759917,1999,2017,2026
 813,Andriy Shevchenko,Chelsea,2006–08,ST,,87,T3,38,63,91,86,62,81,21,77,🇺🇦,classic,premier_league,Athlete,,Q41244,1976,1999,2009
@@ -401,12 +401,12 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 2511,Andrés Iniesta,Barcelona,2008–2018,CAM,CM,96,T1,109,195,78,87,93,96,29,66,🇪🇸,golden,la_liga,Maverick,ESP,Q43729,1984,2002,2018
 2512,Mesut Özil,Real Madrid,2010–2013,CAM,CM,89,T2,50,79,73,74,95,94,29,60,🇩🇪,golden,la_liga,Technician,GER,Q83488,1988,2006,2021
 2513,James Rodríguez,Real Madrid,2014–2017,CAM,CM,87,T3,32,57,74,80,86,94,22,64,🇨🇴,golden,la_liga,Maverick,COL,Q368441,1991,2014,2025
-2514,Luka Modrić,Real Madrid,2012–,CM,,93,T1,69,123,70,66,93,82,63,71,🇭🇷,golden,la_liga,Technician,CRO,Q483837,1985,2008,2026
+2514,Luka Modrić,Real Madrid,2012–,CM,,93,T1,69,123,70,66,93,82,63,71,🇭🇷,golden,la_liga,Technician,CRO,Q483837,1985,2008,2026,evergreen
 2515,Isco,Real Madrid,2013–2022,CAM,CM,85,T3,19,33,72,77,93,88,25,57,🇪🇸,golden,la_liga,Technician,ESP,Q80892,1992,2010,2026
 2516,David Villa,Atlético,2013–2014,ST,,84,T3,25,43,77,85,73,85,17,74,🇪🇸,golden,la_liga,Technician,ESP,Q83006,1981,2005,2014
 2517,Santi Cazorla,Málaga,2011–2012,CAM,CM,85,T3,22,35,70,74,93,89,24,57,🇪🇸,golden,la_liga,Technician,ESP,Q185225,1984,2003,2020
 2518,Juan Mata,Valencia,2007–2011,CAM,CM,84,T3,19,31,72,74,89,88,23,56,🇪🇸,golden,la_liga,Technician,ESP,Q168740,1988,2007,2022
-2519,Luka Modrić,Real Madrid,2016–,CM,,90,T2,51,81,75,66,90,82,61,71,🇭🇷,modern,la_liga,Technician,CRO,Q483837,1985,2008,2026
+2519,Luka Modrić,Real Madrid,2016–,CM,,90,T2,51,81,75,66,90,82,61,71,🇭🇷,modern,la_liga,Technician,CRO,Q483837,1985,2008,2026,evergreen
 2520,Pedri,Barcelona,2020–,CAM,CM,86,T2,14,44,76,77,94,92,27,63,🇪🇸,modern,la_liga,Technician,ESP,Q66606355,2002,2020,2026
 2521,Gavi,Barcelona,2021–,CM,,83,T2,8,28,69,63,87,82,60,73,🇪🇸,modern,la_liga,Technician,ESP,Q108111889,2004,2022,2026
 2522,Federico Valverde,Real Madrid,2018–,CM,,90,T2,51,83,72,63,93,80,58,68,🇺🇾,modern,la_liga,Technician,URU,Q19509544,1998,2018,2026
@@ -418,20 +418,20 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 2528,Óscar Trejo,Rayo Vallecano,2018–,CM,,73,T5,3,5,63,56,83,71,52,59,🇦🇷,modern,la_liga,Technician,ARG,Q167348,1988,2009,2026
 2600,Ronaldinho,Barcelona,2003–2008,RW,,94,T1,83,127,99,81,73,92,31,68,🇧🇷,classic,la_liga,Athlete,BRA,Q39444,1980,2002,2010
 2601,Luis Figo,Barcelona,1995–2000,RW,,91,T2,60,103,90,87,77,99,22,61,🇵🇹,classic,la_liga,Maverick,POR,Q483145,1972,1995,2009
-2602,Joaquín,Real Betis,2000–2006,RW,,83,T3,18,29,96,75,69,88,26,65,🇪🇸,classic,la_liga,Athlete,ESP,Q294204,1981,,
+2602,Joaquín,Real Betis,2000–2006,RW,,83,T3,18,29,96,75,69,88,26,65,🇪🇸,classic,la_liga,Athlete,ESP,Q294204,1981,,,evergreen
 2603,Jesús Navas,Sevilla,2003–2013,RW,,84,T3,23,37,97,74,70,91,28,64,🇪🇸,classic,la_liga,Athlete,ESP,Q185093,1985,2003,2023
 2604,Arjen Robben,Real Madrid,2007–2009,RW,,88,T3,39,66,92,85,73,97,20,58,🇳🇱,classic,la_liga,Maverick,NED,Q43913,1984,2004,2019
 2605,Julio Baptista,Sevilla,2003–2006,RW,,78,T4,7,11,89,70,68,86,24,59,🇧🇷,classic,la_liga,Athlete,BRA,Q204895,1981,2003,2013
 2606,Francisco Rufete,Valencia,2001–2006,RW,,76,T4,5,9,88,69,64,86,23,61,🇪🇸,classic,la_liga,Athlete,ESP,Q534178,1976,1996,2009
-2607,Lionel Messi,Barcelona,2008–2016,RW,,98,T1,145,245,99,84,77,95,30,70,🇦🇷,golden,la_liga,Athlete,ARG,Q615,1987,2004,2023
-2608,Cristiano Ronaldo,Real Madrid,2009–2016,RW,,97,T1,136,224,99,85,76,96,30,69,🇵🇹,golden,la_liga,Athlete,POR,Q11571,1985,2003,2022
+2607,Lionel Messi,Barcelona,2008–2016,RW,,98,T1,145,245,99,84,77,95,30,70,🇦🇷,golden,la_liga,Athlete,ARG,Q615,1987,2004,2023,evergreen
+2608,Cristiano Ronaldo,Real Madrid,2009–2016,RW,,97,T1,136,224,99,85,76,96,30,69,🇵🇹,golden,la_liga,Athlete,POR,Q11571,1985,2003,2022,evergreen
 2609,Neymar Jr,Barcelona,2013–2017,RW,,92,T1,68,104,99,82,76,95,27,71,🇧🇷,golden,la_liga,Athlete,BRA,Q142794,1992,2013,2023
 2611,Ángel Di María,Real Madrid,2010–2014,RW,,89,T2,40,64,99,81,74,93,30,68,🇦🇷,golden,la_liga,Athlete,ARG,Q251683,1988,2010,2023
 2612,Pedro Rodríguez,Barcelona,2009–2015,RW,,83,T3,17,26,99,73,68,91,28,62,🇪🇸,golden,la_liga,Athlete,ESP,Q179773,1987,,
-2613,Joaquín,Real Betis,2015–2023,RW,,81,T4,13,23,97,75,68,90,26,63,🇪🇸,modern,la_liga,Athlete,ESP,Q59914882,1999,,2026
+2613,Joaquín,Real Betis,2015–2023,RW,,81,T4,13,23,97,75,68,90,26,63,🇪🇸,modern,la_liga,Athlete,ESP,Q59914882,1999,,2026,evergreen
 2614,Marco Asensio,Real Madrid,2016–2023,RW,,83,T3,15,26,99,75,70,90,27,67,🇪🇸,modern,la_liga,Athlete,ESP,Q16148978,1996,2014,2025
 2615,Ousmane Dembélé,Barcelona,2017–2023,RW,,85,T3,25,44,98,75,72,93,28,65,🇫🇷,modern,la_liga,Athlete,FRA,Q20851003,1997,2015,2026
-2616,Cristiano Ronaldo,Real Madrid,2016–2018,RW,,96,T1,108,181,99,82,79,98,32,69,🇵🇹,modern,la_liga,Athlete,POR,Q11571,1985,2003,2022
+2616,Cristiano Ronaldo,Real Madrid,2016–2018,RW,,96,T1,108,181,99,82,79,98,32,69,🇵🇹,modern,la_liga,Athlete,POR,Q11571,1985,2003,2022,evergreen
 2617,Rodrygo,Real Madrid,2019–,RW,,84,T3,24,38,99,77,69,87,25,66,🇧🇷,modern,la_liga,Athlete,BRA,Q42728914,2001,2019,2026
 2618,Suso,Sevilla,2020–2023,RW,,77,T4,5,9,97,70,66,85,22,61,🇪🇸,modern,la_liga,Athlete,ESP,Q247708,1993,2012,2025
 2619,Nico Williams,Athletic Club,2022–,RW,,85,T3,25,41,99,77,68,87,27,63,🇪🇸,modern,la_liga,Athlete,ESP,Q104414736,2002,2012,2026
@@ -445,7 +445,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 2704,Saviola,Barcelona,2001–2004,LW,,80,T4,10,17,92,75,68,90,21,58,🇦🇷,classic,la_liga,Athlete,ARG,Q186071,1981,2001,2013
 2705,Kily González,Valencia,2001–2006,LW,,78,T4,8,15,83,79,68,95,15,54,🇦🇷,classic,la_liga,Maverick,ARG,Q314761,1974,1999,2006
 2706,Dani Güiza,Mallorca,2006–2008,LW,,76,T5,5,8,91,73,63,84,24,58,🇪🇸,classic,la_liga,Athlete,ESP,Q19041,1980,2005,2026
-2707,Lionel Messi,Barcelona,2016–2021,LW,,98,T1,152,245,99,84,80,98,29,72,🇦🇷,modern,la_liga,Athlete,ARG,Q615,1987,2004,2023
+2707,Lionel Messi,Barcelona,2016–2021,LW,,98,T1,152,245,99,84,80,98,29,72,🇦🇷,modern,la_liga,Athlete,ARG,Q615,1987,2004,2023,evergreen
 2708,Vinicius Jr,Real Madrid,2018–,LW,,90,T2,46,80,99,77,76,92,30,68,🇧🇷,modern,la_liga,Athlete,BRA,Q28973866,2000,2018,2026
 2709,Gareth Bale,Real Madrid,2013–2021,LW,,90,T2,44,75,99,78,70,93,26,64,🏴󠁧󠁢󠁷󠁬󠁳󠁿,golden,la_liga,Athlete,WAL,Q184586,1989,2007,2022
 2710,Gareth Bale,Real Madrid,2016–2021,LW,,88,T2,38,64,99,75,70,94,26,67,🏴󠁧󠁢󠁷󠁬󠁳󠁿,modern,la_liga,Athlete,WAL,Q184586,1989,2007,2022
@@ -466,8 +466,8 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 2726,Eduardo Camavinga,Real Madrid,2021–,CM,,82,T3,13,23,67,56,73,67,66,77,🇫🇷,modern,la_liga,Grinder,FRA,Q62960177,2002,2019,2026
 2727,Theo Zidane,Real Madrid B,2019–2021,LW,,70,T5,0,0,90,67,60,85,17,58,🇫🇷,modern,la_liga,Athlete,FRA,Q112329906,2002,,
 2800,Raúl González,Real Madrid,1994–2010,ST,,93,T1,97,153,88,99,70,91,18,80,🇪🇸,classic,la_liga,Maverick,ESP,Q11576,1977,1994,2012
-2801,Ronaldo (R9),Real Madrid,2002–2007,ST,,88,T1,45,74,81,85,61,71,29,84,🇧🇷,classic,la_liga,Grinder,BRA,Q529207,1976,1996,2008
-2802,Fernando Torres,Atlético,2001–2007,ST,,89,T2,53,83,79,91,61,77,30,88,🇪🇸,classic,la_liga,Warrior,ESP,Q42731,1984,1995,2018
+2801,Ronaldo (R9),Real Madrid,2002–2007,ST,,88,T1,45,74,81,85,61,71,29,84,🇧🇷,classic,la_liga,Grinder,BRA,Q529207,1976,1996,2008,fragile
+2802,Fernando Torres,Atlético,2001–2007,ST,,89,T2,53,83,79,91,61,77,30,88,🇪🇸,classic,la_liga,Warrior,ESP,Q42731,1984,1995,2018,fragile
 2803,Samuel Eto'o,Barcelona,2004–2009,ST,,90,T2,65,104,79,91,62,73,31,90,🇨🇲,classic,la_liga,Warrior,CMR,Q1255625,1981,1997,2015
 2804,Fernando Morientes,Real Madrid,1997–2005,ST,,87,T3,40,64,84,95,68,85,14,74,🇪🇸,classic,la_liga,Maverick,ESP,Q45567,1976,1997,2010
 2805,David Villa,Valencia,2005–2010,ST,,89,T2,54,86,79,88,64,73,28,86,🇪🇸,classic,la_liga,Grinder,ESP,Q83006,1981,2005,2014
@@ -478,7 +478,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 2810,Luis Suárez,Barcelona,2014–2020,ST,,94,T1,95,158,82,94,68,77,32,90,🇺🇾,golden,la_liga,Warrior,URU,Q26517,1987,2011,2022
 2811,David Villa,Barcelona,2010–2013,ST,,88,T2,39,65,78,90,62,74,26,90,🇪🇸,golden,la_liga,Warrior,ESP,Q83006,1981,2005,2014
 2812,Diego Forlán,Atlético,2007–2011,ST,,90,T2,48,86,86,99,66,87,16,80,🇺🇾,golden,la_liga,Maverick,URU,Q261534,1979,2002,2012
-2813,Zlatan Ibrahimović,Barcelona,2009–2010,ST,,90,T2,60,93,93,89,65,79,21,81,🇸🇪,golden,la_liga,Athlete,SWE,Q46896,1981,2005,2023
+2813,Zlatan Ibrahimović,Barcelona,2009–2010,ST,,90,T2,60,93,93,89,65,79,21,81,🇸🇪,golden,la_liga,Athlete,SWE,Q46896,1981,2005,2023,evergreen
 2814,Álvaro Negredo,Sevilla,2009–2013,ST,,81,T3,16,25,79,80,62,69,23,77,🇪🇸,golden,la_liga,Grinder,ESP,Q210916,1985,2004,2017
 2815,Roberto Soldado,Valencia,2010–2013,ST,,81,T3,13,21,76,84,61,72,26,79,🇪🇸,golden,la_liga,Grinder,ESP,Q218401,1985,2005,2023
 2816,Gonzalo Higuaín,Real Madrid,2007–2013,ST,,86,T2,34,61,80,85,61,75,27,84,🇦🇷,golden,la_liga,Grinder,ARG,Q483846,1987,2007,2020
@@ -547,7 +547,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 3118,Marco Faraoni,Verona,2018–2023,RB,,70,T5,1,3,73,31,56,57,69,72,🇮🇹,modern,serie_a,Grinder,ITA,Q551892,1991,2011,2015
 3119,Pasquale Mazzocchi,Napoli,2023–,RB,,70,T5,2,3,77,28,57,62,71,73,🇮🇹,modern,serie_a,Grinder,ITA,Q43886448,1995,,2026
 3120,Valentino Lazaro,Inter,2019–2021,RB,,71,T5,1,2,73,31,57,60,74,72,🇦🇹,modern,serie_a,Grinder,AUT,Q1450945,1996,2019,2026
-3200,Paolo Maldini,AC Milan,1985–2009,LB,,97,T1,127,196,84,48,79,75,86,79,🇮🇹,classic,serie_a,Leader,ITA,Q483027,1968,1985,2009
+3200,Paolo Maldini,AC Milan,1985–2009,LB,,97,T1,127,196,84,48,79,75,86,79,🇮🇹,classic,serie_a,Leader,ITA,Q483027,1968,1985,2009,evergreen
 3201,Serginho,AC Milan,1999–2008,LB,,81,T3,10,19,74,39,73,77,72,64,🇧🇷,classic,serie_a,Technician,BRA,Q312140,1971,1999,2008
 3202,Fabio Grosso,Palermo,2003–2007,LB,,82,T3,12,20,90,41,66,69,72,67,🇮🇹,classic,serie_a,Athlete,ITA,Q230529,1977,2006,2012
 3203,Gianluca Comotto,Fiorentina,2004–2012,LB,,75,T5,4,6,81,34,63,67,70,64,🇮🇹,classic,serie_a,Athlete,ITA,Q1873302,1978,1997,2011
@@ -690,7 +690,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 3716,Iago Falque,Torino,2014–2019,LW,,74,T5,3,6,90,70,66,85,23,61,🇪🇸,golden,serie_a,Athlete,ESP,Q439282,1990,2001,2021
 3717,Keita Balde,Lazio,2015–2017,LW,,76,T5,2,5,93,69,65,84,21,58,🇸🇳,golden,serie_a,Athlete,SEN,Q14945895,1995,2013,2026
 3718,Mohamed Fares,Lazio,2020–2022,LW,,73,T5,3,5,96,69,62,82,21,58,🇩🇿,modern,serie_a,Athlete,ALG,,,,
-3800,Ronaldo (R9),Inter,1997–2002,ST,,96,T1,150,237,88,99,73,89,20,79,🇧🇷,classic,serie_a,Maverick,BRA,Q529207,1976,1996,2008
+3800,Ronaldo (R9),Inter,1997–2002,ST,,96,T1,150,237,88,99,73,89,20,79,🇧🇷,classic,serie_a,Maverick,BRA,Q529207,1976,1996,2008,fragile
 3801,Andriy Shevchenko,AC Milan,1999–2006,ST,,96,T1,118,187,95,96,65,84,23,82,🇺🇦,classic,serie_a,Athlete,UKR,Q41244,1976,1999,2009
 3802,Christian Vieri,Inter,1999–2005,ST,,93,T1,83,137,80,93,68,75,28,91,🇮🇹,classic,serie_a,Warrior,ITA,Q188696,1973,1991,2009
 3803,Gabriel Batistuta,Fiorentina,1995–2000,ST,,92,T1,71,116,83,93,64,79,29,88,🇦🇷,classic,serie_a,Warrior,ARG,Q170376,1969,1991,2003
@@ -701,7 +701,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 3808,Vincenzo Montella,Roma,1999–2008,ST,,80,T3,11,19,72,81,60,71,23,80,🇮🇹,classic,serie_a,Warrior,ITA,Q297768,1974,1995,2009
 3809,Gabriel Batistuta,Roma,2000–2003,ST,,89,T2,50,90,81,97,69,86,15,74,🇦🇷,classic,serie_a,Maverick,ARG,Q170376,1969,1991,2003
 3810,Nicola Ventola,Atalanta,2000–2004,ST,,73,T5,3,5,67,78,52,64,23,79,🇮🇹,classic,serie_a,Warrior,ITA,Q707173,1978,1998,2009
-3811,Zlatan Ibrahimović,Inter,2006–2009,ST,,90,T1,53,84,84,91,67,72,28,89,🇸🇪,golden,serie_a,Warrior,SWE,Q46896,1981,2005,2023
+3811,Zlatan Ibrahimović,Inter,2006–2009,ST,,90,T1,53,84,84,91,67,72,28,89,🇸🇪,golden,serie_a,Warrior,SWE,Q46896,1981,2005,2023,evergreen
 3812,Carlos Tevez,Juventus,2012–2015,ST,,90,T2,57,92,81,90,66,73,31,86,🇦🇷,golden,serie_a,Warrior,ARG,Q50600,1984,2007,2015
 3813,Edinson Cavani,Napoli,2010–2013,ST,,89,T2,49,84,81,87,67,77,28,88,🇺🇾,golden,serie_a,Grinder,URU,Q167790,1987,2010,2023
 3814,Gonzalo Higuaín,Napoli,2013–2016,ST,,88,T2,48,79,85,88,64,71,29,86,🇦🇷,golden,serie_a,Grinder,ARG,Q483846,1987,2007,2020
@@ -717,7 +717,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 3824,Lautaro Martinez,Inter,2018–,ST,,88,T2,38,62,88,86,66,72,26,84,🇦🇷,modern,serie_a,Grinder,ARG,Q21484126,1997,2018,2026
 3825,Ciro Immobile,Lazio,2016–,ST,,88,T2,44,75,83,85,66,73,30,84,🇮🇹,modern,serie_a,Grinder,ITA,Q458101,1990,2009,2026
 3826,Dušan Vlahović,Juventus,2022–,ST,,84,T2,10,30,88,83,64,73,29,84,🇷🇸,modern,serie_a,Grinder,SRB,Q23762815,2000,2018,2026
-3827,Zlatan Ibrahimović,AC Milan,2019–2023,ST,,87,T2,32,57,88,88,62,75,27,88,🇸🇪,modern,serie_a,Grinder,SWE,Q46896,1981,2005,2023
+3827,Zlatan Ibrahimović,AC Milan,2019–2023,ST,,87,T2,32,57,88,88,62,75,27,88,🇸🇪,modern,serie_a,Grinder,SWE,Q46896,1981,2005,2023,evergreen
 3828,Edin Dzeko,Inter,2021–2023,ST,,82,T3,18,30,83,80,63,69,26,82,🇧🇦,modern,serie_a,Grinder,BIH,Q153786,1986,2011,2026
 3829,Marcus Thuram,Inter,2023–,ST,,82,T3,19,30,83,84,59,72,23,80,🇫🇷,modern,serie_a,Grinder,FRA,Q19903718,1997,2019,2026
 3830,Tammy Abraham,Roma,2021–2024,ST,,76,T4,5,9,77,78,55,67,22,75,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,serie_a,Grinder,ENG,Q24050378,1997,2016,2026
@@ -954,7 +954,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 5023,Noel Chok,Montpellier,2016–2019,GK,,69,T5,0,0,46,4,58,14,41,64,🇫🇷,modern,ligue_1,Organiser,FRA,,,,
 5100,Bacary Sagna,Auxerre,2004–2007,RB,,81,T3,9,17,76,38,64,67,77,77,🇫🇷,classic,ligue_1,Warrior,FRA,Q1938,1983,2004,2017
 5101,Mikael Silvestre,Bordeaux,1997–2000,RB,,79,T4,7,12,71,37,66,63,78,76,🇫🇷,classic,ligue_1,Warrior,FRA,Q177343,1977,1995,2012
-5102,Didier Drogba,Guingamp,2001–2002,ST,,75,T4,4,7,74,77,54,68,23,75,🇨🇩,classic,ligue_1,Grinder,COD,Q48892,1978,1998,2015
+5102,Didier Drogba,Guingamp,2001–2002,ST,,75,T4,4,7,74,77,54,68,23,75,🇨🇩,classic,ligue_1,Grinder,COD,Q48892,1978,1998,2015,late
 5103,Willy Sagnol,Monaco,2004–2006,RB,,75,T4,4,6,72,29,63,61,76,73,🇫🇷,classic,ligue_1,Grinder,FRA,Q44513,1977,1997,2009
 5105,Jean-Alain Boumsong,Bordeaux,2004–2005,RB,,73,T5,2,4,74,27,60,63,72,67,🇫🇷,classic,ligue_1,Grinder,FRA,Q282463,1979,1998,2010
 5106,Achraf Hakimi,Borussia M,2016–2018,RB,,80,T4,9,15,86,35,65,73,70,68,🇲🇦,golden,bundesliga,Athlete,MAR,Q26932598,1998,2017,2026
@@ -1033,7 +1033,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 5501,Karim Benzema,Lyon,2005–2009,ST,,88,T2,50,81,88,86,65,80,22,76,🇫🇷,classic,ligue_1,Athlete,FRA,Q1912,1987,2004,2023
 5502,Sidney Govou,Lyon,2000–2009,RW,,83,T3,17,29,83,76,82,98,23,58,🇫🇷,classic,ligue_1,Technician,FRA,Q1934,1979,2000,2010
 5503,Florent Malouda,Lyon,2001–2007,LM,LW,84,T3,21,35,72,65,83,85,45,63,🇫🇷,classic,ligue_1,Technician,FRA,Q1913,1980,2003,2013
-5504,Didier Drogba,Marseille,2003–2004,ST,,81,T3,14,24,76,78,62,69,27,80,🇨🇩,classic,ligue_1,Grinder,COD,Q48892,1978,1998,2015
+5504,Didier Drogba,Marseille,2003–2004,ST,,81,T3,14,24,76,78,62,69,27,80,🇨🇩,classic,ligue_1,Grinder,COD,Q48892,1978,1998,2015,late
 5505,Franck Ribéry,Marseille,2004–2007,LW,,86,T3,24,43,98,75,73,89,26,64,🇫🇷,classic,ligue_1,Athlete,FRA,Q1918,1983,2003,2021
 5506,Ludovic Giuly,Marseille,2003–2007,RW,,81,T3,15,25,80,73,77,92,25,54,🇫🇷,classic,ligue_1,Technician,FRA,Q219771,1976,1994,2013
 5507,Eden Hazard,Lille,2007–2012,CAM,CM,84,T2,10,30,76,81,84,91,27,63,🇧🇪,classic,ligue_1,Maverick,BEL,Q214204,1991,2007,2023
@@ -1043,7 +1043,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 5513,Maxime Gonalons,Lyon,2011–2017,CM,,79,T4,9,14,63,61,83,78,54,65,🇫🇷,golden,ligue_1,Technician,FRA,Q429193,1989,2009,2020
 5514,Thomas Meunier,Lille,2014–2016,CM,,77,T4,6,10,62,59,83,74,50,64,🇫🇷,golden,ligue_1,Technician,FRA,Q2036160,1991,2017,2026
 5515,Neymar Jr,PSG,2017–2023,LW,,97,T1,147,239,99,88,80,99,23,67,🇧🇷,modern,ligue_1,Maverick,BRA,Q142794,1992,2013,2023
-5516,Kylian Mbappé,PSG,2017–2023,LW,,97,T1,121,208,99,82,74,98,30,71,🇫🇷,modern,ligue_1,Athlete,FRA,Q21621995,1998,2015,2026
+5516,Kylian Mbappé,PSG,2017–2023,LW,,97,T1,121,208,99,82,74,98,30,71,🇫🇷,modern,ligue_1,Athlete,FRA,Q21621995,1998,2015,2026,evergreen
 5519,Anguissa,Napoli,2021–,CM,,84,T3,17,29,71,62,87,77,54,66,🇨🇲,modern,ligue_1,Technician,CMR,,,,
 5522,Sander Aursnes,Lille,2021–,CM,,78,T4,6,10,66,58,85,73,53,63,🇳🇴,modern,ligue_1,Technician,NOR,,,,
 5523,Nissikey Modeste,Auxerre,2019–2021,CM,,73,T5,2,4,61,56,83,76,48,61,🇫🇷,modern,ligue_1,Technician,FRA,,,,
@@ -1064,7 +1064,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 5610,Gelson Martins,Sporting,2017–2019,RW,,77,T4,5,9,96,73,68,85,23,60,🇵🇹,golden,ligue_1,Athlete,POR,Q17560793,1995,2019,2024
 5611,Ousmane Dembélé,Rennes,2015–2016,RW,,80,T4,11,19,97,70,70,87,25,63,🇫🇷,golden,ligue_1,Athlete,FRA,Q20851003,1997,2015,2026
 5612,Lucas Moura,Sao Paulo,2011–2012,RW,,80,T4,10,17,98,72,67,89,25,64,🇧🇷,golden,ligue_1,Athlete,BRA,Q312886,1992,2013,2023
-5613,Kylian Mbappé,AS Monaco,2015–2017,RW,,84,T3,18,32,99,75,71,91,23,67,🇫🇷,modern,ligue_1,Athlete,FRA,Q21621995,1998,2015,2026
+5613,Kylian Mbappé,AS Monaco,2015–2017,RW,,84,T3,18,32,99,75,71,91,23,67,🇫🇷,modern,ligue_1,Athlete,FRA,Q21621995,1998,2015,2026,evergreen
 5619,Ismaila Sarr,Watford,2018–2020,RW,,76,T4,5,9,99,70,63,88,23,58,🇸🇳,modern,ligue_1,Athlete,SEN,Q26924482,1998,2018,2019
 5700,David Trezeguet,Juventus,2007–2009,LW,,80,T3,13,21,85,67,68,81,32,63,🇫🇷,classic,ligue_1,Grinder,FRA,Q183967,1977,1995,2010
 5701,Milan Baroš,Lyon,2007–2010,LW,,79,T4,9,14,81,70,67,78,30,66,🇨🇿,classic,ligue_1,Warrior,CZE,Q180581,1981,2002,2008
@@ -1091,7 +1091,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 5804,Djibril Cissé,Liverpool,2004–2006,ST,,83,T3,18,30,90,84,62,75,19,73,🇸🇳,classic,premier_league,Athlete,SEN,Q1936,1981,1999,2012
 5805,Radamel Falcao,Monaco,2013–2014,ST,,90,T1,62,97,85,89,66,74,29,91,🇨🇴,golden,ligue_1,Warrior,COL,Q138172,1986,2011,2024
 5806,Edinson Cavani,PSG,2013–2018,ST,,92,T1,81,139,85,89,68,78,31,90,🇺🇾,golden,ligue_1,Warrior,URU,Q167790,1987,2010,2023
-5807,Zlatan Ibrahimović,PSG,2012–2016,ST,,95,T1,124,198,89,97,74,90,20,79,🇸🇪,golden,ligue_1,Maverick,SWE,Q46896,1981,2005,2023
+5807,Zlatan Ibrahimović,PSG,2012–2016,ST,,95,T1,124,198,89,97,74,90,20,79,🇸🇪,golden,ligue_1,Maverick,SWE,Q46896,1981,2005,2023,evergreen
 5809,Antoine Griezmann,Atletico,2014–2018,ST,,91,T2,60,94,93,89,67,82,22,81,🇫🇷,golden,la_liga,Athlete,FRA,Q455462,1991,2009,2026
 5810,Luis Suárez,Barcelona,2015–2018,ST,,89,T2,50,78,80,90,65,75,29,89,🇺🇾,golden,la_liga,Warrior,URU,Q26517,1987,2011,2022
 5811,Mario Balotelli,Nice,2016–2017,ST,,80,T4,13,21,82,88,63,82,12,69,🇮🇹,golden,ligue_1,Maverick,ITA,Q129700,1990,2007,2025
@@ -1135,7 +1135,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 2847,Diego López,Deportivo,2002–2009,GK,,80,T3,8,13,46,8,67,20,44,69,🇪🇸,classic,la_liga,Organiser,ESP,Q314617,1981,2005,2023
 2848,Iago Aspas,Deportivo,2009–2015,ST,,80,T3,11,17,77,78,60,69,23,82,🇪🇸,golden,la_liga,Grinder,ESP,Q26380,1987,2008,2026
 2849,Denílson,Real Betis,2006–2013,LW,,81,T3,10,18,59,42,69,57,85,85,🇧🇷,golden,la_liga,Grinder,BRA,Q311641,1977,1998,2005
-2851,Joaquín,Real Betis,2015–,RW,,82,T3,12,22,96,76,71,85,23,62,🇪🇸,modern,la_liga,Athlete,ESP,Q59914882,1999,,2026
+2851,Joaquín,Real Betis,2015–,RW,,82,T3,12,22,96,76,71,85,23,62,🇪🇸,modern,la_liga,Athlete,ESP,Q59914882,1999,,2026,evergreen
 2852,Sergio Canales,Real Betis,2018–,CAM,CM,83,T3,19,31,69,71,89,92,21,57,🇪🇸,modern,la_liga,Technician,ESP,Q19422,1991,2008,2026
 2853,Nabil Fekir,Real Betis,2019–,CAM,CM,88,T2,32,55,77,76,90,91,24,63,🇫🇷,modern,la_liga,Technician,FRA,Q14778629,1993,2013,2024
 2854,Aritz Aduriz,Athletic Club,2012–2018,ST,,83,T3,21,37,80,80,60,68,26,83,🇪🇸,golden,la_liga,Grinder,ESP,Q54105,1981,2002,2020
@@ -1189,7 +1189,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 6033,Mark Hughes,Man Utd,1983–2002,ST,,82,T3,17,27,73,82,60,69,28,79,🏴󠁧󠁢󠁷󠁬󠁳󠁿,legend,legends,Warrior,WAL,Q214513,1963,1980,2000
 6036,Jude Bellingham,Real Madrid,2023–,CAM,CM,93,T1,74,116,77,75,89,82,37,75,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,la_liga,Leader,ENG,Q66241169,2003,2020,2026
 6037,Lamine Yamal,Barcelona,2023–,RW,LW,90,T1,51,86,95,84,76,96,24,67,🇪🇸,modern,la_liga,Maverick,ESP,Q113704154,2007,2024,2026
-6038,Kylian Mbappé,Real Madrid,2024–,LW,ST,94,T1,75,128,99,82,73,95,29,69,🇫🇷,modern,la_liga,Athlete,FRA,Q21621995,1998,2015,2026
+6038,Kylian Mbappé,Real Madrid,2024–,LW,ST,94,T1,75,128,99,82,73,95,29,69,🇫🇷,modern,la_liga,Athlete,FRA,Q21621995,1998,2015,2026,evergreen
 6039,Cole Palmer,Chelsea,2023–,CAM,RW,89,T2,43,67,74,76,92,96,28,63,🏴󠁧󠁢󠁥󠁮󠁧󠁿,modern,premier_league,Technician,ENG,Q99760796,2002,2020,2026
 6040,Emiliano Martínez,Aston Villa,2020–,GK,,90,T2,35,62,63,18,64,28,48,79,🇦🇷,modern,premier_league,Shot Stopper,ARG,Q3275904,1992,2010,2026
 6041,William Saliba,Arsenal,2022–,CB,,89,T2,37,59,69,22,68,44,96,88,🇫🇷,modern,premier_league,Organiser,FRA,Q56868118,2001,2020,2026
@@ -1235,7 +1235,7 @@ id,name,club,years,pos,pos2,rating,tier,valueMin,valueMax,pac,sho,pas,dri,def,ph
 6082,Jürgen Klinsmann,Spurs,1990–1998,ST,,90,T2,50,82,91,92,64,83,22,80,🇩🇪,classic,premier_league,Athlete,GER,Q57079,1964,1984,1998
 6083,Henrik Larsson,Celtic,1993–2007,ST,,90,T2,56,93,82,88,67,74,30,88,🇸🇪,classic,premier_league,Warrior,SWE,Q179334,1971,2004,2007
 6084,Davor Šuker,Real Madrid,1991–2000,ST,,90,T2,56,101,86,94,67,86,17,74,🇭🇷,classic,la_liga,Maverick,CRO,Q189217,1968,1991,2000
-6085,Ian Wright,Arsenal,1985–2000,ST,,89,T2,50,89,90,92,62,81,24,78,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,Athlete,ENG,Q312595,1963,1985,1999
+6085,Ian Wright,Arsenal,1985–2000,ST,,89,T2,50,89,90,92,62,81,24,78,🏴󠁧󠁢󠁥󠁮󠁧󠁿,classic,premier_league,Athlete,ENG,Q312595,1963,1985,1999,late
 6086,Patrick Kluivert,Barcelona,1994–2004,ST,,89,T2,39,70,90,92,66,78,21,79,🇳🇱,classic,la_liga,Athlete,NED,Q189686,1976,1997,2008
 6087,Didier Deschamps,Juventus,1989–2001,DM,CM,89,T2,39,61,61,48,76,63,93,83,🇫🇷,classic,serie_a,Grinder,FRA,Q508711,1968,1989,2001
 6088,Marcel Desailly,AC Milan,1992–2004,CB,DM,89,T2,29,50,63,31,61,41,94,96,🇫🇷,classic,serie_a,Warrior,FRA,Q193625,1968,1992,2004
