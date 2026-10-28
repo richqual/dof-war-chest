@@ -178,8 +178,14 @@ const POSITION_CURVE = {
   CF:  { peakAge: 27, decline: 1.5, rise: 1.5 },
 };
 const DEFAULT_CURVE = { peakAge: 27, decline: 1.3, rise: 1.4 };
-const MAX_DROP = 20;       // a season rating never sits more than this below peak
+const MAX_DROP = 18;       // a season rating never sits more than this below peak
 const RATING_FLOOR = 50;   // nor below this absolute floor
+// Global tempo scales on the position curve (v5.5.1 value-spread tuning):
+// a gentler rise so young stars sit closer to their peak rating, and a gentler
+// decline so veterans hold their overall rating (their pace/physique still fade
+// through seasonAttributes). See the growth-types follow-up for per-player shapes.
+const RISE_SCALE = 0.62;
+const DECLINE_SCALE = 0.7;
 
 function curveFor(pos) {
   return POSITION_CURVE[pos] || DEFAULT_CURVE;
@@ -197,8 +203,8 @@ export function seasonRating(card, season) {
   const peak = card.rating;
   // Before peak: climb from youth. After peak: decline at the position's rate.
   const delta = age <= peakAge
-    ? -rise * (peakAge - age)
-    : -decline * (age - peakAge);
+    ? -rise * RISE_SCALE * (peakAge - age)
+    : -decline * DECLINE_SCALE * (age - peakAge);
   const floored = Math.max(peak - MAX_DROP, RATING_FLOOR, peak + delta);
   return Math.round(Math.min(peak, floored));
 }
@@ -211,8 +217,8 @@ export function seasonRating(card, season) {
 // Always ≤ peak (the peak season is the most valuable), so value never exceeds
 // today's authored band. Returns peak when season/birthYear is missing.
 const REP_DECAY = 0.5;       // post-peak reputation loss per year (< ability decline)
-const YOUTH_LAG = 1.1;       // pre-peak reputation sits this far below ability/yr
-const REP_MAX_LAG = 14;      // youth reputation never more than this below ability
+const YOUTH_LAG = 0.5;       // pre-peak reputation sits this far below ability/yr
+const REP_MAX_LAG = 6;       // youth reputation never more than this below ability
 export function seasonReputation(card, season) {
   if (!card || season == null || card.birthYear == null || card.rating == null) {
     return card ? card.rating : null;
@@ -232,9 +238,9 @@ export function seasonReputation(card, season) {
 
 // Re-centre the authored peak value band on reputation for season S. Value grows
 // roughly geometrically with rating, so we scale by 2^((rep − peak)/RATING_PER_DOUBLING):
-// every ~6 reputation points below peak roughly halves the price. reputation ≤ peak,
+// every ~9 reputation points below peak roughly halves the price. reputation ≤ peak,
 // so the multiplier is ≤ 1 (peak season = dearest). Band shape is preserved.
-const RATING_PER_DOUBLING = 6;
+const RATING_PER_DOUBLING = 9;
 export function seasonValueBand(card, season) {
   const min = card?.valueMin ?? 0;
   const max = card?.valueMax ?? 0;
