@@ -20,7 +20,15 @@ Key fields:
 - **`rating` / `tier`** (T1–T5) — overall quality; drives value and CPU picks.
 - **`valueMin`/`valueMax`** — actual signing cost varies in this band (randomised per game via `randomizePlayerValues`).
 - **`era`** — `classic` / `golden` / `modern`. Same real player can appear once per era, but **must share an identical name string** or dedup (`dedupeByName` / `selectGamePlayers`) fails and they both show up in one game. Watch for `"X"` vs `"X Jr"` splits.
-- **`archetype`** — playstyle label, colour-coded in UI.
+- **`archetype`** — playstyle label, colour-coded in UI (NB: this is *playstyle*, not career shape — see `growth` below).
+- **`wikidataId` / `birthYear` / `firstSeason` / `lastSeason`** — Season Pool identity + career window (additive, optional; ~96% of cards carry them). `wikidataId` is the identity key that merges a player's multi-era/-club cards into one; `birthYear` drives the `Age` field and the ageing curves. See [[Season Pool Spec]].
+- **`growth`** — optional per-player career-shape enum (`early` / `late` / `evergreen` / `fragile`; absent = the plain position curve). Reshapes the ageing curve in a season game. Authored in `src/data/players.source.csv`; a starter set only so far.
+
+> **Cards are per-club-spell**, each with its own `rating`/value band (e.g. R9 is 96 at Inter / 88 at Real Madrid). The Season Pool system ages or overrides that by the player's age in the chosen season. Season maths lives in `src/utils/season.js` (`seasonRating`/`seasonReputation`/`seasonValueBand`/`applySeasonStats`, the position curve, the `growth` types and the keyframe helpers).
+>
+> **Per-player keyframes** — `src/data/keyframes.js` maps a `wikidataId` → explicit age→rating points + a peak value band. In a season game these **override** the curve for that identity, giving one career arc across all his spell-cards (also fixing overlap-year rating inconsistency). Marquee players only; kept out of the CSV so the round-trip stays exact.
+>
+> **Data pipeline:** `players.source.csv` (master) → `npm run data:build` → `players.generated.js` (imported by `players.js`), gated by `data:verify`. The CSV syncs to/from a Google Sheet via `data:export` / `data:populate` (service-account key at `.secrets/sheets-sa.json`, `GOOGLE_SHEETS_KEY_FILE`).
 
 Helpers exported: `normalizeSearch` (strips diacritics for search), `generateBudget`, `chooseCpuPick`, `SUB_POSITIONS`.
 

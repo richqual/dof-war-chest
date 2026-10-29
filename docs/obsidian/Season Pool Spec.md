@@ -263,12 +263,14 @@ Run them on every import and build.
 
 Each phase stands on its own, so it's safe to stop after any of them.
 
-0. **Pipeline + convention.** Sheet → export → build, reproducing today's `players.js` exactly. Adopt the end-year season convention. Add the coverage script.
-1. **Career windows + season picker.** Script spells from Wikidata (attach `wikidataId` to every card, with at minimum first/last season in a top-5 league). Manager active windows. Ship the single-season picker, era presets and the `Age:` field using current ratings. Merge the multi-card players into identities. Known-facts tests in place.
-2. **Curves + reputation.** Position ageing curves plus keyframes, starting with T1/T2. Value driven by reputation, and CPU picks by reputation. Range presets roll a season per player. Season flavour lines (can start any time; content, not code).
-3. **Money.** Inflation multiplier table (display layer) and the `wage` field, which unblocks FFP/Wages.
-4. **Clubs.** Full club spells (incl. loans) and the per-season club list. Manager club spells. Historical Real Teams squads.
-5. **Depth fill.** Add mid-tier squad players where the coverage report shows gaps, starting with early seasons, full-backs and CAMs.
+> **Status (29 Oct 2026, v5.5.3):** Phases **0–2 are shipped**, with per-player **growth types** and **keyframes** layered on top of Phase 2 and the value curve tuned. The Sheet ↔ repo pipeline is **operational** (service-account key wired). Phases **3–5 remain**, plus bulk authoring of growth/keyframes beyond the proof set. See [[Version History]] and [[Roadmap]].
+
+0. ✅ **Pipeline + convention.** (v5.0.1) Sheet → export → build, reproducing today's `players.js` exactly. End-year season convention + coverage script.
+1. ✅ **Career windows + season picker.** (v5.1.x) Wikidata `wikidataId`/`birthYear`/career windows; manager active windows; single-season picker, era presets, `Age:` field; multi-card players merged into identities; known-facts tests.
+2. ✅ **Curves + reputation.** (v5.2.0) Position ageing curves + reputation-driven value, CPU picks by reputation, range presets roll a season per player. **On top:** value curve tuned (v5.5.1), per-player **growth types** (v5.5.2), and per-player **keyframes** — explicit age→rating arcs that also fix overlap-year per-spell ratings (v5.5.3). Season flavour lines still TODO (content, not code).
+3. 🟡 **Money.** Inflation multiplier table (display layer — never touches balance) and the `wage` field, which unblocks FFP/Wages.
+4. 🟡 **Clubs.** Full club spells (incl. loans) and the per-season club list. Manager club spells. Historical Real Teams squads.
+5. 🟡 **Depth fill.** Add mid-tier squad players where the coverage report shows gaps, starting with early seasons, full-backs and CAMs.
 
 Then **Career Mode** builds on top: start in a chosen season, players age along their curves, and the inflation multiplier rises season to season.
 
