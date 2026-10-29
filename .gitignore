@@ -37,3 +37,9 @@ Transfer Wheel skin options/
 
 # Obsidian local editor config (per-machine, not shared)
 docs/obsidian/.obsidian/
+
+# Secrets — Google service-account key for the Sheet pipeline (NEVER commit)
+.secrets/
+*service-account*.json
+*.gserviceaccount.json
+sheets-sa.json
