@@ -117,9 +117,10 @@ check("all authored growth values are known types",
 // The starter set reached the build.
 check("Rooney authored as early", cardsFor("Wayne Rooney").some((c) => c.growth === "early"));
 check("Messi authored as evergreen", cardsFor("Lionel Messi").some((c) => c.growth === "evergreen"));
-// early: stronger young than the SAME card as standard.
+// early: stronger young than the SAME card as standard. Use a NON-keyframed
+// early peaker (Owen) — Rooney is keyframed now, so his growth type no longer drives him.
 check("early peaker rated higher at 18 than standard", (() => {
-  const c = cardsFor("Wayne Rooney").find((p) => p.birthYear);
+  const c = cardsFor("Michael Owen").find((p) => p.birthYear);
   return c && seasonRating(c, atAge(c, 18)) > seasonRating(asStd(c), atAge(c, 18));
 })());
 // late: weaker young, stronger old than standard.
@@ -129,9 +130,46 @@ check("late bloomer lower at 18 but higher at 31 than standard", (() => {
            && seasonRating(c, atAge(c, 31)) > seasonRating(asStd(c), atAge(c, 31));
 })());
 // evergreen: holds rating better than standard well past the standard peak.
+// Maldini — a NON-keyframed evergreen (Messi is keyframed now).
 check("evergreen holds rating better than standard at 31", (() => {
-  const c = cardsFor("Lionel Messi").find((p) => p.birthYear);
+  const c = cardsFor("Paolo Maldini").find((p) => p.birthYear);
   return c && seasonRating(c, atAge(c, 31)) > seasonRating(asStd(c), atAge(c, 31));
+})());
+
+console.log("\n── Per-player keyframes (precise career curves) ──");
+const { KEYFRAMES } = await server.ssrLoadModule("/src/data/keyframes.js");
+const idOf = (wd) => PLAYERS.find((p) => p.wikidataId === wd);
+check("every keyframe key resolves to a real identity",
+  Object.keys(KEYFRAMES).every((wd) => !!idOf(wd)),
+  Object.keys(KEYFRAMES).filter((wd) => !idOf(wd)).join(", "));
+check("keyframe points ascend in age, ratings 1–99, band valid", Object.values(KEYFRAMES).every((kf) => {
+  const bandOk = Array.isArray(kf.band) && kf.band.length === 2 && kf.band.every((v) => v > 0);
+  const ages = kf.points.map((p) => p[0]);
+  const asc = ages.every((a, i) => i === 0 || a > ages[i - 1]);
+  const rOk = kf.points.every((p) => p[1] >= 1 && p[1] <= 99);
+  return bandOk && asc && rOk;
+}));
+// Override: a multi-card identity reads ONE rating in an overlap season whichever
+// spell-card is used (the per-spell inconsistency is fixed).
+check("R9 reads one rating in 2002 regardless of spell-card", (() => {
+  const cards = cardsFor("Ronaldo (R9)").filter((c) => activeInSeason(cardWindow(c), 2002));
+  return cards.length >= 2 && new Set(cards.map((c) => seasonRating(c, 2002))).size === 1;
+})());
+// Exactness + interpolation (Rooney: 23→90, 26→92).
+check("keyframe rating is exact at a node age (Rooney 26→92)", (() => {
+  const c = idOf("Q266613");
+  return c && seasonRating(c, atAge(c, 26)) === 92;
+})());
+check("keyframe rating interpolates between nodes (Rooney age 25)", (() => {
+  const c = idOf("Q266613");
+  const r = c && seasonRating(c, atAge(c, 25));
+  return r > 90 && r < 92;
+})());
+// Value anchors the identity band at the keyframe peak age (R9 21→96, £150–237).
+check("keyframe value hits the identity band at peak age", (() => {
+  const c = idOf("Q529207");
+  const b = seasonValueBand(c, atAge(c, 21));
+  return c && b.min === 150 && b.max === 237;
 })());
 
 // Career windows must not run past a plausible playing age — a player should

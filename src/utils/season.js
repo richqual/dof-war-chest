@@ -6,6 +6,8 @@
 // year maths inline, because the start-year-vs-end-year mismatch (below) is the
 // main source of off-by-one bugs in this whole project.
 
+import { KEYFRAMES } from "../data/keyframes.js";
+
 export const FIRST_SEASON = 1999; // 1998/99 — earliest season in the pool
 export const LATEST_SEASON = 2026; // 2025/26 — "today" / inflation anchor
 
@@ -220,6 +222,55 @@ function curveFor(card) {
   };
 }
 
+// ── Per-player keyframes (precise career curves) ───────────────────────────
+// A keyframed identity (src/data/keyframes.js, keyed by wikidataId) carries its
+// own age→rating points + peak value band, which OVERRIDE the per-spell card
+// curve in a season game — so a multi-card player ages along ONE arc no matter
+// which club-spell card is rolled. These helpers resolve the effective peak /
+// peak age / band for any card: the keyframe's when keyframed, the card's own
+// otherwise (so a non-keyframed card behaves exactly as before).
+function keyframesFor(card) {
+  return (card && card.wikidataId && KEYFRAMES[card.wikidataId]) || null;
+}
+
+// Linear interpolation across sorted [age, rating] points; held flat beyond the
+// first/last point. Assumes at least one point.
+function interpKeyframes(points, age) {
+  if (age <= points[0][0]) return points[0][1];
+  const last = points[points.length - 1];
+  if (age >= last[0]) return last[1];
+  for (let i = 1; i < points.length; i++) {
+    const [a1, r1] = points[i];
+    if (age <= a1) {
+      const [a0, r0] = points[i - 1];
+      return r0 + (r1 - r0) * ((age - a0) / (a1 - a0));
+    }
+  }
+  return last[1];
+}
+
+// Effective peak RATING: the keyframe's highest point if keyframed, else the card's.
+function effectivePeak(card) {
+  const kf = keyframesFor(card);
+  if (!kf) return card?.rating ?? null;
+  return kf.points.reduce((m, p) => Math.max(m, p[1]), 0);
+}
+
+// Age at which the effective peak occurs: the keyframe's top-point age if
+// keyframed, else the growth/position peak age.
+function effectivePeakAge(card) {
+  const kf = keyframesFor(card);
+  if (!kf) return curveFor(card).peakAge;
+  return kf.points.reduce((best, p) => (p[1] > best[1] ? p : best), kf.points[0])[0];
+}
+
+// Peak value band: the keyframe's identity band if keyframed, else the card's.
+function effectiveBand(card) {
+  const kf = keyframesFor(card);
+  if (kf) return { min: kf.band[0], max: kf.band[1] };
+  return { min: card?.valueMin ?? 0, max: card?.valueMax ?? 0 };
+}
+
 // The player's rating in end-year season S, derived from the peak card by the
 // position ageing curve. Returns the peak rating unchanged when the season isn't
 // set or birthYear is unknown (so non-season games are byte-for-byte as before).
@@ -227,8 +278,15 @@ export function seasonRating(card, season) {
   if (!card || season == null || card.birthYear == null || card.rating == null) {
     return card ? card.rating : null;
   }
-  const { peakAge, decline, rise, plateau } = curveFor(card);
   const age = ageInSeason(card.birthYear, season);
+  // Keyframed identities override the per-spell curve: one career arc by age,
+  // so every club-spell card of the player reads the same rating in a season.
+  const kf = keyframesFor(card);
+  if (kf) {
+    const r = interpKeyframes(kf.points, age);
+    return Math.round(Math.max(RATING_FLOOR, Math.min(effectivePeak(card), r)));
+  }
+  const { peakAge, decline, rise, plateau } = curveFor(card);
   const peak = card.rating;
   // Before peak: climb from youth. Through the plateau: hold at peak. After the
   // plateau: decline at the (growth-adjusted) position rate.
@@ -254,9 +312,10 @@ export function seasonReputation(card, season) {
   if (!card || season == null || card.birthYear == null || card.rating == null) {
     return card ? card.rating : null;
   }
-  const { peakAge, plateau } = curveFor(card);
+  const peakAge = effectivePeakAge(card);
+  const peak = effectivePeak(card);
+  const plateau = keyframesFor(card) ? 0 : curveFor(card).plateau;
   const age = ageInSeason(card.birthYear, season);
-  const peak = card.rating;
   const rating = seasonRating(card, season);
   if (age >= peakAge) {
     // Past peak: reputation clings to the peak, decaying slowly from the end of
@@ -279,11 +338,15 @@ export function seasonValueBand(card, season) {
   if (!card || season == null || card.birthYear == null || card.rating == null) {
     return { min, max };
   }
+  // Keyframed players anchor on their identity peak band + peak rating; everyone
+  // else on the card's own band + rating (so non-keyframed is unchanged).
+  const band = effectiveBand(card);
+  const peak = effectivePeak(card);
   const rep = seasonReputation(card, season);
-  const mult = Math.min(1, Math.pow(2, (rep - card.rating) / RATING_PER_DOUBLING));
+  const mult = Math.min(1, Math.pow(2, (rep - peak) / RATING_PER_DOUBLING));
   return {
-    min: Math.max(0, Math.round(min * mult)),
-    max: Math.max(0, Math.round(max * mult)),
+    min: Math.max(0, Math.round(band.min * mult)),
+    max: Math.max(0, Math.round(band.max * mult)),
   };
 }
 
@@ -299,7 +362,7 @@ export function seasonAttributes(card, season) {
     return base;
   }
   const delta = seasonRating(card, season) - card.rating; // ≤ 0 mostly
-  const { peakAge } = curveFor(card);
+  const peakAge = effectivePeakAge(card);
   const age = ageInSeason(card.birthYear, season);
   const extraPace = Math.max(0, age - peakAge) * PACE_AGE_PENALTY;
   const out = {};
@@ -324,7 +387,7 @@ export function seasonAttributes(card, season) {
 export function peakSeasonOf(card) {
   const w = cardWindow(card);
   if (card && card.birthYear != null) {
-    const { peakAge } = curveFor(card);
+    const peakAge = effectivePeakAge(card);
     const peak = card.birthYear + peakAge + 1; // the season he turns peakAge
     if (!w) return Math.max(FIRST_SEASON, Math.min(LATEST_SEASON, peak));
     return Math.max(w.from, Math.min(w.to, peak));
