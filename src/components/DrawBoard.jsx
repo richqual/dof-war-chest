@@ -41,12 +41,14 @@ function PickCell({ entry, showRatings = false }) {
   if (entry?.pending) return <span className="bw-draw-pending">waiting…</span>;
   if (!entry) return <span className="bw-draw-empty">—</span>;
   if (!entry.playerId) return <span className="bw-draw-skip">no signing</span>;
+  // One line: position on the left, name in the middle (ellipsised), age +
+  // rating pinned to the right. Fixed shape so the row doesn't resize on reveal.
   return (
     <span className="bw-draw-pick">
+      <span className="bw-draw-pick-pos">{entry.slotPos || entry.pos}</span>
       <span className="bw-draw-pick-name">{entry.name}</span>
-      <span className="bw-draw-pick-meta">
-        <span>{entry.slotPos || entry.pos}</span>
-        {entry.age != null && <span>{entry.age}y</span>}
+      <span className="bw-draw-pick-extra">
+        {entry.age != null && <span className="bw-draw-pick-age">{entry.age}y</span>}
         {showRatings && entry.rating != null && (
           <span
             className="bw-draw-pick-rating"
@@ -166,8 +168,10 @@ export default function DrawBoard({
           out is the story the two money figures tell. */}
       <div className="bw-draw-legend">
         <span className="bw-draw-legend-club">Club</span>
-        <span className="bw-draw-legend-spin">Spun</span>
-        <span className="bw-draw-legend-pick">Signed</span>
+        <div className="bw-draw-legend-info">
+          <span className="bw-draw-legend-spin">Spun</span>
+          <span className="bw-draw-legend-pick">Signed</span>
+        </div>
       </div>
 
       <ul className="bw-draw-rows">
@@ -209,7 +213,9 @@ export default function DrawBoard({
                   : <span className="bw-draw-cpu">CPU</span>}
               </div>
 
-              {/* Info block — neutral while waiting, full kit colour once signed. */}
+              {/* Info block — neutral while waiting, full kit colour once signed.
+                  Both the spin slot and the main slot are fixed-size so the box
+                  is fully shaped before it fills — no resize on reveal. */}
               <div className="bw-draw-cell-info">
                 <span className="bw-draw-spin">
                   {signed ? `£${entry.spun ?? entry.budget}m` : "—"}
@@ -217,15 +223,17 @@ export default function DrawBoard({
                     <span className="bw-draw-pot">(£{entry.budget}m)</span>
                   )}
                 </span>
-                {signed ? (
-                  <PickCell entry={entry} showRatings={showRatings} />
-                ) : isNext ? (
-                  <span className="bw-draw-next-label">
-                    {isHuman ? "⏵ Your go next" : "up next…"}
-                  </span>
-                ) : (
-                  <span className="bw-draw-pending">waiting…</span>
-                )}
+                <span className="bw-draw-info-main">
+                  {signed ? (
+                    <PickCell entry={entry} showRatings={showRatings} />
+                  ) : isNext ? (
+                    <span className="bw-draw-next-label">
+                      {isHuman ? "⏵ Your go next" : "up next…"}
+                    </span>
+                  ) : (
+                    <span className="bw-draw-pending">waiting…</span>
+                  )}
+                </span>
               </div>
             </li>
           );

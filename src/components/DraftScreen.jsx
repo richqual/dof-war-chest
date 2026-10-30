@@ -711,7 +711,7 @@ export default function DraftScreen({
               </label>
               {skipCpuTurns && (
                 <button className="bw-cta-secondary bw-draw-skip-btn" onClick={skipCpuTurns}>
-                  ⏭ SKIP TO END OF ROUND
+                  ⏭ SKIP
                 </button>
               )}
             </div>

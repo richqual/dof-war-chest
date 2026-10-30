@@ -6964,11 +6964,12 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
 .bw-draw-nav-btn:disabled { opacity: .3; cursor: default; }
 
 .bw-draw-pot {
-  display: block; font-weight: 400; font-size: 10px;
-  color: var(--bw-text-low); letter-spacing: .02em;
+  margin-left: 4px; font-weight: 400; font-size: 10px;
+  color: inherit; opacity: .75; letter-spacing: .02em;
 }
-/* Legend sits over the two-part rows: one label for the club block, two for the
-   info block (spun | signed). Columns mirror the row grid below. */
+/* Legend sits over the two-part rows: one label for the club block, and the
+   info label split into spun | signed. Its flex mirrors the info block below
+   (same fixed spin width + gap + padding) so the labels line up with the data. */
 .bw-draw-legend {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
   gap: 0; padding: 2px 4px 6px;
@@ -6976,10 +6977,9 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
   color: var(--bw-text-low);
 }
 .bw-draw-legend-club { padding-left: 12px; }
-.bw-draw-legend-spin,
-.bw-draw-legend-pick { display: inline-block; }
-.bw-draw-legend-spin { grid-column: 2; padding-left: 12px; }
-.bw-draw-legend-pick { grid-column: 2; justify-self: end; padding-right: 12px; }
+.bw-draw-legend-info { display: flex; align-items: center; gap: 10px; padding: 0 12px; min-width: 0; }
+.bw-draw-legend-spin { flex: 0 0 var(--bw-draw-spin-w, 86px); }
+.bw-draw-legend-pick { flex: 1 1 auto; min-width: 0; }
 
 /* Round rows — each pick is its own rounded card, split into a club block and an
    info block. overflow:hidden clips the two colour slabs to the rounded corners;
@@ -6987,7 +6987,7 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
 .bw-draw-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
 .bw-draw-row {
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
-  gap: 0; font-size: 13px;
+  gap: 0; font-size: 13px; min-height: 48px;
   background: var(--bw-raised); border: 1px solid var(--bw-border);
   border-radius: var(--bw-radius-row) !important;
   overflow: hidden;
@@ -7006,23 +7006,32 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
    kit colour the moment they sign. The colour change is the lock-in cue, so it's
    a plain background transition rather than a flashing keyframe. */
 .bw-draw-cell-info {
-  display: grid; grid-template-columns: auto minmax(0, 1fr);
-  align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 10px;
   padding: 9px 12px; min-width: 0;
   background: var(--bw-base, var(--bw-raised));
   border-left: 1px solid var(--bw-border);
   transition: background-color .4s ease, color .4s ease;
 }
+/* Fixed-width spin slot so the name always starts at the same x — the "—"
+   placeholder reserves exactly the room the money + pot will need. */
+.bw-draw-spin {
+  flex: 0 0 var(--bw-draw-spin-w, 86px); min-width: 0;
+  font-weight: 700; color: var(--bw-gold);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-variant-numeric: tabular-nums;
+}
+.bw-draw-info-main { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; }
 .bw-draw-row.is-signed .bw-draw-cell-info {
   background: var(--kit, var(--bw-raised));
   color: var(--kit-text, var(--bw-text-hi));
   border-left-color: color-mix(in srgb, var(--kit-text, #000) 18%, transparent);
 }
 .bw-draw-row.is-signed .bw-draw-spin,
+.bw-draw-row.is-signed .bw-draw-pick-pos,
 .bw-draw-row.is-signed .bw-draw-pick-name,
-.bw-draw-row.is-signed .bw-draw-pick-meta { color: var(--kit-text, var(--bw-text-hi)); }
-.bw-draw-row.is-signed .bw-draw-pot,
-.bw-draw-row.is-signed .bw-draw-pick-meta { opacity: .82; }
+.bw-draw-row.is-signed .bw-draw-pick-age { color: var(--kit-text, var(--bw-text-hi)); }
+.bw-draw-row.is-signed .bw-draw-pick-pos,
+.bw-draw-row.is-signed .bw-draw-pick-age { opacity: .82; }
 
 /* Pending rows: keep the club block in full colour (so every club reads from
    the start) and only soften the empty info block. */
@@ -7058,13 +7067,17 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
   color: var(--kit-text, var(--bw-text-low)); opacity: .7;
   border: 1px solid currentColor; padding: 1px 4px; border-radius: 3px !important;
 }
-.bw-draw-spin { font-weight: 700; color: var(--bw-gold); white-space: nowrap; font-variant-numeric: tabular-nums; }
-.bw-draw-pick { display: flex; flex-direction: column; min-width: 0; }
-.bw-draw-pick-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-.bw-draw-pick-meta {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 10px; color: var(--bw-text-low); letter-spacing: .04em;
+/* Signed player on one line: position (left) · name (fills, ellipsised) ·
+   age + rating pinned right. Fixed shape means the row never grows on reveal. */
+.bw-draw-pick { display: flex; align-items: center; gap: 7px; min-width: 0; width: 100%; }
+.bw-draw-pick-pos {
+  flex: 0 0 auto; min-width: 20px;
+  font: 700 10px var(--bw-font-display); letter-spacing: .03em;
+  color: var(--bw-text-low);
 }
+.bw-draw-pick-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.bw-draw-pick-extra { flex: 0 0 auto; margin-left: auto; display: flex; align-items: center; gap: 6px; }
+.bw-draw-pick-age { font-size: 10px; color: var(--bw-text-low); font-variant-numeric: tabular-nums; }
 .bw-draw-pick-rating {
   font: 700 10px var(--bw-font-display); letter-spacing: 0;
   padding: 0 4px; border-radius: 3px !important; line-height: 1.5;

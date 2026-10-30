@@ -331,7 +331,7 @@ export default function ScoutDraftScreen({
               </button>
             ) : scoutSkipCpuTurns && (
               <button className="bw-cta-secondary" style={{ marginTop: "1.2rem", width: "auto" }} onClick={scoutSkipCpuTurns}>
-                ⏭ SKIP TO END OF ROUND
+                ⏭ SKIP
               </button>
             )}
           </div>
