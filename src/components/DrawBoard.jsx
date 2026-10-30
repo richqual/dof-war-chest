@@ -1,5 +1,6 @@
 import { POSITIONS, getRatingBg, getRatingColor } from "../data/players";
 import { subDisplayLabel } from "../hooks/draftUtils";
+import { initialLastName } from "../utils/displayName";
 import KitSwatch, { readableTextOn } from "./KitSwatch";
 
 // The draw board: what everyone spun and who they took, per round.
@@ -46,7 +47,7 @@ function PickCell({ entry, showRatings = false }) {
   return (
     <span className="bw-draw-pick">
       <span className="bw-draw-pick-pos">{entry.slotPos || entry.pos}</span>
-      <span className="bw-draw-pick-name">{entry.name}</span>
+      <span className="bw-draw-pick-name">{initialLastName(entry.name)}</span>
       <span className="bw-draw-pick-extra">
         {entry.age != null && <span className="bw-draw-pick-age">{entry.age}y</span>}
         {showRatings && entry.rating != null && (

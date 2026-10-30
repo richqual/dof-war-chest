@@ -7173,7 +7173,7 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
 .bw-draw-panel-body .bw-draw-cell { min-width: 96px; }
 
 /* Live board sitting in the CPU-turn area, in place of the thinking dots. */
-.bw-draw-live { width: min(460px, 100%); margin: 4px auto 0; }
+.bw-draw-live { width: min(520px, 100%); margin: 4px auto 0; }
 
 /* Draw-speed control + skip, under the live board. Mirrors the match-sim speed
    picker so the two read as the same "how I like to watch" control. */

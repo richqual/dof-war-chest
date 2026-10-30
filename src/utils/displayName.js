@@ -10,6 +10,20 @@ const PARTICLES = new Set([
   "dos", "das", "la", "le", "el", "al", "bin", "ter", "ten",
 ]);
 
+// Compact "F. Surname" form for very tight tokens (e.g. the draw board's signed
+// cell): the first name's initial + the surname that `lastName` resolves. Falls
+// back to the bare surname when there's no distinct first name — single-word
+// names ("Ronaldinho") or where the first word is itself part of the surname.
+export function initialLastName(fullName) {
+  if (!fullName) return "";
+  const surname = lastName(fullName);
+  const first = fullName.trim().split(/\s+/)[0];
+  if (!first || surname.toLowerCase().startsWith(first.toLowerCase())) return surname;
+  const initial = first[0];
+  if (!/\p{L}/u.test(initial)) return surname;
+  return `${initial.toUpperCase()}. ${surname}`;
+}
+
 export function lastName(fullName) {
   if (!fullName) return "";
   const parts = fullName.trim().split(/\s+/);
