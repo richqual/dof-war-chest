@@ -59,7 +59,7 @@ export default function TransferKittyBoardScreen({ draft, onContinue }) {
           </div>
 
           <button className="bw-cta-primary" style={{ marginTop: 12 }} onClick={onContinue}>
-            CONTINUE →
+            CONTINUE
           </button>
         </div>
       </div>

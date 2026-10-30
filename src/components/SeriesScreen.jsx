@@ -1414,7 +1414,7 @@ export default function SeriesScreen({ draft, setScreen, recordMatchResult, rest
               <div className="bw-champ-actions">
                 <button className="bw-champ-btn secondary" onClick={() => setScreen("squads")}>VIEW ALL SQUADS</button>
                 <ChampRestartButton onRestart={canRestart} isTournament={isTournamentFmt} />
-                <button className="bw-champ-btn primary" onClick={restartGame}>NEW GAME →</button>
+                <button className="bw-champ-btn primary" onClick={restartGame}>NEW GAME</button>
               </div>
             ) : (
               <div className="mp-waiting-screen">

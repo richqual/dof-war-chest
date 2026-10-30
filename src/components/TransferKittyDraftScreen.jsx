@@ -415,8 +415,8 @@ export default function TransferKittyDraftScreen({ draft, pickPlayer, unpickPlay
           {!allFilled
             ? `FILL ALL ${slots.length} ${block.label.toUpperCase()} SLOT${slots.length > 1 ? "S" : ""} TO CONTINUE`
             : isLastHuman
-              ? (isFinalBlock ? "DONE — VIEW SQUADS →" : "DONE — NEXT BLOCK →")
-              : "DONE — PASS TO NEXT MANAGER →"}
+              ? (isFinalBlock ? "DONE — VIEW SQUADS" : "DONE — NEXT BLOCK")
+              : "DONE — PASS TO NEXT MANAGER"}
         </button>
       </div>
 
@@ -446,7 +446,7 @@ export default function TransferKittyDraftScreen({ draft, pickPlayer, unpickPlay
             </div>
             <div className="bw-wcd-confirm-actions">
               <button className="bw-wcd-confirm-cancel" onClick={() => setPendingPlayer(null)}>CANCEL</button>
-              <button className="bw-wcd-confirm-sign" onClick={confirmSign}>CONFIRM SIGNING →</button>
+              <button className="bw-wcd-confirm-sign" onClick={confirmSign}>CONFIRM SIGNING</button>
             </div>
           </div>
         </div>

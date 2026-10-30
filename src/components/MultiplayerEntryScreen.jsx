@@ -40,7 +40,7 @@ export default function MultiplayerEntryScreen({ onCreateGame, onJoinGame, onBac
               </button>
               <button className="bw-mp-option join" onClick={() => setMode("join")}>
                 <div className="bw-mp-option-row">
-                  <span className="bw-mp-option-label">→ JOIN ROOM</span>
+                  <span className="bw-mp-option-label">JOIN ROOM</span>
                   <span className="bw-mp-option-arrow">→</span>
                 </div>
                 <div className="bw-mp-option-sub">Enter a code to join a friend's game.</div>
@@ -73,7 +73,7 @@ export default function MultiplayerEntryScreen({ onCreateGame, onJoinGame, onBac
                 onClick={handleCreate}
                 disabled={loading}
               >
-                {loading ? "CREATING..." : "CREATE ROOM →"}
+                {loading ? "CREATING..." : "CREATE ROOM"}
               </button>
               <button className="bw-back-link bw-mp-back" onClick={() => setMode(null)}>← back</button>
             </>
@@ -99,7 +99,7 @@ export default function MultiplayerEntryScreen({ onCreateGame, onJoinGame, onBac
                 onClick={handleJoin}
                 disabled={loading || roomCode.trim().length < 6}
               >
-                {loading ? "JOINING..." : "JOIN ROOM →"}
+                {loading ? "JOINING..." : "JOIN ROOM"}
               </button>
               <button className="bw-back-link bw-mp-back" onClick={() => setMode(null)}>← back</button>
             </>

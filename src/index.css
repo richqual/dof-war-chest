@@ -6967,43 +6967,109 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
   display: block; font-weight: 400; font-size: 10px;
   color: var(--bw-text-low); letter-spacing: .02em;
 }
+/* Legend sits over the two-part rows: one label for the club block, two for the
+   info block (spun | signed). Columns mirror the row grid below. */
 .bw-draw-legend {
-  display: grid; grid-template-columns: 18px minmax(0, 1fr) auto minmax(0, 1.1fr);
-  align-items: center; gap: 8px; padding: 2px 12px 6px;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  gap: 0; padding: 2px 4px 6px;
   font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
   color: var(--bw-text-low);
 }
+.bw-draw-legend-club { padding-left: 12px; }
+.bw-draw-legend-spin,
+.bw-draw-legend-pick { display: inline-block; }
+.bw-draw-legend-spin { grid-column: 2; padding-left: 12px; }
+.bw-draw-legend-pick { grid-column: 2; justify-self: end; padding-right: 12px; }
 
-/* Round rows — each pick is its own rounded card, not a ruled table line. */
+/* Round rows — each pick is its own rounded card, split into a club block and an
+   info block. overflow:hidden clips the two colour slabs to the rounded corners;
+   gap:0 keeps them flush so they read as one bubble. */
 .bw-draw-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
 .bw-draw-row {
-  display: grid; grid-template-columns: 18px minmax(0, 1fr) auto minmax(0, 1.1fr);
-  align-items: center; gap: 8px;
-  padding: 9px 12px; font-size: 13px;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  gap: 0; font-size: 13px;
   background: var(--bw-raised); border: 1px solid var(--bw-border);
   border-radius: var(--bw-radius-row) !important;
+  overflow: hidden;
 }
-.bw-draw-row.is-pending { opacity: .45; background: transparent; border-style: dashed; }
-/* Brief flash on the pick that just landed, so a live board reads as live. */
-.bw-draw-row.is-latest { animation: bw-draw-land 1s ease-out; }
-@keyframes bw-draw-land {
-  0%   { background: rgba(245, 197, 66, .22); border-color: var(--bw-gold); }
-  100% { background: var(--bw-raised); border-color: var(--bw-border); }
-}
-.bw-draw-club {
-  display: flex; align-items: center; min-width: 0;
-  color: var(--bw-text-mid); font-weight: 600;
+
+/* Club block — always the full kit colour, with text picked to read on it. */
+.bw-draw-cell-club {
+  display: flex; align-items: center; gap: 7px; min-width: 0;
+  padding: 9px 12px; font-weight: 600;
+  background: var(--kit, var(--bw-raised));
+  color: var(--kit-text, var(--bw-text-hi));
 }
 .bw-draw-club-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+/* Info block — neutral while a manager is still to pick, then fills to the same
+   kit colour the moment they sign. The colour change is the lock-in cue, so it's
+   a plain background transition rather than a flashing keyframe. */
+.bw-draw-cell-info {
+  display: grid; grid-template-columns: auto minmax(0, 1fr);
+  align-items: center; gap: 10px;
+  padding: 9px 12px; min-width: 0;
+  background: var(--bw-base, var(--bw-raised));
+  border-left: 1px solid var(--bw-border);
+  transition: background-color .4s ease, color .4s ease;
+}
+.bw-draw-row.is-signed .bw-draw-cell-info {
+  background: var(--kit, var(--bw-raised));
+  color: var(--kit-text, var(--bw-text-hi));
+  border-left-color: color-mix(in srgb, var(--kit-text, #000) 18%, transparent);
+}
+.bw-draw-row.is-signed .bw-draw-spin,
+.bw-draw-row.is-signed .bw-draw-pick-name,
+.bw-draw-row.is-signed .bw-draw-pick-meta { color: var(--kit-text, var(--bw-text-hi)); }
+.bw-draw-row.is-signed .bw-draw-pot,
+.bw-draw-row.is-signed .bw-draw-pick-meta { opacity: .82; }
+
+/* Pending rows: keep the club block in full colour (so every club reads from
+   the start) and only soften the empty info block. */
+.bw-draw-row.is-pending .bw-draw-cell-info { opacity: .72; }
+
+/* Latest signing: a short, non-layout pop (inset ring) so a live board reads as
+   live without the clunky colour-shuffle the old fade had. */
+.bw-draw-row.is-latest { animation: bw-draw-pop .55s ease-out; }
+@keyframes bw-draw-pop {
+  0%   { box-shadow: inset 0 0 0 2px var(--bw-gold); }
+  100% { box-shadow: inset 0 0 0 0 transparent; }
+}
+
+/* Human-controlled clubs stand out from the CPUs with a gold ring + glow. */
+.bw-draw-row.is-you {
+  box-shadow: 0 0 0 2px var(--bw-gold), 0 2px 12px rgba(245, 197, 66, .22);
+  opacity: 1;
+}
+/* The next human up: pulse the ring so their turn is obviously coming. */
+.bw-draw-row.is-next.is-you { animation: bw-draw-next-pulse 1.1s ease-in-out infinite; }
+@keyframes bw-draw-next-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px var(--bw-gold), 0 2px 12px rgba(245, 197, 66, .22); }
+  50%      { box-shadow: 0 0 0 2px var(--bw-gold), 0 0 16px rgba(245, 197, 66, .55); }
+}
+
+.bw-draw-you {
+  flex-shrink: 0; margin-left: auto; font: 700 9px var(--bw-font-display); letter-spacing: .08em;
+  color: var(--bw-ink, #1a1a1a); background: var(--bw-gold);
+  padding: 1px 5px; border-radius: 3px !important;
+}
 .bw-draw-cpu {
-  flex-shrink: 0; margin-left: 5px; font-size: 9px; letter-spacing: .06em;
-  color: var(--bw-text-low); border: 1px solid var(--bw-border2);
-  padding: 1px 3px; border-radius: 3px !important;
+  flex-shrink: 0; margin-left: auto; font-size: 9px; letter-spacing: .06em;
+  color: var(--kit-text, var(--bw-text-low)); opacity: .7;
+  border: 1px solid currentColor; padding: 1px 4px; border-radius: 3px !important;
 }
 .bw-draw-spin { font-weight: 700; color: var(--bw-gold); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .bw-draw-pick { display: flex; flex-direction: column; min-width: 0; }
 .bw-draw-pick-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-.bw-draw-pick-meta { font-size: 10px; color: var(--bw-text-low); letter-spacing: .04em; }
+.bw-draw-pick-meta {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; color: var(--bw-text-low); letter-spacing: .04em;
+}
+.bw-draw-pick-rating {
+  font: 700 10px var(--bw-font-display); letter-spacing: 0;
+  padding: 0 4px; border-radius: 3px !important; line-height: 1.5;
+}
+.bw-draw-next-label { font: 700 11px var(--bw-font-display); letter-spacing: .04em; color: var(--bw-gold); }
 .bw-draw-pending, .bw-draw-empty { color: var(--bw-text-low); font-style: italic; font-size: 12px; }
 .bw-draw-skip { color: var(--red, #ff5555); font-size: 12px; }
 

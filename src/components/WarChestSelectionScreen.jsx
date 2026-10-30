@@ -105,7 +105,7 @@ export default function WarChestSelectionScreen({ draft, onSelect, deadline }) {
         <div className="bw-wc-handoff-club">{manager.clubName}</div>
         <div className="bw-wc-handoff-sub">Pick your war chest — one holds the biggest budget.</div>
         <button className="bw-wc-handoff-btn" onClick={() => setShowHandoff(false)}>
-          START PICKING →
+          START PICKING
         </button>
       </div>
     );
@@ -131,7 +131,7 @@ export default function WarChestSelectionScreen({ draft, onSelect, deadline }) {
               </div>
             </div>
             <button className="bw-wc-build-btn" onClick={handleConfirm}>
-              CONFIRM CHEST →
+              CONFIRM CHEST
             </button>
           </div>
         )}

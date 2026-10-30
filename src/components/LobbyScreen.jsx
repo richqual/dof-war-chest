@@ -60,7 +60,7 @@ export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onW
                 </div>
                 <div className="bw-mode-card-bestfor">Best for 1–2 players</div>
               </div>
-              <div className="bw-mode-card-cta">{selected === "classic" ? "▲" : "PLAY →"}</div>
+              <div className="bw-mode-card-cta">{selected === "classic" ? "▲" : "PLAY"}</div>
             </button>
             {selected === "classic" && (
               <div className="bw-mode-sub-options">
@@ -85,7 +85,7 @@ export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onW
                 </div>
                 <div className="bw-mode-card-bestfor">Best for a quick game</div>
               </div>
-              <div className="bw-mode-card-cta">{selected === "warchest" ? "▲" : "PLAY →"}</div>
+              <div className="bw-mode-card-cta">{selected === "warchest" ? "▲" : "PLAY"}</div>
             </button>
             {selected === "warchest" && (
               <div className="bw-mode-sub-options">
@@ -110,7 +110,7 @@ export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onW
                 </div>
                 <div className="bw-mode-card-bestfor">Best for 2–4 players</div>
               </div>
-              <div className="bw-mode-card-cta">{selected === "scout" ? "▲" : "PLAY →"}</div>
+              <div className="bw-mode-card-cta">{selected === "scout" ? "▲" : "PLAY"}</div>
             </button>
             {selected === "scout" && (
               <div className="bw-mode-sub-options">
@@ -135,7 +135,7 @@ export function ModeSelectScreen({ onClassicSolo, onClassicOnline, onWcSolo, onW
                 </div>
                 <div className="bw-mode-card-bestfor">Ideal for 4+ players</div>
               </div>
-              <div className="bw-mode-card-cta">{selected === "kitty" ? "▲" : "PLAY →"}</div>
+              <div className="bw-mode-card-cta">{selected === "kitty" ? "▲" : "PLAY"}</div>
             </button>
             {selected === "kitty" && (
               <div className="bw-mode-sub-options">
@@ -486,7 +486,7 @@ export default function LobbyScreen({ onContinue, onBack, initialSeasonKey = "al
           )}
 
           <button className="bw-cta-primary" style={{ marginTop: 10 }} onClick={handleContinue}>
-            CONTINUE →
+            CONTINUE
           </button>
 
           {onBack && (

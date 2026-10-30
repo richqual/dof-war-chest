@@ -118,27 +118,27 @@ export default function WarChestSquadScreen({ draft, setScreen, isHost = true })
                 (mirrors the n>2 tournament guard below). */}
             {n === 2 && series?.stage === "champion" && (
               <button className="bw-cta-arcade" onClick={() => setScreen("series")}>
-                SEE THE RESULTS →
+                SEE THE RESULTS
               </button>
             )}
             {n === 2 && series?.stage !== "champion" && (
               <button className="bw-cta-arcade" onClick={() => setScreen("match", { homeIdx: 0, awayIdx: 1 })}>
-                PLAY 60-MIN MATCH →
+                PLAY 60-MIN MATCH
               </button>
             )}
             {n > 2 && series?.stage === "draw" && (
               <button className="bw-cta-arcade" onClick={() => setScreen("draw")}>
-                DRAW THE TOURNAMENT →
+                DRAW THE TOURNAMENT
               </button>
             )}
             {n > 2 && series && series.stage !== "draw" && series.stage !== "champion" && (
               <button className="bw-cta-arcade" onClick={() => setScreen("series")}>
-                CONTINUE TOURNAMENT →
+                CONTINUE TOURNAMENT
               </button>
             )}
             {n > 2 && series?.stage === "champion" && (
               <button className="bw-cta-arcade" onClick={() => setScreen("series")}>
-                SEE THE RESULTS →
+                SEE THE RESULTS
               </button>
             )}
           </>

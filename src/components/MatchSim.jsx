@@ -2185,7 +2185,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
 
         {penPaused && simulating && isHost && (
           <button className="bw-match-cta pens" onClick={() => { setPenPaused(false); runFeed(speedRef.current); }}>
-            ⚽ BEGIN PENALTY SHOOTOUT →
+            ⚽ BEGIN PENALTY SHOOTOUT
           </button>
         )}
         {done && onMatchResult && isHost && (
@@ -2206,7 +2206,7 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
               onMatchResult(side === "home" ? homeIdx : awayIdx, result.score, result.ratings, result.events, result.matchInjuries);
             }
           }}>
-            {seriesContext?.isGrandFinal ? "SEE THE RESULT →" : seriesContext ? "CONTINUE TOURNAMENT →" : draft?.warChest ? "BACK TO SQUADS →" : "BACK TO SERIES →"}
+            {seriesContext?.isGrandFinal ? "SEE THE RESULT" : seriesContext ? "CONTINUE TOURNAMENT" : draft?.warChest ? "BACK TO SQUADS" : "BACK TO SERIES"}
           </button>
         )}
         {done && !isHost && (

@@ -176,7 +176,7 @@ export default function DrawScreen({ draft, onComplete, isHost = true }) {
                 </div>
               ))}
             </div>
-            <button className="bw-cta-arcade" style={{ marginTop: 12 }} onClick={startDraw}>START THE DRAW →</button>
+            <button className="bw-cta-arcade" style={{ marginTop: 12 }} onClick={startDraw}>START THE DRAW</button>
           </div>
         </div>
       </div>

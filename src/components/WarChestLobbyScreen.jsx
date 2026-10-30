@@ -189,7 +189,7 @@ export default function WarChestLobbyScreen({ onContinue, onBack }) {
           )}
 
           <button className="bw-cta-primary" style={{ marginTop: 10 }} onClick={handleContinue}>
-            CONTINUE →
+            CONTINUE
           </button>
 
           {onBack && (

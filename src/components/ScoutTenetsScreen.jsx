@@ -99,7 +99,7 @@ export default function ScoutTenetsScreen({ clubs, onStart, onBack }) {
           </div>
 
           <button className="bw-cta-primary" style={{ marginTop: 10 }} onClick={next}>
-            {step < humanIdx.length - 1 ? "NEXT MANAGER →" : "START DRAFT →"}
+            {step < humanIdx.length - 1 ? "NEXT MANAGER" : "START DRAFT"}
           </button>
           {onBack && step === 0 && <button className="bw-about-link" onClick={onBack}>← back</button>}
           {step > 0 && <button className="bw-about-link" onClick={() => setStep(step - 1)}>← previous manager</button>}

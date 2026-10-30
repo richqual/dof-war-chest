@@ -218,7 +218,7 @@ export default function TransferKittyLobbyScreen({ onContinue, onBack }) {
           )}
 
           <button className="bw-cta-primary" style={{ marginTop: 10 }} onClick={handleContinue}>
-            CONTINUE →
+            CONTINUE
           </button>
           {onBack && (
             <button className="bw-about-link" onClick={onBack}>← change mode</button>

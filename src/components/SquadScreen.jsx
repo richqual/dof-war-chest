@@ -662,7 +662,7 @@ export default function SquadScreen({ draft, setTeamName, swapSquadPlayers, setT
                 <div className="bw-draft-card-ovr-box">
                   <span className="bw-draft-card-ovr">{ovr}</span>
                   <span className="bw-draft-card-ovr-label">OVR</span>
-                  <div className="bw-draft-link">VIEW →</div>
+                  <div className="bw-draft-link">VIEW</div>
                 </div>
               </div>
             </div>

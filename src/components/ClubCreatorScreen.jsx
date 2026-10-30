@@ -537,7 +537,7 @@ export default function ClubCreatorScreen({ config, onStart, onBack, profileDefa
               onClick={() => { if (valid) setStep(s => s + 1); }}
               disabled={!valid}
             >
-              {isLast ? "REVIEW CLUBS →" : "NEXT CLUB →"}
+              {isLast ? "REVIEW CLUBS" : "NEXT CLUB"}
             </button>
 
             {!valid && (club.dofName.trim() || club.clubName.trim()) && (

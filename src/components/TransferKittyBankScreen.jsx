@@ -94,7 +94,7 @@ export default function TransferKittyBankScreen({ draft, onConfirm }) {
               </div>
             )}
             <button className="bw-cta-primary" style={{ marginTop: "1rem" }} onClick={() => onConfirm(pickedVal)}>
-              LOCK IN £{total}m — BUILD YOUR {block.label.toUpperCase()} →
+              LOCK IN £{total}m — BUILD YOUR {block.label.toUpperCase()}
             </button>
           </>
         )}

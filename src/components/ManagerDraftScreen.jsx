@@ -176,7 +176,7 @@ function ManagerCard({ manager, onPick, disabled, highlighted, showPickButton = 
       </div>
       {showPickButton && (
         <button className="bw-mgr-pick-btn" onClick={() => onPick(manager)} disabled={disabled}>
-          PICK {mgrLastName} →
+          PICK {mgrLastName}
         </button>
       )}
     </div>
@@ -660,7 +660,7 @@ export default function ManagerDraftScreen({
             {!isHuman && (
               <div className="bw-series-actions" style={{ marginTop: 10 }}>
                 <button className="bw-cta-primary" onClick={confirmCpuPick} disabled={!cpuReady}>
-                  {cpuReady ? "CONFIRM & NEXT →" : "DELIBERATING..."}
+                  {cpuReady ? "CONFIRM & NEXT" : "DELIBERATING..."}
                 </button>
                 {isHost && (
                   <button className="bw-cta-secondary" onClick={skipAllCpu}>⏭ SKIP CPU</button>
@@ -686,7 +686,7 @@ export default function ManagerDraftScreen({
             </div>
             <div className="bw-confirm-btns">
               <button className="bw-cta-primary" onClick={() => handlePick(pendingPick)}>
-                APPOINT {lastName(pendingPick.name).toUpperCase()} →
+                APPOINT {lastName(pendingPick.name).toUpperCase()}
               </button>
               <button className="bw-cta-secondary" onClick={() => setPendingPick(null)}>CANCEL</button>
             </div>

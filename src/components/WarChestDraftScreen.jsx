@@ -362,7 +362,7 @@ export default function WarChestDraftScreen({ draft, pickPlayer, unpickPlayer, o
             ? "COMPLETE YOUR SQUAD TO CONTINUE"
             : !allFilled
               ? "FILL ALL 5 SLOTS TO CONTINUE"
-              : (isLastHuman ? "DONE — VIEW SQUADS →" : "DONE — PASS TO NEXT PLAYER →")}
+              : (isLastHuman ? "DONE — VIEW SQUADS" : "DONE — PASS TO NEXT PLAYER")}
         </button>
       </div>
 
@@ -392,7 +392,7 @@ export default function WarChestDraftScreen({ draft, pickPlayer, unpickPlayer, o
             </div>
             <div className="bw-wcd-confirm-actions">
               <button className="bw-wcd-confirm-cancel" onClick={() => setPendingPlayer(null)}>CANCEL</button>
-              <button className="bw-wcd-confirm-sign" onClick={confirmSign}>CONFIRM SIGNING →</button>
+              <button className="bw-wcd-confirm-sign" onClick={confirmSign}>CONFIRM SIGNING</button>
             </div>
           </div>
         </div>

@@ -299,7 +299,7 @@ export default function ScoutDraftScreen({
                 setAckTick(t => t + 1);
               }}
             >
-              CONTINUE →
+              CONTINUE
             </button>
           </div>
         ) : isCpuTurn || reviewPending ? (
@@ -327,7 +327,7 @@ export default function ScoutDraftScreen({
                   setAckTick(t => t + 1);
                 }}
               >
-                CONTINUE →
+                CONTINUE
               </button>
             ) : scoutSkipCpuTurns && (
               <button className="bw-cta-secondary" style={{ marginTop: "1.2rem", width: "auto" }} onClick={scoutSkipCpuTurns}>

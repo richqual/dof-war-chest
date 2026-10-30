@@ -209,7 +209,7 @@ function HostGameConfig({ onStart, slots, initialGameMode = "classic" }) {
       )}
 
       <button className="bw-cta-arcade" onClick={handleStart}>
-        START GAME →
+        START GAME
       </button>
     </div>
   );
@@ -406,7 +406,7 @@ export default function MultiplayerWaitingRoom({ gameDoc, mySlotIdx, isHost, onU
                 onClick={saveSlot}
                 disabled={saving || !clubName.trim() || !displayName.trim()}
               >
-                {saving ? "SAVING..." : "CONFIRM →"}
+                {saving ? "SAVING..." : "CONFIRM"}
               </button>
               <button className="bw-back-link bw-mp-back" onClick={() => setEditing(false)}>← cancel</button>
             </div>

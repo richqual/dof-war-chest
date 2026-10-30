@@ -1,7 +1,6 @@
-import { POSITIONS } from "../data/players";
+import { POSITIONS, getRatingBg, getRatingColor } from "../data/players";
 import { subDisplayLabel } from "../hooks/draftUtils";
-import { lastName } from "../utils/displayName";
-import KitSwatch from "./KitSwatch";
+import KitSwatch, { readableTextOn } from "./KitSwatch";
 
 // The draw board: what everyone spun and who they took, per round.
 //
@@ -34,19 +33,28 @@ function pendingRow(managerIdx) {
   return { pending: true, managerIdx };
 }
 
-// Ratings are never shown here, in any mode. Scout charges a fee to reveal them
-// on your OWN report, so putting rivals' ratings on a shared board would give
-// away the thing that fee is for.
-function PickCell({ entry }) {
+// Ratings are a paid reveal in Scout — the fee buys the ratings on your OWN
+// report, so a shared board must never leak rivals' ratings there. `showRatings`
+// is therefore on only in modes with no such economy (Classic & co.), where the
+// signed player reads as full name · position · age · rating.
+function PickCell({ entry, showRatings = false }) {
   if (entry?.pending) return <span className="bw-draw-pending">waiting…</span>;
   if (!entry) return <span className="bw-draw-empty">—</span>;
   if (!entry.playerId) return <span className="bw-draw-skip">no signing</span>;
   return (
     <span className="bw-draw-pick">
-      <span className="bw-draw-pick-name">{lastName(entry.name)}</span>
+      <span className="bw-draw-pick-name">{entry.name}</span>
       <span className="bw-draw-pick-meta">
-        {entry.slotPos || entry.pos}
-        {entry.spent != null && <> · £{entry.spent}m</>}
+        <span>{entry.slotPos || entry.pos}</span>
+        {entry.age != null && <span>{entry.age}y</span>}
+        {showRatings && entry.rating != null && (
+          <span
+            className="bw-draw-pick-rating"
+            style={{ background: getRatingBg(entry.rating), color: getRatingColor(entry.rating) }}
+          >
+            {entry.rating}
+          </span>
+        )}
       </span>
     </span>
   );
@@ -61,6 +69,10 @@ export default function DrawBoard({
 }) {
   if (!draft) return null;
   const { managers = [], pickLog = [], positionIndex = 0, currentOrder = [] } = draft;
+  // Ratings are a paid reveal in Scout only; everywhere else the board can show
+  // them. Derived from the draft so every caller (incl. the shared DrawPanel)
+  // gets it right without threading a prop through.
+  const showRatings = !draft.scout;
 
   if (mode === "full") {
     const lastRound = Math.min(positionIndex, POSITIONS.length - 1);
@@ -103,7 +115,7 @@ export default function DrawBoard({
                             )}
                           </span>
                         )}
-                        <PickCell entry={entry} />
+                        <PickCell entry={entry} showRatings={showRatings} />
                       </td>
                     );
                   })}
@@ -126,6 +138,9 @@ export default function DrawBoard({
   const rows = isLive
     ? [...picked, ...currentOrder.filter(i => !pickedIdx.has(i)).map(pendingRow)]
     : picked;
+  // The next manager to pick in a live round — the first in turn order still
+  // waiting. Used to call out "your go next" so a human sees it coming.
+  const nextIdx = isLive ? currentOrder.find(i => !pickedIdx.has(i)) : undefined;
 
   return (
     <div className="bw-draw-board bw-draw-round">
@@ -145,54 +160,73 @@ export default function DrawBoard({
         >›</button>
       </div>
 
-      {/* Two money figures per row need naming: what the wheel gave them vs what
-          they actually laid out. The gap between them is the story. */}
+      {/* Each row is two parts: a club block that's always in full kit colour,
+          and an info block (spun + signed) that fills to the same colour the
+          instant a signing locks in. The gap between "spun" and what they laid
+          out is the story the two money figures tell. */}
       <div className="bw-draw-legend">
-        <span />
-        <span>Club</span>
-        <span>Spun</span>
-        <span>Signed</span>
+        <span className="bw-draw-legend-club">Club</span>
+        <span className="bw-draw-legend-spin">Spun</span>
+        <span className="bw-draw-legend-pick">Signed</span>
       </div>
 
       <ul className="bw-draw-rows">
         {rows.map((entry, n) => {
           const m = managers[entry.managerIdx];
           if (!m) return null;
-          const isLatest = !entry.pending && entry === picked[picked.length - 1] && isLive;
+          const signed = !entry.pending;
+          const isLatest = signed && entry === picked[picked.length - 1] && isLive;
+          const isNext = !signed && entry.managerIdx === nextIdx;
+          const isHuman = !m.isComputer;
           const kit = m.primaryColor || "#1a3a6b";
+          const kitText = readableTextOn(kit);
           return (
             <li
               key={`${entry.managerIdx}-${n}`}
-              className={`bw-draw-row${entry.pending ? " is-pending" : ""}${isLatest ? " is-latest" : ""}`}
-              // Tint the row in the club's kit colour so each team reads at a
-              // glance. backgroundImage layers over the class background, so the
-              // is-latest highlight still shows through the transparent half.
-              style={{
-                borderLeft: `4px solid ${kit}`,
-                backgroundImage: `linear-gradient(90deg, color-mix(in srgb, ${kit} 24%, transparent), transparent 58%)`,
-              }}
+              className={
+                "bw-draw-row" +
+                (signed ? " is-signed" : " is-pending") +
+                (isLatest ? " is-latest" : "") +
+                (isNext ? " is-next" : "") +
+                (isHuman ? " is-you" : "")
+              }
+              // The kit colour and the text that reads on it drive both blocks
+              // via CSS, so the fill-in is a pure colour transition (no reflow).
+              style={{ "--kit": kit, "--kit-text": kitText }}
             >
-              <KitSwatch
-                primary={m.primaryColor}
-                secondary={m.secondaryColor}
-                pattern={m.pattern || "plain"}
-                uid={`draw-${shown}-${entry.managerIdx}`}
-                size={18}
-              />
-              <span className="bw-draw-club">
-                {/* Name truncates, chip never does — they can't share an ellipsis. */}
+              {/* Club block — always full kit colour. */}
+              <div className="bw-draw-cell-club">
+                <KitSwatch
+                  primary={m.primaryColor}
+                  secondary={m.secondaryColor}
+                  pattern={m.pattern || "plain"}
+                  uid={`draw-${shown}-${entry.managerIdx}`}
+                  size={18}
+                />
                 <span className="bw-draw-club-name">{m.clubName || m.name}</span>
-                {m.isComputer && <span className="bw-draw-cpu">CPU</span>}
-              </span>
-              <span className="bw-draw-spin">
-                {entry.pending ? "—" : `£${entry.spun ?? entry.budget}m`}
-                {/* Only worth showing when carryover made the pot bigger than
-                    the spin — otherwise it's the same number twice. */}
-                {!entry.pending && entry.budget > (entry.spun ?? entry.budget) && (
-                  <span className="bw-draw-pot">(£{entry.budget}m)</span>
+                {isHuman
+                  ? <span className="bw-draw-you">YOU</span>
+                  : <span className="bw-draw-cpu">CPU</span>}
+              </div>
+
+              {/* Info block — neutral while waiting, full kit colour once signed. */}
+              <div className="bw-draw-cell-info">
+                <span className="bw-draw-spin">
+                  {signed ? `£${entry.spun ?? entry.budget}m` : "—"}
+                  {signed && entry.budget > (entry.spun ?? entry.budget) && (
+                    <span className="bw-draw-pot">(£{entry.budget}m)</span>
+                  )}
+                </span>
+                {signed ? (
+                  <PickCell entry={entry} showRatings={showRatings} />
+                ) : isNext ? (
+                  <span className="bw-draw-next-label">
+                    {isHuman ? "⏵ Your go next" : "up next…"}
+                  </span>
+                ) : (
+                  <span className="bw-draw-pending">waiting…</span>
                 )}
-              </span>
-              <PickCell entry={entry} />
+              </div>
             </li>
           );
         })}
@@ -200,7 +234,7 @@ export default function DrawBoard({
 
       {onViewFull && (
         <button className="bw-draw-full-link" onClick={onViewFull}>
-          View full draw →
+          View full draw
         </button>
       )}
     </div>

@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { POSITIONS, generateBudget, chooseCpuPick, normalizeSearch } from "../data/players";
-import { GROUP_COLORS, FORMATIONS, FORMATION_DISPLAY_ORDER, slotEligibility, slotPenalty } from "../data/formations";
+import { FORMATIONS, FORMATION_DISPLAY_ORDER, slotEligibility, slotPenalty } from "../data/formations";
 import { cpuSpendCap, BENCH_MIN_FUND, freeTransferOptions } from "../hooks/draftUtils";
-import { POSITIONS as ALL_POSITIONS } from "../data/players";
 import PlayerCard, { ARCHETYPE_COLOR } from "./PlayerCard";
 import SpinWheel from "./SpinWheel";
 import PositionWheel from "./PositionWheel";
@@ -19,10 +18,10 @@ import { playerPrefKey, loadPrefs, savePrefs } from "../utils/filterPrefs";
 // old per-pick "TRANSFER COMPLETE … CONTINUE" pop-up; the round just fills in on
 // the live board like the order-draw screen, at the speed you pick.
 const DRAW_SPEEDS = [
-  { label: "SLOW",    pick: 2200, spin: 1400 },
-  { label: "NORMAL",  pick: 1300, spin: 900  },
-  { label: "BRISK",   pick: 650,  spin: 450  },
-  { label: "FAST",    pick: 280,  spin: 200  },
+  { label: "SLOW",    pick: 3300, spin: 2100 },
+  { label: "NORMAL",  pick: 1600, spin: 1050 },
+  { label: "BRISK",   pick: 750,  spin: 500  },
+  { label: "FAST",    pick: 300,  spin: 210  },
   { label: "INSTANT", pick: 0,    spin: 0    },
 ];
 const DEFAULT_DRAW_SPEED_IDX = 1; // NORMAL
@@ -653,7 +652,6 @@ export default function DraftScreen({
           <div className="bw-cpu-area">
             <span className="bw-badge-pill bw-badge-pill-human">ROUND COMPLETE</span>
             <div className="bw-cpu-name">{roundLabel(draft, roundReview)}</div>
-            <div className="bw-cpu-status">Every club has signed. Here's how the round went.</div>
             <div className="bw-draw-live">
               <DrawBoard draft={draft} round={roundReview} />
             </div>
@@ -662,14 +660,13 @@ export default function DraftScreen({
               style={{ marginTop: "1.2rem", width: "auto" }}
               onClick={() => ackDraw(roundReview)}
             >
-              CONTINUE →
+              CONTINUE
             </button>
           </div>
         ) : reviewPending ? (
           <div className="bw-cpu-area">
             <span className="bw-badge-pill bw-badge-pill-human">ROUND SO FAR</span>
             <div className="bw-cpu-name">You're up next</div>
-            <div className="bw-cpu-status">Here's how the round's gone so far.</div>
             <div className="bw-draw-live">
               <DrawBoard draft={draft} />
             </div>
@@ -678,7 +675,7 @@ export default function DraftScreen({
               style={{ marginTop: "1.2rem", width: "auto" }}
               onClick={() => ackDraw(null)}
             >
-              CONTINUE →
+              CONTINUE
             </button>
           </div>
         ) : !myTurn && !isCpuTurn ? (
@@ -698,25 +695,8 @@ export default function DraftScreen({
           <div className="bw-cpu-area">
             <span className="bw-badge-pill bw-badge-pill-human">CPU TURN</span>
             <div className="bw-cpu-name">{activeManager?.clubName || activeManager?.name}</div>
-            <div className="bw-cpu-status">
-              {needsSlotDraw
-                ? "Drawing position…"
-                : isRandomStarter && draft.currentSlot !== null && draft.currentSlot !== undefined
-                  ? <>
-                      Drew{" "}
-                      <strong style={{ color: (draft.currentSlot === 0 ? GROUP_COLORS.GK : draft.currentSlot <= 4 ? GROUP_COLORS.DEF : draft.currentSlot <= 9 ? GROUP_COLORS.MID : GROUP_COLORS.ATT).fill }}>
-                        {ALL_POSITIONS[draft.currentSlot]?.label}
-                      </strong>
-                      {currentBudget === null
-                        ? " — Spinning transfer budget…"
-                        : ` — Budget £${currentBudget}m · signing…`}
-                    </>
-                  : currentBudget === null
-                    ? "Spinning transfer budget…"
-                    : `Budget £${currentBudget}m — scouting for a ${currentPos.label}…`}
-            </div>
-            {/* The wait IS the draw board — watch the round fill in rather
-                than staring at thinking dots. */}
+            {/* The wait IS the draw board — watch the round fill in rather than
+                staring at thinking dots or reading a running commentary. */}
             <div className="bw-draw-live">
               <DrawBoard draft={draft} />
             </div>
@@ -951,7 +931,7 @@ export default function DraftScreen({
                           on a <strong>free transfer</strong>. One per club, best of them to whoever
                           picks first. Or skip, and the money stays in your sub fund.
                         </div>
-                        <button className="bw-cta-secondary" onClick={skipTurn}>→ SKIP THIS SUB</button>
+                        <button className="bw-cta-secondary" onClick={skipTurn}>SKIP THIS SUB</button>
                       </>
                     ) : emergencySign ? (
                       <div className="bw-no-afford-msg">

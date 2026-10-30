@@ -247,7 +247,7 @@ export default function ScoutLobbyScreen({ onContinue, onBack, initialSeasonKey 
             </div>
           )}
 
-          <button className="bw-cta-primary" style={{ marginTop: 10 }} onClick={handleContinue}>CONTINUE →</button>
+          <button className="bw-cta-primary" style={{ marginTop: 10 }} onClick={handleContinue}>CONTINUE</button>
           {onBack && <button className="bw-about-link" onClick={onBack}>← change mode</button>}
          </div>
         </div>

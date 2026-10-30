@@ -1,6 +1,6 @@
 import { PLAYERS, POSITIONS, SUB_POSITIONS, generateBudget, chooseCpuPick, cpuVariancePick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS, realTeamPlayerClubs } from "../data/players";
 import { GROUP_SLOT_INDICES, FORMATIONS, slotEligibility } from "../data/formations";
-import { cardWindow, activeInSeason, seasonValueBand, applySeasonStats, peakSeasonOf, activeSeasonsInRange, windowOverlaps, FIRST_SEASON, LATEST_SEASON } from "../utils/season";
+import { cardWindow, activeInSeason, seasonValueBand, applySeasonStats, peakSeasonOf, ageInSeason, activeSeasonsInRange, windowOverlaps, FIRST_SEASON, LATEST_SEASON } from "../utils/season";
 
 export { generateBudget, chooseCpuPick, cpuVariancePick, WAR_CHEST_VALUES, WAR_CHEST_SLOTS };
 
@@ -418,6 +418,12 @@ function buildPickEntry(d, player, managerIdx, budget, isRandomStarter) {
     name: player ? player.name : null,
     pos: player ? player.pos : null,
     rating: player ? player.rating : null,
+    // Age at the point they were signed. Season-pool cards carry their own
+    // `seasonYear`; a cross-era (Classic) card has none, so fall back to the
+    // player's representative peak season — a sensible single age to show.
+    age: player
+      ? ageInSeason(player.birthYear, player.seasonYear ?? peakSeasonOf(player))
+      : null,
     tier: player ? (player.tier ?? null) : null,
   };
 }
