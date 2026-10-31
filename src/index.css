@@ -7066,9 +7066,23 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
 /* Mobile: the player name is the headline, so give it the room. Shrink the spin
    slot to one short figure, drop the carryover pot and the age — position, name
    and rating stay. (Round view only; the full grid scrolls sideways instead.) */
-@media (max-width: 480px) {
-  /* The code only needs a sliver, so hand the rest of the row to the signed
-     player's name (which was still truncating at a 1fr / 1.35fr split). */
+/* Narrow layout — codes instead of names, a tighter club column so the signed
+   player's name gets the room, age + pot dropped. Applied two ways:
+   • always when the board is `.bw-draw-compact` (the slide-in DRAW panel is a
+     fixed ~380px overlay, narrow even on a wide desktop), and
+   • on a narrow viewport (the main draft-screen board on a phone/tablet).
+   The rules are the same, so they're defined once per trigger. */
+.bw-draw-round.bw-draw-compact .bw-draw-row,
+.bw-draw-round.bw-draw-compact .bw-draw-legend { --bw-draw-spin-w: 50px; grid-template-columns: 118px minmax(0, 1fr); }
+.bw-draw-round.bw-draw-compact .bw-draw-cell-info { gap: 7px; padding: 9px 10px; }
+.bw-draw-round.bw-draw-compact .bw-draw-cell-club { padding: 9px 10px; gap: 5px; }
+.bw-draw-round.bw-draw-compact .bw-draw-pick { gap: 5px; }
+.bw-draw-round.bw-draw-compact .bw-draw-pick-age,
+.bw-draw-round.bw-draw-compact .bw-draw-pot { display: none; }
+.bw-draw-round.bw-draw-compact .bw-draw-club-name { display: none; }
+.bw-draw-round.bw-draw-compact .bw-draw-club-code { display: inline; }
+
+@media (max-width: 560px) {
   .bw-draw-round .bw-draw-row,
   .bw-draw-round .bw-draw-legend { --bw-draw-spin-w: 50px; grid-template-columns: 118px minmax(0, 1fr); }
   .bw-draw-round .bw-draw-cell-info { gap: 7px; padding: 9px 10px; }
@@ -7076,7 +7090,6 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
   .bw-draw-round .bw-draw-pick { gap: 5px; }
   .bw-draw-round .bw-draw-pick-age,
   .bw-draw-round .bw-draw-pot { display: none; }
-  /* Club name → 3-letter code, so the club block never truncates on a phone. */
   .bw-draw-round .bw-draw-club-name { display: none; }
   .bw-draw-round .bw-draw-club-code { display: inline; }
 }

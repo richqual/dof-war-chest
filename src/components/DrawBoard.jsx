@@ -70,6 +70,7 @@ export default function DrawBoard({
   round,
   onRound,
   onViewFull,
+  compact = false, // the slide-in panel is always narrow → always use codes
 }) {
   if (!draft) return null;
   const { managers = [], pickLog = [], positionIndex = 0, currentOrder = [] } = draft;
@@ -154,7 +155,7 @@ export default function DrawBoard({
   const codes = clubCodes(managers.map(mgr => mgr.clubName || mgr.name));
 
   return (
-    <div className="bw-draw-board bw-draw-round">
+    <div className={`bw-draw-board bw-draw-round${compact ? " bw-draw-compact" : ""}`}>
       <div className="bw-draw-nav">
         <button
           className="bw-draw-nav-btn"

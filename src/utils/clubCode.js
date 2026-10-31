@@ -17,14 +17,16 @@ const GENERIC = new Set([
   "DEPORTIVO", "RACING", "CLUB", "SPORTFREUNDE", "BORUSSIA", "OLYMPIQUE",
   "STADE", "UNITED", "UTD", "CITY", "TOWN", "ROVERS", "WANDERERS", "COUNTY",
   "ALBION", "SAN", "SANTA", "SAINT",
+  "THE", "AND", // casual / fantasy names ("The Dream Team", "Fish & Chips")
 ]);
 
 const stripDiacritics = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
 
 // The distinctive words of a name, uppercased and accent-free: everything that
 // isn't a generic club-type word or a bare number ("1." in "1. FC Steinhorst").
+// Punctuation (incl. "&") becomes a word break, so "Fish & Chips FC" → FIS.
 function coreWords(name) {
-  const cleaned = stripDiacritics(name || "").replace(/[.\-'’]/g, " ");
+  const cleaned = stripDiacritics(name || "").replace(/[.\-'’&/]/g, " ");
   const words = cleaned.toUpperCase().split(/\s+/).filter(Boolean);
   const core = words.filter(w => !GENERIC.has(w) && !/^\d+$/.test(w));
   return core.length ? core : words; // all-generic (rare) → fall back to every word

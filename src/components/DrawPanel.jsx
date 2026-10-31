@@ -64,6 +64,7 @@ export default function DrawPanel({ draft, open, onOpen, onClose, fullOnly = fal
                 round={round}
                 onRound={setRound}
                 onViewFull={() => setFull(true)}
+                compact
               />
             </div>
           </div>
