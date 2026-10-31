@@ -223,6 +223,10 @@ function ManagerCard({ manager, onPick, highlighted }) {
 // the same kit colour the moment its manager is appointed. The current club is
 // called out ("your pick" / "picking…"), the rest wait.
 function DraftBoard({ pickOrder, turnIdx, assignments, draft }) {
+  // With several humans, badge each with their first name rather than a bare
+  // "YOU", so you can tell whose row is whose (matches the draw board).
+  const humanCount = draft.managers.filter(m => !m.isComputer).length;
+  const firstName = full => (full || "").trim().split(/\s+/)[0] || "";
   return (
     <div className="bw-draw-board bw-draw-round bw-mgr-draw-board">
       <div className="bw-draw-legend">
@@ -256,7 +260,9 @@ function DraftBoard({ pickOrder, turnIdx, assignments, draft }) {
               <div className="bw-draw-cell-club">
                 <KitSwatch primary={club.primaryColor} secondary={club.secondaryColor} pattern={club.pattern || "plain"} uid={`mb-${clubIdx}`} size={18} />
                 <span className="bw-draw-club-name">{clubName}</span>
-                {isHuman ? <span className="bw-draw-you">YOU</span> : <span className="bw-draw-cpu">CPU</span>}
+                {isHuman
+                  ? <span className="bw-draw-you">{humanCount > 1 ? firstName(club.dofName || club.managerName || club.name) : "YOU"}</span>
+                  : <span className="bw-draw-cpu">CPU</span>}
               </div>
               <div className="bw-draw-cell-info">
                 <span className="bw-draw-info-main">

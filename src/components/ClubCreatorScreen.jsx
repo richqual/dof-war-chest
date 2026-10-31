@@ -221,12 +221,16 @@ function ClubEditorForm({ club, onChange, index, hideFormation = false }) {
 
 // ── Overview card: human (read-only summary) ──────────────────────────────────
 
-function HumanSummaryCard({ index, club, hideFormation = false }) {
+function HumanSummaryCard({ index, club, hideFormation = false, numHumans = 1 }) {
+  // One human → "YOU"; several → each manager's first name, so you can tell
+  // whose club is whose at a glance (matches the draw board's badges).
+  const firstName = (club.dofName || "").trim().split(/\s+/)[0] || "";
+  const badge = numHumans > 1 && firstName ? firstName : "YOU";
   return (
     <div className="bw-club-card">
       <div className="bw-club-card-header">
         <span className="bw-club-card-num">CLUB {index + 1}</span>
-        <span className="bw-badge-pill bw-badge-pill-human">HUMAN</span>
+        <span className="bw-badge-pill bw-badge-pill-human">{badge}</span>
       </div>
       <div className="bw-club-card-preview">
         <KitSwatch
@@ -575,7 +579,7 @@ export default function ClubCreatorScreen({ config, onStart, onBack, profileDefa
             {clubs.map((club, i) =>
               club.isComputer
                 ? <CpuSummaryCard key={i} index={i} club={club} onEdit={() => setEditingCpuIdx(i)} hideFormation={hideFormation} />
-                : <HumanSummaryCard key={i} index={i} club={club} hideFormation={hideFormation} />
+                : <HumanSummaryCard key={i} index={i} club={club} hideFormation={hideFormation} numHumans={numHumans} />
             )}
           </div>
 
