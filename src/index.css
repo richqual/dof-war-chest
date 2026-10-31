@@ -7009,13 +7009,8 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
    the start) and only soften the empty info block. */
 .bw-draw-row.is-pending .bw-draw-cell-info { opacity: .72; }
 
-/* Latest signing: a short, non-layout pop (inset ring) so a live board reads as
-   live without the clunky colour-shuffle the old fade had. */
-.bw-draw-row.is-latest { animation: bw-draw-pop .55s ease-out; }
-@keyframes bw-draw-pop {
-  0%   { box-shadow: inset 0 0 0 2px var(--bw-gold); }
-  100% { box-shadow: inset 0 0 0 0 transparent; }
-}
+/* No per-signing flash: the colour fill-in is the lock-in cue on its own, and a
+   brief gold pop on each CPU pick read as fussy. */
 
 /* Human-controlled clubs stand out from the CPUs with a gold ring + glow. */
 .bw-draw-row.is-you {
@@ -7031,8 +7026,9 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
 
 .bw-draw-you {
   flex-shrink: 0; margin-left: auto; font: 700 9px var(--bw-font-display); letter-spacing: .08em;
-  color: var(--bw-ink, #1a1a1a); background: var(--bw-gold);
+  text-transform: uppercase; color: var(--bw-ink, #1a1a1a); background: var(--bw-gold);
   padding: 1px 5px; border-radius: 3px !important;
+  max-width: 86px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .bw-draw-cpu {
   flex-shrink: 0; margin-left: auto; font-size: 9px; letter-spacing: .06em;
@@ -7057,6 +7053,19 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
 .bw-draw-next-label { font: 700 11px var(--bw-font-display); letter-spacing: .04em; color: var(--bw-gold); }
 .bw-draw-pending, .bw-draw-empty { color: var(--bw-text-low); font-style: italic; font-size: 12px; }
 .bw-draw-skip { color: var(--red, #ff5555); font-size: 12px; }
+
+/* Mobile: the player name is the headline, so give it the room. Shrink the spin
+   slot to one short figure, drop the carryover pot and the age — position, name
+   and rating stay. (Round view only; the full grid scrolls sideways instead.) */
+@media (max-width: 480px) {
+  .bw-draw-round .bw-draw-row,
+  .bw-draw-round .bw-draw-legend { --bw-draw-spin-w: 50px; }
+  .bw-draw-round .bw-draw-cell-info { gap: 7px; padding: 9px 10px; }
+  .bw-draw-round .bw-draw-cell-club { padding: 9px 10px; gap: 5px; }
+  .bw-draw-round .bw-draw-pick { gap: 5px; }
+  .bw-draw-round .bw-draw-pick-age,
+  .bw-draw-round .bw-draw-pot { display: none; }
+}
 
 .bw-draw-full-link {
   margin: 12px auto 4px; background: none; border: none; cursor: pointer;

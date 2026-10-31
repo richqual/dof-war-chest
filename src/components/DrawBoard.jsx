@@ -144,6 +144,10 @@ export default function DrawBoard({
   // The next manager to pick in a live round — the first in turn order still
   // waiting. Used to call out "your go next" so a human sees it coming.
   const nextIdx = isLive ? currentOrder.find(i => !pickedIdx.has(i)) : undefined;
+  // With more than one human at the table "YOU" / "your go" is ambiguous, so we
+  // name each human by their first name instead. One human stays "YOU".
+  const humanCount = managers.filter(mgr => !mgr.isComputer).length;
+  const firstName = full => (full || "").trim().split(/\s+/)[0] || "";
 
   return (
     <div className="bw-draw-board bw-draw-round">
@@ -180,9 +184,10 @@ export default function DrawBoard({
           const m = managers[entry.managerIdx];
           if (!m) return null;
           const signed = !entry.pending;
-          const isLatest = signed && entry === picked[picked.length - 1] && isLive;
           const isNext = !signed && entry.managerIdx === nextIdx;
           const isHuman = !m.isComputer;
+          // Multiple humans → this human's first name; a lone human stays "YOU".
+          const who = humanCount > 1 ? firstName(m.name) : "";
           const kit = m.primaryColor || "#1a3a6b";
           const kitText = readableTextOn(kit);
           return (
@@ -191,7 +196,6 @@ export default function DrawBoard({
               className={
                 "bw-draw-row" +
                 (signed ? " is-signed" : " is-pending") +
-                (isLatest ? " is-latest" : "") +
                 (isNext ? " is-next" : "") +
                 (isHuman ? " is-you" : "")
               }
@@ -210,7 +214,7 @@ export default function DrawBoard({
                 />
                 <span className="bw-draw-club-name">{m.clubName || m.name}</span>
                 {isHuman
-                  ? <span className="bw-draw-you">YOU</span>
+                  ? <span className="bw-draw-you">{who || "YOU"}</span>
                   : <span className="bw-draw-cpu">CPU</span>}
               </div>
 
@@ -229,7 +233,7 @@ export default function DrawBoard({
                     <PickCell entry={entry} showRatings={showRatings} />
                   ) : isNext ? (
                     <span className="bw-draw-next-label">
-                      {isHuman ? "⏵ Your go next" : "up next…"}
+                      {isHuman ? `⏵ ${who ? `${who}'s` : "Your"} go next` : "up next…"}
                     </span>
                   ) : (
                     <span className="bw-draw-pending">waiting…</span>
