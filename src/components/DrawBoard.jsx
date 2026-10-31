@@ -1,6 +1,7 @@
 import { POSITIONS, getRatingBg, getRatingColor } from "../data/players";
 import { subDisplayLabel } from "../hooks/draftUtils";
 import { initialLastName } from "../utils/displayName";
+import { clubCodes } from "../utils/clubCode";
 import KitSwatch, { readableTextOn } from "./KitSwatch";
 
 // The draw board: what everyone spun and who they took, per round.
@@ -148,6 +149,9 @@ export default function DrawBoard({
   // name each human by their first name instead. One human stays "YOU".
   const humanCount = managers.filter(mgr => !mgr.isComputer).length;
   const firstName = full => (full || "").trim().split(/\s+/)[0] || "";
+  // Short 3-letter codes (distinct within this game) for narrow screens, where
+  // the full club name would otherwise truncate to "Harcheste…".
+  const codes = clubCodes(managers.map(mgr => mgr.clubName || mgr.name));
 
   return (
     <div className="bw-draw-board bw-draw-round">
@@ -213,6 +217,7 @@ export default function DrawBoard({
                   size={18}
                 />
                 <span className="bw-draw-club-name">{m.clubName || m.name}</span>
+                <span className="bw-draw-club-code">{codes[entry.managerIdx]}</span>
                 {isHuman
                   ? <span className="bw-draw-you">{who || "YOU"}</span>
                   : <span className="bw-draw-cpu">CPU</span>}

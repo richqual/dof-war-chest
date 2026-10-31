@@ -5750,6 +5750,13 @@ html.light-mode .bw-wc-stage {
 .bw-match-team { flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
 .bw-match-team.home { justify-content: flex-end; }
 .bw-match-team-name { font: 600 15px var(--bw-font-display); letter-spacing: .03em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Full name on roomy screens, 3-letter code once the scoreboard gets tight —
+   so skipping between matches never reflows a half-truncated team name. */
+.bw-match-team-code { display: none; }
+@media (max-width: 480px) {
+  .bw-match-team-full { display: none; }
+  .bw-match-team-code { display: inline; }
+}
 .bw-match-score-center { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
 .bw-match-score { font: 400 22px var(--bw-font-marquee); color: var(--bw-gold); }
 .bw-match-status-mid { text-align: center; min-width: 40px; }
@@ -6973,6 +6980,8 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
   color: var(--kit-text, var(--bw-text-hi));
 }
 .bw-draw-club-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+/* Short 3-letter code — hidden until a narrow screen swaps it in for the name. */
+.bw-draw-club-code { display: none; font-weight: 700; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
 
 /* Info block — neutral while a manager is still to pick, then fills to the same
    kit colour the moment they sign. The colour change is the lock-in cue, so it's
@@ -7058,13 +7067,18 @@ html.light-mode .bw-mode-card-scout .bw-mode-card-desc { color: #4a6f92; }
    slot to one short figure, drop the carryover pot and the age — position, name
    and rating stay. (Round view only; the full grid scrolls sideways instead.) */
 @media (max-width: 480px) {
+  /* The code only needs a sliver, so hand the rest of the row to the signed
+     player's name (which was still truncating at a 1fr / 1.35fr split). */
   .bw-draw-round .bw-draw-row,
-  .bw-draw-round .bw-draw-legend { --bw-draw-spin-w: 50px; }
+  .bw-draw-round .bw-draw-legend { --bw-draw-spin-w: 50px; grid-template-columns: 118px minmax(0, 1fr); }
   .bw-draw-round .bw-draw-cell-info { gap: 7px; padding: 9px 10px; }
   .bw-draw-round .bw-draw-cell-club { padding: 9px 10px; gap: 5px; }
   .bw-draw-round .bw-draw-pick { gap: 5px; }
   .bw-draw-round .bw-draw-pick-age,
   .bw-draw-round .bw-draw-pot { display: none; }
+  /* Club name → 3-letter code, so the club block never truncates on a phone. */
+  .bw-draw-round .bw-draw-club-name { display: none; }
+  .bw-draw-round .bw-draw-club-code { display: inline; }
 }
 
 .bw-draw-full-link {

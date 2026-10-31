@@ -3,6 +3,7 @@ import KitSwatch, { readableTextOn, teamAccent } from "./KitSwatch";
 import { TIER_SIM_MODIFIER } from "../data/managers";
 import { FORMATIONS, slotEligibility, slotPenalty } from "../data/formations";
 import { lastName } from "../utils/displayName";
+import { clubCodes } from "../utils/clubCode";
 
 function teamStrength(squad) {
   const starters = squad.slice(0, 11).filter(Boolean);
@@ -1862,6 +1863,9 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
   const awayName = awayManager.teamName || awayManager.name;
   const homeAccent = teamAccent(homeManager.primaryColor, homeManager.secondaryColor);
   const awayAccent = teamAccent(awayManager.primaryColor, awayManager.secondaryColor);
+  // Short codes for the scoreboard on narrow screens — full names truncate when
+  // the board reflows each time you skip to the next match.
+  const [homeCode, awayCode] = clubCodes([homeName, awayName]);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -2155,7 +2159,10 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
         {!simulating && !done && seriesContext?.standing && <div className="bw-match-series-standing">{seriesContext.standing}</div>}
         <div className="bw-match-score-row">
           <div className="bw-match-team home">
-            <span className="bw-match-team-name" style={{ color: homeAccent }}>{homeName}</span>
+            <span className="bw-match-team-name" style={{ color: homeAccent }}>
+              <span className="bw-match-team-full">{homeName}</span>
+              <span className="bw-match-team-code">{homeCode}</span>
+            </span>
             <KitSwatch primary={homeManager.primaryColor} secondary={homeManager.secondaryColor} pattern={homeManager.pattern} uid="mh" size={14} />
           </div>
           <div className="bw-match-score-center">
@@ -2178,7 +2185,10 @@ export default function MatchSim({ draft, homeIdx, awayIdx, onBack, onMatchResul
           </div>
           <div className="bw-match-team away">
             <KitSwatch primary={awayManager.primaryColor} secondary={awayManager.secondaryColor} pattern={awayManager.pattern} uid="ma" size={14} />
-            <span className="bw-match-team-name" style={{ color: awayAccent }}>{awayName}</span>
+            <span className="bw-match-team-name" style={{ color: awayAccent }}>
+              <span className="bw-match-team-full">{awayName}</span>
+              <span className="bw-match-team-code">{awayCode}</span>
+            </span>
           </div>
         </div>
 
