@@ -391,6 +391,8 @@ export default function ManagerDraftScreen({
   const [assignments, setAssignments] = useState({});
   const timers = useRef([]);
   const pendingOffer = useRef(null);
+  // The completed appointments, held for the review gate's CONTINUE button.
+  const finalRef = useRef(null);
   // A human's tapped-but-not-yet-confirmed choice; drives the confirm dialog.
   const [pendingPick, setPendingPick] = useState(null);
   const [drawSpeedIdx, setDrawSpeedIdx] = useState(loadDrawSpeedIdx);
@@ -552,18 +554,35 @@ export default function ManagerDraftScreen({
       setPendingPick(null);
 
       const newAssignments = { ...assignmentsRef.current, [currentManagerIdx]: pick };
-      setAssignments(newAssignments);
 
       const nextTurn = turnIdxRef.current + 1;
       if (nextTurn >= pickOrder.length) {
-        if (isHost) onAssignManager(newAssignments);
+        // Everyone (host and guests) parks on the review gate; the host's
+        // CONTINUE is what actually advances the game for all of them.
+        finishDraft(newAssignments);
       } else {
+        setAssignments(newAssignments);
         setTurnIdx(nextTurn);
         setWaitingForGo(true);
       }
     }, 1000);
     timers.current = [t];
   }, [externalPicks, currentManagerIdx]);
+
+  // Every pick is in — park on the review gate (turnIdx past the end ⇒ allDone)
+  // instead of diving straight into the draw. CONTINUE calls onAssignManager.
+  function finishDraft(finalAssignments) {
+    clearTimers();
+    finalRef.current = finalAssignments;
+    setAssignments(finalAssignments);
+    setSpinning(false);
+    setOffered(null);
+    setRevealed(0);
+    setCpuPick(null);
+    setPendingPick(null);
+    setWaitingForGo(false);
+    setTurnIdx(pickOrder.length);
+  }
 
   function handlePick(manager) {
     // Mark as handled locally so external pick effect doesn't double-advance
@@ -580,12 +599,12 @@ export default function ManagerDraftScreen({
     setPendingPick(null);
 
     const newAssignments = { ...assignments, [currentManagerIdx]: manager };
-    setAssignments(newAssignments);
 
     const nextTurn = turnIdx + 1;
     if (nextTurn >= pickOrder.length) {
-      onAssignManager(newAssignments);
+      finishDraft(newAssignments);
     } else {
+      setAssignments(newAssignments);
       setTurnIdx(nextTurn);
       setWaitingForGo(true);
     }
@@ -621,7 +640,6 @@ export default function ManagerDraftScreen({
       }
     }
 
-    setAssignments(newAssignments);
     setPool(shuffle(remaining));
     setSpinning(false);
     setOffered(null);
@@ -630,14 +648,45 @@ export default function ManagerDraftScreen({
     setPendingPick(null);
 
     if (nextHumanIdx !== null) {
+      setAssignments(newAssignments);
       setTurnIdx(nextHumanIdx);
       setWaitingForGo(true);
     } else {
-      onAssignManager(newAssignments);
+      finishDraft(newAssignments);
     }
   }
 
-  if (allDone) return null;
+  // Review gate: every club has its manager — stop here so players can take it
+  // in (even those who hit SKIP/INSTANT) before the draw begins. CONTINUE is
+  // what dives in. In multiplayer only the host can continue; guests wait.
+  if (allDone) {
+    const finalAssignments = finalRef.current || assignments;
+    const canContinue = !isMultiplayer || isHost;
+    const continueLabel = draft.managerTiming === "after" ? "▶ CONTINUE" : "▶ START THE DRAFT";
+    return (
+      <div className="setup-screen">
+        <div className="bw-frame bw-mgr-frame">
+          <div className="bw-banner">
+            <div className="bw-banner-title">MANAGERS APPOINTED</div>
+            <div className="bw-banner-subtitle">Every club has its gaffer — review the merry-go-round, then start the draw</div>
+          </div>
+          <div className="bw-body">
+            <DraftBoard pickOrder={pickOrder} turnIdx={pickOrder.length} assignments={finalAssignments} draft={draft} />
+            {canContinue ? (
+              <button className="bw-cta-arcade" style={{ marginTop: 14 }} onClick={() => onAssignManager(finalAssignments)}>
+                {continueLabel}
+              </button>
+            ) : (
+              <div className="mp-waiting-screen" style={{ minHeight: "90px" }}>
+                <div className="mp-waiting-spinner" />
+                <p className="mp-waiting-text">Waiting for the host to start the draft…</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Non-host in multiplayer waits for host to choose the pool
   if (phase === "league-select") {
