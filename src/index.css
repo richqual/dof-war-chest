@@ -2480,171 +2480,182 @@ html.light-mode .bw-wc-lobby {
   0%, 100% { transform: translateX(-50%) translateY(0); }
   50% { transform: translateX(-50%) translateY(-10px); }
 }
-/* Single shared orbit path for the merry-go-round riders — each card gets the
-   same animation with a staggered negative delay so they're spread evenly
-   around the loop. z-index steps (not interpolated) put the front card above
-   the centre pole and the back card behind it. */
-@keyframes bw-ride {
-  0%    { transform: translate(0px,30px)    scale(1);   opacity: 1;   z-index: 4; }
-  12.5% { transform: translate(108px,21px)  scale(.92);  opacity: .9;  z-index: 4; }
-  25%   { transform: translate(152px,0px)   scale(.76);  opacity: .66; z-index: 3; }
-  37.5% { transform: translate(108px,-21px) scale(.6);   opacity: .42; z-index: 1; }
-  50%   { transform: translate(0px,-30px)   scale(.53);  opacity: .34; z-index: 1; }
-  62.5% { transform: translate(-108px,-21px) scale(.6);  opacity: .42; z-index: 1; }
-  75%   { transform: translate(-152px,0px)  scale(.76);  opacity: .66; z-index: 3; }
-  87.5% { transform: translate(-108px,21px) scale(.92);  opacity: .9;  z-index: 4; }
-  100%  { transform: translate(0px,30px)    scale(1);    opacity: 1;   z-index: 4; }
-}
+/* ── MANAGER MERRY-GO-ROUND ──────────────────────────────────────────
+   Reveal stage: a classic spinning carousel on the left and the three offer
+   slots on the right. The carousel is pure theatre (horses + flashing lights);
+   the manager names jump into the slots one at a time while it keeps turning. */
+.bw-mgr-stage { display: flex; flex-direction: column; }
+.bw-car-wrap { display: flex; justify-content: center; padding: 14px 16px 4px; }
 
-.bw-ride-stage {
+.bw-carousel {
   position: relative;
-  height: 372px;
-  max-width: 430px;
-  margin: 0 auto;
+  width: 300px; max-width: 100%;
+  height: 290px;
+  border-radius: 14px !important;
   overflow: hidden;
-  background: radial-gradient(130% 100% at 50% 8%, #1c4126, #080f09 74%);
+  background: radial-gradient(120% 95% at 50% 10%, #2a2038, #0b0a12 74%);
+  border: 1px solid var(--bw-border);
 }
-.bw-ride-lights-bg {
-  position: absolute;
-  top: 20px; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(245,197,66,.25), transparent);
-}
-.bw-ride-finial {
-  position: absolute;
-  top: 6px; left: 50%;
-  transform: translateX(-50%);
-  z-index: 6;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.bw-ride-finial-ball {
-  width: 11px; height: 11px;
-  border-radius: 50% !important;
-  background: radial-gradient(circle at 35% 30%, #fff, var(--bw-gold) 60%, #9c7414);
-  margin-top: -3px;
-  box-shadow: 0 0 8px rgba(245,197,66,.8);
-}
-.bw-ride-finial-pole { width: 4px; height: 14px; background: #c99a1a; }
 
-.bw-ride-canopy {
-  position: absolute;
-  top: 30px; left: 50%;
+.bw-car-finial {
+  position: absolute; top: 8px; left: 50%;
+  transform: translateX(-50%); z-index: 6;
+  display: flex; flex-direction: column; align-items: center;
+}
+.bw-car-finial-ball {
+  width: 11px; height: 11px; border-radius: 50% !important;
+  background: radial-gradient(circle at 35% 30%, #fff, var(--bw-gold) 60%, #9c7414);
+  margin-bottom: -3px; box-shadow: 0 0 8px rgba(245,197,66,.8);
+}
+.bw-car-finial-pole { width: 4px; height: 14px; background: #c99a1a; }
+
+.bw-car-canopy {
+  position: absolute; top: 28px; left: 50%;
   transform: translateX(-50%);
-  width: 346px; height: 72px;
-  border-radius: 174px 174px 8px 8px !important;
-  background: repeating-linear-gradient(96deg, var(--bw-gold) 0 30px, #0e5a2f 30px 60px);
+  width: 266px; height: 60px;
+  border-radius: 134px 134px 10px 10px !important;
+  background: repeating-linear-gradient(94deg, var(--bw-gold) 0 24px, #c2401a 24px 48px);
   box-shadow: inset 0 -8px 16px rgba(0,0,0,.35), inset 0 6px 10px rgba(255,255,255,.28), 0 5px 16px rgba(0,0,0,.5);
   z-index: 5;
 }
 
-.bw-ride-valance {
-  position: absolute;
-  top: 99px; left: 50%;
+.bw-car-valance {
+  position: absolute; top: 82px; left: 50%;
   transform: translateX(-50%);
-  width: 346px;
-  display: flex;
-  justify-content: center;
-  z-index: 6;
+  width: 266px; display: flex; justify-content: center; z-index: 6;
 }
-.bw-ride-scallop { width: 34px; text-align: center; }
-.bw-ride-scallop-shade {
-  height: 20px;
-  border-radius: 0 0 17px 17px !important;
+.bw-car-scallop { width: 26px; text-align: center; }
+.bw-car-scallop-shade {
+  height: 16px; border-radius: 0 0 13px 13px !important;
   box-shadow: inset 0 -3px 4px rgba(0,0,0,.25);
 }
-.bw-ride-bulb {
-  width: 7px; height: 7px;
-  border-radius: 50% !important;
-  background: #ffe082;
-  margin: 3px auto 0;
-  animation: bw-twinkle 1.3s ease-in-out infinite;
+.bw-car-bulb {
+  width: 7px; height: 7px; border-radius: 50% !important;
+  background: #ffe082; margin: 3px auto 0;
+  opacity: .5; box-shadow: 0 0 4px 1px rgba(255,224,130,.4);
+}
+.bw-carousel.spinning .bw-car-bulb { animation: bw-twinkle .55s ease-in-out infinite; }
+
+.bw-car-window {
+  position: absolute; top: 104px; left: 50%;
+  transform: translateX(-50%);
+  width: 262px; height: 128px; overflow: hidden; z-index: 3;
+}
+.bw-car-strip {
+  display: flex; align-items: flex-end; height: 100%;
+  width: max-content;
+  animation: bw-car-spin 2.4s linear infinite;
+  animation-play-state: paused;
+  will-change: transform;
+}
+.bw-carousel.spinning .bw-car-strip { animation-play-state: running; }
+.bw-car-horse {
+  width: 56px; flex: 0 0 56px;
+  display: flex; flex-direction: column; align-items: center;
+  animation: bw-car-bob 1.1s ease-in-out infinite;
+  animation-play-state: paused;
+}
+.bw-carousel.spinning .bw-car-horse { animation-play-state: running; }
+.bw-car-horse-emoji { font-size: 40px; line-height: 1; filter: drop-shadow(0 3px 4px rgba(0,0,0,.5)); }
+.bw-car-horse-pole {
+  width: 4px; height: 42px;
+  background: repeating-linear-gradient(0deg, var(--bw-gold) 0 6px, #c99a1a 6px 12px);
+  border-radius: 2px !important;
 }
 
-.bw-ride-pole-center {
-  position: absolute;
-  top: 96px; left: 50%;
+.bw-car-pole {
+  position: absolute; top: 84px; left: 50%;
   transform: translateX(-50%);
-  width: 12px; height: 210px;
+  width: 10px; height: 150px;
   background: repeating-linear-gradient(45deg, var(--bw-gold) 0 7px, #c2401a 7px 14px);
-  border-radius: 6px !important;
-  box-shadow: 0 2px 6px rgba(0,0,0,.5);
-  z-index: 1;
+  border-radius: 5px !important; z-index: 1;
 }
-.bw-ride-pole-side {
-  position: absolute;
-  top: 120px;
-  width: 8px; height: 150px;
-  background: repeating-linear-gradient(45deg, #e6c766 0 6px, #a87d20 6px 12px);
-  border-radius: 5px !important;
-  opacity: .5;
-  z-index: 1;
-}
-.bw-ride-pole-side.left { left: 82px; }
-.bw-ride-pole-side.right { right: 82px; }
-
-.bw-ride-spotlight {
-  position: absolute;
-  top: 210px; left: 50%;
-  width: 230px; height: 210px;
-  background: radial-gradient(circle, rgba(245,197,66,.34), transparent 62%);
-  animation: bw-glowpulse 2.8s ease-in-out infinite;
-  z-index: 2;
+.bw-car-base {
+  position: absolute; bottom: 14px; left: 50%;
+  transform: translateX(-50%);
+  width: 250px; height: 36px; border-radius: 50% !important;
+  background: linear-gradient(180deg, #2a2436, #0e0c16);
+  border: 2px solid #6a5416; box-shadow: 0 8px 20px rgba(0,0,0,.5); z-index: 2;
 }
 
-.bw-ride-orbit {
-  position: absolute;
-  top: 176px; left: 50%;
-  width: 168px;
-  margin-left: -84px;
-  animation: bw-ride 12s linear infinite;
-  will-change: transform, opacity;
+@keyframes bw-car-spin { to { transform: translateX(-50%); } }
+@keyframes bw-car-bob {
+  0%, 100% { transform: translateY(2px); }
+  50% { transform: translateY(-8px); }
 }
-.bw-ride-orbit-card {
-  border-radius: 14px !important;
-  padding: 10px 12px;
-  background: linear-gradient(180deg, #241c05, #0e140d);
-  border: 2px solid var(--bw-gold);
-  box-shadow: 0 10px 24px rgba(0,0,0,.5);
-  text-align: center;
+
+/* Offer cards land one at a time under the carousel (bw-mgr-pop), and are the
+   same cards the human then picks from — no separate choose screen. A pending
+   slot holds the card's shape so the grid doesn't jump as names arrive. */
+@keyframes bw-mgr-pop {
+  0%   { opacity: 0; transform: scale(.82) translateY(10px); }
+  60%  { opacity: 1; transform: scale(1.03); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
 }
-.bw-ride-orbit-card.pending {
+.bw-mgr-card-pop { animation: bw-mgr-pop .4s cubic-bezier(.2,1.25,.5,1) both; }
+
+/* Both the pending placeholder and the real card share one FIXED height (not
+   min-height), so a card landing never resizes its slot — the grid and the
+   board below hold perfectly still through the whole reveal. The content is
+   kept to single lines so a long name or style can't push the height either. */
+.bw-mgr-card, .bw-mgr-card.pending {
+  height: 62px; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: center;
+}
+.bw-mgr-card.pending {
+  align-items: center;
+  border: 2px dashed var(--bw-gold-border);
   background: linear-gradient(180deg, #16130a, #0b100c);
-  border-style: dashed;
-  border-color: var(--bw-gold-border);
 }
-.bw-ride-orbit-card.pending .bw-ride-orbit-name { color: var(--bw-gold-border); letter-spacing: .12em; }
-.bw-ride-orbit-name { font: 600 18px var(--bw-font-display); color: #fff; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bw-ride-orbit-style { font-size: 12px; color: var(--bw-gold); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-.bw-ride-marker {
-  position: absolute;
-  bottom: 44px; left: 50%;
-  transform: translateX(-50%);
-  width: 0; height: 0;
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
-  border-top: 13px solid var(--bw-gold);
-  filter: drop-shadow(0 2px 3px rgba(0,0,0,.6));
-  z-index: 4;
+.bw-mgr-card-wait {
+  font: 600 20px var(--bw-font-display);
+  color: var(--bw-gold-border); letter-spacing: .16em;
 }
 
-.bw-ride-base {
-  position: absolute;
-  bottom: 8px; left: 50%;
-  transform: translateX(-50%);
-  width: 360px; height: 44px;
-  border-radius: 50% !important;
-  background: linear-gradient(180deg, #2a3a24, #0e140d);
-  border: 2px solid #6a5416;
-  box-shadow: 0 8px 20px rgba(0,0,0,.5);
-  z-index: 3;
+/* Compact pick card — essentials only; the full detail is on the confirm pop-up. */
+.bw-mgr-card-compact { padding: 9px 13px; width: 100%; }
+.bw-mgr-card-compact .bw-mgr-card-name {
+  font-size: 16px; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+.bw-mgr-card-compact .bw-mgr-card-style {
+  margin-top: 3px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* The whole card is the tap target; lift it on hover so it reads as clickable. */
+.bw-mgr-card.pickable { cursor: pointer; transition: border-color .15s, box-shadow .15s, transform .1s; }
+.bw-mgr-card.pickable:hover {
+  border-color: var(--bw-gold);
+  box-shadow: 0 4px 16px rgba(0,0,0,.4);
+}
+.bw-mgr-card.pickable:active { transform: scale(.99); }
 
-.bw-ride-controls { padding: 14px 16px 16px; display: flex; gap: 10px; align-items: center; }
-.bw-ride-controls .bw-cta-arcade { flex: 1; }
-.bw-ride-controls .bw-cta-secondary { flex: none; width: auto; padding: 14px 16px; }
+/* Confirm pop-up carries the detail the card drops: head row + meta/quote/tags. */
+.bw-mgr-confirm { max-width: 360px; }
+.bw-mgr-confirm-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 8px; margin-bottom: 4px;
+}
+.bw-mgr-confirm-head .bw-confirm-name { margin-bottom: 0; }
+.bw-mgr-confirm .bw-mgr-card-chips { flex-shrink: 0; margin-top: 3px; }
+.bw-mgr-confirm .bw-mgr-card-quote { margin-top: 8px; }
+.bw-mgr-confirm .bw-mgr-card-tags { margin-top: 10px; }
+
+/* Appointments board reuses the player-draft board skin; just reserve a touch of
+   top space since it sits straight under the cards with no nav bar of its own. */
+.bw-mgr-draw-board { margin-top: 4px; }
+
+/* Fixed-height action bar — every state's button(s) sit here in one row, so
+   they swap in place instead of pushing the cards and board around. */
+.bw-mgr-actions {
+  min-height: 74px;
+  padding: 14px 16px 16px;
+  display: flex; gap: 10px; align-items: center; justify-content: center;
+}
+.bw-mgr-actions .bw-cta-arcade,
+.bw-mgr-actions .bw-cta-primary { flex: 1; }
+.bw-mgr-actions .bw-cta-secondary { flex: none; width: auto; padding: 14px 16px; }
+.bw-mgr-actions-hint { font-size: 13px; color: var(--bw-text-low); font-style: italic; }
 
 .bw-mgr-chip {
   font: 600 8px var(--bw-font-display);
@@ -2688,42 +2699,6 @@ html.light-mode .bw-mgr-card.recommended .bw-mgr-card-name { color: var(--bw-tex
   border: 1px solid var(--bw-border2);
   color: var(--bw-text-mid);
 }
-.bw-mgr-pick-btn {
-  width: 100%;
-  padding: 12px;
-  background: transparent;
-  color: var(--bw-text-mid);
-  border: none;
-  border-top: 1px solid var(--bw-border);
-  font: 700 13px var(--bw-font-display);
-  letter-spacing: .14em;
-  cursor: pointer;
-}
-.bw-mgr-pick-btn:hover:not(:disabled) { color: var(--bw-gold); }
-.bw-mgr-pick-btn:disabled { cursor: not-allowed; opacity: .5; }
-.bw-mgr-card.recommended .bw-mgr-pick-btn {
-  background: var(--bw-gold);
-  color: var(--bw-gold-ink);
-  border-top: none;
-}
-.bw-mgr-card.recommended .bw-mgr-pick-btn:hover:not(:disabled) { color: var(--bw-gold-ink); filter: brightness(1.05); }
-
-.bw-mgr-cpu-tag {
-  text-align: center;
-  padding: 10px;
-  font-size: 12px;
-  color: var(--bw-text-mid);
-  border-top: 1px solid var(--bw-border);
-}
-.bw-mgr-card.recommended .bw-mgr-cpu-tag { color: var(--bw-gold); }
-
-.bw-picks-log { padding: 12px 14px; background: var(--bw-recessed); border: 1px solid var(--bw-border); border-radius: var(--bw-radius-row) !important; }
-.bw-picks-log-title { font: 600 9px var(--bw-font-display); letter-spacing: .2em; color: var(--bw-text-low); margin-bottom: 8px; }
-.bw-picks-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--bw-border); font-size: 12px; }
-.bw-picks-row:last-child { border-bottom: none; }
-.bw-picks-club { color: var(--bw-text-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bw-picks-arrow { color: var(--bw-text-low); }
-.bw-picks-name { flex: 1; min-width: 0; color: var(--bw-gold); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ── DRAFT SCREEN CHROME — BROADCAST SKIN (mock ref: 1a wheel, 1d picker) ──
    Sits inside the existing .draft-header (kit-coloured sticky bar) and
@@ -5363,8 +5338,7 @@ html.large-text .bw-tier-chip-label  { font-size: 15px; }
 html.large-text .bw-tier-chip-count  { font-size: 13px; }
 html.large-text .bw-pool-total       { font-size: 15px; }
 html.large-text .bw-turn-status      { font-size: 15px; }
-html.large-text .bw-ride-orbit-name  { font-size: 20px; }
-html.large-text .bw-ride-orbit-style { font-size: 14px; }
+html.large-text .bw-mgr-card-wait    { font-size: 26px; }
 html.large-text .bw-mgr-card-name    { font-size: 22px; }
 html.large-text .bw-mgr-card-style   { font-size: 15px; }
 html.large-text .bw-setup-label      { font-size: 15px; }
@@ -5375,8 +5349,6 @@ html.large-text .bw-rules-intro      { font-size: 15px; }
 html.large-text .bw-rules-list li    { font-size: 15px; }
 html.large-text .bw-mgr-card-quote   { font-size: 14px; }
 html.large-text .bw-mgr-tag          { font-size: 12px; }
-html.large-text .bw-mgr-pick-btn     { font-size: 15px; }
-html.large-text .bw-picks-row        { font-size: 14px; }
 html.large-text .bw-team-name        { font-size: 15px; }
 html.large-text .bw-signing-name     { font-size: 16px; }
 html.large-text .bw-signing-meta     { font-size: 15px; }
@@ -6749,8 +6721,8 @@ html.scout-theme .bw-champ-stage {
 html.scout-theme .bw-draw-stage {
   background: radial-gradient(120% 90% at 50% 22%, #10365c, #0a1220 72%);
 }
-html.scout-theme .bw-ride-stage {
-  background: radial-gradient(130% 100% at 50% 8%, #10365c, #050b12 74%);
+html.scout-theme .bw-carousel {
+  background: radial-gradient(120% 95% at 50% 10%, #10365c, #050b12 74%);
 }
 
 /* Scout lobby / tenets banner accent */

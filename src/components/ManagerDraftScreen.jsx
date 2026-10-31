@@ -3,6 +3,7 @@ import { MANAGERS, TIER_LABELS } from "../data/managers";
 import { ERA_LABELS, REAL_TEAMS, managerMatchesRealClub } from "../data/players";
 import { DRAFT_ROULETTE_ERAS, DRAFT_ROULETTE_LEAGUES, managerEligibleFor } from "../hooks/draftUtils";
 import { lastName } from "../utils/displayName";
+import KitSwatch, { readableTextOn } from "./KitSwatch";
 
 // Season Pool: a manager is offered only if eligible under the game's season
 // filter — active that season (single), overlapping the range, or any (All
@@ -12,6 +13,40 @@ const DRAFT_ROULETTE_ERA_LABELS = Object.fromEntries(DRAFT_ROULETTE_ERAS.map(e =
 const DRAFT_ROULETTE_LEAGUE_LABELS = Object.fromEntries(DRAFT_ROULETTE_LEAGUES.map(l => [l.key, l.label]));
 
 const TIER_ORDER = { elite: 0, established: 1, journeyman: 2 };
+
+// Draw playback speed for CPU manager picks — mirrors the player-draft board:
+// CPUs auto-spin and auto-appoint, and this controls how fast you watch it. Same
+// labels and the same device-level store key as DraftScreen, so the preference
+// is shared. `spin` scales the carousel spin + reveal; `pick` is the beat before
+// the CPU's choice locks in. INSTANT skips the animation entirely.
+const DRAW_SPEEDS = [
+  { label: "SLOW",    pick: 3800, spin: 2800 },
+  { label: "NORMAL",  pick: 2800, spin: 2000 },
+  { label: "BRISK",   pick: 1800, spin: 1400 },
+  { label: "FAST",    pick: 1000, spin: 800  },
+  { label: "INSTANT", pick: 0,    spin: 0    },
+];
+const DEFAULT_DRAW_SPEED_IDX = 1; // NORMAL
+const DRAW_SPEED_STORE_KEY = "tg-draw-speed";
+function loadDrawSpeedIdx() {
+  try {
+    const idx = DRAW_SPEEDS.findIndex(s => s.label === localStorage.getItem(DRAW_SPEED_STORE_KEY));
+    return idx >= 0 ? idx : DEFAULT_DRAW_SPEED_IDX;
+  } catch {
+    return DEFAULT_DRAW_SPEED_IDX;
+  }
+}
+function saveDrawSpeedIdx(idx) {
+  try {
+    if (DRAW_SPEEDS[idx]) localStorage.setItem(DRAW_SPEED_STORE_KEY, DRAW_SPEEDS[idx].label);
+  } catch {
+    // localStorage unavailable (private mode / quota) — just won't persist.
+  }
+}
+// The CPU always leans to the best available tier.
+function cpuPickFrom(offer) {
+  return [...offer].sort((a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier])[0];
+}
 
 const LEAGUE_CONFIG = [
   { label: "Premier League", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", key: "premier_league" },
@@ -98,64 +133,78 @@ function dedupByName(arr) {
   });
 }
 
-const VALANCE_BULBS = Array.from({ length: 8 }, (_, i) => i);
+const VALANCE_BULBS = Array.from({ length: 10 }, (_, i) => i);
 
-// Three riders — one per real option — evenly spaced (12s / 3) around the orbit.
-const RIDER_DELAYS = [0, -4, -8];
+// A full carousel of horses — rendered twice so the strip can scroll seamlessly
+// (translateX 0 → -50% loops without a visible seam). Purely decorative: the
+// actual options reveal in the cards below.
+const CAROUSEL_HORSES = Array.from({ length: 6 }, (_, i) => i);
 
-function RideStage({ riders }) {
-  // Progressive reveal is driven by the parent's `revealed` counter — every rider
-  // is a real offer slot that starts as "?????" and flips to the manager once
-  // revealed. No decorative filler: the wheel only ever shows the three choices.
+// A classic merry-go-round — striped canopy, a ring of bulbs, and carousel
+// horses bobbing past on a scrolling strip. It only moves (and the bulbs only
+// flash) while `spinning` is true, so nothing animates until HOP ON is tapped.
+function Carousel({ spinning }) {
+  const horses = [...CAROUSEL_HORSES, ...CAROUSEL_HORSES];
   return (
-    <div className="bw-ride-stage">
-      <div className="bw-ride-lights-bg" />
-
-      <div className="bw-ride-finial">
-        <div className="bw-ride-finial-ball" />
-        <div className="bw-ride-finial-pole" />
+    <div className={`bw-carousel ${spinning ? "spinning" : ""}`}>
+      <div className="bw-car-finial">
+        <div className="bw-car-finial-ball" />
+        <div className="bw-car-finial-pole" />
       </div>
 
-      <div className="bw-ride-canopy" />
+      <div className="bw-car-canopy" />
 
-      <div className="bw-ride-valance">
+      <div className="bw-car-valance">
         {VALANCE_BULBS.map(i => (
-          <div key={i} className="bw-ride-scallop">
-            <div className="bw-ride-scallop-shade" style={{ background: i % 2 === 0 ? "#e0701a" : "var(--bw-gold)" }} />
-            <div className="bw-ride-bulb" style={{ animationDelay: `${i * 0.15}s` }} />
+          <div key={i} className="bw-car-scallop">
+            <div className="bw-car-scallop-shade" style={{ background: i % 2 === 0 ? "#e0701a" : "var(--bw-gold)" }} />
+            <div className="bw-car-bulb" style={{ animationDelay: `${(i % 2) * 0.28}s` }} />
           </div>
         ))}
       </div>
 
-      <div className="bw-ride-pole-center" />
-      <div className="bw-ride-pole-side left" />
-      <div className="bw-ride-pole-side right" />
-      <div className="bw-ride-spotlight" />
-
-      {riders.map((m, i) => (
-        <div
-          key={i}
-          className="bw-ride-orbit"
-          style={{ animationDelay: `${RIDER_DELAYS[i]}s` }}
-        >
-          <div className={`bw-ride-orbit-card ${m ? "" : "pending"}`}>
-            <div className="bw-ride-orbit-name">{m ? m.name : "?????"}</div>
-            <div className="bw-ride-orbit-style">{m ? m.styleLabel : "···"}</div>
-          </div>
+      <div className="bw-car-window">
+        <div className="bw-car-strip">
+          {horses.map((i, idx) => (
+            <div
+              key={idx}
+              className="bw-car-horse"
+              style={{ animationDelay: `${(idx % CAROUSEL_HORSES.length) * 0.17}s` }}
+            >
+              <span className="bw-car-horse-emoji">🎠</span>
+              <span className="bw-car-horse-pole" />
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
 
-      <div className="bw-ride-marker" />
-      <div className="bw-ride-base" />
+      <div className="bw-car-pole" />
+      <div className="bw-car-base" />
     </div>
   );
 }
 
-function ManagerCard({ manager, onPick, disabled, highlighted, showPickButton = true }) {
-  const mgrLastName = lastName(manager.name).toUpperCase();
+// A not-yet-revealed slot in the cards grid — holds the card's shape so the
+// layout never jumps as names land, then the real card pops in over it.
+function PendingCard() {
   return (
-    <div className={`bw-mgr-card ${highlighted ? "recommended" : ""}`}>
-      <div className="bw-mgr-card-body">
+    <div className="bw-mgr-card pending">
+      <div className="bw-mgr-card-wait">?????</div>
+    </div>
+  );
+}
+
+function ManagerCard({ manager, onPick, highlighted }) {
+  // Compact: just name + era/tier + style. No pick button — the whole card is
+  // the tap target when `onPick` is set, and the confirm pop-up carries the
+  // detail (club · years, flavour quote, archetypes).
+  return (
+    <div
+      className={`bw-mgr-card bw-mgr-card-pop ${highlighted ? "recommended" : ""} ${onPick ? "pickable" : ""}`}
+      onClick={onPick ? () => onPick(manager) : undefined}
+      role={onPick ? "button" : undefined}
+    >
+      <div className="bw-mgr-card-body bw-mgr-card-compact">
         <div className="bw-mgr-card-head">
           <div className="bw-mgr-card-name">{manager.name}</div>
           <div className="bw-mgr-card-chips">
@@ -163,42 +212,69 @@ function ManagerCard({ manager, onPick, disabled, highlighted, showPickButton = 
             <span className={`bw-mgr-chip ${manager.tier === "elite" ? "tier-elite" : ""}`}>{TIER_LABELS[manager.tier]}</span>
           </div>
         </div>
-        <div className="bw-mgr-card-meta">{manager.club} · {manager.years}</div>
         <div className="bw-mgr-card-style">{manager.styleLabel}</div>
-        <div className="bw-mgr-card-quote">"{manager.flavourText}"</div>
-        {manager.preferredArchetypes?.length > 0 && (
-          <div className="bw-mgr-card-tags">
-            {manager.preferredArchetypes.map(a => (
-              <span key={a} className="bw-mgr-tag">{a}</span>
-            ))}
-          </div>
-        )}
       </div>
-      {showPickButton && (
-        <button className="bw-mgr-pick-btn" onClick={() => onPick(manager)} disabled={disabled}>
-          PICK {mgrLastName}
-        </button>
-      )}
     </div>
   );
 }
 
-function PicksLog({ assignments, draft }) {
-  const entries = Object.entries(assignments);
-  if (!entries.length) return null;
+// The appointments board — reuses the player-draft board skin (bw-draw-*): every
+// club sits in pick order in its own full kit colour, and the info block fills to
+// the same kit colour the moment its manager is appointed. The current club is
+// called out ("your pick" / "picking…"), the rest wait.
+function DraftBoard({ pickOrder, turnIdx, assignments, draft }) {
   return (
-    <div className="bw-picks-log">
-      <div className="bw-picks-log-title">PICKS SO FAR</div>
-      {entries.map(([idx, mgr]) => {
-        const club = draft.managers[idx];
-        return (
-          <div key={idx} className="bw-picks-row">
-            <span className="bw-picks-club">{club.dofName || club.name}</span>
-            <span className="bw-picks-arrow">→</span>
-            <span className="bw-picks-name">{mgr.name}</span>
-          </div>
-        );
-      })}
+    <div className="bw-draw-board bw-draw-round bw-mgr-draw-board">
+      <div className="bw-draw-legend">
+        <span className="bw-draw-legend-club">Club</span>
+        <div className="bw-draw-legend-info">
+          <span className="bw-draw-legend-pick">Manager</span>
+        </div>
+      </div>
+      <ul className="bw-draw-rows">
+        {pickOrder.map((clubIdx, i) => {
+          const club = draft.managers[clubIdx];
+          const mgr = assignments[clubIdx];
+          const signed = !!mgr;
+          const isNow = !signed && i === turnIdx;
+          const isLatest = signed && i === turnIdx - 1;
+          const isHuman = !club.isComputer;
+          const clubName = club.clubName || club.teamName || club.name;
+          const kit = club.primaryColor || "#1a3a6b";
+          return (
+            <li
+              key={clubIdx}
+              className={
+                "bw-draw-row" +
+                (signed ? " is-signed" : " is-pending") +
+                (isLatest ? " is-latest" : "") +
+                (isNow ? " is-next" : "") +
+                (isHuman ? " is-you" : "")
+              }
+              style={{ "--kit": kit, "--kit-text": readableTextOn(kit) }}
+            >
+              <div className="bw-draw-cell-club">
+                <KitSwatch primary={club.primaryColor} secondary={club.secondaryColor} pattern={club.pattern || "plain"} uid={`mb-${clubIdx}`} size={18} />
+                <span className="bw-draw-club-name">{clubName}</span>
+                {isHuman ? <span className="bw-draw-you">YOU</span> : <span className="bw-draw-cpu">CPU</span>}
+              </div>
+              <div className="bw-draw-cell-info">
+                <span className="bw-draw-info-main">
+                  {signed ? (
+                    <span className="bw-draw-pick">
+                      <span className="bw-draw-pick-name">{mgr.name}</span>
+                    </span>
+                  ) : isNow ? (
+                    <span className="bw-draw-next-label">{isHuman ? "⏵ Your pick" : "picking…"}</span>
+                  ) : (
+                    <span className="bw-draw-pending">waiting…</span>
+                  )}
+                </span>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }
@@ -315,12 +391,13 @@ export default function ManagerDraftScreen({
   const [assignments, setAssignments] = useState({});
   const timers = useRef([]);
   const pendingOffer = useRef(null);
-  // `settled` gates the transition from the spinning ride to the choice cards —
-  // it flips true a beat AFTER the final option is revealed, so the wheel keeps
-  // spinning for a moment rather than snapping away the instant reveal completes.
-  const [settled, setSettled] = useState(false);
   // A human's tapped-but-not-yet-confirmed choice; drives the confirm dialog.
   const [pendingPick, setPendingPick] = useState(null);
+  const [drawSpeedIdx, setDrawSpeedIdx] = useState(loadDrawSpeedIdx);
+  function changeDrawSpeed(idx) {
+    setDrawSpeedIdx(idx);
+    saveDrawSpeedIdx(idx);
+  }
 
   // Refs for stale-closure-safe external pick handling
   const poolRef = useRef(pool);
@@ -366,59 +443,89 @@ export default function ManagerDraftScreen({
   function spinAndReveal() {
     clearTimers();
     setWaitingForGo(false);
-    setSpinning(true);
     setCpuPick(null);
     setRevealed(0);
     setOffered(null);
-    setSettled(false);
     setPendingPick(null);
 
     // Real Teams CPU: offer managers from its assigned club (falls back to normal if none)
-    const clubMgrs = currentManager?.isComputer ? clubManagersInPool(pool, currentManager.realClub) : [];
-    pendingOffer.current = clubMgrs.length
+    const cpu = !!currentManager?.isComputer;
+    const clubMgrs = cpu ? clubManagersInPool(pool, currentManager.realClub) : [];
+    const offer = clubMgrs.length
       ? dedupByName(shuffle(clubMgrs)).slice(0, 3)
       : dedupByName(shuffle(filterByRoulette(pool, currentManager))).slice(0, 3);
+    pendingOffer.current = offer;
+
+    const speed = DRAW_SPEEDS[drawSpeedIdx] || DRAW_SPEEDS[DEFAULT_DRAW_SPEED_IDX];
+
+    // CPU at INSTANT: no theatre, appoint straight away.
+    if (cpu && speed.spin === 0 && speed.pick === 0) {
+      setSpinning(false);
+      handlePick(cpuPickFrom(offer));
+      return;
+    }
+
+    setSpinning(true);
+
+    // Human turns keep a fixed, comfortable pace; CPU turns follow the draw-speed
+    // picker so a watching player can dawdle or blast through. The reveal gap is a
+    // full beat so each manager lands with a bit of suspense rather than in a rush.
+    const spinMs = cpu ? Math.max(speed.spin, 120) : 1500;
+    const gap    = cpu ? Math.max(speed.spin, 90) : 1500;
 
     const t0 = setTimeout(() => {
       setSpinning(false);
-      setOffered(pendingOffer.current);
-      // Reveal the three horses one at a time while the wheel keeps turning,
-      // with a generous gap between each for suspense, then hold the spin a good
-      // beat longer (settle) before the choice cards appear.
-      const t1 = setTimeout(() => setRevealed(1), 2000);
-      const t2 = setTimeout(() => setRevealed(2), 4200);
-      const t3 = setTimeout(() => setRevealed(3), 6400);
-      const t4 = setTimeout(() => setSettled(true), 8800);
-      timers.current = [t1, t2, t3, t4];
-    }, 3600);
+      setOffered(offer);
+      // Reveal the three cards one at a time — they pop in underneath the
+      // carousel, which keeps spinning until the last one lands. For a CPU, its
+      // choice highlights as the last card settles, then auto-confirms.
+      const t1 = setTimeout(() => setRevealed(1), gap);
+      const t2 = setTimeout(() => setRevealed(2), gap * 2);
+      const t3 = setTimeout(() => {
+        setRevealed(3);
+        // Deliberation beat: hold on all three ("…is deliberating…") before the
+        // CPU settles on one, so it reads as a real decision rather than a snap.
+        if (cpu) {
+          const tThink = setTimeout(() => setCpuPick(cpuPickFrom(offer)), speed.pick);
+          timers.current.push(tThink);
+        }
+      }, gap * 3);
+      timers.current = [t1, t2, t3];
+    }, spinMs);
     timers.current = [t0];
   }
 
   function skipReveal() {
     clearTimers();
-    setOffered(pendingOffer.current || dedupByName(shuffle(filterByRoulette(pool, currentManager))).slice(0, 3));
+    const offer = pendingOffer.current || dedupByName(shuffle(filterByRoulette(pool, currentManager))).slice(0, 3);
+    setOffered(offer);
     setSpinning(false);
     setRevealed(3);
-    setSettled(true);
+    if (currentManager?.isComputer) setCpuPick(cpuPickFrom(offer));
   }
 
-  // CPU highlights its top pick after all cards are revealed
-  useEffect(() => {
-    if (!offered || isHuman || !isMyTurn) return;
-    const sorted = [...offered].sort((a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier]);
-    const t = setTimeout(() => setCpuPick(sorted[0]), 9500);
-    return () => clearTimeout(t);
-  }, [offered, currentManagerIdx, isMyTurn]);
-
-  // Auto-spin for CPU turns — only for the device that handles CPU (host in multiplayer)
+  // Auto-spin for CPU turns — only for the device that handles CPU (host in
+  // multiplayer). Speed-scaled so INSTANT chains straight through.
   useEffect(() => {
     if (phase !== "playing") return;
     if (!waitingForGo) return;
     if (isHuman) return;
     if (!isMyTurn) return;
-    const t = setTimeout(() => spinAndReveal(), 800);
+    const speed = DRAW_SPEEDS[drawSpeedIdx] || DRAW_SPEEDS[DEFAULT_DRAW_SPEED_IDX];
+    const t = setTimeout(() => spinAndReveal(), speed.spin === 0 ? 0 : 500);
     return () => clearTimeout(t);
-  }, [phase, waitingForGo, turnIdx, isMyTurn]);
+  }, [phase, waitingForGo, turnIdx, isMyTurn, drawSpeedIdx]);
+
+  // Auto-confirm the CPU's highlighted pick after a speed-scaled beat — replaces
+  // the old manual "CONFIRM & NEXT". Humans still appoint by tapping a card.
+  useEffect(() => {
+    if (isHuman || !isMyTurn) return;
+    if (!cpuPick || revealed < 3) return;
+    const speed = DRAW_SPEEDS[drawSpeedIdx] || DRAW_SPEEDS[DEFAULT_DRAW_SPEED_IDX];
+    // The pick's highlighted — a short beat to read "appoints X", then advance.
+    const t = setTimeout(() => handlePick(cpuPick), Math.round(speed.pick * 0.6));
+    return () => clearTimeout(t);
+  }, [cpuPick, revealed, isHuman, isMyTurn, drawSpeedIdx]);
 
   // Watch for external picks from other devices (multiplayer only)
   useEffect(() => {
@@ -442,7 +549,6 @@ export default function ManagerDraftScreen({
       setCpuPick(null);
       setRevealed(0);
       setOffered(null);
-      setSettled(false);
       setPendingPick(null);
 
       const newAssignments = { ...assignmentsRef.current, [currentManagerIdx]: pick };
@@ -471,7 +577,6 @@ export default function ManagerDraftScreen({
     setCpuPick(null);
     setRevealed(0);
     setOffered(null);
-    setSettled(false);
     setPendingPick(null);
 
     const newAssignments = { ...assignments, [currentManagerIdx]: manager };
@@ -484,10 +589,6 @@ export default function ManagerDraftScreen({
       setTurnIdx(nextTurn);
       setWaitingForGo(true);
     }
-  }
-
-  function confirmCpuPick() {
-    if (cpuPick) handlePick(cpuPick);
   }
 
   function skipAllCpu() {
@@ -526,7 +627,6 @@ export default function ManagerDraftScreen({
     setOffered(null);
     setRevealed(0);
     setCpuPick(null);
-    setSettled(false);
     setPendingPick(null);
 
     if (nextHumanIdx !== null) {
@@ -562,19 +662,13 @@ export default function ManagerDraftScreen({
 
   const clubDisplayName = currentManager.teamName || currentManager.clubName || currentManager.name;
   const playerName = currentManager.dofName || currentManager.name;
-  const cpuReady = !isHuman && !!cpuPick && revealed >= 3;
 
   // Non-active human turn in multiplayer: show waiting state
   const theirTurn = isMultiplayer && isHuman && !isMyTurn;
-  const showChoose = !theirTurn && !spinning && !!offered && revealed >= 3 && settled;
-  const showRide = !theirTurn && !showChoose;
-  const revealedOffered = offered ? offered.slice(0, revealed) : [];
-  const sortedOffered = offered ? [...offered].sort((a, b) => TIER_ORDER[a.tier] - TIER_ORDER[b.tier]) : [];
-  const riders = [
-    revealedOffered[0] || null,
-    revealedOffered[1] || null,
-    revealedOffered[2] || null,
-  ];
+  // The carousel turns from HOP ON (or CPU auto-spin) until the last card lands.
+  const carouselSpinning = spinning || (!!offered && revealed < 3);
+  const allRevealed = !!offered && revealed >= 3;
+  const canPick = isHuman && isMyTurn && allRevealed;
 
   return (
     <div className="setup-screen">
@@ -587,14 +681,14 @@ export default function ManagerDraftScreen({
         <div className="bw-turn-status">
           {theirTurn
             ? `${playerName} is choosing their manager...`
-            : spinning
+            : carouselSpinning
               ? `Spinning the Merry-Go-Round...`
               : waitingForGo && isHuman
-                ? `${playerName} — spin to see your options`
-                : isHuman && offered
+                ? `${playerName} — hop on to see your options`
+                : canPick
                   ? `${playerName}, choose your manager`
-                  : cpuReady
-                    ? `${playerName} has chosen — confirm to continue`
+                  : !isHuman && cpuPick && revealed >= 3
+                    ? `${playerName} appoints ${cpuPick.name}`
                     : `${playerName} is deliberating...`}
         </div>
         {pickOrder.length > 1 && (
@@ -621,67 +715,95 @@ export default function ManagerDraftScreen({
             <div className="mp-waiting-spinner" />
             <p className="mp-waiting-text">{playerName} is spinning the Merry-Go-Round...</p>
           </div>
-        ) : showRide ? (
-          <>
-            <RideStage riders={riders} />
-            <div className="bw-ride-controls">
-              {waitingForGo && !spinning && isHuman && isMyTurn && (
-                <button className="bw-cta-arcade" onClick={spinAndReveal}>🎠 HOP ON THE RIDE</button>
-              )}
-              {(spinning || (!!offered && !settled)) && (
-                <button className="bw-cta-secondary" onClick={skipReveal}>SKIP</button>
-              )}
-              {spinning && !isHuman && isHost && (
-                <button className="bw-cta-secondary" onClick={skipAllCpu}>⏭ SKIP CPU</button>
-              )}
-            </div>
-          </>
         ) : (
-          <div className="bw-body">
-            <div className="bw-turn-status" style={{ border: "none", padding: "0 0 8px" }}>
-              {isHuman
-                ? <>Pick one gaffer for <strong style={{ color: "var(--bw-gold)" }}>{clubDisplayName}</strong>.</>
-                : cpuReady
-                  ? `${playerName} picks ${cpuPick.name}.`
-                  : "Deliberating..."}
+          <div className="bw-mgr-stage">
+            <div className="bw-car-wrap">
+              <Carousel spinning={carouselSpinning} />
             </div>
-            <div className="bw-mgr-picks">
-              {sortedOffered.map((mgr) => (
-                <ManagerCard
-                  key={mgr.id}
-                  manager={mgr}
-                  onPick={isHuman && isMyTurn ? setPendingPick : () => {}}
-                  disabled={!isHuman || !isMyTurn}
-                  highlighted={isHuman ? pendingPick?.id === mgr.id : cpuPick?.id === mgr.id}
-                  showPickButton={isHuman}
-                />
-              ))}
+
+            {/* One fixed-height action bar for every state — buttons swap in
+                place rather than appearing mid-page, so nothing below jumps.
+                CPU turns are automated: a draw-speed picker + skip, same as the
+                player-draft board. Humans hop on and tap a card. */}
+            <div className="bw-mgr-actions">
+              {!isHuman && isMyTurn && (
+                <>
+                  <label className="bw-draw-speed-label">
+                    Draw speed
+                    <select className="bw-draw-speed" value={drawSpeedIdx} onChange={e => changeDrawSpeed(Number(e.target.value))}>
+                      {DRAW_SPEEDS.map((s, i) => (
+                        <option key={s.label} value={i}>{s.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  {isHost && (
+                    <button className="bw-cta-secondary bw-draw-skip-btn" onClick={skipAllCpu}>⏭ SKIP</button>
+                  )}
+                </>
+              )}
+              {isHuman && isMyTurn && (
+                <>
+                  {waitingForGo && !offered && (
+                    <button className="bw-cta-arcade" onClick={spinAndReveal}>🎠 HOP ON THE RIDE</button>
+                  )}
+                  {carouselSpinning && (
+                    <button className="bw-cta-secondary" onClick={skipReveal}>SKIP</button>
+                  )}
+                  {canPick && (
+                    <span className="bw-mgr-actions-hint">Tap a manager to appoint</span>
+                  )}
+                </>
+              )}
             </div>
-            {!isHuman && (
-              <div className="bw-series-actions" style={{ marginTop: 10 }}>
-                <button className="bw-cta-primary" onClick={confirmCpuPick} disabled={!cpuReady}>
-                  {cpuReady ? "CONFIRM & NEXT" : "DELIBERATING..."}
-                </button>
-                {isHost && (
-                  <button className="bw-cta-secondary" onClick={skipAllCpu}>⏭ SKIP CPU</button>
-                )}
+
+            {/* The three offer cards land under the carousel one at a time, then
+                become the pickable cards — no separate choose screen. */}
+            <div className="bw-body" style={{ paddingTop: 0 }}>
+              <div className="bw-mgr-picks">
+                {[0, 1, 2].map(i => {
+                  const mgr = offered && revealed > i ? offered[i] : null;
+                  if (!mgr) return <PendingCard key={i} />;
+                  return (
+                    <ManagerCard
+                      key={mgr.id}
+                      manager={mgr}
+                      onPick={canPick ? setPendingPick : null}
+                      highlighted={isHuman ? pendingPick?.id === mgr.id : cpuPick?.id === mgr.id}
+                    />
+                  );
+                })}
               </div>
-            )}
+            </div>
           </div>
         )}
 
         <div className="bw-body" style={{ paddingTop: 0 }}>
-          <PicksLog assignments={assignments} draft={draft} />
+          <DraftBoard pickOrder={pickOrder} turnIdx={turnIdx} assignments={assignments} draft={draft} />
         </div>
       </div>
 
       {pendingPick && (
         <div className="bw-modal-overlay" onClick={() => setPendingPick(null)}>
-          <div className="bw-modal-box" onClick={e => e.stopPropagation()}>
+          <div className="bw-modal-box bw-mgr-confirm" onClick={e => e.stopPropagation()}>
             <div className="bw-modal-title">CONFIRM APPOINTMENT</div>
-            <div className="bw-confirm-name">{pendingPick.name}</div>
-            <div className="bw-confirm-detail">{pendingPick.styleLabel}</div>
-            <div className="bw-confirm-detail" style={{ marginBottom: 18 }}>
+            <div className="bw-mgr-confirm-head">
+              <div className="bw-confirm-name">{pendingPick.name}</div>
+              <div className="bw-mgr-card-chips">
+                <span className="bw-mgr-chip">{ERA_LABELS[pendingPick.era]}</span>
+                <span className={`bw-mgr-chip ${pendingPick.tier === "elite" ? "tier-elite" : ""}`}>{TIER_LABELS[pendingPick.tier]}</span>
+              </div>
+            </div>
+            <div className="bw-mgr-card-meta">{pendingPick.club} · {pendingPick.years}</div>
+            <div className="bw-mgr-card-style">{pendingPick.styleLabel}</div>
+            <div className="bw-mgr-card-quote">"{pendingPick.flavourText}"</div>
+            {pendingPick.preferredArchetypes?.length > 0 && (
+              <div className="bw-mgr-card-tags">
+                {pendingPick.preferredArchetypes.map(a => (
+                  <span key={a} className="bw-mgr-tag">{a}</span>
+                ))}
+              </div>
+            )}
+            <div className="bw-confirm-detail" style={{ margin: "16px 0 18px" }}>
               Appoint as gaffer for <strong style={{ color: "var(--bw-gold)" }}>{clubDisplayName}</strong>?
             </div>
             <div className="bw-confirm-btns">
